@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><title>애니3d 01 · 4장</title>
+<style>
+@font-face{font-family:"Black Han Sans";src:url("file:///D:/tracks/%EC%8A%A4%EB%A0%88%EB%93%9C/fonts/BlackHanSans.ttf");font-style:normal;font-weight:400}
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--paper:#fff}
+html,body{background:var(--paper)}
+.f{width:1080px;height:1350px;overflow:hidden;position:relative;color:var(--ink);font-family:"Noto Sans KR",sans-serif;
+  padding:64px 80px 64px;display:flex;flex-direction:column;gap:36px;background:var(--paper)}
+.kind{font-size:34px;font-weight:700;color:var(--acc-ink);letter-spacing:.04em}
+h1{font-size:72px;font-weight:900;letter-spacing:-.04em;line-height:1.1;margin-top:10px;word-break:keep-all}
+.tag{position:absolute;right:80px;bottom:64px;font-size:34px;font-weight:700;letter-spacing:.04em;color:var(--mute)}
+table{border-collapse:collapse;width:100%;font-size:38px;line-height:1.25;font-variant-numeric:tabular-nums}
+th{text-align:left;font-weight:700;font-size:34px;color:var(--mute);padding:0 0 12px;border-bottom:4px solid var(--rule)}
+td{padding:16px 0;border-bottom:3px solid var(--row);vertical-align:top}
+th:not(:first-child),td:not(:first-child){text-align:right;padding-left:24px}
+tr.hi td{color:var(--acc-ink);font-weight:900}
+.fig{flex:1;min-height:0;display:flex;align-items:center;justify-content:center}
+.fig img,.fig svg{max-width:100%;max-height:100%}
+.cap{font-size:38px;font-weight:700;line-height:1.35}
+.q{font-family:"Noto Serif KR",serif;font-size:38px;line-height:1.45;padding-top:22px;border-top:8px solid var(--acc)}
+.q b{display:block;font-family:"Noto Sans KR",sans-serif;font-size:34px;font-weight:700;color:var(--acc-ink);margin-bottom:10px}
+.q .ko{display:block;margin-top:18px;font-family:"Noto Sans KR",sans-serif;font-size:36px;line-height:1.4;color:var(--mute)}
+pre{font-family:"NanumGothicCoding",monospace;font-size:36px;line-height:1.5;background:var(--codebg);padding:28px 32px;border-radius:12px;white-space:pre-wrap}
+
+:root{--bg1:#aee1ff;--fg1:#111;--bg2:#ffcd00;--fg2:#111;--acc:#e53935;--acc-ink:#e53935;--paper:#aee1ff;--ink:#111;--mute:#333;--rule:#111;--codebg:#fff;--row:#111}
+.f{background-image:radial-gradient(circle at 50% 50%,rgba(17,17,17,.13) 0 6px,transparent 7px);background-size:44px 44px;background-position:22px 22px}
+.art{left:44px;top:44px;width:992px;height:790px;border:3px solid #111;border-radius:18px;background:#fff}
+.art>*{border-radius:15px}
+.step{position:absolute;left:36px;top:-8px;font-family:"Black Han Sans",sans-serif;font-size:132px;line-height:1;color:#111;text-shadow:6px 0 0 #aee1ff,-6px 0 0 #aee1ff,0 6px 0 #aee1ff,0 -6px 0 #aee1ff}
+.band{border-top:3px solid #111}
+.big{font-family:"Black Han Sans",sans-serif;font-weight:400;letter-spacing:-.02em}
+.big .n{color:var(--acc)}
+.sub,.src,.tag,.kind{font-weight:700}
+h1{font-family:"Black Han Sans",sans-serif;font-weight:400;letter-spacing:-.02em}
+.f.detail .blk{background:#fff;border:3px solid #111;border-radius:18px;padding:24px 28px}
+.q{border-top:0}
+pre{border:3px solid #111}
+
+</style></head><body>
+<!-- 디테일 장. 계약은 스레드/cardgen.py 머리말. 스킨 = 애니3d -->
+<div class="f detail">
+  <div><div class="kind">원문 · 코드</div><h1>두 투영이 주어지면 점은 확정된다</h1></div>
+  <div class="blk"><div class="q"><b>Church 1892 · Elements of Descriptive Geometry · Art. 8</b>If the two projections of a point are given, the point is completely determined; … the point M is determined by the intersection of these two perpendiculars.<span class="ko">옮김 — 한 점의 두 투영이 주어지면 그 점은 완전히 확정된다. 점 M 은 두 수선의 교점으로 정해진다. 책은 점 하나를 전제한다. 원화는 한 높이에 구간 여섯을 준다.</span></div></div>
+  <div class="blk"><pre>fr  = 정면[r]   # x 구간들  Art.7
+sr  = 측면[r]   # y 구간들  Art.7
+sec = np.outer(fr, sr)   # Art.8</pre></div>
+  
+  <div class="tag">애니3d 01</div>
+</div>
+</body></html>

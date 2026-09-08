@@ -1,0 +1,14 @@
+# 모델 가중치 (~10GB) — build_partmaps 주석대로 HF 에서 받는다
+weights/
+# upstream 저장소. git clone https://github.com/VAST-AI-Research/TripoSG.git
+# 받은 뒤 inference_utils.py 의 `from diso import DiffDMC` 를 함수 안으로 옮길 것
+TripoSG/
+out/
+*.glb
+*.blend
+*.blend1
+win_*.npy
+pid_*.npy
+cls_*.npy
+
+# in/ 은 추적한다 — TripoSG 입력을 정확히 재현해야 한다 (prep_input.py 가 만든다)

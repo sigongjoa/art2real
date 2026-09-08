@@ -1,0 +1,25 @@
+# 애니 원화 → 3D 벤치마크 — 케이스 목록
+#
+# 경로는 저장소 뿌리(D:\tracks) 기준. **파일은 안 옮긴다** — trail4/6/7 을 가리키기만 한다.
+# art_side / art_back 이 비면 그 시점은 안 잰다 (낙차도 안 나온다).
+# expect_parts 는 원화를 보고 사람이 정한 수. 자동으로 안 나온다.
+#
+# 알파 있는 PNG 는 흰 바탕에 얹어 읽는다. 견갑은 _white 판이 그 작업을 이미 해뒀다.
+#
+# axes = (가로, 위, 깊이) 월드축. **짐작하지 않는다** — 만든 도구의 성질이지 물건의 성질이 아니다.
+#   PartCrafter·TripoSG 는 glTF y-up 이라 xyz. OmniPart 와 블렌더 손모델은 z-up 이라 xzy.
+#   (op_front 는 y 폭이 0.118 로 납작하다 = y 가 깊이. tri_pauldron 은 trail6 판정기가 topix(x,z) 를 쓴다)
+#   `auto` 로 두면 judge_stand 의 어림(제일 짧은 축이 깊이)을 쓰는데, 두께비가 1 에 가까우면 깨진다.
+case	model	mesh	art_front	art_side	art_back	axes	expect_parts	note
+견갑	PartCrafter5	5_blender/trail7_part3d/out/pc_front.glb	5_blender/trail7_part3d/in/pauldron_front_white.png	5_blender/trail7_part3d/in/pauldron_side_white.png	5_blender/trail7_part3d/in/pauldron_back_white.png	xyz	5	캡1+뿔4
+견갑	OmniPart-cfg7.5	5_blender/trail7_part3d/out/op_front.glb	5_blender/trail7_part3d/in/pauldron_front_white.png	5_blender/trail7_part3d/in/pauldron_side_white.png	5_blender/trail7_part3d/in/pauldron_back_white.png	xzy	5	마스크 줌
+견갑	OmniPart-cfg12s23	5_blender/trail7_part3d/out/op_s23.glb	5_blender/trail7_part3d/in/pauldron_front_white.png	5_blender/trail7_part3d/in/pauldron_side_white.png	5_blender/trail7_part3d/in/pauldron_back_white.png	xzy	5	IoU가 올라간 판
+견갑	손으로지음	5_blender/trail6_handbuilt/out/tri_pauldron.glb	5_blender/trail7_part3d/in/pauldron_front_white.png	5_blender/trail7_part3d/in/pauldron_side_white.png	5_blender/trail7_part3d/in/pauldron_back_white.png	xzy	5	286면. 대조군
+오메가몬	PartCrafter6x1536	5_blender/trail7_part3d/out/omega6t.glb	5_blender/trail7_part3d/in/omega_front_clean.png	5_blender/trail7_part3d/in/omega_side.png	5_blender/trail7_part3d/in/omega_back.png	xyz	6	전신
+오메가몬	손보정	5_blender/trail7_part3d/out/omega_final.glb	5_blender/trail7_part3d/in/omega_front_clean.png	5_blender/trail7_part3d/in/omega_side.png	5_blender/trail7_part3d/in/omega_back.png	xyz	9	투구·얼굴판 덧댐
+야스호	PartCrafter	5_blender/trail7_part3d/out/y_web_pc.glb	5_blender/trail7_part3d/in/yasuho_web.png			xyz	8	사람형
+야스호	OmniPart	5_blender/trail7_part3d/out/y_omni.glb	5_blender/trail7_part3d/in/yasuho_web.png			xzy	15	사람형
+스탠드_Doggy	PartCrafter	5_blender/trail7_part3d/out/st_doggy.glb	5_blender/trail7_part3d/in/stand_Doggy_Style.png			xyz	6	하트 = 형태가 정체성
+스탠드_BrainStorm	PartCrafter	5_blender/trail7_part3d/out/st_Brain_Storm.glb	5_blender/trail7_part3d/in/stand_Brain_Storm.png			xyz	6
+스탠드_FunFunFun	PartCrafter	5_blender/trail7_part3d/out/st_Fun_Fun_Fun.glb	5_blender/trail7_part3d/in/stand_Fun_Fun_Fun.png			xyz	5	샹들리에
+턴어라운드	TripoSG	5_blender/trail4_gen3d/out/turn_front.glb	5_blender/trail4_gen3d/in/turn_front.png	5_blender/trail4_gen3d/in/turn_side.png		xyz	1	형상만. 파트 없음

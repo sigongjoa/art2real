@@ -1,0 +1,50 @@
+# ── 재생성되는 것은 안 담는다 ────────────────────────────────
+# D:\tracks 의 원칙을 그대로 승계한다. "소스에서 다시 만들 수 있으면 안 넣는다."
+# 주의: gitignore 에서 # 는 줄 맨 앞에서만 주석이다.
+
+out/
+fig/
+_old/
+_보류/
+
+# ── 자체 저장소를 가진 것 ────────────────────────────────────
+# 펠트는 felt-punch 시절부터 자기 .git 을 갖고 있다. 여기 이력에 안 담는다.
+펠트/
+
+# ── 남의 것 ──────────────────────────────────────────────────
+pdfs/
+*.epub
+*.pdf
+
+# trail7 — 남의 저장소 클론과 가중치. clone.sh / huggingface 가 다시 받는다
+트레일/trail7_part3d/OmniPart/
+트레일/trail7_part3d/PartCrafter/
+트레일/trail7_part3d/Sparc3D/
+트레일/trail7_part3d/PartRAG/
+트레일/trail7_part3d/weights/
+트레일/trail7_part3d/in/*.exr
+
+# ── 무거운 것 ────────────────────────────────────────────────
+*.safetensors
+*.ckpt
+*.pt
+*.bin
+*.db
+*.blend1
+venv/
+models/
+hf/
+
+# ── 파이썬 ───────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+
+# ── 도구 ─────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+
+# see-through — 남의 저장소 클론 (F05 논문). git clone 으로 다시 받는다
+트레일/trail7_part3d/see-through/

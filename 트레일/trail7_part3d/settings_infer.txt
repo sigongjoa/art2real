@@ -1,0 +1,17 @@
+scikit-learn
+diffusers
+transformers
+einops
+huggingface_hub
+opencv-python
+trimesh
+omegaconf
+scikit-image
+numpy==1.26.4
+peft
+jaxtyping
+typeguard
+matplotlib
+imageio-ffmpeg
+pyrender
+colormaps

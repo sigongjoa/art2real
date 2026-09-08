@@ -1,0 +1,99 @@
+# 애니 원화(정투영 턴어라운드) → 3D 캐논
+#
+# 전부 무료·합법 경로다 — arXiv, 저자·기관 공개본, 학회 오픈액세스, 공개 강의노트.
+# 유료 자료는 한 건도 없다. PDF 는 저장소에 안 담는다(.gitignore).
+#   python ../../10_연출기획/src/fetch.py sources.tsv ../pdfs get
+#
+# 아래 목록은 2026-09-02 에 **실제로 받아지는지 한 건씩 쳐서 확인했다.**
+# 브라우저로만 받히는 것 둘은 맨 아래 주석에 적어둔다 (스크립트는 403).
+#
+# A. 아핀 · 정투영 다시점 복원 — 3판을 한 좌표계로 묶는 수학
+A05_PoelmanKanade1993_ParaperspectiveFactorization_CMU.pdf	https://www.ri.cmu.edu/pub_files/pub1/poelman_conrad_1993_1/poelman_conrad_1993_1.pdf
+A06_MoritaKanade1997_SequentialFactorization_PAMI.pdf	https://cs.brown.edu/courses/cs143/2011/proj5/Morita_Kanade_PAMI_1997.pdf
+A04_Schneider_VisualHull_CVonline.pdf	https://homepages.inf.ed.ac.uk/rbf/CVonline/LOCAL_COPIES/AV0809/schneider.pdf
+# B. 사영기하 — 정투영을 어길 때 필요해지는 일반형
+B01_HartleyZisserman1999_MultipleViewGeometry_CVPRtutorial.pdf	https://www.robots.ox.ac.uk/~az/tutorials/tutoriala.pdf
+B02_Criminisi1999_SingleViewMetrology_ICCV.pdf	https://www.microsoft.com/en-us/research/wp-content/uploads/1999/01/Criminisi_iccv1999.pdf
+# C. 이산 미분기하 — 「판이다」를 검사 가능한 수로 바꾸는 언어
+C01_Crane_DDG_CourseNotes_CMU.pdf	http://www.cs.cmu.edu/~kmcrane/Projects/DDG/paper.pdf
+C02_DesbrunGrinspunSchroder2005_DDG_SIGGRAPHcourse.pdf	https://geometry.caltech.edu/pubs/GSD05.pdf
+C03_DesbrunSchroder2006_DDG_SIGGRAPHcourse.pdf	https://geometry.caltech.edu/pubs/GSD06.pdf
+C04_DDG_SIGGRAPHAsia2008_Course.pdf	https://ddg.cs.columbia.edu/SIGGRAPHASIA08/SiggraphAsia2008DDGCourse.pdf
+C05_PinkallPolthier1993_DiscreteMinimalSurfaces_cotan.pdf	https://www.cs.jhu.edu/~misha/Fall09/Pinkall93.pdf
+C06_Wardetzky_ConvergenceOfCotangentFormula.pdf	https://ddg.math.uni-goettingen.de/pub/convergence_cotan.pdf
+C07_Crane2013_GeodesicsInHeat.pdf	https://arxiv.org/pdf/1204.6216
+# D. 전개가능면 · 판 구조 — 견갑이 「덧댄 판」이라는 전제의 수학
+D01_SteinGrinspunCrane2018_DevelopabilityOfTriangleMeshes.pdf	https://odedstein.com/projects/developability/developability-of-triangle-meshes.pdf
+D02_RabinovichEtAl_DiscreteGeodesicNets_Developable.pdf	https://arxiv.org/pdf/1707.08360
+D03_Pottmann_ArchitecturalGeometry_DDGreading.pdf	https://brickisland.net/ddg-web/readings/pdf/DDGArchitecturalGeometry.pdf
+D04_WallnerPottmann_GeometricComputingFreeformArchitecture.pdf	https://www.geometrie.tugraz.at/wallner/ag-mathindustry.pdf
+D05_LiuEtAl_ConicalMeshesAndDevelopableSurfaces.pdf	https://www.geometrie.tugraz.at/wallner/quad06.pdf
+D06_Sketch2PQ_PlanarQuadFromSingleSketch.pdf	https://arxiv.org/pdf/2201.09367
+# E. 선화 → 3D — 그림에 그려진 것에서 형태를 세운다
+E01_Igarashi1999_Teddy_SketchingInterface3D.pdf	https://www.cs.toronto.edu/~jacobson/seminar/igarashi-et-al-1999.pdf
+E02_Hudon2018_DeepNormalEstimation_HandDrawnCharacters_ECCVW.pdf	https://openaccess.thecvf.com/content_ECCVW_2018/papers/11131/Hudon_Deep_Normal_Estimation_for_Automatic_Shading_of_Hand-Drawn_Characters_ECCVW_2018_paper.pdf
+E03_2026_3DWireframeFromSingleLineDrawing_GenerativeDepth.pdf	https://arxiv.org/pdf/2604.13549
+# F. 애니 · 셀 도메인 → 3D — 도메인 갭 그 자체를 다룬 논문
+F01_Art3D_TrainingFree3DFromFlatColored.pdf	https://arxiv.org/pdf/2504.10466
+F02_PAniC3D_StylizedSingleView3D_AnimePortraits.pdf	https://arxiv.org/pdf/2303.14587
+F03_NOVA3D_NonOverlappedViews_AnimeReconstruction.pdf	https://arxiv.org/pdf/2405.12505
+F05_SeeThrough_SingleImageLayerDecomposition_Anime.pdf	https://arxiv.org/pdf/2602.03749
+F06_LinkToAnime_2DAnimationDatasetFrom3DRendering.pdf	https://arxiv.org/pdf/2506.02733
+# G. 부품 분해 · 리깅 — 형태 다음의 경쟁 자리
+G01_PartCrafter_CompositionalLatentDiffusion_NeurIPS2025.pdf	https://arxiv.org/pdf/2506.05573
+G02_OmniPart_SemanticDecouplingStructuralCohesion.pdf	https://arxiv.org/pdf/2507.06165
+G03_HoloPart_Generative3DPartAmodalSegmentation.pdf	https://arxiv.org/pdf/2504.07943
+G04_AniGen_S3Fields_AnimatableAssetGeneration_SIGGRAPH2026.pdf	https://arxiv.org/pdf/2604.08746
+G05_FullPart_EachPartAtFullResolution.pdf	https://arxiv.org/pdf/2510.26140
+# H. 음영 → 형태의 한계 — trail6 light.py 가 깨진 자리의 이론
+H02_NonLambertianShapeFromShading_Analysis.pdf	https://arxiv.org/pdf/1502.05197
+H03_FromShadingToLocalShape.pdf	https://arxiv.org/pdf/1310.2916
+H04_DurouFalconeSagona2008_SfS_NewSurveyWithBenchmarks.pdf	https://www.docenti.unina.it/webdocenti-be/allegati/materiale-didattico/675561
+#
+# ---- 스크립트로 못 받는 것 (브라우저로 직접) ----
+# A01  Tomasi & Kanade, 오소그래픽 전체 보고서 (Cornell eCommons, 무료)
+#      https://ecommons.cornell.edu/items/0168fcc4-7a76-4c5e-84f7-a5ba405eba9b
+#      ※ PNAS·Springer·버클리 사본은 각각 403 / 유료 HTML / 접속불가로 확인됨
+# F04  Anime-Ready (ICLR 2026, OpenReview 공개) — 스크립트 접근 403
+#      https://openreview.net/forum?id=BRoAjhYWoQ
+#
+# ---- 인증서가 깨진 것 ----
+# H01  Zhang·Tsai·Cryer·Shah, Shape from Shading: A Survey (PAMI 1999)
+#      https://www.crcv.ucf.edu/papers/Zhang_Tsai_Cryer_Shah_PAMI1999.pdf
+#      1.6MB PDF 이 정상으로 나오는데 UCF 쪽 TLS 인증서가 깨져 있다.
+#      fetch.py 는 verify=True 라 실패한다. 받으려면 verify=False 로 한 번만.
+#
+# ============ 책 (전부 퍼블릭 도메인, archive.org) ============
+#
+# I. 화법기하학 — **정투영 3판이 곧 이 분야다.** 턴어라운드 시트의 원래 수학
+I01_Monge1827_GeometrieDescriptive.pdf	ia:india.history.resource.111811
+I02_MongeBrisson1839_GeometrieDescriptive.pdf	ia:gometriedescrip00brisgoog
+I03_Church1892_ElementsOfDescriptiveGeometry.pdf	ia:elemdescriptgeo00churrich
+I04_Warren1877_DescriptiveGeometry_ShadowsAndPerspective.pdf	ia:elementsofdescri00warruoft
+I05_Haussner1900_DarstellendeGeometrie.pdf	ia:darstellendegeo03hausgoog
+I06_RohnPapperitz1901_LehrbuchDerDarstellendenGeometrie.pdf	ia:lehrbuchderdarst02rohn
+I07_1885_ACourseInShadesAndShadows.pdf	ia:cu31924032226726
+I08_French1922_ManualOfEngineeringDrawing.pdf	ia:manualofengineer0000thom_c0k3
+# J. 사영기하 — 정투영을 어길 때의 일반형
+J01_VeblenYoung1910_ProjectiveGeometry_VolI.pdf	ia:projectivegeomet00vebl
+J02_VeblenYoung_ProjectiveGeometry_VolII.pdf	ia:in.ernet.dli.2015.164475
+J03_Cremona1893_ElementsOfProjectiveGeometry.pdf	ia:elemprojectge00cremrich
+J04_Lehmer1917_SyntheticProjectiveGeometry.pdf	ia:elementarycourse00lehmiala
+J05_Hilbert1902_FoundationsOfGeometry.pdf	ia:foundationsgeom00towngoog
+# K. 미분기하 고전 — 곡률·법선·전개가능면의 원전
+K01_Eisenhart1909_DifferentialGeometryOfCurvesAndSurfaces.pdf	ia:treatiseondiffer00eiseuoft
+K02_Forsyth1920_LecturesOnDifferentialGeometry.pdf	ia:lecturesondiffer00forsuoft
+K03_Bianchi1922_LezioniDiGeometriaDifferenziale.pdf	ia:lezionidigeomet01biangoog
+K04_Blaschke1921_VorlesungenUeberDifferentialgeometrie.pdf	ia:vorlesungenberdi00blas
+K05_Wilczynski1906_ProjectiveDifferentialGeometry_RuledSurfaces.pdf	ia:projectivediffer00wilcuoft
+# L. 공간 해석기하 — 3판에서 좌표를 세우는 계산
+L01_SnyderSisam1914_AnalyticGeometryOfSpace.pdf	ia:analyticgeometry00snyd
+L02_Bell1912_CoordinateGeometryOfThreeDimensions.pdf	ia:elementarytreati00bell
+# M. 인체·구조 드로잉 — 「덩어리를 깎지 않고 판을 얹는」 작화 전통
+M01_Bridgman1920_ConstructiveAnatomy.pdf	ia:constructiveanat00brid
+M02_Hatton1910_FigureDrawing.pdf	ia:hatton-1910-figure-drawing
+M03_1905_FigureComposition.pdf	ia:cu31924020551515
+M04_Thomson1899_HandbookOfAnatomyForArtStudents.pdf	ia:b20401589
+# N. 원근 — 원화가 정투영을 어기는 방향
+N01_Ware1882_ModernPerspective.pdf	ia:modernperspecti00waregoog
+N02_1910_TheoryAndPracticeOfPerspective.pdf	ia:theorypracticeof0000unse_e6p0
