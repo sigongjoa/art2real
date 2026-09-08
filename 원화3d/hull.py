@@ -100,7 +100,7 @@ def main():
     masks = {}
     for v, m in raw.items():
         d = declutter(m)
-        bb = lambda a: (np.where(a.any(0))[0].ptp() + 1, np.where(a.any(1))[0].ptp() + 1)
+        bb = lambda a: (np.ptp(np.where(a.any(0))[0]) + 1, np.ptp(np.where(a.any(1))[0]) + 1)
         print("  %-6s bbox %s -> 지시선 뺀 뒤 %s" % (v, bb(m), bb(d)))
         masks[v] = to_win(d)
 
@@ -116,7 +116,14 @@ def main():
     print()
     for v in W.VIEWS:
         s = W.silhouette(Vh, Fh, v, BACK_SIGN if v == "back" else None)
-        print("  %-6s 원화 대 hull  IoU %.3f" % (v, W.iou(masks[v], s)))
+        a, p = masks[v].astype(bool), np.asarray(s).astype(bool)
+        miss = (a & ~p).sum() / max(a.sum(), 1)
+        print("  %-6s 원화 대 hull  IoU %.3f  못 덮은 %.2f%%" % (v, W.iou(masks[v], s), 100 * miss))
+        # hull 은 형상의 **상한**이다. 되받아 재서 원화를 못 덮으면 깎기가 틀린 것이다.
+        # ponytail: 문턱 10%는 잰 값(front 5.2 · side 1.0 · back 6.9, N=256)에서 왔다.
+        # 그 5~7%는 버그가 아니라 마칭큐브가 등가면을 반 복셀 안쪽에 놓아서 생기는 체계 오차다.
+        # 격자를 키우거나 반 복셀 부풀리면 줄어든다 — 치수가 상품이 되면 그때 판다.
+        assert miss < 0.10, "%s: hull 이 원화를 %.1f%% 못 덮는다 — 상한이 아니면 깎기가 틀린 것" % (v, 100 * miss)
     return masks, mesh
 
 
