@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 """**처음으로 형태를 채점한다.** hull 을 원화가 아니라 **진짜 메시**와 대본다.
 
+    python 정답.py check           채점기 자체검사 (답을 아는 상자 두 개)
     python 정답.py [케이스]        ->  out/정답_<케이스>.png + 표
 
 지금까지의 검증은 전부 실루엣끼리였다. hull 을 되던져 원화와 겹치는 것뿐이라
@@ -61,6 +62,31 @@ def grid(mesh, pitch=PITCH):
     return a, o
 
 
+# 불변식 문턱. **잰 값에서 왔다** — 35장에서 이진 hull 의 못덮음 중앙값이 0.008 이다.
+# 이산화(복셀 격자 + 마칭큐브)로 몇 % 는 어쩔 수 없지만 그 이상이면 뭔가 틀린 것이다.
+MISS_MAX, VOL_MIN = 0.06, 0.95
+
+
+def invariant(A, B):
+    """**visual hull 은 정답을 포함한다.** 이진 hull 이 이걸 어기면 잰 게 틀린 것이다.
+
+    어기는 경우로 실제로 본 것 둘:
+      - 정답 메시가 non-watertight 라 채우기가 새서 정답 부피가 부푼다 (부피비 < 1)
+      - 정답에 멀리 떨어진 떠돌이 정점이 있어 `normalize` 가 물건을 쪼그라뜨린다.
+        그러면 렌더된 실루엣은 창을 다 못 채우고 `to_win` 이 그걸 다시 늘려서
+        **hull 과 정답의 배율이 어긋난다** (부피비 8.84 인데 못덮음 0.398 이 나온다)
+
+    깊이 깎기에는 안 건다 — 그건 일부러 안쪽을 깎으니 못 덮는 게 정상이다."""
+    miss = (A & ~B).sum() / max(A.sum(), 1)
+    vol = B.sum() / max(A.sum(), 1)
+    why = []
+    if miss > MISS_MAX:
+        why.append("이진 hull 이 정답을 %.1f%% 못 덮는다 (문턱 %.0f%%)" % (100 * miss, 100 * MISS_MAX))
+    if vol < VOL_MIN:
+        why.append("이진 부피비 %.2f — hull 은 상한이라 1 미만이 나올 수 없다" % vol)
+    return why
+
+
 def common(a, oa, b, ob):
     """두 격자를 같은 인덱스 공간에 올린다. 세계 좌표가 같으니 정수 오프셋뿐이다."""
     lo = np.minimum(oa, ob)
@@ -118,5 +144,26 @@ def main():
     print("  -> out/정답_%s.png" % case)
 
 
+def demo():
+    """**채점기 자체를 시험한다.** 상자 안에 든 작은 상자는 답을 아는 경우다."""
+    big = trimesh.creation.box(extents=[0.4, 0.3, 1.0])
+    small = trimesh.creation.box(extents=[0.2, 0.15, 0.5])
+    A, oa = grid(small)                          # 정답 = 작은 상자
+    B, ob = grid(big)                            # hull = 큰 상자 (정답을 품는다)
+    A, B = common(A, oa, B, ob)
+    miss = (A & ~B).sum() / A.sum()
+    vol = B.sum() / A.sum()
+    assert miss < 0.01, "품고 있는데 못 덮는다고 나온다 (%.3f) — grid 나 common 이 틀렸다" % miss
+    assert 6.0 < vol < 10.0, "부피비가 %.2f — 기대는 8배쯤이다 (0.4·0.3·1.0 / 0.2·0.15·0.5)" % vol
+    assert not invariant(A, B), "품는 경우인데 불변식이 걸린다"
+    # 반대로, 어긋난 경우는 반드시 걸려야 한다
+    A2, B2 = common(*grid(small), *grid(trimesh.creation.box(extents=[0.1, 0.1, 0.1])))
+    assert invariant(A2, B2), "정답보다 작은 hull 인데 불변식이 안 걸린다"
+    print("자체검사 통과 — 못덮음 %.3f · 부피비 %.2f · 불변식이 양방향으로 운다" % (miss, vol))
+
+
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) > 1 and sys.argv[1] == "check":
+        demo()
+    else:
+        main()

@@ -1,0 +1,178 @@
+{
+ "설명": "벤치마크 케이스. **손으로 고정한다** — 자동 수집 금지. 새 케이스는 사람이 여기 넣는다.",
+ "기준": "서 있고(깊이<1.6키, 가로<2.2키), 창에 들어가고(가로/키<1.2 권장), 이진 hull 이 정답을 덮는 것",
+ "만든날": "2026-09-09",
+ "cases": [
+  {
+   "name": "avatarsample_d",
+   "가로키": 0.86,
+   "split": "tune"
+  },
+  {
+   "name": "avatarsample_d_darkness",
+   "가로키": 0.8,
+   "split": "tune"
+  },
+  {
+   "name": "avatarsample_e",
+   "가로키": 0.82,
+   "split": "holdout"
+  },
+  {
+   "name": "avatarsample_f",
+   "가로키": 0.81,
+   "split": "tune"
+  },
+  {
+   "name": "avatarsample_g",
+   "가로키": 0.8,
+   "split": "tune"
+  },
+  {
+   "name": "base_female",
+   "가로키": 0.87,
+   "split": "tune"
+  },
+  {
+   "name": "base_male",
+   "가로키": 0.89,
+   "split": "tune"
+  },
+  {
+   "name": "cape_Hat_Stylised_lNN3PlrjSa",
+   "가로키": 1.0,
+   "split": "holdout"
+  },
+  {
+   "name": "cloak_Chest_Closed_AngpV0HxD8",
+   "가로키": 1.58,
+   "split": "tune"
+  },
+  {
+   "name": "cloak_Chest_O72u4Drp8k",
+   "가로키": 1.04,
+   "split": "tune"
+  },
+  {
+   "name": "cloak_Cloche_Qz9XMYysBQ",
+   "가로키": 1.43,
+   "split": "tune"
+  },
+  {
+   "name": "hairsample_female",
+   "가로키": 0.83,
+   "split": "holdout"
+  },
+  {
+   "name": "hairsample_male",
+   "가로키": 0.87,
+   "split": "tune"
+  },
+  {
+   "name": "knight_Warrior_RaWl2GJ0NZ",
+   "가로키": 0.65,
+   "split": "holdout"
+  },
+  {
+   "name": "knight_Warrior_Z6ZUtm6kc1",
+   "가로키": 0.61,
+   "split": "tune"
+  },
+  {
+   "name": "mech_Drill_8uBbH7Dvmb",
+   "가로키": 0.61,
+   "split": "holdout"
+  },
+  {
+   "name": "mech_Mech_4UvIHxnoSR",
+   "가로키": 1.42,
+   "split": "tune"
+  },
+  {
+   "name": "monster_Mimic_B8HrWzkuNp",
+   "가로키": 0.76,
+   "split": "tune"
+  },
+  {
+   "name": "robot_Robot_Enemy_Legs_Gun_lFZfDh2hzP",
+   "가로키": 0.39,
+   "split": "tune"
+  },
+  {
+   "name": "robot_Robot_ejDr8lRglP",
+   "가로키": 0.31,
+   "split": "tune"
+  },
+  {
+   "name": "sakurada_fumiriya",
+   "가로키": 0.82,
+   "split": "tune"
+  },
+  {
+   "name": "sendagaya_shino",
+   "가로키": 0.84,
+   "split": "holdout"
+  },
+  {
+   "name": "statue_Town_Center_cuQuFJEIfH",
+   "가로키": 1.0,
+   "split": "tune"
+  },
+  {
+   "name": "witch_Chibi_Witch_dKexfKQOOl",
+   "가로키": 0.67,
+   "split": "tune"
+  },
+  {
+   "name": "witch_Witch_vWI9PHfjcy",
+   "가로키": 0.44,
+   "split": "holdout"
+  },
+  {
+   "name": "wizard_Evil_Wizard_bdxawstqtq",
+   "가로키": 1.29,
+   "split": "tune"
+  },
+  {
+   "name": "wizard_WIzard_Gnome_dEuyzEgrF4",
+   "가로키": 0.68,
+   "split": "holdout"
+  },
+  {
+   "name": "wizard_Wizard_o87Upt5uHX",
+   "가로키": 1.01,
+   "split": "tune"
+  },
+  {
+   "name": "소체",
+   "가로키": 0.87,
+   "split": "tune"
+  }
+ ],
+ "제외": [
+  {
+   "name": "dress_Dresser_Ud8QR8Ku9e",
+   "why": "이진 hull 이 정답을 39.1% 못 덮는다 (문턱 6%)"
+  },
+  {
+   "name": "knight_Characters_Matt_66kQ4dBBC7",
+   "why": "이진 hull 이 정답을 39.8% 못 덮는다 (문턱 6%)"
+  },
+  {
+   "name": "mech_Mech_o3Ps8z8ByP",
+   "why": "이진 hull 이 정답을 25.5% 못 덮는다 (문턱 6%)"
+  },
+  {
+   "name": "monster_Blue_Demon_S7jYW6Amye",
+   "why": "이진 hull 이 정답을 64.0% 못 덮는다 (문턱 6%) · 이진 부피비 0.68 — hull 은 상한이라 1 미만이 나올 수 없다"
+  },
+  {
+   "name": "statue_Town_Center_76GTkSh4KM",
+   "why": "이진 hull 이 정답을 18.2% 못 덮는다 (문턱 6%)"
+  },
+  {
+   "name": "wizard_Wizard_tabnmuxQBl",
+   "why": "이진 hull 이 정답을 15.9% 못 덮는다 (문턱 6%)"
+  }
+ ]
+}
