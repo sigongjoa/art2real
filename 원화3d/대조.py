@@ -203,19 +203,44 @@ def main():
               open(os.path.join(hist, "대조_%s.json" % stamp), "w", encoding="utf-8"),
               ensure_ascii=False, indent=1)
     print("  기록 -> out/기록/대조_%s.json" % stamp)
+    _ = stamp
 
-    # 그림 — 장마다 이진 -> 깊이
-    Wd, Ht = 960, 80 + len(rows) * 30 + 60
+    # 그림 — 위에 기준선 카드, 아래에 장별 이진 -> 깊이
+    TOP = 214
+    Wd, Ht = 960, TOP + len(rows) * 30 + 60
     im = Image.new("RGB", (Wd, Ht), "white")
     g = ImageDraw.Draw(im)
     lo, hi = min(min(r["이진_iou"], r["깊이_iou"]) for r in rows) - .02, \
              max(max(r["이진_iou"], r["깊이_iou"]) for r in rows) + .02
     xf = lambda v: 320 + (v - lo) / max(hi - lo, 1e-6) * (Wd - 400)
-    g.text((20, 14), "3D IoU — 이진 hull → 깊이 깎기. 기준은 **원본 메시**", font=_font(18), fill=(20, 20, 20))
-    g.text((20, 40), "벤치.json 의 %d 장. ● = 봉인셋. 판은 전부 렌더라 세 판이 자동으로 일치한다" % len(rows),
-           font=_font(11), fill=(130, 130, 130))
+
+    # ── 기준선 카드 ─────────────────────────────────────────
+    g.rectangle([16, 12, Wd - 16, TOP - 34], fill=(248, 248, 246), outline=(225, 225, 222))
+    g.text((32, 24), "기준선  %s" % stamp.replace("_", " "), font=_font(13), fill=(120, 120, 120))
+    hoi = np.median([r["깊이_iou"] for r in ho])
+    hom = np.median([r["깊이_miss"] for r in ho])
+    for i, (lab, val, sub) in enumerate((
+            ("형태 (3D IoU)", "%.3f" % hoi, "봉인 %d장 중앙" % len(ho)),
+            ("못덮음", "%.3f" % hom, "낮을수록 좋다"),
+            ("완주", "%d/%d" % (len(rows), len(cases)), "채점불가 %d" % len(broken)),
+            ("깊이 깎기 이득", "%+.3f" % np.mean([r["깊이_iou"] - r["이진_iou"] for r in ho]),
+             "봉인 %d/%d 승" % (sum(1 for r in ho if r["깊이_iou"] > r["이진_iou"]), len(ho))))):
+        x = 32 + i * 228
+        g.text((x, 50), lab, font=_font(12), fill=(110, 110, 110))
+        g.text((x, 68), val, font=_font(30), fill=(25, 25, 25))
+        g.text((x, 106), sub, font=_font(11), fill=(150, 150, 150))
+    g.text((32, 134), "잰다     형태 정확도 · 파이프라인 상수 · 스타일 일반화",
+           font=_font(12), fill=(70, 110, 70))
+    g.text((32, 152), "못 잰다  판 불일치 · 작화 모순 · 실제 원화의 지저분함 — 케이스가 전부 렌더 판이다",
+           font=_font(12), fill=(180, 80, 60))
+    g.text((32, 170), "상수     LAM %.2f · THRESH %.2f  |  튜닝 %d장 / 봉인 %d장 (상수는 튜닝셋에서만 맞춘다)"
+           % (H.LAM, H.THRESH, sum(1 for r in rows if r["split"] == "tune"), len(ho)),
+           font=_font(12), fill=(110, 110, 110))
+
+    g.text((20, TOP - 24), "3D IoU — 이진 hull → 깊이 깎기 · ● = 봉인셋",
+           font=_font(13), fill=(20, 20, 20))
     for i, r in enumerate(rows):
-        y = 76 + i * 30
+        y = TOP + i * 30
         up = r["깊이_iou"] > r["이진_iou"]
         g.text((20, y - 7), ("● " if r.get("split") == "holdout" else "  ") + r["case"][:32],
                font=_font(12), fill=(40, 40, 40))
