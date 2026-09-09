@@ -2,7 +2,8 @@
 #
 # 전부 무료·합법 경로다 — arXiv, 저자·기관 공개본, 학회 오픈액세스, 공개 강의노트.
 # 유료 자료는 한 건도 없다. PDF 는 저장소에 안 담는다(.gitignore).
-#   python ../../10_연출기획/src/fetch.py sources.tsv ../pdfs get
+#   python D:\tracks\10_연출기획\src\fetch.py sources.tsv D:\pdfcache\원화3d get
+#   (상대 경로였는데 이 저장소가 tracks 에서 떨어져 나오면서 깨졌다. 원문은 뿌리 밖 캐시에 산다)
 #
 # 아래 목록은 2026-09-02 에 **실제로 받아지는지 한 건씩 쳐서 확인했다.**
 # 브라우저로만 받히는 것 둘은 맨 아래 주석에 적어둔다 (스크립트는 403).
