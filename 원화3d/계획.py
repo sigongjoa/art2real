@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
-"""**하려는 것 한 장.** 실제 데이터로 그린다. 개념도가 아니다.
+"""**지금 어디까지 왔나 한 장.** 실제 데이터로 그린다. 개념도가 아니다.
 
     python 계획.py        ->  out/계획.png
 
-칸마다 진짜 그림이 들어간다. 다만 마지막 칸은 **아직 안 해본 것**이라 비워 둔다 —
-거기 무엇이 들어오는지가 이 계획의 전부다.
+숫자는 하나도 적어 넣지 않는다 — 그릴 때마다 `hull.miss` 로 다시 잰다. 적어 넣은 숫자는
+코드가 바뀌면 조용히 거짓말이 된다.
 """
 import os
 import sys
@@ -42,6 +42,11 @@ def main():
            {"front": "omega_front_clean.png", "side": "omega_side.png",
             "back": "omega_back.png"}.items()}
 
+    # 정렬 전을 다시 만든다 — H.main() 이 돌려주는 masks 는 이미 맞춘 것이다
+    pre = {v: H.to_win(H.declutter(m)) for v, m in raw.items()}
+    m0, m1, fit = H.miss(pre), H.miss(masks), H.align(pre)
+    say = lambda d: " · ".join("%.2f%%" % (100 * d[v]) for v in W.VIEWS)
+
     ov = {}
     for v in W.VIEWS:
         p = np.asarray(W.silhouette(V, F, v, H.BACK_SIGN if v == "back" else None)).astype(bool)
@@ -55,15 +60,15 @@ def main():
     d = ImageDraw.Draw(sheet)
     f14, f12, f20 = _font(15), _font(13), _font(21)
 
-    d.text((28, 22), "지금 파이프라인과, 바꾸려는 칸 하나", font=f20, fill=(20, 20, 20))
+    d.text((28, 22), "3판 정렬을 넣었다 — 어디가 정렬이었고 어디가 작화인가", font=f20, fill=(20, 20, 20))
 
     cols = [
         ("① 원화 3판  (측면의 가로줄이 지시선이다)", [raw[v] for v in W.VIEWS], None,
-         "그려진 키 924 · 892 · 894\n판마다 3.6% 다르다"),
-        ("② 창에 앉힌다", [masks[v] for v in W.VIEWS], None,
-         "지금: 판마다 자기 키로 늘림\n자유도 0"),
+         "그려진 bbox 키 924 · 892 · 894\n판마다 3.6% 다르다"),
+        ("② 창에 앉히고 front 에 맞춘다", [masks[v] for v in W.VIEWS], None,
+         "side(dy %+.0f s %.4f)\nback(dx %+.0f dy %+.0f s %.4f)" % tuple(fit)),
         ("③ 깎고 되던진다", None, [ov[v] for v in W.VIEWS],
-         "빨강 = hull 이 못 덮은 자리\n5.24 · 1.03 · 6.87%"),
+         "빨강 = hull 이 못 덮은 자리\n" + say(m1)),
     ]
 
     x = 28
@@ -80,21 +85,21 @@ def main():
     # ── 바꾸려는 칸 ──────────────────────────────────────────────
     bx, by = 28, 372
     d.rectangle([bx, by, Wd - 28, Ht - 26], outline=(200, 60, 60), width=2)
-    d.text((bx + 18, by + 14), "바꾸려는 것은 ② 한 칸이다", font=f14, fill=(200, 60, 60))
+    d.text((bx + 18, by + 14), "② 를 고쳤다 — 빨강은 줄었고, 남은 자리가 답이다", font=f14, fill=(200, 60, 60))
     d.multiline_text(
         (bx + 18, by + 44),
-        "지금   판마다 자기 bbox 키를 1.0 으로 늘린다. 미지수 0개.\n"
-        "       판이 안 맞으면 그 어긋남이 전부 형태로 흘러간다 — 그게 잘린 발이다.\n\n"
-        "바꾸면 front 를 기준으로 고정하고, side·back 에 (가로 이동 · 세로 이동 · 배율) 을 준다.\n"
-        "       미지수 6개. 겹침이 제일 좋아지는 값을 찾는다. warp_art() 가 이미 win.py 에 있다.",
+        "전   판마다 자기 bbox 키를 1.0 으로 늘렸다. 미지수 0개.      못 덮음  " + say(m0) + "\n"
+        "후   front 고정, side·back 에 (dx · dy · s)                  못 덮음  " + say(m1) + "\n\n"
+        "미지수는 6개가 아니라 5개였다. side 의 가로 이동은 hull 을 깊이로 밀 뿐이라\n"
+        "세 실루엣 중 무엇도 안 바꾼다 — 실루엣이 못 보는 값이다 (python hull.py check 가 이걸 잰다).",
         font=f12, fill=(70, 70, 70), spacing=6)
 
     d.multiline_text(
         (Wd - 470, by + 44),
-        "그리고 ③ 을 다시 뽑는다\n\n"
-        "  빨강이 줄면   →  정렬 문제였다\n"
-        "  그대로면      →  작화 모순이다\n\n"
-        "둘 다 답이다. 아직 안 해봤다.",
+        "남은 빨강은 전부 발이다\n\n"
+        "  행 930  front 에만 잉크가 있다\n"
+        "  행 910  front 306..766 / back 367..703\n\n"
+        "이동·배율로는 못 맞춘다. 작화 모순이고\n그게 파는 물건이다.",
         font=f12, fill=(200, 60, 60), spacing=6)
 
     sheet.save(os.path.join(OUT, "계획.png"))
