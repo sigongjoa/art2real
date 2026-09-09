@@ -2,6 +2,7 @@
 """**처음으로 형태를 채점한다.** hull 을 원화가 아니라 **진짜 메시**와 대본다.
 
     python 정답.py check           채점기 자체검사 (답을 아는 상자 두 개)
+    python 정답.py 천장            3판이 담고 있는 정보의 상한을 잰다
     python 정답.py [케이스]        ->  out/정답_<케이스>.png + 표
 
 지금까지의 검증은 전부 실루엣끼리였다. hull 을 되던져 원화와 겹치는 것뿐이라
@@ -116,6 +117,69 @@ def score(case="소체"):
     return A, B, out, sil
 
 
+def ceiling(case, n=None):
+    """**3판이 담고 있는 정보의 상한.** 원화 파이프라인을 통째로 빼고 잰다.
+
+    원화 -> 마스크 -> 창에 앉히기 -> 정렬 -> 깊이 를 전부 건너뛰고, **정답 메시의 진짜
+    실루엣 세 장**에서 곧장 hull 을 깎는다. 그러면 남는 오차는 도구 탓이 아니라
+    「직교 3판으로는 원리적으로 못 하는 것」 — 오목부와 속 빈 형태다.
+
+    이 값이 있어야 우리 점수가 뜻을 갖는다:
+
+        천장 0.72, 우리 0.565   -> 도구 문제다. 계속 고칠 값이 있다
+        천장 0.58, 우리 0.565   -> 거의 다 왔다. 판을 늘리거나 사람이 조형하는 수밖에
+
+    복셀 격자는 파이프라인과 **같은 N** 을 쓴다. 다르게 하면 「3판의 한계」와
+    「격자의 한계」가 섞여서 못 가른다."""
+    t = trimesh.load(os.path.join(OUT, "시트", case, "truth.glb"), force="mesh")
+    V, F = np.asarray(t.vertices), np.asarray(t.faces)
+    bs = W.VIEW_AXIS["back"][1]                  # 시트.py 가 그린 규약 그대로
+    masks = {v: W.silhouette(V, F, v) for v in W.VIEWS}
+    vox, axes = H.carve(masks, back_sign=bs)
+    Vh, Fh = H.mesh_from(vox, axes)
+    m = trimesh.Trimesh(Vh, Fh, process=True)
+    parts = m.split(only_watertight=False)
+    if len(parts) > 1:
+        m = max(parts, key=lambda q: abs(q.volume))
+    if m.volume < 0:
+        m.invert()
+    A, B = common(*grid(t), *grid(m))
+    return {"iou": (A & B).sum() / max((A | B).sum(), 1),
+            "vol": B.sum() / max(A.sum(), 1),
+            "miss": (A & ~B).sum() / max(A.sum(), 1)}
+
+
+def ceilings():
+    """벤치 케이스마다 천장을 재고 지금 값과 나란히."""
+    import json
+    b = json.load(open(os.path.join(os.path.dirname(OUT), "벤치.json"), encoding="utf-8"))
+    rows = {r["case"]: r for r in json.load(open(os.path.join(OUT, "대조.json"), encoding="utf-8"))}
+    print("  케이스                          천장    지금    차이   채운비율")
+    got = []
+    for c in [x["name"] for x in b["cases"]]:
+        if c not in rows:
+            continue
+        try:
+            cl = ceiling(c)
+        except Exception as e:
+            print("  %-30s 실패 %s" % (c[:30], type(e).__name__)); continue
+        now = rows[c]["깊이_iou"]
+        got.append((c, cl["iou"], now))
+        print("  %-30s %.3f   %.3f   %+.3f   %.0f%%"
+              % (c[:30], cl["iou"], now, now - cl["iou"], 100 * now / max(cl["iou"], 1e-9)))
+    if not got:
+        return
+    cei = np.array([g[1] for g in got]); now = np.array([g[2] for g in got])
+    print("\n  %d 장 · 천장 중앙 %.3f · 지금 중앙 %.3f · **천장의 %.0f%% 를 채우고 있다**"
+          % (len(got), np.median(cei), np.median(now), 100 * np.median(now / cei)))
+    print("  천장이 1.0 이 아닌 이유가 3판의 한계다 — 오목부·속 빈 형태는 어느 시점도 못 본다")
+    json.dump([{"case": c, "천장": round(float(a), 4), "지금": round(float(b_), 4)}
+               for c, a, b_ in got],
+              open(os.path.join(OUT, "천장.json"), "w", encoding="utf-8"),
+              ensure_ascii=False, indent=1)
+    print("  -> out/천장.json")
+
+
 def main():
     case = sys.argv[1] if len(sys.argv) > 1 else "소체"
     A, B, out, sil = score(case)
@@ -165,5 +229,7 @@ def demo():
 if __name__ == "__main__":
     if len(sys.argv) > 1 and sys.argv[1] == "check":
         demo()
+    elif len(sys.argv) > 1 and sys.argv[1] == "천장":
+        ceilings()
     else:
         main()

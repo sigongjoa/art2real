@@ -17,13 +17,22 @@
 
 ## 무엇을 대나
 
-같은 모델에서 뽑은 3판으로 두 가지를 만들고, **둘 다 원본 메시와** 대본다.
+같은 모델에서 뽑은 3판으로 **셋**을 만들고 전부 원본 메시와 대본다.
 
     이진 hull    실루엣 세 장의 교집합. 단면이 축정렬 직사각형이다
     깊이 깎기    거기에 판 분할 + 크리스 인플레이션 깊이를 먹인 것
+    균일 깎기    **대조군.** 깊이맵 대신 같은 부피가 될 때까지 균일하게 침식한 것.
+                 정보를 0 만큼 쓴다
 
-이기는 쪽이 몇 장에서 이기는지가 답이다. 3D IoU 차이의 **부호가 뒤집히는 장이 있으면**
-「좋아졌다」는 말을 못 한다.
+## 대조군이 왜 있나 — 2026-09-09 에 이것 때문에 결론 하나가 죽었다
+
+「깊이 깎기가 이진보다 3D IoU 가 +0.014 높다」를 근거로 좋아졌다고 했는데,
+**균일 깎기가 그보다 더 높았다** (12장에서 깊이맵이 4승, 평균 -0.0034).
+
+즉 그 이득은 깊이맵이 형태를 되찾아서가 아니라 **부피가 줄어서**였다. hull 은 뚱뚱하니까
+아무렇게나 깎아도 IoU 가 오른다. 이진 hull 하고만 비교하면 그걸 못 가른다.
+
+**앞으로 「좋아졌다」는 균일 깎기를 이겼을 때만 쓴다.**
 
 ## 이게 검증 못 하는 것
 
@@ -37,6 +46,7 @@ import sys
 
 import numpy as np
 import trimesh
+from scipy import ndimage
 from PIL import Image, ImageDraw
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -140,8 +150,12 @@ def main():
                 continue
             plain, deep, axes, fit = build(c)
             T, ot = J.grid(t)
+            # 대조군 — 깊이맵과 **같은 부피**가 될 때까지 균일 침식. 정보를 안 쓴다
+            even, k = plain.copy(), 0
+            while even.sum() > deep.sum() and k < 40:
+                even = ndimage.binary_erosion(even); k += 1
             got, bad = {}, None
-            for tag, vox in (("이진", plain), ("깊이", deep)):
+            for tag, vox in (("이진", plain), ("깊이", deep), ("균일", even)):
                 G, og = J.grid(to_mesh(vox, axes))
                 A, B = J.common(T, ot, G, og)
                 if tag == "이진":
@@ -178,6 +192,11 @@ def main():
     d = np.array([r["깊이_iou"] - r["이진_iou"] for r in rows])
     print("\n  %d 장 · 깊이 깎기가 이긴 장 %d · 평균 차 %+.3f (최소 %+.3f · 최대 %+.3f)"
           % (len(rows), int((d > 0).sum()), d.mean(), d.min(), d.max()))
+    e = np.array([r["깊이_iou"] - r["균일_iou"] for r in rows])
+    print("  **대조군 대비** 깊이맵이 이긴 장 %d/%d · 평균 %+.4f"
+          % (int((e > 0).sum()), len(rows), e.mean()))
+    if e.mean() <= 0:
+        print("     -> 깊이맵이 균일 침식만도 못하다. 이득은 형태가 아니라 부피 감소다")
     for sp in ("tune", "holdout"):
         v = [r for r in rows if r["split"] == sp]
         if not v:
@@ -223,8 +242,8 @@ def main():
             ("형태 (3D IoU)", "%.3f" % hoi, "봉인 %d장 중앙" % len(ho)),
             ("못덮음", "%.3f" % hom, "낮을수록 좋다"),
             ("완주", "%d/%d" % (len(rows), len(cases)), "채점불가 %d" % len(broken)),
-            ("깊이 깎기 이득", "%+.3f" % np.mean([r["깊이_iou"] - r["이진_iou"] for r in ho]),
-             "봉인 %d/%d 승" % (sum(1 for r in ho if r["깊이_iou"] > r["이진_iou"]), len(ho))))):
+            ("깊이맵 vs 대조군", "%+.3f" % np.mean([r["깊이_iou"] - r["균일_iou"] for r in ho]),
+             "균일 침식 대비 %d/%d 승" % (sum(1 for r in ho if r["깊이_iou"] > r["균일_iou"]), len(ho))))):
         x = 32 + i * 228
         g.text((x, 50), lab, font=_font(12), fill=(110, 110, 110))
         g.text((x, 68), val, font=_font(30), fill=(25, 25, 25))

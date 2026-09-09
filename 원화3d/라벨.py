@@ -100,14 +100,26 @@ def grade(answer):
     METRICS = {"3D IoU": lambda r: r["깊이_iou"] - r["이진_iou"],
                "못덮음(작을수록)": lambda r: r["이진_miss"] - r["깊이_miss"],
                "부피비 1 에 가까움": lambda r: abs(r["이진_vol"] - 1) - abs(r["깊이_vol"] - 1)}
-    print("  사람이 고른 %d 쌍 (모르겠음 %d 제외)"
-          % (len(picks), sum(1 for v in picks.values() if v == "=")))
+    usable = [n for n, ch in picks.items() if ch != "=" and key[n]["case"] in rows]
+    print("  찍은 %d 쌍 · 모르겠음 %d · 채점불가라 제외 %d -> 셀 수 있는 %d 쌍"
+          % (len(picks), sum(1 for v in picks.values() if v == "="),
+             sum(1 for n, ch in picks.items() if ch != "=" and key[n]["case"] not in rows),
+             len(usable)))
+    deep_picked = sum(1 for n in usable
+                      if (picks[n] == "A") == (key[n]["left"] == "깊이"))
+    print("  사람이 깊이 깎기를 고른 비율 %d/%d = %.0f%%" % (deep_picked, len(usable),
+                                                            100 * deep_picked / max(len(usable), 1)))
+    left = sum(1 for n in usable if picks[n] == "A")
+    print("  왼쪽(A)을 고른 비율 %d/%d = %.0f%%  (50%% 에서 크게 벗어나면 위치 편향)"
+          % (left, len(usable), 100 * left / max(len(usable), 1)))
     for nm, f in METRICS.items():
         ok = tot = 0
         for n, ch in picks.items():
             if ch == "=":
                 continue
             k = key[n]
+            if k["case"] not in rows:
+                continue                          # 지금 채점불가인 케이스는 지표값을 못 믿는다
             human_deep = (ch == "A") == (k["left"] == "깊이")     # 사람이 깊이를 골랐나
             v = f(rows[k["case"]])
             if abs(v) < 1e-9:
