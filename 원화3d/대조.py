@@ -123,10 +123,20 @@ CANON = 192                                      # **계단은 이 래스터에�
 
 
 def stair(vox):
-    """**표면 계단** — 앞면 깊이의 2D 라플라시안 / 깊이범위. 클수록 표면이 자글자글하다.
+    """**깨끗함 지표 후보였고, 떨어졌다 (2026-09-10).** 남겨둔 건 `도형.py` 의 증거용이다.
 
-    **정답이 없어도 계산된다.** 그래서 고객 원화에도 쓸 수 있는 지표 후보다 — 3D IoU 는
-    부피만 맞으면 표면이 누더기여도 오른다.
+    앞면 깊이의 2D 라플라시안 / 깊이범위. 정답 없이 계산되니 후보로 넣었는데,
+    **답을 아는 도형에 대보니 깨끗함이 아니라 납작함을 잰다:**
+
+        정답 상자 0.0000 · 정답 원기둥 0.0163 · 정답 원뿔 0.0171 · 정답 구 0.0135
+
+    넷 다 완벽히 깨끗한 물건인데 곡면이 상자보다 높다. 곡면은 복셀로 자르면 계단이
+    질 수밖에 없고 축정렬 평면은 안 그렇다. 29장에서도 같은 말이 나왔다 —
+    **정답 0.0269 · 이진 hull 0.0153 · 깊이 0.0233 으로 정답이 제일 「거칠다」.**
+
+    가장자리를 4·8칸 깎아도, 저주파를 빼도 안 없어진다 (0.016 언저리 그대로).
+    `box_score` 와 같은 실패다 — 성질을 재는 값이지 품질을 재는 값이 아니다.
+    그래서 `대조.py` 의 행에서 뺐다. 숫자가 기록에 남으면 언젠가 근거로 쓰인다.
 
     ## 이 값은 pitch 를 탄다 — 2026-09-10 에 같은 실수를 네 번 했다
 
@@ -214,6 +224,8 @@ def selfcheck():
     print("  잔결 0 / .004 / .01 / .02 -> %s" % " · ".join("%.4f" % x for x in js))
     print("  자체검사 통과 — 여백 %.4f=%.4f · 잔결에 오르고 매끈한 물결에는 안 오른다" % (a, b))
     print("  ** pitch 가 다르면 위 숫자들처럼 갈린다. 같은 pitch 끼리만 맞댈 것 **")
+    print("  ** 이걸 통과해도 충분하지 않다 — 답을 아는 도형(`python 도형.py`)이 진짜 문이고,")
+    print("     stair 는 거기서 떨어졌다 (곡면인 정답이 상자인 hull 보다 높게 나온다) **")
 
 
 def bench():
@@ -258,18 +270,16 @@ def main():
                 A, B = J.common(T, ot, G, og)
                 if tag == "이진":
                     bad = J.invariant(A, B)      # **자가 틀렸는지 먼저 본다**
-                    truth_stair = stair(A)       # 정답의 계단 — 비교 기준
                 got[tag] = {"iou": (A & B).sum() / max((A | B).sum(), 1),
                             "vol": B.sum() / max(A.sum(), 1),
-                            "miss": (A & ~B).sum() / max(A.sum(), 1),
-                            "계단": stair(B), "계단_pitch": J.PITCH}
+                            "miss": (A & ~B).sum() / max(A.sum(), 1)}
             if bad:
                 broken.append({"case": c, "why": bad})
                 print("  %-22s 채점 불가 — %s" % (c, " · ".join(bad)))
                 continue
             r = {"case": c, "fit": [round(float(x), 3) for x in fit],
-                 "box": round(H.box_score(deep), 2), "계단_정답": round(truth_stair, 4),
-                 **{k + "_" + kk: round(float(vv), 4 if kk == "계단" else 3)
+                 "box": round(H.box_score(deep), 2),
+                 **{k + "_" + kk: round(float(vv), 3)
                     for k, v in got.items() for kk, vv in v.items()}}
             rows.append(r)
             print("  %-22s 이진 %.3f -> 깊이 %.3f  (%+.3f)"
@@ -293,9 +303,6 @@ def main():
     d = np.array([r["깊이_iou"] - r["이진_iou"] for r in rows])
     print("\n  %d 장 · 깊이 깎기가 이긴 장 %d · 평균 차 %+.3f (최소 %+.3f · 최대 %+.3f)"
           % (len(rows), int((d > 0).sum()), d.mean(), d.min(), d.max()))
-    st = np.array([[r["계단_정답"], r["이진_계단"], r["깊이_계단"]] for r in rows])
-    print("  표면 계단(정답 없이 잰다) 중앙 — 정답 %.4f · 이진 %.4f · 깊이 %.4f"
-          % tuple(np.nanmedian(st, 0)))
     e = np.array([r["깊이_iou"] - r["균일_iou"] for r in rows])
     print("  **대조군 대비** 깊이맵이 이긴 장 %d/%d · 평균 %+.4f"
           % (int((e > 0).sum()), len(rows), e.mean()))
