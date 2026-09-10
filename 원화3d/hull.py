@@ -66,6 +66,13 @@ LAM = 0.20                                       # 부조가 쓰는 기둥 깊�
 # front 는 어느 값에서도 0.00% 다 — 깊이 깎기는 정면 실루엣을 원리적으로 안 건드린다.
 # 0.5 를 넘으면 기둥이 비므로 상한은 어차피 0.5 다.
 
+SMOOTH = 2.0                                     # 깊이맵을 **부품 안에서만** 미는 반지름 (512² 화소)
+# 잰 값에서 왔다. 깎은 표면의 계단(x 2차차분 / 깊이범위)이 정답 메시의 2~3배였다:
+#     정답 0.019 / 0.013   이진 hull 0.030 / 0.004   깊이 깎기 0.045 / 0.039   (소체 / robot)
+# 그리고 그 값이 깊이맵 자체의 계단(0.036 / 0.043)과 거의 같았다 — 깎기가 계단을 만드는 게
+# 아니라 **깊이맵의 계단을 표면에 그대로 새긴다.** 마칭큐브는 무죄다 (메시 왕복 뒤 오히려 준다).
+# 0 이면 예전 동작 그대로. 부품 경계를 넘어 밀면 판 사이의 골이 메워지므로 라벨 안에서만 민다.
+
 
 def declutter(m, minh=8):
     """지시선 제거 — 열 높이가 minh 화소 미만인 열을 버린다 (trail7 규칙)."""
@@ -238,6 +245,37 @@ def load_labels(v, m, case=None):
                       interpolation=cv2.INTER_NEAREST)
 
 
+def _smooth_parts(d, lab, sigma=SMOOTH):
+    """깊이맵을 **부품 라벨 안에서만** 민다. 골(lab==0)은 손대지 않는다.
+
+    판 경계를 넘어 밀면 판 사이의 골이 메워진다 — 그 골이 깎기가 홈을 파는 근거다.
+    라벨마다 정규화 합성곱(값·마스크를 같이 흐리고 나눈다)이라 라벨 밖 값이 안 새어든다."""
+    if sigma <= 0:
+        return d
+    import cv2
+    out = d.copy()
+    for L in np.unique(lab):
+        if L == 0:
+            continue
+        m = (lab == L).astype(np.float32)
+        num = cv2.GaussianBlur(d * m, (0, 0), sigma)
+        den = cv2.GaussianBlur(m, (0, 0), sigma)
+        out = np.where(lab == L, num / np.maximum(den, 1e-6), out)
+    return out
+
+
+def _upsize(h, size):
+    """nan 을 안 번지게 키운다. **NEAREST 가 계단을 두 배로 만들던 자리다.**
+
+    값과 「아는 곳」 마스크를 같이 선형보간하고 나눈다 — nan 은 마스크로만 빠지고
+    아는 값끼리만 섞인다."""
+    import cv2
+    known = (~np.isnan(h)).astype(np.float32)
+    val = cv2.resize(np.nan_to_num(h) * known, size, interpolation=cv2.INTER_LINEAR)
+    kn = cv2.resize(known, size, interpolation=cv2.INTER_LINEAR)
+    return np.where(kn > 0.5, val / np.maximum(kn, 1e-6), np.nan)
+
+
 def load_depth(v, m, groove=3, case=None):
     """`깊이.py` 가 낸 깊이맵을 원화 화소 크기로 되돌리고 0~1 로 정규화한다.
 
@@ -253,8 +291,9 @@ def load_depth(v, m, groove=3, case=None):
     d = np.load(os.path.join(OUT, "깊이", case or CASE, v, "depth.npy")).astype(np.float32)
     lab = np.load(os.path.join(OUT, "깊이", case or CASE, v, "labels_grown.npy"))
     near = cv2.distanceTransform((lab == 0).astype(np.uint8), cv2.DIST_L2, 3) <= groove
+    d = _smooth_parts(d, lab, SMOOTH)
     h = np.where((lab > 0) | near, d, np.nan)                # nan = 모르는 것
-    h = cv2.resize(h, (m.shape[1], m.shape[0]), interpolation=cv2.INTER_NEAREST)
+    h = _upsize(h, (m.shape[1], m.shape[0]))
     hi = np.nanmax(np.where(m, h, np.nan)) if m.any() else 1.0
     return np.nan_to_num(np.clip(h / max(float(hi), 1e-6), 0, 1), nan=1.0)
 

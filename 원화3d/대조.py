@@ -52,6 +52,7 @@ from PIL import Image, ImageDraw
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import hull as H
 import win as W
+import 각도 as ANG
 import 정답 as J
 from 계획 import _font
 
@@ -118,6 +119,24 @@ def to_mesh(vox, axes):
     return m
 
 
+def stair(vox):
+    """**표면 계단** — 앞면 깊이의 x 2차차분 / 깊이범위. 클수록 표면이 자글자글하다.
+
+    **정답이 없어도 계산된다.** 그래서 고객 원화에도 쓸 수 있는 지표 후보다 — 3D IoU 는
+    부피만 맞으면 표면이 누더기여도 오른다.
+
+    잰 값 (29장 · 원본 복셀): 이진 hull 중앙 0.0168 · 깊이 깎기 0.0282 (배수 중앙 1.61).
+    정답 메시는 0.013~0.019 였다 (2장). **깎기의 대가가 계단이다** — 깎기가 계단을 만드는 게
+    아니라 깊이맵의 잔결을 표면에 그대로 새긴다."""
+    d, hit = ANG.depth(vox, 0)
+    if hit.sum() < 9:
+        return float("nan")
+    rng = max(d[hit].max() - d[hit].min(), 1e-6)
+    g2 = np.abs(np.diff(d, 2, axis=1))
+    m = hit[:, 2:] & hit[:, 1:-1] & hit[:, :-2]
+    return float(np.mean(g2[m]) / rng) if m.any() else float("nan")
+
+
 def bench():
     """`벤치.json` — 손으로 고정한 케이스 목록. 없으면 멈춘다."""
     p = os.path.join(HERE, "벤치.json")
@@ -160,16 +179,19 @@ def main():
                 A, B = J.common(T, ot, G, og)
                 if tag == "이진":
                     bad = J.invariant(A, B)      # **자가 틀렸는지 먼저 본다**
+                    truth_stair = stair(A)       # 정답의 계단 — 비교 기준
                 got[tag] = {"iou": (A & B).sum() / max((A | B).sum(), 1),
                             "vol": B.sum() / max(A.sum(), 1),
-                            "miss": (A & ~B).sum() / max(A.sum(), 1)}
+                            "miss": (A & ~B).sum() / max(A.sum(), 1),
+                            "계단": stair(B)}
             if bad:
                 broken.append({"case": c, "why": bad})
                 print("  %-22s 채점 불가 — %s" % (c, " · ".join(bad)))
                 continue
             r = {"case": c, "fit": [round(float(x), 3) for x in fit],
-                 "box": round(H.box_score(deep), 2), **{k + "_" + kk: round(float(vv), 3)
-                                                        for k, v in got.items() for kk, vv in v.items()}}
+                 "box": round(H.box_score(deep), 2), "계단_정답": round(truth_stair, 4),
+                 **{k + "_" + kk: round(float(vv), 4 if kk == "계단" else 3)
+                    for k, v in got.items() for kk, vv in v.items()}}
             rows.append(r)
             print("  %-22s 이진 %.3f -> 깊이 %.3f  (%+.3f)"
                   % (c, r["이진_iou"], r["깊이_iou"], r["깊이_iou"] - r["이진_iou"]))
@@ -192,6 +214,9 @@ def main():
     d = np.array([r["깊이_iou"] - r["이진_iou"] for r in rows])
     print("\n  %d 장 · 깊이 깎기가 이긴 장 %d · 평균 차 %+.3f (최소 %+.3f · 최대 %+.3f)"
           % (len(rows), int((d > 0).sum()), d.mean(), d.min(), d.max()))
+    st = np.array([[r["계단_정답"], r["이진_계단"], r["깊이_계단"]] for r in rows])
+    print("  표면 계단(정답 없이 잰다) 중앙 — 정답 %.4f · 이진 %.4f · 깊이 %.4f"
+          % tuple(np.nanmedian(st, 0)))
     e = np.array([r["깊이_iou"] - r["균일_iou"] for r in rows])
     print("  **대조군 대비** 깊이맵이 이긴 장 %d/%d · 평균 %+.4f"
           % (int((e > 0).sum()), len(rows), e.mean()))
