@@ -42,6 +42,18 @@ N_HARM = 16                # 쓸 하모닉 수. 낮을수록 큰 형태만 본�
 THRESHOLDS = (0.10, 0.15, 0.20, 0.30)
 
 
+def imread(path):
+    """**한글 경로용.** `cv2.imread` 는 윈도우에서 비ASCII 경로를 조용히 못 읽는다."""
+    return cv2.imdecode(np.fromfile(path, dtype=np.uint8), cv2.IMREAD_COLOR)
+
+
+def imwrite(path, im):
+    """같은 이유. `cv2.imwrite` 는 실패해도 예외가 없어서 **파일만 안 생긴다.**"""
+    ok, buf = cv2.imencode(".png", im)
+    assert ok, path
+    buf.tofile(path)
+
+
 def gold_mask(bgr):
     """`gate_trace.py` 와 같은 마스크. 두 파일이 갈리면 종류와 밀도가 다른 걸 센다."""
     hsv = cv2.cvtColor(bgr, cv2.COLOR_BGR2HSV)
@@ -98,7 +110,7 @@ def cluster(ds, thr):
 
 
 def count(path, min_area=40.0, hgt=1024):
-    im = cv2.imread(path, cv2.IMREAD_COLOR)
+    im = imread(path)
     assert im is not None, path
     im = cv2.resize(im, (int(round(im.shape[1] * hgt / im.shape[0])), hgt),
                     interpolation=cv2.INTER_AREA)
@@ -174,7 +186,7 @@ def draw(path, dst, min_area=40.0, thr=0.10, hgt=1024):
     """**무엇을 어떻게 셌는지 그림으로 낸다.** 왼쪽은 원본 위 색칠, 오른쪽은 종류 견본.
 
     같은 색 = 같은 종류다. 숫자는 종류 번호. 크기가 달라도 모양이 같으면 같은 색이 나온다."""
-    im = cv2.imread(path, cv2.IMREAD_COLOR)
+    im = imread(path)
     assert im is not None, path
     im = cv2.resize(im, (int(round(im.shape[1] * hgt / im.shape[0])), hgt),
                     interpolation=cv2.INTER_AREA)
@@ -213,7 +225,7 @@ def draw(path, dst, min_area=40.0, thr=0.10, hgt=1024):
         right = np.vstack([right, np.zeros((left.shape[0] - right.shape[0],
                                             right.shape[1], 3), np.uint8)])
     out = np.hstack([left, right[:left.shape[0]]])
-    cv2.imwrite(dst, out)
+    imwrite(dst, out)
     print("DRAW %s  덩어리 %d · 종류 %d (문턱 %.2f) -> %s"
           % (path.split("/")[-1], len(pair), n, thr, dst))
     return n
