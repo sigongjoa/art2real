@@ -63,12 +63,17 @@ def sweep(name, prof, length, material, thick=THICK, sec=SEC):
         if w < 1e-5:
             rings.append([bm.verts.new((0.0, 0.0, z))])
             continue
-        ring = []
-        for k in range(sec):
-            a = 2.0 * math.pi * k / sec
-            # 마름모 단면 — x 는 폭, y 는 두께. |cos|,|sin| 로 각을 살린다
-            ring.append(bm.verts.new((w * math.cos(a),
-                                      w * thick * math.sin(a), z)))
+        # **진짜 마름모.** cos/sin 팔각으로 돌렸더니 날 끝이 둥글게 깎여
+        # 검이 아니라 물레 기둥이 됐다. 날은 **x 끝에서 두께가 0** 이어야 선다
+        t = w * thick
+        ring = [bm.verts.new((w, 0.0, z)),          # 오른쪽 날
+                bm.verts.new((w * 0.35, t, z)),
+                bm.verts.new((0.0, t, z)),          # 등 (가운데가 제일 두껍다)
+                bm.verts.new((-w * 0.35, t, z)),
+                bm.verts.new((-w, 0.0, z)),         # 왼쪽 날
+                bm.verts.new((-w * 0.35, -t, z)),
+                bm.verts.new((0.0, -t, z)),
+                bm.verts.new((w * 0.35, -t, z))]
         rings.append(ring)
     for i in range(n - 1):
         a, b = rings[i], rings[i + 1]
@@ -102,17 +107,29 @@ def guard(name, w, z, material):
 def main():
     spec = json.load(open(SPEC, encoding="utf-8"))
     ws = spec["무기"]
+    # **두께를 spec 에서 읽는다.** 0.22 는 내가 지어낸 값이었고, 이제 잰 값이 있다
+    global THICK
+    if spec.get("두께비", {}).get("v"):
+        THICK = float(spec["두께비"]["v"])
     bpy.ops.wm.read_factory_settings(use_empty=True)
     gold = mat("gold", (0.94, 0.82, 0.26), 0.35)
     hilt = mat("hilt", (0.42, 0.28, 0.08), 0.8)
+    # **보구마다 색이 다르다.** 원화 판에서 잰 날색·자루색을 그대로 쓴다 —
+    # 은날에 금가드, 금날에 흰자루처럼 갈려 있어서 지어낼 필요가 없다
+    for w in ws:
+        if w.get("날색"):
+            w["_m"] = mat("blade%d" % w["종류"], tuple(w["날색"]), 0.30)
+        if w.get("자루색"):
+            w["_h"] = mat("grip%d" % w["종류"], tuple(w["자루색"]), 0.75)
 
     # 0.30 으로 뒀더니 넓은 날끼리 겹쳤다. **제일 넓은 날**을 기준으로 벌린다
     gap = LEN * max(max(w["반폭"]) for w in ws) * 2.6
     for i, w in enumerate(ws):
-        o = sweep("w%02d" % w["종류"], w["반폭"], LEN, gold)
+        o = sweep("w%02d" % w["종류"], w["반폭"], LEN, w.get("_m", gold))
         o.location.x = (i - (len(ws) - 1) / 2.0) * gap
         if w["표본"] >= 3:                          # 자주 쓴 것에만 가드
-            g = guard("g%02d" % w["종류"], max(w["반폭"]) * LEN, LEN * 0.10, hilt)
+            g = guard("g%02d" % w["종류"], max(w["반폭"]) * LEN, LEN * 0.10,
+                      w.get("_h", hilt))
             g.location.x = o.location.x
 
     sc = bpy.context.scene
@@ -128,6 +145,9 @@ def main():
     s.rotation_euler = (0.80, 0.0, 0.35)
     cd = bpy.data.cameras.new("cam")
     cd.lens = 50
+    # **센서 맞춤을 세로로.** AUTO 로 두면 가로 화면에서 가로에 맞춰서,
+    # 세로 공식으로 거리를 잡으면 위아래가 잘린다 (그렇게 두 번 잘렸다)
+    cd.sensor_fit = 'VERTICAL'
     cam = bpy.data.objects.new("cam", cd)
     sc.collection.objects.link(cam)
     sc.camera = cam
@@ -138,7 +158,8 @@ def main():
     H = max(p.z for p in pts) - min(p.z for p in pts)
     ar = sc.render.resolution_x / float(sc.render.resolution_y)
     need = max(H, W / ar)
-    d = need / (2.0 * math.tan(math.atan(12.0 / cd.lens))) * 1.15
+    # 센서 **세로는 24mm** 라 절반이 12 다. 18(가로 36의 절반)로 뒀더니 또 잘렸다
+    d = need / (2.0 * math.tan(math.atan(12.0 / cd.lens))) * 1.12
     cam.location = (0.0, -d, H * 0.5)
     cam.rotation_euler = (math.radians(90), 0, 0)
     ns = {"__file__": CEL, "__name__": "cel"}
