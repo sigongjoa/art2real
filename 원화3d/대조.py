@@ -109,11 +109,16 @@ def build(case):
 
 
 def to_mesh(vox, axes):
+    """복셀 -> 메시. **조각을 안 버린다.**
+
+    2026-09-10 까지 제일 큰 조각만 남겼다. 기본도형 벤치(`도형.py`)가 그걸 잡았다 —
+    기둥 두 개짜리에서 **IoU 0.0000** 이 나왔다. hull 은 유령까지 네 조각이고 그중 큰 것
+    하나만 남기니 정답과 아예 안 겹친 것이다 (전부 살리면 0.4690, 오라클 0.5000).
+
+    캐릭터에서도 같은 일이 난다 — 떨어진 무기·망토가 통째로 사라지고, **깎기가 만든
+    파편도 조용히 지워져서** 깊이 깎기 점수가 실제보다 좋게 나온다."""
     V, F = H.mesh_from(vox, axes)
     m = trimesh.Trimesh(V, F, process=True)
-    parts = m.split(only_watertight=False)
-    if len(parts) > 1:
-        m = max(parts, key=lambda q: abs(q.volume))
     if m.volume < 0:
         m.invert()
     return m
