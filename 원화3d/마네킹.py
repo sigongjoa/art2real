@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """**중간 벤치 — 마네킹.** 기본도형과 실물 캐릭터 사이. 축은 **포즈**다.
 
-    python 마네킹.py 그림        포즈별 마네킹을 한 장으로 -> out/마네킹.png
-    python 마네킹.py 굽기        glb 로 굽고 시트까지 -> out/모델 · out/시트
-    python 마네킹.py smplx      받아둔 SMPL-X npz 로 진짜 인체 비례 하나 (있을 때만)
+    python 마네킹.py 그림        포즈별 마네킹을 한 장으로 -> out/마네킹.png (원본 메시만)
+    python 마네킹.py smplx      받아둔 SMPL-X npz 를 펴서 glb 로 (있을 때만)
+    python 마네킹.py 재기        **파이프라인을 태운다** -> out/마네킹벤치.png · out/마네킹.json
 
 ## 왜 가운데 칸이 필요한가
 
@@ -198,6 +198,96 @@ def 그림(extra=None):
     print("  -> out/마네킹.png")
 
 
+def _bake(name, mesh):
+    """Y-up glb 로 굽고 시트·깊이까지. (`시트.py` 가 glTF Y-up 을 가정한다)"""
+    import subprocess
+    case = "마네킹_" + name
+    d = os.path.join(OUT, "모델")
+    os.makedirs(d, exist_ok=True)
+    glb = os.path.join(d, case + ".glb")
+    if not os.path.exists(glb):
+        m = mesh.copy()
+        if not name.startswith("SMPL"):          # 조립 마네킹은 z 가 위라 눕혀 내보낸다
+            m.apply_transform(trimesh.transformations.rotation_matrix(np.pi / 2, [1, 0, 0]))
+        m.visual = trimesh.visual.ColorVisuals(
+            m, face_colors=np.full((len(m.faces), 4), 210, np.uint8))
+        trimesh.Scene(m).export(glb)
+    if not os.path.exists(os.path.join(OUT, "시트", case, "truth.glb")):
+        print("  판 뽑기 %s" % case)
+        r = subprocess.run([sys.executable, os.path.join(HERE, "시트.py"), glb, "--이름", case],
+                           cwd=HERE, capture_output=True, text=True, encoding="utf-8")
+        if r.returncode:
+            print("     실패: %s" % (r.stderr or "")[-200:])
+    if not os.path.exists(os.path.join(OUT, "깊이", case, "front", "depth.npy")):
+        subprocess.run([sys.executable, os.path.join(HERE, "깊이.py"), case],
+                       cwd=HERE, capture_output=True)
+    return case
+
+
+def 재기():
+    """포즈마다 **오라클(천장)과 파이프라인**을 잰다. 이게 포즈 가이드의 숫자다."""
+    import json
+    import hull as H
+    import 대조 as C
+    import 도형 as SH
+    import 정답 as J
+    from 계획 import _font
+    from PIL import Image, ImageDraw
+    # **SMPL-X 는 여기 안 넣는다.** 비상업 연구 전용이라 벤치 케이스가 될 수 없고,
+    # 쓰임은 `python 마네킹.py smplx` 의 그림 한 칸(비례 대조군)으로 끝이다.
+    items = [(n, mannequin(**kw), why) for n, kw, why in POSES]
+    for n, m, _ in items:
+        _bake(n, m)
+    H.register_sheets()
+
+    rows, tiles = [], []
+    print("  %-10s %8s %8s %8s %8s  %s" % ("포즈", "오라클", "이진", "깊이", "파이프차", "무엇이 켜지나"))
+    for name, mesh, why in items:
+        case = "마네킹_" + name
+        if case not in H.CASES:
+            print("  %-10s 판이 없다 — 건너뜀" % name); continue
+        t = trimesh.load(os.path.join(OUT, "시트", case, "truth.glb"), force="mesh")
+        orc = SH.oracle(t)
+        plain, deep, axes, _ = C.build(case)
+        T, ot = J.grid(t)
+        got = {}
+        for tag, vox in (("이진", plain), ("깊이", deep)):
+            G, og = J.grid(C.to_mesh(vox, axes))
+            A, B = J.common(T, ot, G, og)
+            got[tag] = float((A & B).sum() / max((A | B).sum(), 1))
+        rows.append({"pose": name, "오라클": round(orc, 4), "이진_iou": round(got["이진"], 4),
+                     "깊이_iou": round(got["깊이"], 4),
+                     "파이프차": round(got["이진"] - orc, 4), "왜": why})
+        tiles.append((name, SH._paint3(case, plain, deep, axes)))
+        print("  %-10s %8.4f %8.4f %8.4f %+8.4f  %s"
+              % (name, orc, got["이진"], got["깊이"], got["이진"] - orc, why.replace("**", "")[:30]))
+    json.dump(rows, open(os.path.join(OUT, "마네킹.json"), "w", encoding="utf-8"),
+              ensure_ascii=False, indent=1)
+
+    R2 = SH.R
+    im = Image.new("RGB", (3 * R2 + 430, 96 + len(tiles) * (R2 + 26) + 40), "white")
+    g = ImageDraw.Draw(im)
+    g.text((22, 18), "마네킹 벤치 — 같은 몸, 자세만 바꾼다", font=_font(22), fill=(20, 20, 20))
+    g.text((22, 50), "오라클 = 3판이 담을 수 있는 천장 · 잰 값 = 파이프라인",
+           font=_font(12), fill=(120, 120, 120))
+    for i, (name, three) in enumerate(tiles):
+        r, y = rows[i], 96 + i * (R2 + 26)
+        g.text((22, y + 4), name, font=_font(16), fill=(20, 20, 20))
+        g.text((22, y + 30), "천장  %.4f" % r["오라클"], font=_font(12), fill=(60, 60, 60))
+        g.text((22, y + 50), "이진  %.4f" % r["이진_iou"], font=_font(13), fill=(20, 20, 20))
+        g.text((22, y + 70), "깊이  %.4f" % r["깊이_iou"], font=_font(12), fill=(90, 90, 90))
+        g.text((22, y + 94), r["왜"].replace("**", "")[:26], font=_font(10), fill=(150, 150, 150))
+        for k, tl in enumerate(three):
+            x = 400 + k * (R2 + 10)
+            im.paste(tl, (x, y))
+            g.rectangle([x, y, x + R2 - 1, y + R2 - 1], outline=(220, 220, 220))
+            if i == 0:
+                g.text((x, y - 16), ("정답", "이진 hull", "깊이 깎기")[k], font=_font(12),
+                       fill=(90, 90, 90))
+    im.save(os.path.join(OUT, "마네킹벤치.png"))
+    print("  -> out/마네킹벤치.png · out/마네킹.json")
+
+
 if __name__ == "__main__":
     cmd = sys.argv[1] if len(sys.argv) > 1 else "그림"
     if cmd == "smplx":
@@ -213,6 +303,8 @@ if __name__ == "__main__":
         z = m.copy()                                   # 그림은 창 규약(z 가 위)이라 돌려서 그린다
         z.apply_transform(trimesh.transformations.rotation_matrix(np.pi / 2, [1, 0, 0]))
         그림(("SMPL-X (참고)", z, "비상업 연구 전용 — 대조군으로만"))
+    elif cmd == "재기":
+        재기()
     elif cmd == "그림":
         그림()
     else:

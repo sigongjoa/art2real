@@ -1,0 +1,7 @@
+{
+ "panels": 175,
+ "depth_over_width": 1.0,
+ "bevel_px": 3,
+ "flatness_deg": 11.8,
+ "flatness_note": "판 안쪽 법선 각도 표준편차. 10도 이하 평면 / 30도 이상 물집"
+}
