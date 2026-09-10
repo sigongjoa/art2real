@@ -26,25 +26,62 @@ OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out")
 AZ = (0, 25, 45, 65, 90)
 
 
-def shot(vox, az, R=340):
-    """복셀을 z 축으로 az 도 돌려 깊이로 그린다. 명암은 깊이 기울기에서 온다."""
+def depth(vox, az):
+    """복셀을 z 축으로 az 도 돌려 **앞면 깊이맵**을 뽑는다 -> (깊이, 맞은 곳).
+
+    칠하기와 나눠 둔 이유는 **여러 장을 같은 눈금으로** 칠하려면 눈금을 밖에서
+    정해야 하기 때문이다 (`라벨.py` 가 정답·A·B 셋을 한 눈금으로 칠한다)."""
     v = ndimage.rotate(vox.astype(np.float32), az, axes=(0, 1), order=0,
                        reshape=False, prefilter=False) > 0.5
     d = np.where(v, np.arange(v.shape[1])[None, :, None], v.shape[1] + 1).min(1)   # (x, z) 앞면
     hit = d <= v.shape[1]
-    d = np.where(hit, d, np.nan).astype(np.float32)
-    flat = np.nan_to_num(d, nan=float(np.nanmax(d)) if hit.any() else 0.0)
+    return d.astype(np.float32), hit
+
+
+# 멀다 -> 가깝다. 무지개가 아니라 밝기가 같이 오르는 순서라 흑백으로 봐도 순서가 남는다
+STOPS = ((0.00, (46, 32, 120)), (0.28, (28, 130, 200)), (0.52, (40, 175, 130)),
+         (0.78, (232, 190, 62)), (1.00, (205, 45, 40)))
+
+
+def paint(d, hit, R=340, span=None):
+    """깊이맵 -> 그림. `span=(lo, hi)` 를 주면 **그 눈금으로 색을 칠한다.**
+
+    회색 음영은 깊이 기울기에서 오는데, 정지된 회색 한 장은 깊이차가 잘 안 읽힌다.
+    색은 깊이를 **절대값으로** 준다 — 세 장이 같은 눈금이면 어느 쪽이 카메라 쪽으로
+    뚱뚱하게 나왔는지가 바로 보인다."""
+    flat = np.where(hit, d, d[hit].mean() if hit.any() else 0.0).astype(np.float32)
     # **명암용으로만** 살짝 흐린다. 복셀 격자가 깊이를 256단으로 끊어 실제로 계단이 지는데,
     # 기울기를 그대로 쓰면 그 계단이 화면을 덮어 형태가 안 보인다. 기하는 안 건드린다.
     flat = ndimage.gaussian_filter(flat, 1.6)
     gy, gx = np.gradient(flat)
-    n = np.stack([-gx, -gy, np.ones_like(d) * 2.2], -1)
+    n = np.stack([-gx, -gy, np.ones_like(flat) * 2.2], -1)
     n /= np.linalg.norm(n, axis=-1, keepdims=True) + 1e-9
     L = np.array([-0.45, 0.35, 0.82]); L /= np.linalg.norm(L)
     sh = np.clip(0.20 + 0.80 * (n @ L), 0, 1)
-    img = np.where(hit, 40 + 200 * sh, 255).astype(np.uint8)
+    if span is None:
+        img = np.where(hit, 40 + 200 * sh, 255).astype(np.uint8)[..., None].repeat(3, -1)
+    else:
+        lo, hi = span
+        t = 1.0 - np.clip((flat - lo) / max(hi - lo, 1e-6), 0, 1)      # 1 = 카메라 쪽
+        xp = [s[0] for s in STOPS]
+        rgb = np.stack([np.interp(t, xp, [s[1][c] for s in STOPS]) for c in range(3)], -1)
+        rgb *= (0.72 + 0.28 * sh)[..., None]              # 형태가 남게 음영을 얹는다
+        img = np.where(hit[..., None], np.clip(rgb, 0, 255), 255).astype(np.uint8)
     img = np.rot90(img)                                    # (x, z) -> 화면 (행=z 위)
     return Image.fromarray(img).resize((R, R), Image.LANCZOS)
+
+
+def bar(w, h, flip=False):
+    """색 눈금 띠. 왼쪽이 멀고 오른쪽이 가깝다."""
+    t = np.linspace(1, 0, w) if flip else np.linspace(0, 1, w)
+    xp = [s[0] for s in STOPS]
+    rgb = np.stack([np.interp(t, xp, [s[1][c] for s in STOPS]) for c in range(3)], -1)
+    return Image.fromarray(np.tile(rgb.astype(np.uint8)[None], (h, 1, 1)))
+
+
+def shot(vox, az, R=340, span=None):
+    """복셀을 z 축으로 az 도 돌려 그린다."""
+    return paint(*depth(vox, az), R=R, span=span)
 
 
 def main():

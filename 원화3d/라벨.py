@@ -40,6 +40,15 @@
 벤치셋은 CC0 원본 메시가 있다. **정답을 맨 왼쪽에 같이 그리고** 「어느 쪽이 이것에
 가까운가」를 묻는다. 셋을 같은 격자(`정답.PITCH/2`)에 올려 그리니 자세·크기가 정확히 맞는다.
 
+## 깊이를 색으로 칠한다 (2026-09-10)
+
+정답을 붙여도 여전히 **디테일과 깊이차가 안 읽혔다.** 정지된 회색 한 장에서 깊이를
+읽는 건 원래 어렵다 (음영을 세게 하고 캐비티를 넣어봤지만 형태가 더 뭉갰다).
+
+깊이를 **색**으로 칠한다. 파랑이 멀고 빨강이 가깝다. **세 타일이 한 눈금을 쓴다** —
+그래야 「어느 쪽이 카메라 쪽으로 뚱뚱하게 나왔나」가 색으로 바로 보인다. 눈금을 타일마다
+따로 잡으면 그 정보가 사라진다.
+
 정답이 없는 고객 원화에는 이 판정지를 못 쓴다. **쓰려는 건 판정지가 아니라 지표다** —
 지표는 정답 없이 계산되고, 그 지표가 맞는지를 여기서 한 번 확인하는 것이다.
 
@@ -111,9 +120,12 @@ def make():
             plain, deep, axes, _ = C.build(c)
         except Exception as e:
             print("  %-30s 실패 %s" % (c, type(e).__name__)); continue
-        truth, plain, deep = _same_frame(c, plain, deep, axes)
-        truth_im = A.shot(truth, AZ, R)
-        deep_im, plain_im = A.shot(deep, AZ, R), A.shot(plain, AZ, R)
+        # **셋을 한 눈금으로 칠한다.** 회색 음영은 깊이차가 안 읽혀서 색으로 바꿨고,
+        # 눈금이 타일마다 다르면 「어느 쪽이 카메라 쪽으로 뚱뚱한가」가 사라진다
+        ds = [A.depth(v, AZ) for v in _same_frame(c, plain, deep, axes)]
+        lo = min(d[h].min() for d, h in ds)
+        hi = max(d[h].max() for d, h in ds)
+        truth_im, plain_im, deep_im = [A.paint(d, h, R, (lo, hi)) for d, h in ds]
         first = rnd.random() < 0.5               # 1회차에 깊이가 A 인가
         for rep in (0, 1):
             a_is_deep = first if rep == 0 else not first
@@ -148,6 +160,9 @@ def make():
                % (pi, len(pages)), font=_font(19), fill=(20, 20, 20))
         d.text((18, 36), "가운데=A · 오른쪽=B · 모르겠으면 =  |  예: 1A 2B 3=",
                font=_font(12), fill=(120, 120, 120))
+        im.paste(A.bar(150, 11), (X[1] + 60, 38))         # 색 눈금 — 세 타일이 같은 눈금이다
+        d.text((X[1] + 20, 36), "멀다", font=_font(11), fill=(120, 120, 120))
+        d.text((X[1] + 216, 36), "가깝다", font=_font(11), fill=(120, 120, 120))
         for j, (i, s) in enumerate(page):
             y = 56 + j * (R + 40)
             for x, tile in zip(X, (s["t"], s["a"], s["b"])):
