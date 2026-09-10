@@ -31,6 +31,16 @@
 
 `depth.py` 가 판마다 평면을 맞추고 경계에만 골을 판다. 판 안쪽 평평도가 지표고
 10도 이하라야 한다 (실측 front 3.9 · side 2.3 · back 4.9).
+
+**`--cut-bottom 1.0` 을 준다 — 이게 없으면 다리가 사라진다 (2026-09-10).**
+`depth.py` 는 흉상 도구라 기본값이 0.78 이다: 그림 아래 22% 를 「어깨」로 보고
+`h[~head] = 0` 으로 지운다. 전신 턴어라운드에 그대로 걸면 **다리·발의 깊이가 매번 0** 이고,
+`hull.load_depth` 는 0 을 「제일 들어간 곳」으로 읽어 `carve_depth` 가 거기서 앞뒤로
+`LAM·D` 를 파낸다.
+
+기본도형 벤치가 이걸 잡았다 — **상자는 이진 hull 이 정확히 1.0000 인데 깊이 깎기가
+0.9308** 이었다. 깎을 게 없는 물건에서 7% 를 파냈고, 그게 512 행 중 399 행부터였다
+(= int(512 × 0.78)). 캐릭터 12장에서도 라벨 있는 화소의 3~24% 가 깊이 0 이었다.
 """
 import io
 import os
@@ -85,10 +95,21 @@ def main():
             cmd = py311 + [step, w if step == art3d else d]
             if step == art3d:
                 cmd += ["--out", d, "--scale", str(SCALE)]
+            else:
+                cmd += ["--cut-bottom", "1.0"]      # **전신이다.** 아래 참조
             r = subprocess.run(cmd, capture_output=True, text=True, encoding="utf-8", cwd=root)
             tail = [x for x in (r.stdout or "").strip().split("\n") if x][-1:]
             print("  %-6s %-8s %s" % (v, os.path.basename(step)[:8], tail[0] if tail else r.stderr[-120:]))
         assert os.path.exists(os.path.join(d, "depth.npy")), "%s: depth.npy 가 안 나왔다" % v
+        # **라벨이 붙은 자리에 깊이 0 이 넓게 있으면 안 된다.** `hull.load_depth` 가 0 을
+        # 「제일 들어간 곳」으로 읽어 그 자리를 통째로 파낸다. 이 문이 없어서 두 달치
+        # 깊이맵이 다리 없이 나왔다 (아래 참조)
+        dep = np.load(os.path.join(d, "depth.npy"))
+        lab = np.load(os.path.join(d, "labels_grown.npy"))
+        m = lab > 0
+        zr = float(((dep == 0) & m).sum() / max(m.sum(), 1))
+        print("       라벨 있는데 깊이 0: %.1f%%" % (100 * zr))
+        assert zr < 0.05, "%s: 라벨 있는 자리의 %.1f%% 가 깊이 0 이다 — 깎기가 거길 파낸다" % (v, 100 * zr)
 
 
 if __name__ == "__main__":
