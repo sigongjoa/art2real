@@ -43,10 +43,12 @@ def tile(masks):
     return out
 
 
-def main():
+def main(case=None):
     os.makedirs(OUT, exist_ok=True)
-    src = {"front": "omega_front_clean.png", "side": "omega_side.png", "back": "omega_back.png"}
-    pre = {v: H.to_win(H.declutter(W.art_mask(os.path.join(H.IN7, f)))) for v, f in src.items()}
+    # 케이스를 주면 그 판으로. 안 주면 예전대로 오메가몬이다.
+    src = H.CASES[case]["src"] if case else         {"front": "omega_front_clean.png", "side": "omega_side.png", "back": "omega_back.png"}
+    base = H.art_dir(case) if case else H.IN7
+    pre = {v: H.to_win(H.declutter(W.art_mask(os.path.join(base, f)))) for v, f in src.items()}
     fit = H.align(pre)
     rows = [("정렬 전 — 판마다 자기 bbox 키로 늘렸다", tile(pre)),
             ("정렬 후 — side(dy %+.0f s %.4f) · back(dx %+.0f dy %+.0f s %.4f)" % tuple(fit),
@@ -65,9 +67,11 @@ def main():
             sheet.paste(im, (x, y + 20))
             d.text((x, y + TH + 24), "%s  못 덮음 %.2f%%" % (W.VIEWS[i], 100 * mv), font=f13,
                    fill=(200, 60, 60) if mv > .01 else (90, 90, 90))
-    sheet.save(os.path.join(OUT, "겹침.png"))
-    print("-> out/겹침.png   (위 정렬 전 · 아래 정렬 후)")
+    name = "겹침.png" if not case else f"겹침_{case}.png"
+    sheet.save(os.path.join(OUT, name))
+    print(f"-> out/{name}   (위 정렬 전 · 아래 정렬 후)")
 
 
 if __name__ == "__main__":
-    main()
+    a = [x for x in sys.argv[1:] if not x.startswith("-")]
+    main(a[0] if a else None)

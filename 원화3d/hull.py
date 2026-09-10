@@ -476,4 +476,14 @@ register_sheets()                                # import 시점에 판 케이�
 
 
 if __name__ == "__main__":
-    (demo if "check" in sys.argv else main)()
+    # 케이스를 `시트.py` 가 자동 등록하는데(register_sheets) 여기서 고를 길이 없었다.
+    #   python hull.py 무진      -> out/시트/무진 의 세 판으로 세운다
+    if "check" in sys.argv:
+        demo()
+    else:
+        args = [a for a in sys.argv[1:] if not a.startswith("-")]
+        # 케이스를 주면 이름을 달아 쓴다 — `정답.py` 가 out/hull_<케이스>.glb 를 찾는다.
+        if args:
+            main(args[0], out_name=f"hull_{args[0]}.glb")
+        else:
+            main()

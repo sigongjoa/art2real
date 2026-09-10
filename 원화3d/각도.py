@@ -84,12 +84,13 @@ def shot(vox, az, R=340, span=None):
     return paint(*depth(vox, az), R=R, span=span)
 
 
-def main():
-    src = {"front": "omega_front_clean.png", "side": "omega_side.png", "back": "omega_back.png"}
+def main(case=None, 한각=None):
+    src = H.CASES[case]["src"] if case else         {"front": "omega_front_clean.png", "side": "omega_side.png", "back": "omega_back.png"}
+    base = H.art_dir(case) if case else H.IN7
     masks, deps = {}, {}
     for v, f in src.items():
-        d = H.declutter(W.art_mask(os.path.join(H.IN7, f)))
-        masks[v], deps[v] = H.to_win(d, H.load_depth(v, d))
+        d = H.declutter(W.art_mask(os.path.join(base, f)))
+        masks[v], deps[v] = H.to_win(d, H.load_depth(v, d, case=case))
     p = H.align(masks)
     masks = H._warp(masks, p)
     deps = {v: H._warp_one(a, v, p) for v, a in deps.items()}
@@ -97,6 +98,20 @@ def main():
     plain, _ = H.carve(masks)
     deep, _ = H.carve_depth(masks, deps)
     rows = [("이진 hull — 실루엣 세 장만", plain), ("깊이 깎기 — 판 분할 + 크리스 인플레이션", deep)]
+
+    if 한각 is not None:
+        # 각도 하나만 크게. 만화 한 쪽이 한 각도를 통째로 쓰는 자리가 있다(1권 6화).
+        R = 900
+        one = Image.new("RGB", (R + 24, R + 64), "white")
+        d1 = ImageDraw.Draw(one)
+        d1.paste = None
+        one.paste(shot(deep, 한각, R), (12, 12))
+        d1.text((14, R + 26), "%s  %d°   단면 형태값 %.2f 칸" % (case or "오메가몬", 한각,
+                H.box_score(deep)), font=_font(20), fill=(60, 60, 60))
+        nm = f"각도_{case}_{한각}.png" if case else f"각도_{한각}.png"
+        one.save(os.path.join(OUT, nm))
+        print(f"-> out/{nm}")
+        return
 
     R = 340
     sheet = Image.new("RGB", (len(AZ) * (R + 12) + 12, 2 * (R + 52) + 84), "white")
@@ -112,9 +127,13 @@ def main():
             sheet.paste(shot(vox, az, R), (x, y))
             if r == 1:
                 d.text((x + R // 2 - 16, y + R + 6), "%d°" % az, font=_font(13), fill=(120, 120, 120))
-    sheet.save(os.path.join(OUT, "각도.png"))
-    print("-> out/각도.png")
+    name = "각도.png" if not case else f"각도_{case}.png"
+    sheet.save(os.path.join(OUT, name))
+    print(f"-> out/{name}")
 
 
 if __name__ == "__main__":
-    main()
+    a = [x for x in sys.argv[1:] if not x.startswith("-")]
+    # python 각도.py 무진1997 --각 45   -> 그 각도만 크게 한 장
+    한각 = int(sys.argv[sys.argv.index("--각") + 1]) if "--각" in sys.argv else None
+    main(a[0] if a else None, 한각)
