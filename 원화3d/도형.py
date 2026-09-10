@@ -44,6 +44,7 @@ import 각도 as ANG
 import 대조 as C
 import 라벨 as LB
 import 정답 as J
+import 표면 as SF
 from 계획 import _font
 from PIL import Image, ImageDraw
 
@@ -214,9 +215,11 @@ def main():
         tiles.append((name, _paint3(case, plain, deep, axes)))
         got = {}
         for tag, vox in (("이진", plain), ("깊이", deep)):
-            G, og = J.grid(C.to_mesh(vox, axes))
+            m = C.to_mesh(vox, axes)
+            G, og = J.grid(m)
             A, B = J.common(J.grid(t)[0], J.grid(t)[1], G, og)
-            got[tag] = {"iou": float((A & B).sum() / max((A | B).sum(), 1)), "계단": C.stair(B)}
+            got[tag] = {"iou": float((A & B).sum() / max((A | B).sum(), 1)), "계단": C.stair(B),
+                        **SF.score(t, m)}                # **표면으로도 본다** (`표면.py`)
             if tag == "이진":
                 got["정답계단"] = C.stair(A)
         d_orc = (orc - want) if want is not None else None
@@ -226,6 +229,9 @@ def main():
                      "오라클차": None if d_orc is None else round(d_orc, 4),
                      "파이프차": round(d_pipe, 4),
                      "계단_정답": round(got["정답계단"], 4), "이진_계단": round(got["이진"]["계단"], 4),
+                     "정답_각짐": round(SF.angularity(t), 4),
+                     **{"%s_%s" % (tag, k): round(float(got[tag][k]), 4)
+                        for tag in ("이진", "깊이") for k in ("챔퍼", "F", "정밀도", "재현율", "각짐")},
                      "시험": says})
         print("  %-12s %8s %8.4f %8.4f | %8s %+8.4f  %s"
               % (name, "%.4f" % want if want is not None else "—", orc, got["이진"]["iou"],

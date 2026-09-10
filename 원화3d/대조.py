@@ -54,6 +54,7 @@ import hull as H
 import win as W
 import 각도 as ANG
 import 정답 as J
+import 표면 as SF
 from 계획 import _font
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -271,24 +272,31 @@ def main():
                 even = ndimage.binary_erosion(even); k += 1
             got, bad = {}, None
             for tag, vox in (("이진", plain), ("깊이", deep), ("균일", even)):
-                G, og = J.grid(to_mesh(vox, axes))
+                m = to_mesh(vox, axes)
+                G, og = J.grid(m)
                 A, B = J.common(T, ot, G, og)
                 if tag == "이진":
                     bad = J.invariant(A, B)      # **자가 틀렸는지 먼저 본다**
+                # **표면으로도 본다** (`표면.py`). 부피 IoU 는 격자에서 22% 흔들리고,
+                # 부피가 맞아가면서 형태가 망가지는 걸 못 잡는다 — 실측으로 깊이 깎기가
+                # base_male 다리 단면을 1.049 -> 1.682 로 각지게 만드는데 IoU 는 올랐다
                 got[tag] = {"iou": (A & B).sum() / max((A | B).sum(), 1),
                             "vol": B.sum() / max(A.sum(), 1),
-                            "miss": (A & ~B).sum() / max(A.sum(), 1)}
+                            "miss": (A & ~B).sum() / max(A.sum(), 1),
+                            **SF.score(t, m)}
             if bad:
                 broken.append({"case": c, "why": bad})
                 print("  %-22s 채점 불가 — %s" % (c, " · ".join(bad)))
                 continue
             r = {"case": c, "fit": [round(float(x), 3) for x in fit],
                  "box": round(H.box_score(deep), 2),
+                 "정답_각짐": round(SF.angularity(t), 3),
                  **{k + "_" + kk: round(float(vv), 3)
                     for k, v in got.items() for kk, vv in v.items()}}
             rows.append(r)
-            print("  %-22s 이진 %.3f -> 깊이 %.3f  (%+.3f)"
-                  % (c, r["이진_iou"], r["깊이_iou"], r["깊이_iou"] - r["이진_iou"]))
+            print("  %-22s 이진 %.3f -> 깊이 %.3f  (%+.3f) · 챔퍼 %.4f · 각짐 %.2f/%.2f (정답 %.2f)"
+                  % (c, r["이진_iou"], r["깊이_iou"], r["깊이_iou"] - r["이진_iou"],
+                     r["깊이_챔퍼"], r["이진_각짐"], r["깊이_각짐"], r["정답_각짐"]))
         except Exception as e:
             print("  %-22s 실패 %s: %s" % (c, type(e).__name__, str(e)[:90]))
             continue
@@ -308,6 +316,11 @@ def main():
     d = np.array([r["깊이_iou"] - r["이진_iou"] for r in rows])
     print("\n  %d 장 · 깊이 깎기가 이긴 장 %d · 평균 차 %+.3f (최소 %+.3f · 최대 %+.3f)"
           % (len(rows), int((d > 0).sum()), d.mean(), d.min(), d.max()))
+    for k, nm in (("챔퍼", "챔퍼(키)"), ("F", "F(2%)"), ("각짐", "각짐")):
+        v = {t: np.median([r["%s_%s" % (t, k)] for r in rows]) for t in ("이진", "깊이", "균일")}
+        tail = " · 정답 %.3f" % np.median([r["정답_각짐"] for r in rows]) if k == "각짐" else ""
+        print("    %-9s 이진 %.4f · 깊이 %.4f · 균일 %.4f%s (중앙)"
+              % (nm, v["이진"], v["깊이"], v["균일"], tail))
     e = np.array([r["깊이_iou"] - r["균일_iou"] for r in rows])
     print("  **대조군 대비** 깊이맵이 이긴 장 %d/%d · 평균 %+.4f"
           % (int((e > 0).sum()), len(rows), e.mean()))
