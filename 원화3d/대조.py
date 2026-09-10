@@ -119,27 +119,101 @@ def to_mesh(vox, axes):
     return m
 
 
+CANON = 192                                      # **계단은 이 래스터에서만 잰다.** 아래 참조
+
+
 def stair(vox):
-    """**표면 계단** — 앞면 깊이의 x 2차차분 / 깊이범위. 클수록 표면이 자글자글하다.
+    """**표면 계단** — 앞면 깊이의 2D 라플라시안 / 깊이범위. 클수록 표면이 자글자글하다.
 
     **정답이 없어도 계산된다.** 그래서 고객 원화에도 쓸 수 있는 지표 후보다 — 3D IoU 는
     부피만 맞으면 표면이 누더기여도 오른다.
 
-    **격자를 타는 값이라 같은 격자끼리만 비교한다.** 여기서는 넷 다 공통 격자(`정답.PITCH`)
-    위에서 잰다 — 정답까지 같은 자로 재야 배수가 뜻을 가진다.
+    ## 이 값은 pitch 를 탄다 — 2026-09-10 에 같은 실수를 네 번 했다
 
-    잰 값 (29장 중앙): 정답 0.0316 · 이진 hull 0.0331 · 균일 침식 0.0336 · 깊이 깎기 0.0404
+    함수가 float 하나만 돌려주니 어디서 왔는지가 안 남고, 그래서 하루에 네 번을 맞댔다
+    (배수 1.61 · hf 대 깎은 결과 · 마칭큐브 무죄 · jf 대 정답). **조심해서 될 일이 아니다.**
 
-    **이진 hull 은 정답만큼 매끈하다** (정답보다 거친 장 15/29 = 동전던지기). 계단은
-    **오직 깎기가 만든다** — 깊이 깎기는 정답보다 거친 장이 24/29, 배수 중앙 1.44 다.
-    깎기가 계단을 만드는 게 아니라 깊이맵의 잔결을 표면에 그대로 새긴다."""
+    두 가지를 고쳤는데 **하나는 실패했다.**
+
+    - 배열 크기: `CANON` 으로 내려 재운다. 칸 수·여백이 달라도 같은 값이 나온다 (자체검사 1).
+    - **복셀 한 칸의 크기(pitch): 못 없앤다.** 이 값이 재는 것의 상당 부분이 그 격자의
+      양자화 잡음이라, 같은 물건도 128/192/256 격자에서 0.0156/0.0104/0.0071 로 나온다
+      (77% 벌어짐). 캐논으로 내려 재워도 안 없어진다 — 잡음이 이미 데이터에 들어와 있다.
+
+    그래서 규칙은 하나뿐이다 — **같은 pitch 에서 잰 값끼리만 맞댄다.** 값 옆에 `계단_pitch`
+    를 같이 적어서 나중에도 확인할 수 있게 한다. `python 대조.py 자체검사` 가 잡는 것은
+    「여백·칸수는 안 탄다」와 「물결이 커지면 값도 커진다」 둘이고, pitch 의존은 **못 잡으니
+    숫자로 찍어 보여준다.**
+
+    무엇에 반응하는지는 인공 판으로 재봤다 (`_slab`):
+
+        잔결 0 / .004 / .01 / .02   ->  0.0104 / 0.0559 / 0.1147 / 0.1825   (잘 오른다)
+        매끈한 물결 진폭 2배         ->  오히려 내려간다. **큰 물결은 계단이 아니다**
+
+    처음엔 「진폭이 크면 값도 커야 한다」로 검사를 짰다가 떨어졌는데, **검사가 틀렸다.**"""
+    import cv2
     d, hit = ANG.depth(vox, 0)
     if hit.sum() < 9:
         return float("nan")
-    rng = max(d[hit].max() - d[hit].min(), 1e-6)
-    g2 = np.abs(np.diff(d, 2, axis=1))
-    m = hit[:, 2:] & hit[:, 1:-1] & hit[:, :-2]
-    return float(np.mean(g2[m]) / rng) if m.any() else float("nan")
+    # **물건 자리만 잘라서** 캐논 래스터로 내려 재운다. 안 자르면 여백 넓이가 값을 바꾼다
+    # (실측: 여백만 붙였는데 0.0104 -> 0.0086). 값과 마스크를 같이 줄이고 나눈다
+    ys, xs = np.where(hit)
+    sl = (slice(ys.min(), ys.max() + 1), slice(xs.min(), xs.max() + 1))
+    d, hit = d[sl], hit[sl]
+    k = (CANON, CANON)
+    m = hit.astype(np.float32)
+    num = cv2.resize(np.where(hit, d, 0).astype(np.float32), k, interpolation=cv2.INTER_AREA)
+    den = cv2.resize(m, k, interpolation=cv2.INTER_AREA)
+    on = den > 0.5
+    if on.sum() < 9:
+        return float("nan")
+    dd = np.where(on, num / np.maximum(den, 1e-6), 0.0)
+    rng = max(dd[on].max() - dd[on].min(), 1e-6)
+    # **축을 안 고른다.** 2차차분을 한 축에서만 재면 축을 잘못 잡는 실수가 그대로 산다 —
+    # 실제로 x 를 잰다고 적어놓고 z 를 재고 있었다. 2D 라플라시안이면 고를 게 없다
+    lap = np.abs(dd[2:, 1:-1] + dd[:-2, 1:-1] + dd[1:-1, 2:] + dd[1:-1, :-2]
+                 - 4 * dd[1:-1, 1:-1])
+    mm = (on[2:, 1:-1] & on[:-2, 1:-1] & on[1:-1, 2:] & on[1:-1, :-2] & on[1:-1, 1:-1])
+    return float(np.mean(lap[mm]) / rng) if mm.any() else float("nan")
+
+
+def _slab(n=192, amp=0.12, freq=3.0, jitter=0.0, seed=0):
+    """앞면이 사인으로 물결치는 판. `jitter` 를 주면 그 위에 잔결을 뿌린다.
+
+    **매끈한 큰 물결과 자글자글한 잔결을 가르는 게 이 지표가 할 일이다.**"""
+    r = np.random.default_rng(seed)
+    x = np.linspace(0, 1, n)[:, None, None]
+    y = np.linspace(0, 1, n)[None, :, None]
+    front = 0.35 + amp * np.sin(2 * np.pi * freq * x) + np.zeros((1, 1, n))
+    if jitter:
+        front = front + r.normal(0, jitter, (n, 1, n))
+    return (y >= front) & (y <= 0.75)
+
+
+def selfcheck():
+    """**같은 물건을 다른 격자로 재면 같은 값이 나와야 한다.** 안 나오면 비교를 못 한다.
+
+    문턱은 잰 값 위에 얹었다 — 128/192/256 에서 재고 최대·최소의 벌어짐을 본다."""
+    # 1. 같은 pitch 면 여백·칸수는 안 탄다 — 이건 지켜져야 한다
+    v = _slab(192)
+    pad = np.zeros((192 + 40, 192, 192 + 24), bool)
+    pad[20:212, :, 12:204] = v
+    a, b = stair(v), stair(pad)
+    assert abs(a - b) / max(a, 1e-9) < 0.05, "여백만 붙였는데 값이 바뀐다 (%.4f vs %.4f)" % (a, b)
+    # 2. **잔결이 커지면 값도 커야 한다.** 이게 이 지표가 하는 일이다
+    js = [stair(_slab(jitter=j)) for j in (0.0, 0.004, 0.01, 0.02)]
+    assert all(x < y for x, y in zip(js, js[1:])), "잔결을 뿌렸는데 값이 안 오른다 %s" % js
+    # 3. **매끈한 큰 물결은 잔결이 아니다.** 진폭 2배짜리 매끈한 판이, 진폭 절반에
+    #    잔결만 조금 뿌린 판보다 낮아야 한다 — 형태와 잡음을 가르는지
+    assert stair(_slab(amp=0.24)) < stair(_slab(amp=0.06, jitter=0.004))
+    # 3. pitch 는 못 없앤다. 못 잡으니 찍어서 보여준다
+    vals = [stair(_slab(n)) for n in (128, 192, 256)]
+    print("  같은 물건 · 다른 pitch — 128/192/256 에서 %s  (벌어짐 %.0f%%)"
+          % (" · ".join("%.4f" % x for x in vals),
+             100 * (max(vals) - min(vals)) / max(np.mean(vals), 1e-9)))
+    print("  잔결 0 / .004 / .01 / .02 -> %s" % " · ".join("%.4f" % x for x in js))
+    print("  자체검사 통과 — 여백 %.4f=%.4f · 잔결에 오르고 매끈한 물결에는 안 오른다" % (a, b))
+    print("  ** pitch 가 다르면 위 숫자들처럼 갈린다. 같은 pitch 끼리만 맞댈 것 **")
 
 
 def bench():
@@ -188,7 +262,7 @@ def main():
                 got[tag] = {"iou": (A & B).sum() / max((A | B).sum(), 1),
                             "vol": B.sum() / max(A.sum(), 1),
                             "miss": (A & ~B).sum() / max(A.sum(), 1),
-                            "계단": stair(B)}
+                            "계단": stair(B), "계단_pitch": J.PITCH}
             if bad:
                 broken.append({"case": c, "why": bad})
                 print("  %-22s 채점 불가 — %s" % (c, " · ".join(bad)))
@@ -306,4 +380,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    if len(sys.argv) > 1 and sys.argv[1] == "자체검사":
+        selfcheck()
+    else:
+        main()
