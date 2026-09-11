@@ -248,8 +248,20 @@ def main():
     cases = [c["name"] for c in b["cases"]]
     missing = [c for c in cases if c not in H.CASES]
     assert not missing, "벤치.json 에 있는데 판이 없다: %s" % missing[:3]
-    rows, broken = [], []
+    # **케이스마다 바로 적고 이어 돈다** — 이 PC 에선 긴 실행이 메모리 부족으로 자주 정리된다 (2026-09-11).
+    # 줄마다 「판」 표시를 달아, 입력이나 채점 규약이 바뀐 옛 진행분은 이어 쓰지 않는다
+    TAG = "알파판·매끈대조·앞뒤대조·격자2·깨짐 (2026-09-11)"
+    PROG = os.path.join(OUT, "기록", "대조_진행.jsonl")
+    os.makedirs(os.path.dirname(PROG), exist_ok=True)
+    rows = [json.loads(l) for l in open(PROG, encoding="utf-8")] if os.path.exists(PROG) else []
+    rows = [r for r in rows if r.get("판") == TAG]
+    done = {r["case"] for r in rows}
+    if done:
+        print("  이어서 한다 — 이미 %d 장 (%s)" % (len(done), os.path.relpath(PROG, HERE)))
+    broken = []
     for c in cases:
+        if c in done:
+            continue
         if not os.path.exists(os.path.join(OUT, "깊이", c, "front", "depth.npy")):
             print("  깊이 %s" % c)
             subprocess.run([sys.executable, os.path.join(HERE, "깊이.py"), c],
@@ -266,23 +278,36 @@ def main():
                 continue
             plain, deep, axes, fit = build(c)
             T, ot = J.grid(t)
-            # 대조군 — 깊이맵과 **같은 부피**가 될 때까지 균일 침식. 정보를 안 쓴다
-            even, k = plain.copy(), 0
-            while even.sum() > deep.sum() and k < 40:
-                even = ndimage.binary_erosion(even); k += 1
+            # 대조군 — 깊이 판본과 **같은 부피**까지 hull 을 매끈하게 안으로 민 면. 정보를 안 쓴다.
+            # 예전엔 한 겹씩 벗겨 부피가 안 맞았다 (한 겹에 20%+) — `hull.even_control` (2026-09-11)
+            dm = to_mesh(deep, axes)
+            em, et = H.even_control(plain, axes, dm.volume)
+            # **실루엣을 지키는 대조군** — 앞뒤로만 같은 비율로 판다 (`hull.depth_control`). 사방으로 미는
+            # `균일` 은 원화 실루엣을 9.5% 잃어 대조군만 윤곽으로 부피를 뺐다 (2026-09-11)
+            yc, _ = H.depth_control(plain, deep.sum())
+            # **격자 둘** — IoU 는 격자에 22% 흔들린다. 결론은 두 격자가 같은 방향일 때만 쓴다
+            P192 = (W.U1 - W.U0) / 192.0
+            T2, ot2 = J.grid(t, P192)
+            # **깨짐 셋** — IoU 가 못 보는 것 (`표면.tear · pieces · sil_loss`). 대조군은 같은 수준 t 의 칸 판
+            vx = {"이진": plain, "깊이": deep, "균일": H.sdf_of(plain) > et, "앞뒤균일": yc}
             got, bad = {}, None
-            for tag, vox in (("이진", plain), ("깊이", deep), ("균일", even)):
-                m = to_mesh(vox, axes)
+            for tag, m in (("이진", to_mesh(plain, axes)), ("깊이", dm), ("균일", em),
+                           ("앞뒤균일", to_mesh(yc, axes))):
                 G, og = J.grid(m)
                 A, B = J.common(T, ot, G, og)
                 if tag == "이진":
                     bad = J.invariant(A, B)      # **자가 틀렸는지 먼저 본다**
+                G2, og2 = J.grid(m, P192)
+                A2, B2 = J.common(T2, ot2, G2, og2)
                 # **표면으로도 본다** (`표면.py`). 부피 IoU 는 격자에서 22% 흔들리고,
                 # 부피가 맞아가면서 형태가 망가지는 걸 못 잡는다 — 실측으로 깊이 깎기가
                 # base_male 다리 단면을 1.049 -> 1.682 로 각지게 만드는데 IoU 는 올랐다
                 got[tag] = {"iou": (A & B).sum() / max((A | B).sum(), 1),
+                            "iou192": (A2 & B2).sum() / max((A2 | B2).sum(), 1),
                             "vol": B.sum() / max(A.sum(), 1),
                             "miss": (A & ~B).sum() / max(A.sum(), 1),
+                            "찢김": SF.tear(vx[tag]), "조각": SF.pieces(vx[tag]),
+                            "실루엣": SF.sil_loss(vx[tag], plain),
                             **SF.score(t, m)}
             if bad:
                 broken.append({"case": c, "why": bad})
@@ -293,10 +318,14 @@ def main():
                  "정답_각짐": round(SF.angularity(t), 3),
                  **{k + "_" + kk: round(float(vv), 3)
                     for k, v in got.items() for kk, vv in v.items()}}
+            r["판"] = TAG
             rows.append(r)
-            print("  %-22s 이진 %.3f -> 깊이 %.3f  (%+.3f) · 챔퍼 %.4f · 각짐 %.2f/%.2f (정답 %.2f)"
+            with open(PROG, "a", encoding="utf-8") as fh:
+                fh.write(json.dumps(r, ensure_ascii=False) + "\n")
+            print("  %-22s 이진 %.3f -> 깊이 %.3f  (%+.3f) · 균일 대비 %+.3f / %+.3f (128/192) · 찢김 %.1f%% · 챔퍼 %.4f"
                   % (c, r["이진_iou"], r["깊이_iou"], r["깊이_iou"] - r["이진_iou"],
-                     r["깊이_챔퍼"], r["이진_각짐"], r["깊이_각짐"], r["정답_각짐"]))
+                     r["깊이_iou"] - r["균일_iou"], r["깊이_iou192"] - r["균일_iou192"],
+                     100 * r["깊이_찢김"], r["깊이_챔퍼"]), flush=True)
         except Exception as e:
             print("  %-22s 실패 %s: %s" % (c, type(e).__name__, str(e)[:90]))
             continue
@@ -321,11 +350,33 @@ def main():
         tail = " · 정답 %.3f" % np.median([r["정답_각짐"] for r in rows]) if k == "각짐" else ""
         print("    %-9s 이진 %.4f · 깊이 %.4f · 균일 %.4f%s (중앙)"
               % (nm, v["이진"], v["깊이"], v["균일"], tail))
-    e = np.array([r["깊이_iou"] - r["균일_iou"] for r in rows])
-    print("  **대조군 대비** 깊이맵이 이긴 장 %d/%d · 평균 %+.4f"
-          % (int((e > 0).sum()), len(rows), e.mean()))
-    if e.mean() <= 0:
+    # **판정 — 돌리기 전에 정한 기준.** 격자 128·192 둘 다 평균 > 0 이고 과반 승이어야 「통과」.
+    # 둘이 갈리면 결론을 안 쓴다 (IoU 는 격자에 22% 흔들린다)
+    ver = {}
+    for g, key in (("128", "iou"), ("192", "iou192")):
+        e = np.array([r["깊이_" + key] - r["균일_" + key] for r in rows])
+        ver[g] = (float(e.mean()), int((e > 0).sum()))
+        print("  **대조군 대비 · 격자%s** 깊이맵이 이긴 장 %d/%d · 평균 %+.4f" % (g, ver[g][1], len(rows), ver[g][0]))
+    ok = [m > 0 and w > len(rows) / 2 for m, w in ver.values()]
+    verdict = "통과" if all(ok) else ("격자가 갈림 — 결론 없음" if any(ok) else "짐")
+    print("  판정 (균일 — 사방으로 민 대조군)  %s" % verdict)
+    if not any(ok):
         print("     -> 깊이맵이 균일 침식만도 못하다. 이득은 형태가 아니라 부피 감소다")
+    # **실루엣을 지키는 대조군으로도 판정한다** — `균일` 은 원화 실루엣을 9.5% 잃어 대조군만 윤곽으로
+    # 부피를 뺐다 (2026-09-11). `앞뒤균일` 은 깊이 깎기와 같은 제약(앞뒤로만 · 높이마다 끝 기둥 유지)을 진다
+    ver2 = {}
+    for g, key in (("128", "iou"), ("192", "iou192")):
+        e = np.array([r["깊이_" + key] - r["앞뒤균일_" + key] for r in rows])
+        ver2[g] = (float(e.mean()), int((e > 0).sum()))
+        print("  **앞뒤균일 대비 · 격자%s** 깊이맵이 이긴 장 %d/%d · 평균 %+.4f" % (g, ver2[g][1], len(rows), ver2[g][0]))
+    ok2 = [m > 0 and w > len(rows) / 2 for m, w in ver2.values()]
+    verdict2 = "통과" if all(ok2) else ("격자가 갈림 — 결론 없음" if any(ok2) else "짐")
+    print("  판정 (앞뒤균일 — 실루엣을 지키는 대조군)  %s" % verdict2)
+    # **깨짐 셋** — IoU 가 못 보는 것. 원형은 조각 1 · 찢김은 정답 수준 · 실루엣 손실 0 이어야 한다
+    for k in ("찢김", "조각", "실루엣"):
+        v = {t: np.median([r["%s_%s" % (t, k)] for r in rows]) for t in ("이진", "깊이", "균일", "앞뒤균일")}
+        print("    %-9s 이진 %.3f · 깊이 %.3f · 균일 %.3f · 앞뒤균일 %.3f (중앙) · 깊이 최악 %.3f"
+              % (k, v["이진"], v["깊이"], v["균일"], v["앞뒤균일"], max(r["깊이_" + k] for r in rows)))
     for sp in ("tune", "holdout"):
         v = [r for r in rows if r["split"] == sp]
         if not v:
@@ -347,6 +398,7 @@ def main():
     stamp = datetime.datetime.now().strftime("%Y%m%d_%H%M")
     json.dump({"때": stamp, "케이스": len(cases), "점수낸장": len(rows),
                "채점불가": [b["case"] for b in broken],
+               "판정": verdict, "대조군대비": ver, "판정_앞뒤": verdict2, "앞뒤대비": ver2, "판": TAG,
                "LAM": H.LAM, "THRESH": H.THRESH, "rows": rows},
               open(os.path.join(hist, "대조_%s.json" % stamp), "w", encoding="utf-8"),
               ensure_ascii=False, indent=1)
@@ -371,8 +423,8 @@ def main():
             ("형태 (3D IoU)", "%.3f" % hoi, "봉인 %d장 중앙" % len(ho)),
             ("못덮음", "%.3f" % hom, "낮을수록 좋다"),
             ("완주", "%d/%d" % (len(rows), len(cases)), "채점불가 %d" % len(broken)),
-            ("깊이맵 vs 대조군", "%+.3f" % np.mean([r["깊이_iou"] - r["균일_iou"] for r in ho]),
-             "균일 침식 대비 %d/%d 승" % (sum(1 for r in ho if r["깊이_iou"] > r["균일_iou"]), len(ho))))):
+            ("깊이맵 vs 대조군 (균일 / 앞뒤)", "%+.3f / %+.3f" % (ver["128"][0], ver2["128"][0]),
+             "격자128 %d · %d승 · 균일 %s · 앞뒤균일 %s" % (ver["128"][1], ver2["128"][1], verdict, verdict2)))):
         x = 32 + i * 228
         g.text((x, 50), lab, font=_font(12), fill=(110, 110, 110))
         g.text((x, 68), val, font=_font(30), fill=(25, 25, 25))
@@ -402,6 +454,8 @@ def main():
            % (len(rows), int((d > 0).sum()), d.mean()), font=_font(13), fill=(20, 20, 20))
     im.save(os.path.join(OUT, "대조.png"))
     print("  -> out/대조.png · out/대조.json")
+    if os.path.exists(PROG):
+        os.remove(PROG)                      # 끝까지 왔으면 치운다 — 결과는 위 기록 json 에 남았다
 
 
 if __name__ == "__main__":

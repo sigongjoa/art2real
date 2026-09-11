@@ -30,6 +30,7 @@ import sys
 
 import numpy as np
 import trimesh
+from scipy import ndimage
 from skimage import measure
 
 import win as W
@@ -72,6 +73,12 @@ SMOOTH = 2.0                                     # 깊이맵을 **부품 안에�
 # 그리고 그 값이 깊이맵 자체의 계단(0.036 / 0.043)과 거의 같았다 — 깎기가 계단을 만드는 게
 # 아니라 **깊이맵의 계단을 표면에 그대로 새긴다.** 마칭큐브는 무죄다 (메시 왕복 뒤 오히려 준다).
 # 0 이면 예전 동작 그대로. 부품 경계를 넘어 밀면 판 사이의 골이 메워지므로 라벨 안에서만 민다.
+
+SMOOTH_OUT = 0.0                                 # **결과**를 미는 가우시안 σ (칸). 0 이면 끔 (`smooth_field`)
+# **꺼 뒀다.** σ2 는 찢김을 푼다 (knight · robot: 오라클0.50 찢김 28~31% -> 1~7%, 정답 6~11%). 그런데
+# 오메가몬 정면 실루엣을 먹는다 — 못 덮은 4.07% -> 7.45%, 아래 되받아 재기 assert(6%)에 걸렸다
+# (2026-09-11). 칼끝·가시 같은 가는 것이 흐림에 사라진다. 3D 로 흐리면 실루엣이 같이 흐려지므로,
+# 실루엣을 안 건드리는 스무딩(앞·뒷면 깊이만 미는 것)이 들어올 때까지 끈다. 함수는 벤치가 쓴다.
 
 
 def declutter(m, minh=8):
@@ -339,7 +346,34 @@ def carve_depth(masks, deps, lam=LAM, back_sign=BACK_SIGN):
 
     jf = lo + (1.0 - norm(sample("front"))) * lam * D
     jb = hi - (1.0 - norm(sample("back"))) * lam * D
+    if ZSMOOTH > 0:
+        jf, jb = zsmooth(jf, jb, lo, hi, on, ZSMOOTH)
     return keep & (j >= jf[:, None, :]) & (j <= jb[:, None, :]), axes
+
+
+ZSMOOTH = 0.0                                    # 앞·뒷면 깊이를 **높이 방향으로만** 미는 σ (칸). 0 이면 끔
+# 시험 중 (2026-09-11). 3D 로 흐리는 `SMOOTH_OUT` 은 실루엣을 먹어서 껐다 — 이건 실루엣을 안 건드린다.
+
+
+def zsmooth(jf, jb, lo, hi, on, s):
+    """**찢김을 편다 — 실루엣은 그대로.** `carve_depth` 의 높이별 정규화가 윗줄·아랫줄을 다른 눈금으로
+    깎아 앞면이 가로로 찢어진다 (오라클0.50 에서 위아래 >3칸 튐 28~31%, 정답 6~11%). 그 정규화는 옆
+    실루엣을 지키는 장치라 못 끈다. 대신 깎은 결과의 앞·뒷면 깊이(2D)를 z 방향으로만 민다:
+
+        정면 실루엣  기둥을 안 지운다 (민 값이 앞뒤가 뒤집히면 그 기둥은 원래 값)
+        hull 밖      앞면 >= lo · 뒷면 <= hi 로 자른다
+        측면 실루엣  높이마다 제일 앞·제일 뒤 칸은 원래 값을 지킨다"""
+    w = on.astype(np.float32)
+    den = np.maximum(ndimage.gaussian_filter1d(w, s, axis=1), 1e-6)
+    sm = lambda a: ndimage.gaussian_filter1d(np.where(on, a, 0.0).astype(np.float32), s, axis=1) / den
+    f, b = np.maximum(sm(jf), lo), np.minimum(sm(jb), hi)
+    bad = f > b - 1                                  # 앞뒤가 뒤집히거나 칸이 안 남으면 원래 값
+    f, b = np.where(bad, jf, f), np.where(bad, jb, b)
+    zf = np.where(on, jf, np.inf).min(0, keepdims=True)
+    zb = np.where(on, jb, -np.inf).max(0, keepdims=True)
+    f = np.where(on & (jf <= zf), jf, f)             # 높이마다 제일 앞 — 측면 실루엣의 앞 끝
+    b = np.where(on & (jb >= zb), jb, b)             # 높이마다 제일 뒤 — 뒤 끝
+    return np.where(on, f, jf), np.where(on, b, jb)
 
 
 def surfaces(vox):
@@ -369,6 +403,103 @@ def mesh_from(vox, axes):
     """복셀 -> 메시. 경계에 0 을 한 겹 둘러 마칭큐브가 닫히게 한다."""
     p = np.pad(vox.astype(np.float32), 1)
     V, F, _, _ = measure.marching_cubes(p, 0.5)
+    ux, uy, uz = axes
+    sx, sy, sz = ux[1] - ux[0], uy[1] - uy[0], uz[1] - uz[0]
+    V = np.stack([ux[0] + (V[:, 0] - 1) * sx,
+                  uy[0] + (V[:, 1] - 1) * sy,
+                  uz[0] + (V[:, 2] - 1) * sz], 1)
+    return V, F
+
+
+def sdf_of(vox):
+    """복셀 -> 부호거리장 (칸 단위, 안 + · 밖 −). 수준 0 면이 `mesh_from`(불 0.5) 면과 같다 —
+    맞닿은 안·밖 칸이 +1 · −1 이라 0 이 정확히 가운데서 난다."""
+    return (ndimage.distance_transform_edt(vox) - ndimage.distance_transform_edt(~vox)).astype(np.float32)
+
+
+def smooth_field(f, keep_sdf, sigma=None):
+    """**결과를 매끈하게.** 장을 가우시안(σ 칸)으로 흐리고 hull 장과 min — hull 밖으로 못 부푼다.
+    부풀면 원화 실루엣에 없는 걸 지어내는 셈이라 막는다. σ 0 이면 `min(f, hull)` 이라 그대로다.
+
+    왜 넣었나 (2026-09-11): 깎은 판본이 **가로로 찢어진다.** 위아래 이웃 줄끼리 앞면이 3칸 넘게
+    튀는 쌍이 오라클0.50 에서 28~31% (정답 6~11%). σ2 면 1~7% 로 준다. 원인은 `carve_depth` 의
+    높이별 정규화인데, 그건 옆 실루엣을 지키는 장치라 끄지 못한다 (README 「스무딩 시험」).
+    **대조군에도 같은 σ 를 건다** — 안 그러면 스무딩이 올린 IoU 가 깊이맵 실력으로 읽힌다."""
+    s = SMOOTH_OUT if sigma is None else sigma
+    g = ndimage.gaussian_filter(f, s) if s > 0 else f
+    return np.minimum(g, keep_sdf)
+
+
+def even_control(plain, axes, target_volume, step=0.25, cache=None):
+    """**균일 침식 대조군** — hull 을 목표 부피까지 매끈하게 안으로 민 면. 정보를 0 만큼 쓴다.
+
+    한 겹씩 벗기던 예전 규약은 한 겹에 부피가 20% 넘게 빠져 **부피가 안 맞았다** (2026-09-11,
+    avatarsample_d 1겹 0.768 — 파이프0.20(0.863)이 0.768 짜리와 대어져 왔다). 칸을 무작위로 벗기면 점박이
+    표면이 측정에 안 잡혀 너무 약했고, 겹 사이를 선형 보간하면 IoU 곡선이 볼록이라 과소평가했다.
+    그래서 부호거리장의 수준 t 를 부피 곡선(step 간격)에서 찾아 그 면을 쓴다 — 매끈하고 부피가 연속으로
+    맞는다. `target_volume` 은 판본 **메시** 부피다 (같은 마칭큐브로 잰 것끼리). -> (메시, t)"""
+    c = {} if cache is None else cache               # 판본이 여럿이면 곡선을 케이스당 한 번만 그린다
+    if "keep" not in c:
+        c["keep"] = sdf_of(plain)
+    keep = c["keep"]
+
+    def vol(t):
+        V, F = mesh_from_field(keep - t, axes)
+        return abs(trimesh.Trimesh(V, F, process=False).volume)
+    if "ts" not in c:
+        c["ts"], c["vs"] = [0.0], [vol(0.0)]
+    ts, vs = c["ts"], c["vs"]
+    while vs[-1] > target_volume and ts[-1] < 12:
+        ts.append(ts[-1] + step)
+        vs.append(vol(ts[-1]))
+    t = float(np.interp(target_volume, vs[::-1], ts[::-1]))
+    V, F = mesh_from_field(keep - t, axes)
+    m = trimesh.Trimesh(V, F, process=True)
+    if m.volume < 0:
+        m.invert()
+    err = m.volume / max(target_volume, 1e-12) - 1
+    assert abs(err) < 0.02, "대조군 부피가 목표와 %.1f%% 어긋난다 — step 을 줄일 것" % (100 * err)
+    return m, t
+
+
+def depth_control(plain, target_voxels, iters=20):
+    """**실루엣을 지키는 대조군** — 모든 기둥을 앞·뒤로 **같은 비율 q** 만큼 판다. 정보를 0 만큼 쓴다.
+
+    깊이 깎기와 같은 방향(y)으로만 깎아 정면 실루엣을 원리적으로 안 건드린다. 사방으로 미는
+    `even_control` 은 원화 실루엣을 9.5% 잃었다 (2026-09-11 `대조.py`) — 대조군만 윤곽을 줄여 부피를
+    빼는 셈이라 불공평할 수 있어서 만들었다. q 는 `target_voxels`(판본 칸 수)에 맞춰 이분법으로 찾는다.
+
+    **측면 실루엣도 지킨다.** 모든 기둥을 똑같이 깎으면 옆에서 본 앞뒤 폭이 준다. 깊이 깎기는 높이별
+    정규화로 제일 튀어나온 기둥이 hull 앞면에 닿아 측면을 지킨다 — 그래서 여기서도 **높이마다 제일 앞
+    기둥의 앞면 · 제일 뒤 기둥의 뒷면은 그대로** 둔다. 칸이 하나도 안 남는 얇은 기둥은 가운데 칸을
+    남긴다 (정면 실루엣에 구멍이 안 나게). -> (칸 판, q)"""
+    n = plain.shape[1]
+    j = np.arange(n)[None, :, None]
+    lo = np.where(plain, j, n).min(1).astype(np.float32)
+    hi = np.where(plain, j, -1).max(1).astype(np.float32)
+    D = np.maximum(hi - lo, 0.0)
+    on = plain.any(1)
+    zi = np.arange(plain.shape[2])
+    xf = np.argmin(np.where(on, lo, np.inf), axis=0)       # 높이마다 제일 앞 기둥
+    xb = np.argmax(np.where(on, hi, -np.inf), axis=0)      # 높이마다 제일 뒤 기둥
+    mid = plain & (j == np.round((lo + hi) / 2)[:, None, :])
+
+    def cut(q):
+        jf, jb = lo + q * D, hi - q * D
+        jf[xf, zi], jb[xb, zi] = lo[xf, zi], hi[xb, zi]
+        return (plain & (j >= jf[:, None, :]) & (j <= jb[:, None, :])) | mid
+    a, b = 0.0, 0.5
+    for _ in range(iters):
+        q = (a + b) / 2
+        a, b = (q, b) if cut(q).sum() > target_voxels else (a, q)
+    q = (a + b) / 2
+    return cut(q), q
+
+
+def mesh_from_field(f, axes):
+    """장의 수준 0 면 -> 메시. 좌표 규약은 `mesh_from` 과 같다."""
+    p = np.pad(f, 1, constant_values=-1.0)
+    V, F, _, _ = measure.marching_cubes(p, 0.0)
     ux, uy, uz = axes
     sx, sy, sz = ux[1] - ux[0], uy[1] - uy[0], uz[1] - uz[0]
     V = np.stack([ux[0] + (V[:, 0] - 1) * sx,
@@ -407,7 +538,12 @@ def main(case=None, out_name="hull.glb"):
     print("  단면 형태값  이진 hull %.2f -> 깊이 깎기 %.2f 칸  (0 이면 순수 상자)"
           % (box_score(plain), box_score(vox)))
     assert vox.any(1).sum() >= plain.any(1).sum() * 0.98, "깊이 깎기가 실루엣을 갉았다 — lam 을 낮출 것"
-    V, F = mesh_from(vox, axes)
+    # 결과를 매끈하게 — 가로 찢김과 계단을 편다. hull 밖으로는 못 부푼다 (`smooth_field`)
+    if SMOOTH_OUT > 0:
+        V, F = mesh_from_field(smooth_field(sdf_of(vox), sdf_of(plain)), axes)
+        print("  스무딩 σ %.1f 칸 (hull 밖으로 못 부풂)" % SMOOTH_OUT)
+    else:
+        V, F = mesh_from(vox, axes)
     mesh = trimesh.Trimesh(V, F, process=True)
     # 출력 위생 둘. 눈으로는 안 보이고 슬라이서가 걸린다
     #   ① 부유 파편 — 몇 복셀짜리 조각이 공중에 뜬다. 제일 큰 덩어리만 남긴다

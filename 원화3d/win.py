@@ -100,14 +100,17 @@ def warp_art(m, dx, dy, s):
 
 
 def art_mask(png):
-    """원화 → 마스크. 알파는 **흰 바탕에 얹어** 읽는다 — `IMREAD_COLOR` 로 그냥 열면
-    투명한 데가 검게 들어와 전경이 99% 로 잡힌다."""
+    """원화 → 마스크. **알파가 있으면 알파가 곧 실루엣이다** (> 127). 없으면 색으로 가른다 (< 250).
+
+    색으로 가르면 흰 부분이 배경으로 빠진다 — `시트.py` 판의 흰 가슴판·셔츠가 그래서 hull 에 터널을
+    냈다 (2026-09-11, 29장 중 9장 > 1%). 그래서 `시트.py` 가 알파를 같이 적는다. 오메가몬 원화도 알파가
+    0/255 로 깨끗하다. 예전엔 알파를 흰 바탕에 얹어 색으로 읽었다 — `IMREAD_COLOR` 로 열면 투명한 데가
+    검게 들어와 전경이 99% 로 잡히는 걸 막으려던 것인데, 알파를 직접 쓰면 그 문제도 없다."""
     im = cv2.imdecode(np.fromfile(png, np.uint8), cv2.IMREAD_UNCHANGED)
+    if im.ndim == 3 and im.shape[2] == 4:
+        return im[:, :, 3] > 127
     if im.ndim == 2:
         im = cv2.cvtColor(im, cv2.COLOR_GRAY2BGR)
-    if im.shape[2] == 4:
-        a = im[:, :, 3:4].astype(np.float32) / 255.0
-        im = (im[:, :, :3] * a + 255 * (1 - a)).astype(np.uint8)
     return (im[:, :, :3] < 250).any(2)
 
 

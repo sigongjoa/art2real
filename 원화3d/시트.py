@@ -103,10 +103,32 @@ def draw(Vw, F, col, mat, view, line=True):
     return rgb, ident
 
 
+def coverage(Vw, F, view, ss=4):
+    """실루엣을 **ss 배로 그려 줄인다** — 가장자리 화소에 「몇 % 덮였나」(0~1) 가 남는다.
+
+    화소보다 촘촘한 윤곽이다 (2026-09-11 해상도 트랙). 0/1 마스크는 윤곽을 화소 단위로 계단지게 해서
+    hull 에 가로 결을 남긴다. 손그림 원화라면 선의 안티앨리어싱 회색값이 같은 정보를 준다.
+    삼각형은 하나씩 채운다 — `fillPoly` 로 한꺼번에 채우면 겹친 데가 짝홀 규칙으로 지워진다.
+    화소 p 는 연속 좌표 [p, p+1) 이다 (`W.topix` 와 같은 규약) — 그래서 중심 맞춤으로 0.5 를 뺀다."""
+    a, sign = W.VIEW_AXIS[view]
+    R = W.RES * ss
+    px = (sign * Vw[:, a] - W.U0) / (W.U1 - W.U0) * R - 0.5
+    py = (W.Z1 - Vw[:, 2]) / (W.Z1 - W.Z0) * R - 0.5
+    P = np.round(np.stack([px, py], 1) * 16).astype(np.int32)[F]          # shift=4 -> 1/16 화소
+    hit = np.zeros((R, R), np.uint8)
+    for tri in P:
+        cv2.fillConvexPoly(hit, tri, 1, shift=4)
+    return cv2.resize(hit.astype(np.float32), (W.RES, W.RES), interpolation=cv2.INTER_AREA)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("model")
     ap.add_argument("--이름", dest="name", default=None)
+    ap.add_argument("--안뒤집기", dest="no_flip", action="store_true",
+                    help="모델이 이미 −y 를 본다 (무진.py). VRM 이면 주지 않는다")
+    ap.add_argument("--초정밀", dest="ss", action="store_true",
+                    help="알파를 4배로 그려 줄인다 — 가장자리에 덮인 비율 (해상도 트랙, `coverage`)")
     a = ap.parse_args()
     name = a.name or os.path.splitext(os.path.basename(a.model))[0]
     d = os.path.join(OUT, name)
@@ -124,14 +146,22 @@ def main():
     Vw = W.to_world(V, "xyz")
     # VRM/glTF 캐릭터는 **+z 를 본다.** 창 규약은 「앞이 −y」라 깊이를 뒤집어야
     # front 카메라가 얼굴을 본다. 안 뒤집으면 front 에 뒤통수가 나온다 (실측).
-    Vw[:, 1] *= -1
+    # 다만 무진.py 처럼 **처음부터 −y 를 보게 세운 모델**은 여기서 뒤집으면 반대로
+    # front 에 뒤통수가 나온다 — 2026-09-11 에 무진1997 시트가 그렇게 나와 있었다.
+    if not a.no_flip:
+        Vw[:, 1] *= -1
     Vw = W.normalize(Vw)
     trimesh.Trimesh(Vw, F, process=False).export(os.path.join(d, "truth.glb"))
 
     for v in W.VIEWS:
         rgb, ident = draw(Vw, F, col, mat, v)
-        cv2.imencode(".png", cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR))[1].tofile(
-            os.path.join(d, "%s.png" % v))
+        # **정확한 실루엣을 알파로 같이 적는다** (2026-09-11). 흰 바탕에 색만 적으면 모델의 흰 부분
+        # (흰 가슴판·셔츠)이 `win.art_mask` 에서 배경으로 빠져 hull 에 터널이 뚫렸다 (29장 중 9장 > 1%).
+        # 윤곽선 굵히기가 바깥으로 번진 1 화소(측정한 「테」)도 알파 0 이라 마스크에 안 든다.
+        al = (np.round(coverage(Vw, F, v) * 255).astype(np.uint8) if a.ss      # 가장자리에 덮인 비율
+              else np.where(ident >= 0, 255, 0).astype(np.uint8))
+        bgra = np.dstack([cv2.cvtColor(rgb, cv2.COLOR_RGB2BGR), al])
+        cv2.imencode(".png", bgra)[1].tofile(os.path.join(d, "%s.png" % v))
         print("  %-6s 전경 %.1f%% -> %s.png" % (v, 100 * (ident >= 0).mean(), v))
     print("  정답 메시 -> %s/truth.glb" % d)
 

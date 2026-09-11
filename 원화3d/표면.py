@@ -110,8 +110,10 @@ def chamfer(truth, mesh, n=N, tau=TAU, seed=0):
     db = 우리 -> 정답 (튀어나온 만큼 커진다 = 정밀도)"""
     if not len(mesh.faces) or not len(truth.faces):
         return {"챔퍼": float("nan"), "F": 0.0, "정밀도": 0.0, "재현율": 0.0}
-    da = _p2m(truth.sample(n), mesh)
-    db = _p2m(mesh.sample(n), truth)
+    # **seed 를 넘긴다.** 안 넘기면 받아만 두고 매번 다른 4만 점을 뽑는다 — 도형 11개를
+    # 하루 두 번 돌리니 IoU 는 같은데 F 가 ±0.005 흔들렸다 (2026-09-11)
+    da = _p2m(truth.sample(n, seed=seed), mesh)
+    db = _p2m(mesh.sample(n, seed=seed), truth)
     rec, pre = float((da < tau).mean()), float((db < tau).mean())
     return {"챔퍼": float(da.mean() + db.mean()), "정밀도": pre, "재현율": rec,
             "F": 2 * pre * rec / max(pre + rec, 1e-9)}
@@ -155,6 +157,37 @@ def score(truth, mesh):
     return r
 
 
+def tear(vox):
+    """**가로 찢김** — 앞면(정면에서 처음 맞는 칸)이 위아래 이웃 줄끼리 3칸 넘게 튄 쌍의 비율.
+
+    IoU 가 못 보는 것이다. 2026-09-11 에 오라클0.50 이 IoU 1등인데 28~31% 찢어져 있었다 (정답 6~11%) —
+    원인은 원화 마스크의 구멍·테였고, 판을 고치자 1.5~8% 로 내려왔다."""
+    n = vox.shape[1]
+    jf = np.where(vox, np.arange(n)[None, :, None], n).min(1).astype(float)
+    jf[jf >= n] = np.nan
+    dz = np.abs(np.diff(jf, axis=1))
+    dz = dz[np.isfinite(dz)]
+    return float((dz > 3).mean()) if dz.size else 0.0
+
+
+def pieces(vox, minv=50):
+    """떨어진 덩어리 수 (26-이웃, `minv` 칸 이상). 출력할 원형이면 1 이어야 한다."""
+    from scipy import ndimage
+    lab, _ = ndimage.label(vox, structure=np.ones((3, 3, 3)))
+    s = np.bincount(lab.ravel())[1:]
+    return int((s >= minv).sum())
+
+
+def sil_loss(vox, keep):
+    """hull(`keep`) 실루엣 중 잃은 비율 — 정면·측면 중 큰 쪽. 원화 실루엣과 맞는다는 게 파는 물건의
+    약속이다. 3D 로 흐리는 스무딩이 여기서 11~16% 를 잃어 탈락했다 (2026-09-11)."""
+    out = []
+    for ax in (1, 0):                                    # 1 = 정면 (x, z) · 0 = 측면 (y, z)
+        a = keep.any(ax)
+        out.append(float((a & ~vox.any(ax)).sum() / max(a.sum(), 1)))
+    return max(out)
+
+
 def selfcheck():
     """**답을 아는 도형으로 자를 검사한다.** `계단` 이 떨어졌던 그 문이다."""
     cyl = trimesh.creation.cylinder(radius=0.3, height=1.0, sections=256)
@@ -185,10 +218,28 @@ def selfcheck():
     assert miss["재현율"] < miss["정밀도"] - 0.15,         "팔을 빠뜨렸는데 재현율이 안 떨어진다 (%.3f vs %.3f)" % (miss["재현율"], miss["정밀도"])
     assert extra["정밀도"] < extra["재현율"] - 0.15,         "없는 걸 만들었는데 정밀도가 안 떨어진다 (%.3f vs %.3f)" % (extra["정밀도"], extra["재현율"])
 
+    # **두 번 재면 같은 값인가.** 표본이 seed 를 안 따르면 날마다 기록이 흔들린다
+    assert chamfer(whole, box) == miss, "같은 입력인데 챔퍼가 두 번 다르게 나온다 — seed 가 샌다"
+
     # **각짐이 방향을 맞나.** 원기둥을 x 로 눌러도 원이 아니게 되면 커져야 한다
     sq = trimesh.creation.cylinder(radius=0.3, height=1.0, sections=4)   # 정사각(회전) 단면
     asq = angularity(sq)
     assert asq > ac + 0.2, "사각 단면인데 각짐이 안 커진다 (%.3f vs %.3f)" % (asq, ac)
+
+    # **깨짐 셋 — 답을 안다.** 매끈한 상자는 찢김 0 · 조각 1 · 실루엣 손실 0
+    bx = np.zeros((40, 40, 40), bool)
+    bx[5:35, 5:35, 5:35] = True
+    assert tear(bx) == 0 and pieces(bx) == 1 and sil_loss(bx, bx) == 0, "매끈한 상자인데 깨짐이 잡힌다"
+    tr = bx.copy()
+    tr[:, 5:15, 20] = False                              # 한 줄만 앞면을 10칸 판다 -> 위아래로 튄다
+    assert tear(tr) > 0.05, "한 줄을 10칸 팠는데 찢김이 안 잡힌다 (%.3f)" % tear(tr)
+    two = np.zeros_like(bx)
+    two[2:12, 5:35, 5:35] = True
+    two[25:35, 5:35, 5:35] = True
+    assert pieces(two) == 2, "떨어진 상자 둘인데 조각이 %d" % pieces(two)
+    cut = bx.copy()
+    cut[:, :, 30:35] = False                             # 위 5줄을 잘라냄 -> 실루엣 5/30 손실
+    assert abs(sil_loss(cut, bx) - 5 / 30) < 0.01, "위를 잘랐는데 실루엣 손실 %.3f (답 0.167)" % sil_loss(cut, bx)
 
     print("  표면 자가검사 통과")
     print("    각짐   원 %.3f (답 %.3f) · 정사각 %.3f (답 %.3f) · 4각기둥 %.3f"
