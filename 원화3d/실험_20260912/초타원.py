@@ -2,7 +2,8 @@
 """도형 11개 · **단면 지수를 쓴다** — 타원(p=2)이 고정인 게 손해인가.
 
     python 초타원.py <벤치> [n]        벤치 = 도형 · 마네킹 · 스캔 · 실물
-    python 초타원.py 그림 <벤치> [케이스 ...]
+    python 초타원.py 그림 <벤치> [케이스 ...]   단면
+    python 초타원.py 3d <벤치> [케이스 ...]     깎은 것을 3D 로 + IoU
 
 `ellipse_depths` 는 높이마다 부품(연결성분)에 **타원**을 내접시킨다 — 지수 2 가 박혀 있다.
 초타원 |x/a|^p + |y/b|^p <= 1 은 그 지수를 푼다 (p=2 타원 · 크면 상자 · 1 이면 마름모).
@@ -104,6 +105,13 @@ def one(case):
 
 def main():
     O.H.register_sheets()
+    if len(sys.argv) > 1 and sys.argv[1] == "3d":       # python 초타원.py 3d <벤치> [케이스 ...]
+        bench = sys.argv[2] if len(sys.argv) > 2 else "실물"
+        rec = {json.loads(l)["case"]: json.loads(l) for l in
+               open(os.path.join(REC, "초타원_%s.jsonl" % bench), encoding="utf-8")}
+        want = [n if "_" in n else bench + "_" + n for n in sys.argv[3:]]
+        three_d([(c, rec[c]) for c in want])
+        return
     if len(sys.argv) > 1 and sys.argv[1] == "그림":     # python 초타원.py 그림 <벤치> [케이스 ...]
         bench = sys.argv[2] if len(sys.argv) > 2 else "도형"
         want = [n if "_" in n else bench + "_" + n for n in sys.argv[3:]]
@@ -268,6 +276,82 @@ def figure(cases, bench="도형"):
         gc.collect()
     im.save(os.path.join(HERE, "out", "초타원단면_%s.png" % bench))
     print("  -> out/초타원단면_%s.png" % bench)
+
+def three_d(cases, lam=0.50, az=35):
+    """**깎은 것을 3D 로 본다** — 단면 말고. 그리고 여기서 처음으로 **IoU** 를 잰다.
+
+    한 줄에 정답 · hull(이진) · 깎기 p=2 · 깎기 p=그 케이스 최선. 넷을 `라벨._same_frame` 으로
+    한 격자에 올리고 `각도.shot` 으로 같은 각도 · **같은 색 눈금**에 칠한다 (빨강이 카메라 쪽).
+
+    깊이맵 오차가 줄었다고 IoU 가 오른다는 보장은 없다 — 그걸 여기서 처음 본다."""
+    from PIL import Image, ImageDraw
+    sys.path.insert(0, HERE)
+    import 라벨 as LB
+    import 각도 as A
+    from 계획 import _font
+    R, G, LW, TOP, RH = 300, 16, 232, 150, 348
+    im = Image.new("RGB", (LW + 4 * (R + G) + G, TOP + len(cases) * RH + 64), "white")
+    d = ImageDraw.Draw(im)
+    f1, f2, f3 = _font(26), _font(15), _font(13)
+    d.text((24, 18), "깎은 것을 3D 로 — 단면이 아니라 물건", fill=(20, 20, 20), font=f1)
+    d.text((24, 56), "z 축으로 %d도 돌려 본 앞면 · 색은 깊이 (빨강이 카메라 쪽) · 네 장이 같은 격자 · 같은 눈금 · "
+                     "lam %.2f" % (az, lam), fill=(90, 90, 90), font=f3)
+    d.text((24, 76), "칸 아래 = 3D IoU (판정 격자 128). **이 실험에서 IoU 를 재는 건 여기가 처음이다** — "
+                     "깊이맵 오차가 줄어도 IoU 가 오른다는 보장은 없다", fill=(90, 90, 90), font=f3)
+    d.text((24, 96), "p=2 는 지금 쓰는 타원 · 오른쪽은 그 케이스가 원하는 지수 (정답 깊이에 맞춰 고른 것 — 상한)",
+           fill=(90, 90, 90), font=f3)
+    for j, name in enumerate(("정답", "hull (이진)", "깎기 · 타원 p=2", "깎기 · 원하는 p")):
+        d.text((LW + G + j * (R + G), TOP - 24), name, fill=(40, 40, 40), font=f2)
+    # **케이스마다 적고 이어 돈다** — 케이스당 build 두 번이라 이 PC 에선 한 번에 다 못 돈다
+    cache = os.path.join(REC, "3d")
+    os.makedirs(cache, exist_ok=True)
+    for r, (case, rec) in enumerate(cases):
+        e = {q: rec["p"]["%.1f" % q]["오차"] for q in PS}
+        bp = min(PS, key=lambda q: e[q])
+        key = os.path.join(cache, "%s_lam%.2f_az%d" % (case, lam, az))
+        if os.path.exists(key + ".json"):
+            sc = json.load(open(key + ".json", encoding="utf-8"))["iou"]
+            strip = Image.open(key + ".png")
+            tiles = [strip.crop((j * R, 0, (j + 1) * R, R)) for j in range(4)]
+        else:
+            truth = trimesh.load(os.path.join(HERE, "out", "시트", case, "truth.glb"), force="mesh")
+            plain, d2, axes, _ = O.build(case, truth, lam, "타원", 2.0)
+            _, db, _, _ = O.build(case, truth, lam, "타원", bp)
+            iou = O._iou_fn(truth)
+            sc = [None, iou(plain, axes), iou(d2, axes), iou(db, axes)]
+            vox = LB._same_frame(case, plain, d2, axes, extra=[db])   # 정답 · 이진 · p2 · best
+            ds = [A.depth(v, az) for v in vox]
+            lo = min(x[h].min() for x, h in ds)
+            hi = max(x[h].max() for x, h in ds)
+            tiles = [A.paint(x, h, R=R, span=(lo, hi)) for x, h in ds]
+            tiles = [t if isinstance(t, Image.Image) else Image.fromarray(t) for t in tiles]
+            strip = Image.new("RGB", (4 * R, R), "white")
+            for j, t in enumerate(tiles):
+                strip.paste(t.resize((R, R)), (j * R, 0))
+            strip.save(key + ".png")
+            json.dump({"case": case, "iou": sc, "p": bp, "lam": lam, "az": az},
+                      open(key + ".json", "w", encoding="utf-8"), ensure_ascii=False)
+            del plain, d2, db, vox, ds
+            gc.collect()
+        y0 = TOP + r * RH
+        nm = short(case)
+        for t, tx in enumerate([nm[i:i + 22] for i in range(0, len(nm), 22)][:2]):
+            d.text((24, y0 + 96 + 20 * t), tx, fill=(20, 20, 20), font=f3)
+        d.text((24, y0 + 140), "원하는 p %.1f" % bp, fill=(120, 120, 120), font=f3)
+        for j, tile in enumerate(tiles):
+            x0 = LW + G + j * (R + G)
+            im.paste(tile.resize((R, R)), (x0, y0))
+            d.rectangle([x0, y0, x0 + R - 1, y0 + R - 1], outline=(215, 215, 215))
+            if sc[j] is not None:
+                dv = sc[j] - sc[2]
+                txt = "IoU %.4f" % sc[j] + ("" if j != 3 else "  (%+.4f)" % dv)
+                d.text((x0, y0 + R + 6), txt, font=f3,
+                       fill=(40, 40, 40) if j != 3 else (30, 130, 70) if dv > 0 else (190, 60, 40))
+        print("  %-38s hull %.4f · 깎기 p=2 %.4f · p=%.1f %.4f (%+.4f)"
+              % (case[:38], sc[1], sc[2], bp, sc[3], sc[3] - sc[2]), flush=True)
+    im.save(os.path.join(HERE, "out", "초타원3d.png"))
+    print("  -> out/초타원3d.png")
+
 
 if __name__ == "__main__":
     main()

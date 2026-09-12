@@ -125,6 +125,9 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("model")
     ap.add_argument("--이름", dest="name", default=None)
+    ap.add_argument("--축", dest="axes", default="xyz",
+                    help="만든 도구의 축 규약 (가로,위,깊이). glTF/VRM 은 xyz(y 위), "
+                         "블렌더/OpenSCAD 는 xzy, TripoSR 은 yxz(x 위). win.to_world 참고")
     ap.add_argument("--안뒤집기", dest="no_flip", action="store_true",
                     help="모델이 이미 −y 를 본다 (무진.py). VRM 이면 주지 않는다")
     ap.add_argument("--초정밀", dest="ss", action="store_true",
@@ -143,7 +146,7 @@ def main():
     print("  면 %d · 재질 %d" % (len(F), mat.max() + 1))
 
     # **창 규약 그대로.** 높이로 한 번 재고 세 시점이 그 배율을 공유한다 (win.normalize)
-    Vw = W.to_world(V, "xyz")
+    Vw = W.to_world(V, a.axes)
     # VRM/glTF 캐릭터는 **+z 를 본다.** 창 규약은 「앞이 −y」라 깊이를 뒤집어야
     # front 카메라가 얼굴을 본다. 안 뒤집으면 front 에 뒤통수가 나온다 (실측).
     # 다만 무진.py 처럼 **처음부터 −y 를 보게 세운 모델**은 여기서 뒤집으면 반대로

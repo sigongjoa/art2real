@@ -81,14 +81,15 @@ KEY = os.path.join(OUT, "정답표.json")
 PICKS = os.path.join(OUT, "판정.json")
 
 
-def _same_frame(case, plain, deep, axes):
+def _same_frame(case, plain, deep, axes, extra=()):
     """정답 메시와 두 판본을 **한 격자**에 올린다. 안 그러면 세 타일의 자세·크기가 어긋난다.
 
     `정답.common` 은 두 개짜리라 여기서 셋으로 편다 — 셋 다 같은 pitch 로 세계에 고정돼
     있으니 정수 오프셋만 맞추면 된다."""
     t = trimesh.load(os.path.join(os.path.dirname(OUT), "시트", case, "truth.glb"), force="mesh")
     P = J.PITCH / 2                              # 정답 기본 격자는 128 칸이라 파편이 뭉갠다
-    gs = [J.grid(m, P) for m in (t, C.to_mesh(plain, axes), C.to_mesh(deep, axes))]
+    gs = [J.grid(m, P) for m in [t, C.to_mesh(plain, axes), C.to_mesh(deep, axes)]
+          + [C.to_mesh(e, axes) for e in extra]]     # extra 로 판본을 더 얹는다 (기본 없음)
     lo = np.min([o for _, o in gs], 0)
     hi = np.max([o + np.array(a.shape) for a, o in gs], 0)
     # 화면 두 축(x·z)을 정사각으로 채운다. `각도.shot` 이 배열을 R×R 로 늘려 그려서,
@@ -102,7 +103,7 @@ def _same_frame(case, plain, deep, axes):
         z[tuple(slice(o[i] - lo[i] + pad[i], o[i] - lo[i] + pad[i] + a.shape[i])
                 for i in range(3))] = a
         out.append(z)
-    return out                                   # 정답 · 이진 · 깊이
+    return out                                   # 정답 · 이진 · 깊이 (+ extra 순서대로)
 
 
 def make():

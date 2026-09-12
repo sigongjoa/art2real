@@ -148,8 +148,11 @@ def ellipse_depths(plain, axes, back_sign, p=2.0):
     return out
 
 
-def build(case, truth, lam, which):
-    """`대조.build` 와 같은 순서. `which` 로 깊이맵만 갈아끼운다 -> (이진, 깎은 것, 축, 깊이맵)."""
+def build(case, truth, lam, which, pexp=2.0):
+    """`대조.build` 와 같은 순서. `which` 로 깊이맵만 갈아끼운다 -> (이진, 깎은 것, 축, 깊이맵).
+
+    `pexp` 는 `which="타원"` 일 때 단면 지수 (기본 2.0 = 타원. `superellipse` 참조).
+    **이름 조심** — 이 함수 안의 `p` 는 정렬값이다 (`H.align`)."""
     src, base = H.CASES[case]["src"], H.art_dir(case)
     bs = H.CASES[case]["back_sign"]
     masks, deps = {}, {}
@@ -164,7 +167,7 @@ def build(case, truth, lam, which):
     deps = {v: H._warp_one(a, v, p) for v, a in deps.items()}
     plain, axes = H.carve(masks, back_sign=bs)
     if which == "타원":
-        deps = ellipse_depths(plain, axes, bs)
+        deps = ellipse_depths(plain, axes, bs, pexp)
     deep, _ = H.carve_depth(masks, deps, lam=lam, back_sign=bs)
     return plain, deep, axes, deps
 
