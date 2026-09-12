@@ -378,26 +378,30 @@ def angles(case, rec, lam=0.50, azs=None):
     bp = min(PS, key=lambda q: e[q])
     cache = os.path.join(REC, "3d")
     os.makedirs(cache, exist_ok=True)
-    key = os.path.join(cache, "%s_lam%.2f_vox.npz" % (case, lam))
+    key = os.path.join(cache, "%s_lam%.2f_vox5.npz" % (case, lam))
+    N = 5                                        # 정답 · hull · p=2 · 최선 p · **오라클(정답 깊이)**
     if os.path.exists(key):
         z = np.load(key)
         shp = tuple(z["shape"])
-        vox = [np.unpackbits(z["v%d" % i])[:int(np.prod(shp))].astype(bool).reshape(shp) for i in range(4)]
+        vox = [np.unpackbits(z["v%d" % i])[:int(np.prod(shp))].astype(bool).reshape(shp) for i in range(N)]
         sc = list(z["iou"])
     else:
         truth = trimesh.load(os.path.join(HERE, "out", "시트", case, "truth.glb"), force="mesh")
         plain, d2, axes, _ = O.build(case, truth, lam, "타원", 2.0)
         _, db, _, _ = O.build(case, truth, lam, "타원", bp)
+        # **오라클 — 정답에서 잰 진짜 깊이를 같은 규칙에 넣는다.** 이게 깎기의 천장이다.
+        # 여기서도 안 걷히면 깊이맵이 아니라 **표현**(3판 교집합 + 앞뒤 깊이)이 못 하는 것이다
+        _, dor, _, _ = O.build(case, truth, lam, "오라클")
         iou = O._iou_fn(truth)
-        sc = [np.nan, iou(plain, axes), iou(d2, axes), iou(db, axes)]
-        vox = LB._same_frame(case, plain, d2, axes, extra=[db])
+        sc = [np.nan, iou(plain, axes), iou(d2, axes), iou(db, axes), iou(dor, axes)]
+        vox = LB._same_frame(case, plain, d2, axes, extra=[db, dor])
         np.savez_compressed(key, shape=np.array(vox[0].shape), iou=np.array(sc),
                             **{"v%d" % i: np.packbits(v) for i, v in enumerate(vox)})
-        del plain, d2, db
+        del plain, d2, db, dor
         gc.collect()
-    names = ["정답", "hull (이진)", "깎기 · 타원 p=2", "깎기 · p=%.1f" % bp]
+    names = ["정답", "hull (이진)", "깎기 · 타원 p=2", "깎기 · p=%.1f" % bp, "깎기 · 오라클 (정답 깊이)"]
     R, G, LW, TOP, RH = 236, 14, 176, 150, 288
-    im = Image.new("RGB", (LW + len(azs) * (R + G) + G, TOP + 4 * RH + 30), "white")
+    im = Image.new("RGB", (LW + len(azs) * (R + G) + G, TOP + N * RH + 62), "white")
     d = ImageDraw.Draw(im)
     f1, f2, f3 = _font(26), _font(15), _font(13)
     d.text((24, 18), "%s — 각도 %d개로 본다" % (short(case), len(azs)), fill=(20, 20, 20), font=f1)
@@ -412,7 +416,7 @@ def angles(case, rec, lam=0.50, azs=None):
     shots = [[A.depth(v, az) for az in azs] for v in vox]
     lo = min(x[h].min() for row in shots for x, h in row)
     hi = max(x[h].max() for row in shots for x, h in row)
-    for r in range(4):
+    for r in range(N):
         y0 = TOP + r * RH
         d.text((24, y0 + 96), names[r], fill=(20, 20, 20), font=f2)
         if np.isfinite(sc[r]):
@@ -426,6 +430,19 @@ def angles(case, rec, lam=0.50, azs=None):
             im.paste(tile.resize((R, R)), (x0, y0))
             d.rectangle([x0, y0, x0 + R - 1, y0 + R - 1], outline=(215, 215, 215))
         print("  %s · 각도 %s 그림" % (names[r], azs), flush=True)
+    # **90도에서 앞뒤가 남아 있나.** 옆에서 본 깊이(=원래 앞뒤축)의 퍼짐을 판본마다 잰다.
+    # 정답은 팔 하나가 앞 하나가 뒤라 퍼짐이 크고, 유령으로 뭉치면 한 덩어리라 작다
+    side = [A.depth(v, 90) for v in vox]
+    band = None
+    for r, (x, h) in enumerate(side):
+        if r == 0:                                # 정답에서 「깊이가 제일 퍼진 높이 띠」를 고른다
+            col = np.where(h.any(0), np.ptp(np.where(h, x, np.nan), axis=0, ), 0.0) if False else None
+            sp = np.array([np.ptp(x[h[:, k], k]) if h[:, k].any() else 0.0 for k in range(h.shape[1])])
+            k0 = int(np.argmax(sp)); band = slice(max(k0 - 6, 0), k0 + 7)
+        v = [np.ptp(x[h[:, k], k]) for k in range(*band.indices(h.shape[1])) if h[:, k].any()]
+        d.text((24, TOP + r * RH + 148), "90도 앞뒤 퍼짐 %.1f칸" % (np.mean(v) if v else 0.0),
+               fill=(120, 120, 120), font=f3)
+        print("     %-22s 90도 앞뒤 퍼짐 %.1f 칸" % (names[r], np.mean(v) if v else 0.0), flush=True)
     out = os.path.join(HERE, "out", "초타원각도_%s.png" % short(case))
     im.save(out)
     print("  -> %s" % os.path.relpath(out, HERE))
