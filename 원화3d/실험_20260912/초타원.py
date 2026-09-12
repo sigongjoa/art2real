@@ -111,7 +111,11 @@ def main():
         rec = {json.loads(l)["case"]: json.loads(l) for l in
                open(os.path.join(REC, "초타원_%s.jsonl" % bench), encoding="utf-8")}
         c = sys.argv[3] if "_" in sys.argv[3] else bench + "_" + sys.argv[3]
-        if len(sys.argv) > 4 and sys.argv[4] == "lam":       # lam 을 푸는 걸 보는 프리셋
+        if len(sys.argv) > 4 and sys.argv[4] == "후보":      # 지금 기본값 대 후보
+            angles(c, rec[c], azs=[0, 45, 90], vers=[
+                ("깎기 · 파이프 lam 0.20 (지금)", "파이프", 0.20, 2.0),
+                ("깎기 · 타원 lam 1.00 (후보)", "타원", 1.00, 2.0)])
+        elif len(sys.argv) > 4 and sys.argv[4] == "lam":     # lam 을 푸는 걸 보는 프리셋
             angles(c, rec[c], azs=[0, 45, 90], vers=[
                 ("깎기 · 타원 lam 0.50", "타원", 0.50, 2.0),
                 ("깎기 · 타원 lam 1.00", "타원", 1.00, 2.0),

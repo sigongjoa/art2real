@@ -295,7 +295,15 @@ def load_depth(v, m, groove=3, case=None):
     「제일 들어간 곳」이 되어 발이 통째로 날아간다 — 실측으로 side 못 덮음이
     0.00 에서 21.0% 로 뛰었다. 지어내지 않는 쪽은 안 깎는 쪽이다."""
     import cv2
-    d = np.load(os.path.join(OUT, "깊이", case or CASE, v, "depth.npy")).astype(np.float32)
+    # **판보다 낡은 깊이맵은 쓰지 않는다.** 판을 다시 구우면 깊이맵도 다시 내야 한다.
+    # 2026-09-12: 거꾸로 선 마네킹을 고쳐 다시 구웠는데 09-10 깊이맵이 남아 있어,
+    # 거꾸로 깊이를 바로 선 마스크에 얹고 있었다 (조용히, 값만 이상하게)
+    dp = os.path.join(OUT, "깊이", case or CASE, v, "depth.npy")
+    sp = os.path.join(OUT, "시트", case or CASE, "truth.glb")
+    if os.path.exists(sp) and os.path.exists(dp) and os.path.getmtime(dp) < os.path.getmtime(sp):
+        raise RuntimeError("%s/%s 깊이맵이 판보다 낡았다 — python 깊이.py %s 로 다시 낼 것"
+                           % (case or CASE, v, case or CASE))
+    d = np.load(dp).astype(np.float32)
     lab = np.load(os.path.join(OUT, "깊이", case or CASE, v, "labels_grown.npy"))
     near = cv2.distanceTransform((lab == 0).astype(np.uint8), cv2.DIST_L2, 3) <= groove
     d = _smooth_parts(d, lab, SMOOTH)
