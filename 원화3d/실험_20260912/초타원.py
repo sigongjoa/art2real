@@ -107,6 +107,10 @@ def one(case):
 
 def main():
     O.H.register_sheets()
+    if len(sys.argv) > 1 and sys.argv[1] == "어려운":   # python 초타원.py 어려운 <벤치> [장수]
+        hard(sys.argv[2] if len(sys.argv) > 2 else "실물",
+             int(sys.argv[3]) if len(sys.argv) > 3 else 6)
+        return
     if len(sys.argv) > 1 and sys.argv[1] == "틀린곳":   # python 초타원.py 틀린곳 <벤치> <케이스>
         bench = sys.argv[2]
         c = sys.argv[3] if "_" in sys.argv[3] else bench + "_" + sys.argv[3]
@@ -572,6 +576,81 @@ def wrong(case, bench, lam=0.50, azs=(0, 45), vers=None):
         print("  %-26s IoU %.4f · 남는 것 %5.1f%% · 빠진 것 %5.1f%%"
               % (nm, sc[r], 100 * extra, 100 * miss), flush=True)
     out = os.path.join(HERE, "out", "틀린곳_%s.png" % short(case))
+    im.save(out)
+    print("  -> %s" % os.path.relpath(out, HERE))
+
+
+def hard(bench="실물", n=6, az=25, lam=0.50):
+    """**벤치에서 제일 어려운 n 장**을 틀린 곳으로 한 장에 올린다 (`람.py` 점수 기준 낮은 순).
+
+    줄 = 케이스 · 칸 = hull · 지금(파이프 lam0.20) · 후보(타원 lam1.00).
+    회색 = 맞음 · 빨강 = 없어야 하는데 있다 · 파랑 = 있어야 하는데 없다."""
+    from PIL import Image, ImageDraw
+    sys.path.insert(0, HERE)
+    import 라벨 as LB
+    from 계획 import _font
+    rec = {json.loads(l)["case"]: json.loads(l)
+           for l in open(os.path.join(REC, "람_%s.jsonl" % bench), encoding="utf-8")}
+    order = sorted(rec.values(), key=lambda r: r["파이프0.20"]["iou"])[:n]
+    vers = [("깎기 · 파이프 lam 0.20 (지금)", "파이프", 0.20, 2.0),
+            ("깎기 · 타원 lam 1.00 (후보)", "타원", 1.00, 2.0)]
+    tag = "_".join("%s%.2f-%.1f" % (w[:2], l, e) for _, w, l, e in vers)
+    R, G, LW, TOP, RH = 268, 14, 262, 176, 320
+    cols = ["hull (이진)", "지금 · 파이프 lam0.20", "후보 · 타원 lam1.00"]
+    im = Image.new("RGB", (LW + 3 * (R + G) + G, TOP + len(order) * RH + 30), "white")
+    d = ImageDraw.Draw(im)
+    f1, f2, f3 = _font(26), _font(15), _font(13)
+    d.text((24, 18), "%s 벤치에서 제일 어려운 %d 장 — 어디가 틀렸나" % (bench, len(order)),
+           fill=(20, 20, 20), font=f1)
+    d.text((24, 56), "정답과 맞대서 칠한다 · 회색 = 맞음 · **빨강 = 없어야 하는데 있다** · "
+                     "**파랑 = 있어야 하는데 없다** · 광선마다 두께로 센다", fill=(90, 90, 90), font=f3)
+    d.text((24, 76), "%d도에서 본다 · 칸 아래 = 3D IoU (괄호는 지금 대비) · 색이 옅을수록 정답에 가깝다" % az,
+           fill=(90, 90, 90), font=f3)
+    d.text((24, 96), "**어려운 순서로 골랐다** — 지금 규칙의 IoU 가 낮은 차례",
+           fill=(90, 90, 90), font=f3)
+    for j, nm in enumerate(cols):
+        d.text((LW + G + j * (R + G), TOP - 24), nm, fill=(40, 40, 40), font=f2)
+    for r, row in enumerate(order):
+        case = row["case"]
+        key = os.path.join(REC, "3d", "%s_%s_vox.npz" % (case, tag))
+        if not os.path.exists(key):
+            truth = trimesh.load(os.path.join(HERE, "out", "시트", case, "truth.glb"), force="mesh")
+            iou = O._iou_fn(truth)
+            made, plain, axes = [], None, None
+            for _, which, l, ex in vers:
+                pl, dv, ax, _ = O.build(case, truth, l, which, ex)
+                if plain is None:
+                    plain, axes = pl, ax
+                made.append(dv)
+            sc = [np.nan, iou(plain, axes)] + [iou(m, axes) for m in made]
+            vox = LB._same_frame(case, plain, made[0], axes, extra=made[1:])
+            np.savez_compressed(key, shape=np.array(vox[0].shape), iou=np.array(sc),
+                                **{"v%d" % i: np.packbits(v) for i, v in enumerate(vox)})
+            del plain, made
+            gc.collect()
+        z = np.load(key)
+        shp = tuple(z["shape"])
+        vox = [np.unpackbits(z["v%d" % i])[:int(np.prod(shp))].astype(bool).reshape(shp) for i in range(4)]
+        sc = list(z["iou"])
+        T = vox[0]
+        y0 = TOP + r * RH
+        nm = short(case)
+        for t, tx in enumerate([nm[i:i + 24] for i in range(0, len(nm), 24)][:2]):
+            d.text((24, y0 + 108 + 20 * t), tx, fill=(20, 20, 20), font=f3)
+        for j in range(3):
+            v = vox[j + 1]
+            ex = float((v & ~T).sum()) / max(float(T.sum()), 1)
+            ms = float((~v & T).sum()) / max(float(T.sum()), 1)
+            x0 = LW + G + j * (R + G)
+            im.paste(_err_tile(T, v, az, R).resize((R, R)), (x0, y0))
+            d.rectangle([x0, y0, x0 + R - 1, y0 + R - 1], outline=(215, 215, 215))
+            dv = sc[j + 1] - sc[2]
+            d.text((x0, y0 + R + 6), "IoU %.4f%s" % (sc[j + 1], "" if j != 3 - 1 else "  (%+.4f)" % dv),
+                   font=f3, fill=(40, 40, 40) if j != 2 else (30, 130, 70) if dv > 0 else (190, 60, 40))
+            d.text((x0, y0 + R + 26), "남는 것 %.0f%% · 빠진 것 %.0f%%" % (100 * ex, 100 * ms),
+                   font=f3, fill=(120, 120, 120))
+        print("  %-30s hull %.4f · 지금 %.4f · 후보 %.4f" % (nm[:30], sc[1], sc[2], sc[3]), flush=True)
+    out = os.path.join(HERE, "out", "어려운_%s.png" % bench)
     im.save(out)
     print("  -> %s" % os.path.relpath(out, HERE))
 
