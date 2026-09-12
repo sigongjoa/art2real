@@ -111,7 +111,14 @@ def main():
         rec = {json.loads(l)["case"]: json.loads(l) for l in
                open(os.path.join(REC, "초타원_%s.jsonl" % bench), encoding="utf-8")}
         c = sys.argv[3] if "_" in sys.argv[3] else bench + "_" + sys.argv[3]
-        angles(c, rec[c])
+        if len(sys.argv) > 4 and sys.argv[4] == "lam":       # lam 을 푸는 걸 보는 프리셋
+            angles(c, rec[c], azs=[0, 45, 90], vers=[
+                ("깎기 · 타원 lam 0.50", "타원", 0.50, 2.0),
+                ("깎기 · 타원 lam 1.00", "타원", 1.00, 2.0),
+                ("깎기 · 오라클 lam 0.50", "오라클", 0.50, 2.0),
+                ("깎기 · 오라클 lam 1.00", "오라클", 1.00, 2.0)])
+        else:
+            angles(c, rec[c])
         return
     if len(sys.argv) > 1 and sys.argv[1] == "3d":       # python 초타원.py 3d <벤치> [케이스 ...]
         bench = sys.argv[2] if len(sys.argv) > 2 else "실물"
@@ -361,7 +368,7 @@ def three_d(cases, lam=0.50, az=35):
     print("  -> out/초타원3d.png")
 
 
-def angles(case, rec, lam=0.50, azs=None):
+def angles(case, rec, lam=0.50, azs=None, vers=None):
     """**한 케이스를 여러 각도에서.** 한 면만 보면 옆에서 무너진 걸 못 본다 (2026-09-12).
 
     줄 = 판본 (정답 · hull · 깎기 p=2 · 깎기 원하는 p) · 칸 = z 축 회전각.
@@ -378,8 +385,13 @@ def angles(case, rec, lam=0.50, azs=None):
     bp = min(PS, key=lambda q: e[q])
     cache = os.path.join(REC, "3d")
     os.makedirs(cache, exist_ok=True)
-    key = os.path.join(cache, "%s_lam%.2f_vox5.npz" % (case, lam))
-    N = 5                                        # 정답 · hull · p=2 · 최선 p · **오라클(정답 깊이)**
+    # 판본 = (라벨, 깊이맵, lam, 지수). 안 주면 옛 다섯 줄 (한 lam 에서 지수만 바꾼다)
+    vers = vers or [("깎기 · 타원 p=2", "타원", lam, 2.0),
+                    ("깎기 · p=%.1f" % bp, "타원", lam, bp),
+                    ("깎기 · 오라클 (정답 깊이)", "오라클", lam, 2.0)]
+    tag = "_".join("%s%.2f-%.1f" % (w[:2], l, e) for _, w, l, e in vers)
+    key = os.path.join(cache, "%s_%s_vox.npz" % (case, tag))
+    N = len(vers) + 2                            # 정답 · hull · 판본들
     if os.path.exists(key):
         z = np.load(key)
         shp = tuple(z["shape"])
@@ -387,26 +399,29 @@ def angles(case, rec, lam=0.50, azs=None):
         sc = list(z["iou"])
     else:
         truth = trimesh.load(os.path.join(HERE, "out", "시트", case, "truth.glb"), force="mesh")
-        plain, d2, axes, _ = O.build(case, truth, lam, "타원", 2.0)
-        _, db, _, _ = O.build(case, truth, lam, "타원", bp)
-        # **오라클 — 정답에서 잰 진짜 깊이를 같은 규칙에 넣는다.** 이게 깎기의 천장이다.
-        # 여기서도 안 걷히면 깊이맵이 아니라 **표현**(3판 교집합 + 앞뒤 깊이)이 못 하는 것이다
-        _, dor, _, _ = O.build(case, truth, lam, "오라클")
         iou = O._iou_fn(truth)
-        sc = [np.nan, iou(plain, axes), iou(d2, axes), iou(db, axes), iou(dor, axes)]
-        vox = LB._same_frame(case, plain, d2, axes, extra=[db, dor])
+        made, plain, axes = [], None, None
+        for _, which, l, ex in vers:
+            # **오라클은 정답 깊이다** — 깎기의 천장. lam 은 그 깊이를 어디까지 믿느냐다
+            pl, dv, ax, _ = O.build(case, truth, l, which, ex)
+            if plain is None:
+                plain, axes = pl, ax
+            made.append(dv)
+            print("     구움 %s lam %.2f 지수 %.1f" % (which, l, ex), flush=True)
+        sc = [np.nan, iou(plain, axes)] + [iou(m, axes) for m in made]
+        vox = LB._same_frame(case, plain, made[0], axes, extra=made[1:])
         np.savez_compressed(key, shape=np.array(vox[0].shape), iou=np.array(sc),
                             **{"v%d" % i: np.packbits(v) for i, v in enumerate(vox)})
-        del plain, d2, db, dor
+        del plain, made
         gc.collect()
-    names = ["정답", "hull (이진)", "깎기 · 타원 p=2", "깎기 · p=%.1f" % bp, "깎기 · 오라클 (정답 깊이)"]
+    names = ["정답", "hull (이진)"] + [v[0] for v in vers]
     R, G, LW, TOP, RH = 236, 14, 176, 150, 288
     im = Image.new("RGB", (LW + len(azs) * (R + G) + G, TOP + N * RH + 62), "white")
     d = ImageDraw.Draw(im)
     f1, f2, f3 = _font(26), _font(15), _font(13)
     d.text((24, 18), "%s — 각도 %d개로 본다" % (short(case), len(azs)), fill=(20, 20, 20), font=f1)
-    d.text((24, 56), "z 축 회전 · 색은 깊이 (빨강이 카메라 쪽) · 스무 장이 같은 격자 · 같은 눈금 · lam %.2f"
-           % lam, fill=(90, 90, 90), font=f3)
+    d.text((24, 56), "z 축 회전 · 색은 깊이 (**빨강이 카메라 쪽**) · 모든 칸이 같은 격자 · 같은 눈금",
+           fill=(90, 90, 90), font=f3)
     d.text((24, 76), "**한 면만 보면 옆에서 무너진 걸 못 본다.** 앞에서 멀쩡한 판본이 90도에서 갈라지는지 본다",
            fill=(90, 90, 90), font=f3)
     d.text((24, 96), "부품 %d · 원하는 p %.1f (정답 깊이에 맞춰 고른 것 — 상한)" % (rec["부품"], bp),
@@ -420,9 +435,9 @@ def angles(case, rec, lam=0.50, azs=None):
         y0 = TOP + r * RH
         d.text((24, y0 + 96), names[r], fill=(20, 20, 20), font=f2)
         if np.isfinite(sc[r]):
-            dv = sc[r] - sc[2]
-            d.text((24, y0 + 120), "IoU %.4f%s" % (sc[r], "" if r != 3 else "  (%+.4f)" % dv), font=f3,
-                   fill=(40, 40, 40) if r != 3 else (30, 130, 70) if dv > 0 else (190, 60, 40))
+            dv = sc[r] - sc[2]                   # 첫 깎기 줄과의 차
+            d.text((24, y0 + 120), "IoU %.4f%s" % (sc[r], "" if r <= 2 else "  (%+.4f)" % dv), font=f3,
+                   fill=(40, 40, 40) if r <= 2 else (30, 130, 70) if dv > 0 else (190, 60, 40))
         for j, (x, h) in enumerate(shots[r]):
             tile = A.paint(x, h, R=R, span=(lo, hi))
             tile = tile if isinstance(tile, Image.Image) else Image.fromarray(tile)
@@ -433,16 +448,30 @@ def angles(case, rec, lam=0.50, azs=None):
     # **90도에서 앞뒤가 남아 있나.** 옆에서 본 깊이(=원래 앞뒤축)의 퍼짐을 판본마다 잰다.
     # 정답은 팔 하나가 앞 하나가 뒤라 퍼짐이 크고, 유령으로 뭉치면 한 덩어리라 작다
     side = [A.depth(v, 90) for v in vox]
-    band = None
+    band, arm = None, [None, None]
     for r, (x, h) in enumerate(side):
         if r == 0:                                # 정답에서 「깊이가 제일 퍼진 높이 띠」를 고른다
             col = np.where(h.any(0), np.ptp(np.where(h, x, np.nan), axis=0, ), 0.0) if False else None
             sp = np.array([np.ptp(x[h[:, k], k]) if h[:, k].any() else 0.0 for k in range(h.shape[1])])
             k0 = int(np.argmax(sp)); band = slice(max(k0 - 6, 0), k0 + 7)
         v = [np.ptp(x[h[:, k], k]) for k in range(*band.indices(h.shape[1])) if h[:, k].any()]
-        d.text((24, TOP + r * RH + 148), "90도 앞뒤 퍼짐 %.1f칸" % (np.mean(v) if v else 0.0),
-               fill=(120, 120, 120), font=f3)
-        print("     %-22s 90도 앞뒤 퍼짐 %.1f 칸" % (names[r], np.mean(v) if v else 0.0), flush=True)
+        # **양팔 색차** — 0도에서 본 앞면 깊이를 어깨 띠의 양쪽 끝 15% 에서 잰다.
+        # 「정답은 한 팔이 파란데 다들 빨갛다」가 이 숫자다 (칸이 클수록 앞뒤가 갈라져 있다)
+        fx, fh = A.depth(vox[r], 0)
+        if r == 0:
+            xs0 = np.nonzero(fh[:, band].any(1))[0]
+            w0 = max(len(xs0) // 6, 1)
+            arm[:] = [xs0[:w0], xs0[-w0:]]
+        def mean_at(idx):
+            g = [fx[q, k] for q in idx for k in range(*band.indices(fh.shape[1])) if fh[q, k]]
+            return float(np.mean(g)) if g else float("nan")
+        gap = abs(mean_at(arm[0]) - mean_at(arm[1]))
+        d.text((24, TOP + r * RH + 148), "0도 양팔 깊이차 %.0f칸" % gap,
+               fill=(120, 120, 120) if r else (40, 40, 40), font=f3)
+        d.text((24, TOP + r * RH + 168), "90도 퍼짐 %.0f칸" % (np.mean(v) if v else 0.0),
+               fill=(170, 170, 170), font=f3)
+        print("     %-24s 0도 양팔 깊이차 %5.1f 칸 · 90도 퍼짐 %.1f 칸"
+              % (names[r], gap, np.mean(v) if v else 0.0), flush=True)
     out = os.path.join(HERE, "out", "초타원각도_%s.png" % short(case))
     im.save(out)
     print("  -> %s" % os.path.relpath(out, HERE))
