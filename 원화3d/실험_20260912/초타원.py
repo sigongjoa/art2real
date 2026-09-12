@@ -4,6 +4,7 @@
     python 초타원.py <벤치> [n]        벤치 = 도형 · 마네킹 · 스캔 · 실물
     python 초타원.py 그림 <벤치> [케이스 ...]   단면
     python 초타원.py 3d <벤치> [케이스 ...]     깎은 것을 3D 로 + IoU
+    python 초타원.py 각도 <벤치> <케이스>       한 케이스를 각도 다섯으로
 
 `ellipse_depths` 는 높이마다 부품(연결성분)에 **타원**을 내접시킨다 — 지수 2 가 박혀 있다.
 초타원 |x/a|^p + |y/b|^p <= 1 은 그 지수를 푼다 (p=2 타원 · 크면 상자 · 1 이면 마름모).
@@ -105,6 +106,13 @@ def one(case):
 
 def main():
     O.H.register_sheets()
+    if len(sys.argv) > 1 and sys.argv[1] == "각도":     # python 초타원.py 각도 <벤치> <케이스>
+        bench = sys.argv[2]
+        rec = {json.loads(l)["case"]: json.loads(l) for l in
+               open(os.path.join(REC, "초타원_%s.jsonl" % bench), encoding="utf-8")}
+        c = sys.argv[3] if "_" in sys.argv[3] else bench + "_" + sys.argv[3]
+        angles(c, rec[c])
+        return
     if len(sys.argv) > 1 and sys.argv[1] == "3d":       # python 초타원.py 3d <벤치> [케이스 ...]
         bench = sys.argv[2] if len(sys.argv) > 2 else "실물"
         rec = {json.loads(l)["case"]: json.loads(l) for l in
@@ -351,6 +359,76 @@ def three_d(cases, lam=0.50, az=35):
               % (case[:38], sc[1], sc[2], bp, sc[3], sc[3] - sc[2]), flush=True)
     im.save(os.path.join(HERE, "out", "초타원3d.png"))
     print("  -> out/초타원3d.png")
+
+
+def angles(case, rec, lam=0.50, azs=None):
+    """**한 케이스를 여러 각도에서.** 한 면만 보면 옆에서 무너진 걸 못 본다 (2026-09-12).
+
+    줄 = 판본 (정답 · hull · 깎기 p=2 · 깎기 원하는 p) · 칸 = z 축 회전각.
+    스무 장이 **같은 격자 · 같은 색 눈금**이라 각도끼리도 판본끼리도 맞대진다.
+    복셀은 `out/기록/3d/<case>_lam<..>_vox.npz` 에 눌러 담는다 — 각도를 바꿔 다시 그릴 때
+    build 를 또 돌리지 않으려고."""
+    from PIL import Image, ImageDraw
+    sys.path.insert(0, HERE)
+    import 라벨 as LB
+    import 각도 as A
+    from 계획 import _font
+    azs = azs or list(A.AZ)
+    e = {q: rec["p"]["%.1f" % q]["오차"] for q in PS}
+    bp = min(PS, key=lambda q: e[q])
+    cache = os.path.join(REC, "3d")
+    os.makedirs(cache, exist_ok=True)
+    key = os.path.join(cache, "%s_lam%.2f_vox.npz" % (case, lam))
+    if os.path.exists(key):
+        z = np.load(key)
+        shp = tuple(z["shape"])
+        vox = [np.unpackbits(z["v%d" % i])[:int(np.prod(shp))].astype(bool).reshape(shp) for i in range(4)]
+        sc = list(z["iou"])
+    else:
+        truth = trimesh.load(os.path.join(HERE, "out", "시트", case, "truth.glb"), force="mesh")
+        plain, d2, axes, _ = O.build(case, truth, lam, "타원", 2.0)
+        _, db, _, _ = O.build(case, truth, lam, "타원", bp)
+        iou = O._iou_fn(truth)
+        sc = [np.nan, iou(plain, axes), iou(d2, axes), iou(db, axes)]
+        vox = LB._same_frame(case, plain, d2, axes, extra=[db])
+        np.savez_compressed(key, shape=np.array(vox[0].shape), iou=np.array(sc),
+                            **{"v%d" % i: np.packbits(v) for i, v in enumerate(vox)})
+        del plain, d2, db
+        gc.collect()
+    names = ["정답", "hull (이진)", "깎기 · 타원 p=2", "깎기 · p=%.1f" % bp]
+    R, G, LW, TOP, RH = 236, 14, 176, 150, 288
+    im = Image.new("RGB", (LW + len(azs) * (R + G) + G, TOP + 4 * RH + 30), "white")
+    d = ImageDraw.Draw(im)
+    f1, f2, f3 = _font(26), _font(15), _font(13)
+    d.text((24, 18), "%s — 각도 %d개로 본다" % (short(case), len(azs)), fill=(20, 20, 20), font=f1)
+    d.text((24, 56), "z 축 회전 · 색은 깊이 (빨강이 카메라 쪽) · 스무 장이 같은 격자 · 같은 눈금 · lam %.2f"
+           % lam, fill=(90, 90, 90), font=f3)
+    d.text((24, 76), "**한 면만 보면 옆에서 무너진 걸 못 본다.** 앞에서 멀쩡한 판본이 90도에서 갈라지는지 본다",
+           fill=(90, 90, 90), font=f3)
+    d.text((24, 96), "부품 %d · 원하는 p %.1f (정답 깊이에 맞춰 고른 것 — 상한)" % (rec["부품"], bp),
+           fill=(90, 90, 90), font=f3)
+    for j, az in enumerate(azs):
+        d.text((LW + G + j * (R + G), TOP - 24), "%d도" % az, fill=(40, 40, 40), font=f2)
+    shots = [[A.depth(v, az) for az in azs] for v in vox]
+    lo = min(x[h].min() for row in shots for x, h in row)
+    hi = max(x[h].max() for row in shots for x, h in row)
+    for r in range(4):
+        y0 = TOP + r * RH
+        d.text((24, y0 + 96), names[r], fill=(20, 20, 20), font=f2)
+        if np.isfinite(sc[r]):
+            dv = sc[r] - sc[2]
+            d.text((24, y0 + 120), "IoU %.4f%s" % (sc[r], "" if r != 3 else "  (%+.4f)" % dv), font=f3,
+                   fill=(40, 40, 40) if r != 3 else (30, 130, 70) if dv > 0 else (190, 60, 40))
+        for j, (x, h) in enumerate(shots[r]):
+            tile = A.paint(x, h, R=R, span=(lo, hi))
+            tile = tile if isinstance(tile, Image.Image) else Image.fromarray(tile)
+            x0 = LW + G + j * (R + G)
+            im.paste(tile.resize((R, R)), (x0, y0))
+            d.rectangle([x0, y0, x0 + R - 1, y0 + R - 1], outline=(215, 215, 215))
+        print("  %s · 각도 %s 그림" % (names[r], azs), flush=True)
+    out = os.path.join(HERE, "out", "초타원각도_%s.png" % short(case))
+    im.save(out)
+    print("  -> %s" % os.path.relpath(out, HERE))
 
 
 if __name__ == "__main__":

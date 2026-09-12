@@ -208,7 +208,9 @@ def _bake(name, mesh):
     if not os.path.exists(glb):
         m = mesh.copy()
         if not name.startswith("SMPL"):          # 조립 마네킹은 z 가 위라 눕혀 내보낸다
-            m.apply_transform(trimesh.transformations.rotation_matrix(np.pi / 2, [1, 0, 0]))
+            # **부호 조심.** +pi/2 는 머리(0,0,1)를 (0,-1,0) 으로 보낸다 = 거꾸로 선다.
+            # 2026-09-12 까지 그러고 있었다 (각도 다섯으로 보다가 잡았다 — 아래 5% 가 머리였다)
+            m.apply_transform(trimesh.transformations.rotation_matrix(-np.pi / 2, [1, 0, 0]))
         m.visual = trimesh.visual.ColorVisuals(
             m, face_colors=np.full((len(m.faces), 4), 210, np.uint8))
         trimesh.Scene(m).export(glb)

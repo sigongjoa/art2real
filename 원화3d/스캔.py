@@ -111,8 +111,10 @@ def 받기(names):
             m = _mesh(nm)
             if not _standing(m.extents):
                 print("  %-40s 건너뜀 — 누운 물건" % nm[:40]); continue
-            # GSO 는 z 가 위, `시트.py` 는 y 가 위(glTF)를 가정한다. 돌려서 내보낸다
-            m.apply_transform(trimesh.transformations.rotation_matrix(np.pi / 2, [1, 0, 0]))
+            # GSO 는 z 가 위, `시트.py` 는 y 가 위(glTF)를 가정한다. 돌려서 내보낸다.
+            # **부호 조심** — +pi/2 는 위(0,0,1)를 (0,-1,0) 으로 보내 물건이 거꾸로 선다.
+            # 2026-09-12 까지 그랬다 (바구니·주전자 바닥이 위에 있었다. 마네킹도 같은 버그)
+            m.apply_transform(trimesh.transformations.rotation_matrix(-np.pi / 2, [1, 0, 0]))
             if m.visual is None or not hasattr(m.visual, "face_colors"):
                 m.visual = trimesh.visual.ColorVisuals(
                     m, face_colors=np.full((len(m.faces), 4), 210, np.uint8))
