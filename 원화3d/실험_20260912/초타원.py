@@ -5,6 +5,7 @@
     python 초타원.py 그림 <벤치> [케이스 ...]   단면
     python 초타원.py 3d <벤치> [케이스 ...]     깎은 것을 3D 로 + IoU
     python 초타원.py 각도 <벤치> <케이스>       한 케이스를 각도 다섯으로
+    python 초타원.py 틀린곳 <벤치> <케이스>     어디가 틀렸나 (남는 것 빨강 · 빠진 것 파랑)
 
 `ellipse_depths` 는 높이마다 부품(연결성분)에 **타원**을 내접시킨다 — 지수 2 가 박혀 있다.
 초타원 |x/a|^p + |y/b|^p <= 1 은 그 지수를 푼다 (p=2 타원 · 크면 상자 · 1 이면 마름모).
@@ -106,6 +107,11 @@ def one(case):
 
 def main():
     O.H.register_sheets()
+    if len(sys.argv) > 1 and sys.argv[1] == "틀린곳":   # python 초타원.py 틀린곳 <벤치> <케이스>
+        bench = sys.argv[2]
+        c = sys.argv[3] if "_" in sys.argv[3] else bench + "_" + sys.argv[3]
+        wrong(c, bench)
+        return
     if len(sys.argv) > 1 and sys.argv[1] == "각도":     # python 초타원.py 각도 <벤치> <케이스>
         bench = sys.argv[2]
         rec = {json.loads(l)["case"]: json.loads(l) for l in
@@ -477,6 +483,95 @@ def angles(case, rec, lam=0.50, azs=None, vers=None):
         print("     %-24s 0도 양팔 깊이차 %5.1f 칸 · 90도 퍼짐 %.1f 칸"
               % (names[r], gap, np.mean(v) if v else 0.0), flush=True)
     out = os.path.join(HERE, "out", "초타원각도_%s.png" % short(case))
+    im.save(out)
+    print("  -> %s" % os.path.relpath(out, HERE))
+
+
+ERR_COL = {1: (196, 196, 196), 2: (214, 66, 52), 3: (48, 110, 214)}   # 맞음 · 남는 것 · 빠진 것
+
+
+def _err_tile(truth_vox, vox, az, R, scale=None):
+    """**틀린 곳 그림 — 두께로.** 광선마다 남는 칸 수와 빠진 칸 수를 세어 색을 섞는다.
+
+    맨 앞 칸의 정체만 칠하면 **한 겹짜리 껍질이 화면을 덮어** 4% 틀린 것과 26% 틀린 것이
+    똑같이 새빨갛다 (첫 판이 그랬다). 두께로 세면 회색이 남는다 —
+    회색 = 맞음 · 빨강이 진할수록 없어야 하는데 두껍게 있다 · 파랑은 빠진 두께."""
+    from PIL import Image
+    from scipy import ndimage
+    cls = np.where(truth_vox & vox, 1, np.where(vox, 2, np.where(truth_vox, 3, 0))).astype(np.uint8)
+    r = ndimage.rotate(cls, az, axes=(0, 1), order=0, reshape=False, prefilter=False)
+    corr = (r == 1).sum(1).astype(np.float32)
+    ext = (r == 2).sum(1).astype(np.float32)
+    mis = (r == 3).sum(1).astype(np.float32)
+    tot = corr + mis                                     # 정답 두께
+    if scale is None:
+        scale = max(np.percentile(tot[tot > 0], 60) if (tot > 0).any() else 1.0, 1.0)
+    a = np.clip(ext / scale, 0, 1)[..., None]
+    b = np.clip(mis / scale, 0, 1)[..., None]
+    present = (corr + ext + mis) > 0
+    # 명암 — 앞면 깊이 기울기 (형태가 보이게)
+    hit = r > 0
+    dd = np.where(hit.any(1), np.argmax(hit, 1), 0).astype(np.float32)
+    dd = ndimage.gaussian_filter(dd, 1.6)
+    gy, gx = np.gradient(dd)
+    n = np.stack([-gx, -gy, np.ones_like(dd) * 2.2], -1)
+    n /= np.linalg.norm(n, axis=-1, keepdims=True) + 1e-9
+    L = np.array([-0.45, 0.35, 0.82]); L /= np.linalg.norm(L)
+    sh = np.clip(0.55 + 0.45 * (n @ L), 0, 1)[..., None]
+    grey = np.full(corr.shape + (3,), 205.0)
+    col = grey * (1 - a) * (1 - b) + np.array([214, 56, 44]) * a + np.array([44, 104, 214]) * b
+    img = np.full(corr.shape + (3,), 250, np.uint8)
+    img[present] = np.clip(col * sh, 0, 255).astype(np.uint8)[present]
+    return Image.fromarray(np.transpose(img, (1, 0, 2))[::-1])
+
+
+def wrong(case, bench, lam=0.50, azs=(0, 45), vers=None):
+    """어느 쪽이 더 맞나 — 판본마다 **틀린 곳**을 칠한다. `angles` 가 캐시한 복셀을 쓴다."""
+    from PIL import Image, ImageDraw
+    sys.path.insert(0, HERE)
+    from 계획 import _font
+    vers = vers or [("깎기 · 파이프 lam 0.20 (지금)", "파이프", 0.20, 2.0),
+                    ("깎기 · 타원 lam 1.00 (후보)", "타원", 1.00, 2.0)]
+    tag = "_".join("%s%.2f-%.1f" % (w[:2], l, e) for _, w, l, e in vers)
+    key = os.path.join(REC, "3d", "%s_%s_vox.npz" % (case, tag))
+    assert os.path.exists(key), "먼저 `초타원.py 각도 %s %s 후보` 로 구워야 한다" % (bench, case)
+    z = np.load(key)
+    shp = tuple(z["shape"])
+    N = len(vers) + 2
+    vox = [np.unpackbits(z["v%d" % i])[:int(np.prod(shp))].astype(bool).reshape(shp) for i in range(N)]
+    sc = list(z["iou"])
+    names = ["hull (이진)"] + [v[0] for v in vers]
+    T = vox[0]
+    R, G, LW, TOP, RH = 300, 16, 250, 154, 372
+    im = Image.new("RGB", (LW + len(azs) * (R + G) + G, TOP + (N - 1) * RH + 30), "white")
+    d = ImageDraw.Draw(im)
+    f1, f2, f3 = _font(26), _font(15), _font(13)
+    d.text((24, 18), "%s — 어디가 틀렸나" % short(case), fill=(20, 20, 20), font=f1)
+    d.text((24, 56), "정답과 맞대서 칠한다 — 회색 = 맞음 · **빨강 = 없어야 하는데 있다** · "
+                     "**파랑 = 있어야 하는데 없다**", fill=(90, 90, 90), font=f3)
+    d.text((24, 76), "**광선마다 두께로 센다** — 색이 옅고 회색이 많을수록 정답에 가깝다",
+           fill=(90, 90, 90), font=f3)
+    d.text((24, 96), "칸 아래 = 3D IoU · 남는 것 · 빠진 것 (정답 부피 대비)", fill=(90, 90, 90), font=f3)
+    for j, az in enumerate(azs):
+        d.text((LW + G + j * (R + G), TOP - 24), "%d도" % az, fill=(40, 40, 40), font=f2)
+    for r in range(1, N):
+        v = vox[r]
+        y0 = TOP + (r - 1) * RH
+        extra = float((v & ~T).sum()) / max(float(T.sum()), 1)
+        miss = float((~v & T).sum()) / max(float(T.sum()), 1)
+        nm = names[r - 1]
+        for t, tx in enumerate([nm[i:i + 20] for i in range(0, len(nm), 20)][:2]):
+            d.text((24, y0 + 108 + 20 * t), tx, fill=(20, 20, 20), font=f3)
+        d.text((24, y0 + 156), "IoU %.4f" % sc[r], fill=(20, 20, 20), font=f2)
+        d.text((24, y0 + 180), "남는 것 %.0f%%" % (100 * extra), fill=(170, 60, 50), font=f3)
+        d.text((24, y0 + 200), "빠진 것 %.0f%%" % (100 * miss), fill=(50, 90, 170), font=f3)
+        for j, az in enumerate(azs):
+            x0 = LW + G + j * (R + G)
+            im.paste(_err_tile(T, v, az, R).resize((R, R)), (x0, y0))
+            d.rectangle([x0, y0, x0 + R - 1, y0 + R - 1], outline=(215, 215, 215))
+        print("  %-26s IoU %.4f · 남는 것 %5.1f%% · 빠진 것 %5.1f%%"
+              % (nm, sc[r], 100 * extra, 100 * miss), flush=True)
+    out = os.path.join(HERE, "out", "틀린곳_%s.png" % short(case))
     im.save(out)
     print("  -> %s" % os.path.relpath(out, HERE))
 
