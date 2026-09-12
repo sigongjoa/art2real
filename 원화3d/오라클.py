@@ -100,17 +100,12 @@ def oracle_depth(truth, view):
     return np.clip(h, 0, 1).astype(np.float32)
 
 
-def ellipse_depths(plain, axes, back_sign):
-    """hull 만 보고 **오라클을 추정한다** — 높이마다 단면에 타원을 내접시킨다.
+def superellipse(plain, p=2.0):
+    """높이마다 hull 단면(축정렬 직사각형들)에 **내접 초타원** — |x/a|^p + |y/b|^p <= 1.
 
-    이진 hull 의 단면은 높이마다 축정렬 직사각형 몇 개다 (x구간 × y구간). 그 안에 내접
-    타원을 넣고, 그 앞·뒤 표면으로 `oracle_depth` 와 **같은 규약**의 깊이를 만든다.
-    정답을 안 본다. 대신 **「단면은 둥글다」는 가정 하나**를 넣는다.
-
-    `carve_depth` 는 깊이를 **복셀 중심 화소에서만** 읽으므로 그 화소에만 찍는다. 나머지는
-    1 (= 안 깎는다) 이라, 자가검사도 복셀 중심에서 읽어야 헛통과가 안 난다."""
-    u, _, z = axes
-    n = len(u)
+    p=2 는 타원(= 2026-09-11 의 가정), 클수록 상자에 가고 1 이면 마름모다. **부품마다**
+    따로 넣는다 (높이마다 연결성분별로). `ellipse_depths` 와 단면 그림이 같은 것을 본다."""
+    n = plain.shape[0]
     I, Jg = np.meshgrid(np.arange(n), np.arange(n), indexing="ij")
     E = np.zeros_like(plain)
     for k in range(plain.shape[2]):
@@ -118,7 +113,23 @@ def ellipse_depths(plain, axes, back_sign):
         for idx, s in enumerate(ndimage.find_objects(lab), 1):
             a, b = (s[0].stop - s[0].start) / 2, (s[1].stop - s[1].start) / 2
             ic, jc = s[0].start + a - 0.5, s[1].start + b - 0.5
-            E[s[0], s[1], k] |= ((((I[s] - ic) / a) ** 2 + ((Jg[s] - jc) / b) ** 2) <= 1) & (lab[s] == idx)
+            q = np.abs((I[s] - ic) / a) ** p + np.abs((Jg[s] - jc) / b) ** p
+            E[s[0], s[1], k] |= (q <= 1) & (lab[s] == idx)
+    return E
+
+
+def ellipse_depths(plain, axes, back_sign, p=2.0):
+    """hull 만 보고 **오라클을 추정한다** — 높이마다 단면에 초타원을 내접시킨다.
+
+    이진 hull 의 단면은 높이마다 축정렬 직사각형 몇 개다 (x구간 × y구간). 그 안에 내접
+    초타원(`superellipse`, p=2 면 타원)을 넣고, 그 앞·뒤 표면으로 `oracle_depth` 와 **같은
+    규약**의 깊이를 만든다. 정답을 안 본다. 대신 **「단면 모양」 가정 하나**를 넣는다.
+
+    `carve_depth` 는 깊이를 **복셀 중심 화소에서만** 읽으므로 그 화소에만 찍는다. 나머지는
+    1 (= 안 깎는다) 이라, 자가검사도 복셀 중심에서 읽어야 헛통과가 안 난다."""
+    u, _, z = axes
+    n = len(u)
+    E = superellipse(plain, p)
     j = np.arange(n)[None, :, None]
     jf, jb = np.where(E, j, n).min(1), np.where(E, j, -1).max(1)  # (x, z) 앞면·뒷면 칸
     has = jf < n
