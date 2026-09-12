@@ -200,8 +200,8 @@ def figure(cases, bench="도형"):
                      "칸 아래 = 깊이맵 오차 (오라클과 · 낮을수록 좋다)", fill=(90, 90, 90), font=f3)
     d.text((24, 76), "초타원 |x/a|^p + |y/b|^p <= 1 을 **부품마다** hull 단면에 내접시킨다. p 는 정답 깊이에 "
                      "맞춰 골랐다 — **상한이지 추정기가 아니다**", fill=(90, 90, 90), font=f3)
-    d.text((24, 96), "묻는 것: 도형마다 원하는 p 가 갈리나 (갈리면 부품별 지수에 머리 위가 있다)",
-           fill=(90, 90, 90), font=f3)
+    d.text((24, 96), "hull 부피가 정답의 1.7배를 넘으면 주황 — 그 케이스의 p 는 모양이 아니라 "
+                     "**부피를 깎는 손잡이**로 이긴다 (p<2 는 그냥 작다)", fill=(90, 90, 90), font=f3)
     for j, (name, _) in enumerate(cols):
         d.text((LW + G + j * (S + G), TOP - 24), name, fill=(40, 40, 40), font=f2)
     for r, case in enumerate(cases):
@@ -217,6 +217,22 @@ def figure(cases, bench="도형"):
         sec = truth.section(plane_origin=[0, 0, z[k]], plane_normal=[0, 0, 1])
         ii, jj = np.nonzero(plain[:, :, k])
         xs, ys = [u[ii.min()], u[ii.max()]], [u[jj.min()], u[jj.max()]]
+        # **hull 이 얼마나 뚱뚱한가.** 지수가 모양이 아니라 부피 손잡이로 쓰이는 케이스를
+        # 눈으로 가려내려고 적는다 (2026-09-12 · wizard_o87 이 2.0배라 p<2 가 이겼다).
+        # **벤치와 같은 셈** (`대조.py:307` 의 vol) — 정답이 non-watertight 라 trimesh 부피는 못 쓴다
+        tg, otg = O.J.grid(truth)                  # 이름 조심 — G 는 이 함수의 칸 사이 여백이다
+        hg, ohg = O.J.grid(O.C.to_mesh(plain, axes))
+        ta, ha = O.J.common(tg, otg, hg, ohg)
+        vr = float(ha.sum()) / max(float(ta.sum()), 1.0)
+        # **좌표가 맞나** — `오라클.figure` 의 문을 실물용으로 눅였다. 도형은 hull 이 정답을 완전히
+        # 덮지만 실물은 아니다 (못덮음 중앙 0.6% · 최대 5.4% — cloak_Chest_Closed). 그래서 조금
+        # 삐져나오는 건 적기만 하고, **크게 어긋난 것**(좌표 뒤집힘)만 멈춘다
+        over = 0.0
+        if sec is not None:
+            (tx0, ty0, _), (tx1, ty1, _) = sec.bounds
+            sp = max(xs[1] - xs[0], ys[1] - ys[0], 1e-9)
+            over = max(xs[0] - tx0, tx1 - xs[1], ys[0] - ty0, ty1 - ys[1], 0.0) / sp
+            assert over < 0.15, "%s: 정답 단면이 hull 밖으로 %.0f%% — 좌표가 어긋났다" % (case, 100 * over)
         cx, cy = sum(xs) / 2, sum(ys) / 2
         span = max(xs[1] - xs[0], ys[1] - ys[0]) * 1.15 + 4 * du
         q = (np.arange(S) + 0.5) / S - 0.5
@@ -229,7 +245,8 @@ def figure(cases, bench="도형"):
         ln = [nm[i:i + 22] for i in range(0, len(nm), 22)][:2]
         for t, tx in enumerate(ln):
             d.text((24, y0 + 66 + 20 * t), tx, fill=(20, 20, 20), font=f3 if len(nm) > 14 else f2)
-        d.text((24, y0 + 70 + 20 * len(ln)), "부품 %d" % rows[case]["부품"], fill=(120, 120, 120), font=f3)
+        d.text((24, y0 + 70 + 20 * len(ln)), "부품 %d · hull 부피 %.2f배" % (rows[case]["부품"], vr),
+               fill=(120, 120, 120) if vr < 1.7 else (190, 90, 40), font=f3)
         for j, (name, col) in enumerate(cols):
             tile = np.full((S, S, 3), 250, np.uint8)
             tile[masks[j][:, :, k][ix[None, :], iy[:, None]] & ok] = col
@@ -245,7 +262,8 @@ def figure(cases, bench="도형"):
                 d.text((x0, y0 + S + 4), "p=%.1f  오차 %.4f%s" % (
                     p, e[p], "" if j == 1 else "  (%+.4f)" % dv), font=f3,
                     fill=(40, 40, 40) if j == 1 else (30, 130, 70) if dv < 0 else (150, 150, 150))
-        print("  %-14s 단면 z=%.3f · 원하는 p %.1f" % (case, z[k], bp), flush=True)
+        print("  %-38s 단면 z=%.3f · 원하는 p %4.1f · hull 부피 %.2f배 · 정답이 hull 밖 %.1f%%"
+              % (case[:38], z[k], bp, vr, 100 * over), flush=True)
         del plain, masks
         gc.collect()
     im.save(os.path.join(HERE, "out", "초타원단면_%s.png" % bench))
