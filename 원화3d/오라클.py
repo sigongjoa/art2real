@@ -148,10 +148,11 @@ def ellipse_depths(plain, axes, back_sign, p=2.0):
     return out
 
 
-def build(case, truth, lam, which, pexp=2.0):
+def build(case, truth, lam, which, pexp=2.0, post=None):
     """`대조.build` 와 같은 순서. `which` 로 깊이맵만 갈아끼운다 -> (이진, 깎은 것, 축, 깊이맵).
 
     `pexp` 는 `which="타원"` 일 때 단면 지수 (기본 2.0 = 타원. `superellipse` 참조).
+    `post(v, d, dep)` 를 주면 front·back 깊이맵을 **원화 프레임에서** 한 번 더 가공한다 (판별평면 실험).
     **이름 조심** — 이 함수 안의 `p` 는 정렬값이다 (`H.align`)."""
     src, base = H.CASES[case]["src"], H.art_dir(case)
     bs = H.CASES[case]["back_sign"]
@@ -161,6 +162,8 @@ def build(case, truth, lam, which, pexp=2.0):
         dep = (H.load_depth(v, d, case=case) if which == "파이프" else
                oracle_depth(truth, v) if which == "오라클" else
                np.ones(d.shape, np.float32))                 # 타원은 정렬 뒤 hull 에서 만든다
+        if post is not None and v != "side":
+            dep = post(v, d, dep)
         masks[v], deps[v] = H.to_win(d, dep)
     p = H.align(masks, back_sign=bs)
     masks = H._warp(masks, p)

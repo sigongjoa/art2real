@@ -457,15 +457,30 @@ def even_control(plain, axes, target_volume, step=0.25, cache=None):
     if "ts" not in c:
         c["ts"], c["vs"] = [0.0], [vol(0.0)]
     ts, vs = c["ts"], c["vs"]
-    while vs[-1] > target_volume and ts[-1] < 12:
+    # 상한은 hull 의 최대 안쪽 거리다 — 12 칸 고정이던 때 cape_Hat 이 12 칸을 깎고도 목표의 1.7 배라 멈췄다 (2026-09-14)
+    while vs[-1] > target_volume and ts[-1] < float(keep.max()):
         ts.append(ts[-1] + step)
         vs.append(vol(ts[-1]))
     t = float(np.interp(target_volume, vs[::-1], ts[::-1]))
-    V, F = mesh_from_field(keep - t, axes)
-    m = trimesh.Trimesh(V, F, process=True)
-    if m.volume < 0:
-        m.invert()
-    err = m.volume / max(target_volume, 1e-12) - 1
+
+    def at(t):
+        V, F = mesh_from_field(keep - t, axes)
+        m = trimesh.Trimesh(V, F, process=True)
+        if m.volume < 0:
+            m.invert()
+        return m, m.volume / max(target_volume, 1e-12) - 1
+    m, err = at(t)
+    if abs(err) >= 0.02 and vs[-1] <= target_volume:
+        # 얇은 물건은 한 step 안에서 챙이 통째로 사라져 곡선이 꺾인다 — 보간이 틀린 그 구간만 이분법으로
+        # 좁힌다 (2026-09-14, cape_Hat 오라클 lam1.00 이 hull 의 26% 라 74.8% 어긋났다). 맞던 케이스는 안 탄다
+        k = next(i for i, v in enumerate(vs) if v <= target_volume)
+        lo, hi = ts[k - 1], ts[k]
+        for _ in range(30):
+            t = (lo + hi) / 2
+            m, err = at(t)
+            if abs(err) < 0.01:
+                break
+            lo, hi = (t, hi) if err > 0 else (lo, t)
     assert abs(err) < 0.02, "대조군 부피가 목표와 %.1f%% 어긋난다 — step 을 줄일 것" % (100 * err)
     return m, t
 
