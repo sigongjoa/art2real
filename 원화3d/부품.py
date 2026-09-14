@@ -75,7 +75,8 @@ def build():
 def material(v):
     """판 번호 -> 재질 (0 흰 · 1 금 · 2 청회 · 3 검정). **art3d 의 색상 규칙 그대로.**"""
     import json
-    j = json.load(open(os.path.join(OUT, "깊이", v, "art3d.json"), encoding="utf-8"))
+    # 케이스 폴더를 뺀 옛 경로였다 — `hull.load_depth` 가 케이스별로 옮긴 뒤 이 줄만 남았다 (09-13 시계에서 걸림)
+    j = json.load(open(os.path.join(OUT, "깊이", H.CASE, v, "art3d.json"), encoding="utf-8"))
     out = {}
     for r in j["regions"]:
         rr, gg, bb = r["rgb"]
