@@ -66,13 +66,30 @@ def n_parts(lab, mask):
     return int(len(np.unique(lab[mask & (lab > 0)])))
 
 
+def shift_labels(lab, mask, fy=0.37, fx=0.29):
+    """판을 mask bbox 안에서 (fy, fx) 만큼 말아 민다 — 판 수 · 크기 · 모양은 두고 **자리만** 튼다 (B0 대조군).
+    말려 넘어간 조각은 번호를 따로 준다 (한 판이 양 끝으로 갈라지면 두 판이다)."""
+    ys, xs = np.nonzero(mask)
+    y0, x0 = ys.min(), xs.min()
+    hh, ww = ys.max() - y0 + 1, xs.max() - x0 + 1
+    sy, sx = ys - y0 + int(fy * hh), xs - x0 + int(fx * ww)
+    src = lab[y0 + sy % hh, x0 + sx % ww].astype(np.int64)
+    out = np.zeros(mask.shape, np.float32)
+    out[ys, xs] = src * 4 + (sy >= hh) * 2 + (sx >= ww) + 1
+    return out
+
+
 def post_for(case, truth, labels, mode, info):
     if labels in ("원화판", "정답면"):
         return P.post_for(case, truth, labels, mode)
 
     def post(v, d, dep):
-        ref = H.load_labels(v, d, case=case) if labels == "격자@원화판" else P.facet_ids(truth, v)
+        ref = H.load_labels(v, d, case=case) if labels in ("격자@원화판", "이동@원화판") else P.facet_ids(truth, v)
         n = n_parts(ref, d)
+        if labels == "이동@원화판":
+            lab = shift_labels(ref, d)
+            info["%s_%s" % (labels, v)] = [n, n_parts(lab, d)]
+            return P.flatten(dep, lab, d, mode)
         lab, got = grid_labels(d, n)
         info["%s_%s" % (labels, v)] = [n, got]
         return P.flatten(dep, lab, d, mode)
@@ -323,8 +340,146 @@ def figure(cases=("cloak_Chest_O72u4Drp8k", "cape_Hat_Stylised_lNN3PlrjSa", "스
             os.path.join(HERE, "out", "깊이색_벤치선.png"), S=300)
 
 
+# ───────────────────────────────────────────── B0 — 크기분포 맞춘 대조군 (plan 「B0」 절)
+TAG_B0 = "벤치선 B0 · 판 말아밀기(0.37, 0.29) · _선2 · lam1.00 · 격자2 (2026-09-14)"
+PROG_B0 = os.path.join(HERE, "out", "기록", "벤치선B0_진행.jsonl")
+SPEC_B0 = {"이동·상수·원화판": "상수", "이동·적합·원화판": "적합"}
+HAT_TOWN = ("cape_Hat_Stylised_lNN3PlrjSa", "statue_Town_Center_cuQuFJEIfH")
+
+
+def read_prog(path, tag):
+    got = {}
+    if os.path.exists(path):
+        for l in open(path, encoding="utf-8"):
+            r = json.loads(l)
+            if r.get("판") == tag:
+                got[r["case"]] = r
+    return got
+
+
+def one_b0(case):
+    t0 = time.time()
+    truth = trimesh.load(os.path.join(HERE, "out", "시트", NEW(case), "truth.glb"), force="mesh")
+    iou128, iou192 = O._iou_fn(truth), O._iou_fn(truth, P.P192)
+    row, info = {"case": case, "판": TAG_B0}, {}
+    for name, mode in SPEC_B0.items():
+        post = post_for(NEW(case), truth, "이동@원화판", mode, info)
+        _, vox, axes, _ = O.build(NEW(case), truth, LAM, "오라클", post=post)
+        mesh = O.C.to_mesh(vox, axes)
+        row[name], row[name + "·192"] = iou128(mesh, axes), iou192(mesh, axes)
+        del vox, mesh
+        gc.collect()
+    row["판수"], row["초"] = info, round(time.time() - t0, 1)
+    return row
+
+
+TAG_B0P = "벤치선 B0' · mask 안 래스터 굴림(0.37, 0.71) 평균 · _선2 · lam1.00 · 격자2 (2026-09-14)"
+PROG_B0P = os.path.join(HERE, "out", "기록", "벤치선B0p_진행.jsonl")
+FRACS = (0.37, 0.71)
+
+
+def roll_in_mask(lab, mask, frac):
+    """mask 안 화소만 래스터 순서로 frac·N 칸 말아 민다 (B0'). 판마다 화소 수가 **정확히** 같고 mask 밖 라벨을 안 쓴다.
+    같은 번호가 떨어진 조각이 되면 조각마다 번호를 따로 준다 (판 수는 늘 수 있다 — 대조군에 유리한 쪽)."""
+    from scipy import ndimage
+    ys, xs = np.nonzero(mask)
+    src = np.roll(lab[ys, xs].astype(np.int64), int(frac * len(ys)))
+    tmp = np.zeros(mask.shape, np.int64)
+    tmp[ys, xs] = src
+    out, nxt = np.zeros(mask.shape, np.float32), 1
+    for L in np.unique(src):
+        cc, k = ndimage.label(tmp == L)
+        out[cc > 0] = cc[cc > 0] + nxt - 1
+        nxt += k
+    return out
+
+
+def one_b0p(case):
+    t0 = time.time()
+    truth = trimesh.load(os.path.join(HERE, "out", "시트", NEW(case), "truth.glb"), force="mesh")
+    iou128, iou192 = O._iou_fn(truth), O._iou_fn(truth, P.P192)
+    row, info = {"case": case, "판": TAG_B0P}, {}
+    for mode in ("상수", "적합"):
+        k = "굴림·%s·원화판" % mode
+        for f in FRACS:
+            def post(v, d, dep, f=f, mode=mode):
+                ref = H.load_labels(v, d, case=NEW(case))
+                lab = roll_in_mask(ref, d, f)
+                info["%.2f_%s" % (f, v)] = [n_parts(ref, d), n_parts(lab, d)]
+                return P.flatten(dep, lab, d, mode)
+            _, vox, axes, _ = O.build(NEW(case), truth, LAM, "오라클", post=post)
+            mesh = O.C.to_mesh(vox, axes)
+            row["%s@%.2f" % (k, f)], row["%s@%.2f·192" % (k, f)] = iou128(mesh, axes), iou192(mesh, axes)
+            del vox, mesh
+            gc.collect()
+        row[k] = float(np.mean([row["%s@%.2f" % (k, f)] for f in FRACS]))
+        row[k + "·192"] = float(np.mean([row["%s@%.2f·192" % (k, f)] for f in FRACS]))
+    row["판수"], row["초"] = info, round(time.time() - t0, 1)
+    return row
+
+
+def judge_b0(b0, bench, pre="이동·"):
+    rs = [dict(bench[c], **b0[c]) for c in ANGULAR if c in b0 and c in bench]
+    n = len(rs)
+    g = lambda k: np.array([r[k] for r in rs])
+    ceil = g("오라클") - g("이진")
+    live = ceil > 0.01
+    frac = lambda k: float(np.median((g(k) - g("이진"))[live] / ceil[live]))
+    rest = np.array([r["case"] not in HAT_TOWN for r in rs])
+    out = {"장": n}
+    for k in ("상수·원화판", "적합·원화판"):
+        ds = [g(k) - g(pre + k), g(k + "·192") - g("%s%s·192" % (pre, k))]
+        q = {"천장몫중앙": frac(k), "대조 천장몫중앙": frac(pre + k),
+             "이김 128·192": [int((ds[0] > 0).sum()), int((ds[1] > 0).sum())],
+             "평균차 128·192": [float(ds[0].mean()), float(ds[1].mean())],
+             "모자·광장 뺀 평균차 128 (참고)": float(ds[0][rest].mean()) if rest.any() else float("nan"),
+             "위치 몫": bool(all(d.mean() > 0 and (d > 0).sum() > n / 2 for d in ds))}
+        q["통과"] = bool(q["위치 몫"] and q["천장몫중앙"] >= 0.5)
+        out[k] = q
+    out["다음"] = ("게이트 B — 선 위치가 몫을 준다 (_선2 상한 판에서)"
+                  if out["상수·원화판"]["통과"] or out["적합·원화판"]["통과"] else
+                  "B 보류 · A2 — 판 수가 몫이었다")
+    return out
+
+
+def run_b0(arg, kind="B0"):
+    """kind = B0 (bbox 말아밀기) · B0p (mask 안 굴림, 두 번 평균)."""
+    tag, prog, fn, pre = {"B0": (TAG_B0, PROG_B0, one_b0, "이동·"), "B0p": (TAG_B0P, PROG_B0P, one_b0p, "굴림·")}[kind]
+    bench = read_prog(PROG, TAG)
+    done = read_prog(prog, tag)
+    if arg != "판정":
+        for c in [c for c in ANGULAR if c not in done][:int(arg)]:
+            r = fn(c)
+            with open(prog, "a", encoding="utf-8") as f:
+                f.write(json.dumps(r, ensure_ascii=False) + "\n")
+            done[c] = r
+            b = bench[c]
+            print("  %-26s 상수 %.4f vs %.4f · 적합 %.4f vs %.4f · 판수 %s · %.0f초" % (
+                c[:26], b["상수·원화판"], r[pre + "상수·원화판"], b["적합·원화판"], r[pre + "적합·원화판"],
+                r["판수"], r["초"]), flush=True)
+    if len(done) < len(ANGULAR) and arg != "판정":
+        print("  %d/%d 장 — 다시 돌리면 이어 돈다" % (len(done), len(ANGULAR)))
+        return
+    v = judge_b0(done, bench, pre)
+    print("\n  %s 판정\n  " % kind + json.dumps(v, ensure_ascii=False, indent=1).replace("\n", "\n  "))
+    p = os.path.join(HERE, "out", "기록", "벤치선%s_%s.json" % (kind, time.strftime("%Y%m%d_%H%M")))
+    json.dump({"때": time.strftime("%Y-%m-%d %H:%M"), "판": tag, "판정": v, "rows": list(done.values())},
+              open(p, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    print("  기록 -> %s" % os.path.relpath(p, HERE))
+
+
 def selfcheck():
     P.selfcheck()
+    lab = np.zeros((100, 100), np.float32)
+    lab[:, :50], lab[:, 50:] = 1, 2
+    lab[40:60, 40:60] = 3
+    m = np.zeros((100, 100), bool)
+    m[10:90, 10:90] = True
+    sh = shift_labels(lab, m)
+    assert (sh[m] > 0).all() and not (sh[~m] > 0).any(), "말아밀기: mask 안만 번호가 있어야 한다"
+    assert (boundary(sh) & boundary(lab) & m).sum() < 0.2 * (boundary(lab) & m).sum(), "말아밀기: 경계가 제자리에 남았다"
+    area =lambda L: sorted(np.bincount(L[m].astype(np.int64))[1:][np.bincount(L[m].astype(np.int64))[1:] > 0])
+    assert max(area(sh)) <= max(area(lab)) and len(area(sh)) >= len(area(lab)), "말아밀기: 판이 커지거나 줄었다"
     m = np.zeros((100, 60), bool)
     m[10:90, 5:55] = True
     for n in (1, 7, 40, 500):
@@ -339,7 +494,17 @@ def selfcheck():
     assert edge_pr(a, a, mm) == (1.0, 1.0) and edge_pr(a, b, mm) == (1.0, 1.0), "경계 한 화소 어긋남은 허용 안이다"
     rec, pre = edge_pr(a, np.zeros_like(a), mm)
     assert rec == 0.0 and np.isnan(pre), "판 하나는 재현율 0"
-    print("  자가검사 통과 — 격자 칸 수 · 경계 재현율/정밀도")
+    lab = np.zeros((100, 100), np.float32)                   # 위 격자 검사가 lab · m 을 덮어썼다 — 새로 만든다
+    lab[:, :50], lab[:, 50:] = 1, 2
+    lab[40:60, 40:60] = 3
+    m = np.zeros((100, 100), bool)
+    m[10:90, 10:90] = True
+    area = lambda L: np.bincount(L[m].astype(np.int64))[1:]
+    rl = roll_in_mask(lab, m, 0.37)
+    assert (rl[m] > 0).all() and not (rl[~m] > 0).any(), "굴림: mask 안만 번호가 있어야 한다"
+    assert area(rl).max() <= area(lab).max(), "굴림: 원래 판보다 큰 조각이 생겼다"
+    assert (boundary(rl) & boundary(lab) & m).sum() < 0.3 * (boundary(lab) & m).sum(), "굴림: 경계가 제자리에 남았다"
+    print("  자가검사 통과 — 격자 칸 수 · 경계 재현율/정밀도 · 말아밀기 · 굴림")
 
 
 def main():
@@ -356,6 +521,8 @@ def main():
         return thumbs()
     if arg == "그림":
         return figure()
+    if arg in ("B0", "B0판정", "B0p", "B0p판정"):
+        return run_b0("판정" if arg.endswith("판정") else sys.argv[2] if len(sys.argv) > 2 else "1", arg.replace("판정", ""))
     old = old_rows()
     done = {}
     if os.path.exists(PROG):
