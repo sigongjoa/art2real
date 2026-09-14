@@ -76,13 +76,51 @@ def faces_with_color(scene):
             np.concatenate(Cs).astype(np.uint8), np.concatenate(Ms))
 
 
-def draw(Vw, F, col, mat, view, line=True):
-    """한 시점을 칠한다. 화가 알고리즘 + 재질·깊이 경계에 검은 선."""
+def edges2(Vw, F, depth, u, ident, mat, crease_deg=30.0, jump=0.012):
+    """`--선 2` 의 선 자리 (굵히기 전). 화가가 긋는 선 — 가림선 · 겹선 · 재질 경계.
+
+    **가림선**은 화소마다 그 삼각형 평면에서 보간한 깊이로 잰다. 옛 규칙은 삼각형 **평균** 깊이 차라
+    기울어진 큰 삼각형 두 장이 만나는 대각선에 가짜 선이 났다 (research_각진깊이 ⓪).
+    이웃 화소의 두 면 평면을 **경계 중점에서** 비교하므로 붙어 있는 면끼리는 차가 0 이다.
+    **겹선**은 두 면 법선 사이 각. |cos| 로 재서 뒤집힌 법선은 같은 면으로 본다."""
+    z = Vw[:, 2]
+    T = np.stack([u, z, depth], 1)[F]
+    n = np.cross(T[:, 1] - T[:, 0], T[:, 2] - T[:, 0])
+    flat = np.abs(n[:, 2]) < 0.05 * np.linalg.norm(n, axis=1) + 1e-12     # 시선과 거의 나란한 면은 평균 깊이
+    nd = np.where(flat, 1.0, n[:, 2])
+    A, B = np.where(flat, 0, -n[:, 0] / nd), np.where(flat, 0, -n[:, 1] / nd)
+    C = np.where(flat, T[:, :, 2].mean(1), T[:, 0, 2] - A * T[:, 0, 0] - B * T[:, 0, 1])
+    N3 = np.cross(Vw[F[:, 1]] - Vw[F[:, 0]], Vw[F[:, 2]] - Vw[F[:, 0]])
+    N3 /= np.linalg.norm(N3, axis=1, keepdims=True) + 1e-12
+    gy, gx = np.mgrid[0:W.RES, 0:W.RES]
+    pu, pz = (W.U1 - W.U0) / W.RES, (W.Z1 - W.Z0) / W.RES
+    U, Z = W.U0 + (gx + 0.5) * pu, W.Z1 - (gy + 0.5) * pz
+    hit, i = ident >= 0, np.clip(ident, 0, None)
+    edge = np.zeros(hit.shape, bool)
+    cmax = np.cos(np.radians(crease_deg))
+    for sa, sb, mu, mz in ((np.s_[:, :-1], np.s_[:, 1:], U[:, :-1] + pu / 2, Z[:, :-1]),
+                           (np.s_[:-1, :], np.s_[1:, :], U[:-1, :], Z[:-1, :] - pz / 2)):
+        ia, ib = i[sa], i[sb]
+        occ = np.abs((A[ia] - A[ib]) * mu + (B[ia] - B[ib]) * mz + C[ia] - C[ib]) > jump
+        crease = np.abs((N3[ia] * N3[ib]).sum(-1)) < cmax
+        e = hit[sa] & hit[sb] & (ia != ib) & (occ | crease | (mat[ia] != mat[ib]))
+        edge[sa] |= e
+        edge[sb] |= e
+    return edge
+
+
+def draw(Vw, F, col, mat, view, line=True, style=1):
+    """한 시점을 칠한다. 화가 알고리즘 + 재질·깊이 경계에 검은 선.
+
+    `style=2` (`--선 2`, 2026-09-14 게이트 A): 선 자리는 `edges2`, 굵기 6px (512 로 줄여 median5 를 버틴다),
+    면색은 120 + c·135/255 로 올린다 (선 20 과 art3d 문턱 105 사이에 틈). 알파는 같다."""
     a, sign = W.VIEW_AXIS[view]
     depth = Vw[:, 1 - a] * (-sign if view != "side" else 1)      # 카메라에서 먼 쪽이 큰 값
     py, px = W.topix(sign * Vw[:, a], Vw[:, 2])
     P = np.stack([px, py], 1).astype(np.int32)[F]
     order = np.argsort(depth[F].max(1))[::-1]                   # 먼 것부터
+    if style == 2:
+        col = (120 + col.astype(np.float32) * 135 / 255).astype(np.uint8)
     rgb = np.full((W.RES, W.RES, 3), 255, np.uint8)
     ident = np.full((W.RES, W.RES), -1, np.int32)
     for i in order:
@@ -91,6 +129,11 @@ def draw(Vw, F, col, mat, view, line=True):
     if not line:
         return rgb, ident
     hit = ident >= 0
+    if style == 2:
+        edge = edges2(Vw, F, depth, sign * Vw[:, a], ident, mat)
+        edge |= hit & ~cv2.erode(hit.astype(np.uint8), np.ones((3, 3), np.uint8)).astype(bool)
+        rgb[cv2.dilate(edge.astype(np.uint8), np.ones((6, 6), np.uint8)).astype(bool)] = (20, 20, 20)
+        return rgb, ident
     zz = np.where(hit, depth[F].mean(1)[np.clip(ident, 0, None)], np.nan)
     mm = np.where(hit, mat[np.clip(ident, 0, None)], -1)
     edge = np.zeros((W.RES, W.RES), bool)
@@ -121,13 +164,62 @@ def coverage(Vw, F, view, ss=4):
     return cv2.resize(hit.astype(np.float32), (W.RES, W.RES), interpolation=cv2.INTER_AREA)
 
 
+def selfcheck():
+    """`--선 2` 합성 assert — 기운 상자 · 검은 상자 · 계단. 옛 규칙이 기운 상자에서 가짜 선을 내는 것도 본다."""
+    import trimesh.transformations as TT
+
+    def run(mesh, c=200, style=2):
+        V = W.normalize(np.asarray(mesh.vertices, np.float64))
+        F = np.asarray(mesh.faces, np.int64)
+        col = np.full((len(F), 3), c, np.uint8)
+        rgb, ident = draw(V, F, col, np.zeros(len(F), np.int32), "front", style=style)
+        py, px = W.topix(V[:, 0], V[:, 2])
+        inner = cv2.erode((ident >= 0).astype(np.uint8), np.ones((15, 15), np.uint8)).astype(bool)
+        return rgb, ident, px, py, inner
+
+    # 1 30° 돌린 상자 — 앞에서 두 면이 보인다. 안쪽 선은 세로 모서리 열에만 (면 대각선엔 없다)
+    box = trimesh.creation.box((0.6, 0.6, 1.0))
+    box.apply_transform(TT.rotation_matrix(np.radians(30), [0, 0, 1]))
+    rgb, ident, px, _, inner = run(box)
+    cols = np.unique(px)
+    mid = cols[(cols > cols.min() + 8) & (cols < cols.max() - 8)]            # 윤곽 아닌 세로 모서리 열
+    ys, xs = np.nonzero((rgb[:, :, 0] == 20) & inner)
+    near = np.abs(xs[:, None] - mid[None, :]).min(1) <= 4
+    assert len(xs) > 100 and near.all(), "기운 상자: 모서리 밖 선 %d / %d" % ((~near).sum(), len(xs))
+    rgb1, _, _, _, _ = run(box, style=1)
+    ys1, xs1 = np.nonzero((rgb1[:, :, 0] == 20) & inner)
+    fake = (np.abs(xs1[:, None] - mid[None, :]).min(1) > 4).sum()
+    assert fake > 100, "옛 규칙에서 대각선 가짜 선이 안 났다 (%d) — 이 검사가 무엇도 못 가른다" % fake
+    # 2 검은 상자 — 면은 lum ≥ 120, 선은 20
+    rgb, ident, _, _, inner = run(trimesh.creation.box((0.6, 0.4, 1.0)), c=0)
+    face = inner & (rgb[:, :, 0] != 20)
+    assert face.any() and rgb[face].mean(1).min() >= 119 and (rgb[:, :, 0] == 20).any(), "검은 상자 대비"
+    # 3 계단 — 몸통 앞뒤로 튀어나온 혹 (카메라가 어느 쪽이든 하나는 앞에 있다). 혹 윤곽에 가림선
+    big = trimesh.creation.box((0.6, 0.4, 1.0))
+    bumps = [trimesh.creation.box((0.2, 0.2, 0.3)) for _ in range(2)]
+    bumps[0].apply_translation([0, -0.30, 0])
+    bumps[1].apply_translation([0, 0.30, 0])
+    rgb, ident, px, py, _ = run(trimesh.util.concatenate([big] + bumps))
+    nb = len(big.vertices)
+    r = int(np.median(py[nb:]))
+    c0 = int(px[nb:].min())
+    assert (rgb[r, c0 - 4:c0 + 5, 0] == 20).any() and not (rgb[r, c0 + 20:c0 + 30, 0] == 20).any(), \
+        "계단: 혹 윤곽에 가림선이 없거나 혹 앞면에 선이 났다"
+    print("  자가검사 통과 — 기운 상자(옛 규칙 가짜 선 %d 화소 → 0) · 검은 상자 · 계단" % fake)
+
+
 def main():
+    if len(sys.argv) > 1 and sys.argv[1] == "검사":
+        selfcheck()
+        return
     ap = argparse.ArgumentParser()
     ap.add_argument("model")
     ap.add_argument("--이름", dest="name", default=None)
     ap.add_argument("--축", dest="axes", default="xyz",
                     help="만든 도구의 축 규약 (가로,위,깊이). glTF/VRM 은 xyz(y 위), "
                          "블렌더/OpenSCAD 는 xzy, TripoSR 은 yxz(x 위). win.to_world 참고")
+    ap.add_argument("--선", dest="style", type=int, default=1,
+                    help="2 = 보간 가림선 · 겹선 30° · 6px · 면색 올림 (draw 참고). 기본 1 은 옛 규칙")
     ap.add_argument("--안뒤집기", dest="no_flip", action="store_true",
                     help="모델이 이미 −y 를 본다 (무진.py). VRM 이면 주지 않는다")
     ap.add_argument("--초정밀", dest="ss", action="store_true",
@@ -157,7 +249,7 @@ def main():
     trimesh.Trimesh(Vw, F, process=False).export(os.path.join(d, "truth.glb"))
 
     for v in W.VIEWS:
-        rgb, ident = draw(Vw, F, col, mat, v)
+        rgb, ident = draw(Vw, F, col, mat, v, style=a.style)
         # **정확한 실루엣을 알파로 같이 적는다** (2026-09-11). 흰 바탕에 색만 적으면 모델의 흰 부분
         # (흰 가슴판·셔츠)이 `win.art_mask` 에서 배경으로 빠져 hull 에 터널이 뚫렸다 (29장 중 9장 > 1%).
         # 윤곽선 굵히기가 바깥으로 번진 1 화소(측정한 「테」)도 알파 0 이라 마스크에 안 든다.
