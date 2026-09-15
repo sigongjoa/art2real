@@ -550,7 +550,7 @@ def superellipse(plain, p=2.0):
     return E
 
 
-def ellipse_depths(plain, axes, back_sign, p=2.0):
+def ellipse_depths(plain, axes, back_sign, p=2.0, E=None):
     """hull 만 보고 **오라클을 추정한다** — 높이마다 단면에 초타원을 내접시킨다.
 
     이진 hull 의 단면은 높이마다 축정렬 직사각형 몇 개다 (x구간 × y구간). 그 안에 내접
@@ -561,7 +561,7 @@ def ellipse_depths(plain, axes, back_sign, p=2.0):
     1 (= 안 깎는다) 이라, 자가검사도 복셀 중심에서 읽어야 헛통과가 안 난다."""
     u, _, z = axes
     n = len(u)
-    E = superellipse(plain, p)
+    E = superellipse(plain, p) if E is None else E        # E 를 주면 그 단면으로 (조각 묶기 실험 · 09-15)
     j = np.arange(n)[None, :, None]
     jf, jb = np.where(E, j, n).min(1), np.where(E, j, -1).max(1)  # (x, z) 앞면·뒷면 칸
     has = jf < n
