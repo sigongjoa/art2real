@@ -137,6 +137,7 @@
   }
   .layer input { margin: 0; accent-color: var(--ink); }
   .swatch { width: 14px; height: 14px; border-radius: 3px; }
+  .swatch.inline { display: inline-block; width: 10px; height: 10px; margin-right: 8px; vertical-align: 0; }
   .layer span:last-child small { display: block; color: var(--ink-soft); font-size: 12px; line-height: 1.4; }
 
   .cut { display: grid; gap: 6px; }
@@ -163,8 +164,8 @@
     <div class="views" role="group" aria-label="보는 방향">
       <button class="view" id="view-front" data-view="front" aria-pressed="false">앞</button>
       <button class="view" id="view-side" data-view="side" aria-pressed="false">옆</button>
-      <button class="view" id="view-quarter" data-view="quarter" aria-pressed="true">비스듬히</button>
-      <button class="view" id="view-below" data-view="below" aria-pressed="false">밑에서</button>
+      <button class="view" id="view-quarter" data-view="quarter" aria-pressed="false">비스듬히</button>
+      <button class="view" id="view-below" data-view="below" aria-pressed="true">밑에서</button>
     </div>
   </div>
 
@@ -180,22 +181,25 @@
     </section>
 
     <section>
-      <p class="label">겹쳐 보기</p>
+      <p class="label">정답</p>
+      <div class="seg" role="group" aria-label="정답 보기">
+        <button class="chip" id="mode-hollow" data-mode="hollow" aria-pressed="true">
+          <span><span class="swatch inline" style="background: var(--resin)"></span>원본 그대로</span><small>치마 속이 비어 있다</small>
+        </button>
+        <button class="chip" id="mode-filled" data-mode="filled" aria-pressed="false">
+          <span><span class="swatch inline" style="background: var(--fill)"></span>속 채운 정답</span><small>파랑 = 채운 부피</small>
+        </button>
+      </div>
+      <p class="note">채우는 곳은 높이마다 천에 완전히 둘러싸인 속뿐이다. 앞 · 옆 · 뒤 어느 판에서도 안 보이는 곳이다. 다리 사이 틈은 안 찬다.</p>
+    </section>
+
+    <section>
+      <p class="label">원형</p>
       <div class="layers">
-        <label class="layer" for="layer-truth">
-          <input type="checkbox" id="layer-truth" checked>
-          <span class="swatch" style="background: var(--resin)"></span>
-          <span>정답 메시<small>원본 3D 모델. 치마 속이 비어 있다</small></span>
-        </label>
-        <label class="layer" for="layer-fill">
-          <input type="checkbox" id="layer-fill" checked>
-          <span class="swatch" style="background: var(--fill)"></span>
-          <span>속을 채우며 더해진 부피<small>높이마다 닫힌 속만. 다리 사이 틈은 안 찬다</small></span>
-        </label>
         <label class="layer" for="layer-hull">
-          <input type="checkbox" id="layer-hull" checked>
+          <input type="checkbox" id="layer-hull">
           <span class="swatch" style="background: var(--hull)"></span>
-          <span>지금 원형 (타원 lam 1.00)<small>반투명. 3판에서 깎은 hull</small></span>
+          <span>지금 원형 (타원 lam 1.00)<small>반투명 빨강. 원화 3판에서 깎은 hull 은 늘 속이 차 있다</small></span>
         </label>
       </div>
     </section>
@@ -309,8 +313,8 @@ async function show(name) {
   if (group) scene.remove(group);
   group = c.group; box = c.box; current = name;
   scene.add(group);
-  for (const k of Object.keys(layerOf)) c.meshes[k].visible = document.getElementById("layer-" + k).checked;
-  document.querySelectorAll(".chip").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.case === name)));
+  applyLayers();
+  document.querySelectorAll(".chip[data-case]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.case === name)));
   setCut();
   setView(document.querySelector(".view[aria-pressed='true']").dataset.view);
   scores(name);
@@ -356,9 +360,16 @@ for (const [name, label] of CASES) {
   casesEl.append(b);
 }
 document.querySelectorAll(".view").forEach(b => b.addEventListener("click", () => setView(b.dataset.view)));
-for (const k of Object.keys(layerOf)) {
-  document.getElementById("layer-" + k).addEventListener("change", e => { cache[current].meshes[k].visible = e.target.checked; });
+let mode = "hollow";
+function applyLayers() {
+  const m = cache[current].meshes;
+  m.truth.visible = true;
+  m.fill.visible = mode === "filled";
+  m.hull.visible = document.getElementById("layer-hull").checked;
+  document.querySelectorAll(".chip[data-mode]").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.mode === mode)));
 }
+document.querySelectorAll(".chip[data-mode]").forEach(b => b.addEventListener("click", () => { mode = b.dataset.mode; applyLayers(); }));
+document.getElementById("layer-hull").addEventListener("change", applyLayers);
 document.getElementById("cut").addEventListener("input", setCut);
 
 function resize() {
