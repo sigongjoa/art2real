@@ -44,19 +44,21 @@ def shapes(c):
     T, ot = J.grid(truth)
     _, old, axes, _ = O.build(c, truth, H.LAM, "파이프")
     _, new, axes2, _ = C.build(c)
+    _, ora, axes3, _ = O.build(c, truth, 1.00, "오라클")      # 천장 — 정답 깊이를 넣었을 때. 여기서도 틀린 곳은 3판의 한계
     Go, oo = J.grid(O.C.to_mesh(old, axes))
     Gn, on = J.grid(O.C.to_mesh(new, axes2))
-    lo = np.minimum.reduce([ot, oo, on])
-    hi = np.maximum.reduce([ot + T.shape, oo + Go.shape, on + Gn.shape])
+    Gc, oc = J.grid(O.C.to_mesh(ora, axes3))
+    lo = np.minimum.reduce([ot, oo, on, oc])
+    hi = np.maximum.reduce([ot + T.shape, oo + Go.shape, on + Gn.shape, oc + Gc.shape])
 
     def put(g, o):
         a = np.zeros(hi - lo + 2, bool)
         a[tuple(slice(o[i] - lo[i] + 1, o[i] - lo[i] + 1 + g.shape[i]) for i in range(3))] = g
         return a
-    grids = [put(T, ot), put(Go, oo), put(Gn, on)]
+    grids = [put(T, ot), put(Go, oo), put(Gn, on), put(Gc, oc)]
     SC.VIEW = FRONT_VIEW
     r, u, _ = basis()
-    pts = np.argwhere(grids[0] | grids[1] | grids[2])
+    pts = np.argwhere(np.logical_or.reduce(grids))
     X, Y = pts @ r, pts @ u
     span = max(X.max() - X.min(), Y.max() - Y.min()) * 1.06
     frame = (((X.max() + X.min()) / 2 - span / 2, (Y.max() + Y.min()) / 2 - span / 2), span)
@@ -67,12 +69,13 @@ def main(cases):
     rows = {r["case"]: r for r in map(json.loads, open(PROG, encoding="utf-8"))}
     cases = cases or picks(rows)
     G, TOP, LW = 18, 140, 250
-    im = Image.new("RGB", (LW + 3 * (S + G) + 30, TOP + len(cases) * (S + G) + 20), "white")
+    im = Image.new("RGB", (LW + 4 * (S + G) + 30, TOP + len(cases) * (S + G) + 20), "white")
     d = ImageDraw.Draw(im)
-    d.text((24, 16), "정답 · 옛 기본(파이프 lam 0.20) · 새 기본(타원 lam 1.00)", font=_font(30), fill=(20, 20, 20))
-    d.text((24, 62), "같은 각도 · 같은 크기 · 자르지 않음 · 위 셋 = 점수가 가장 오른 장 · 아래 셋 = 가장 떨어진 장 · 숫자는 속 채운 정답 IoU",
+    d.text((24, 16), "정답 · 옛 기본(파이프 lam 0.20) · 새 기본(타원 lam 1.00) · 천장(정답 깊이)", font=_font(30), fill=(20, 20, 20))
+    d.text((24, 58), "같은 각도 · 같은 크기 · 자르지 않음 · 위 셋 = 점수가 가장 오른 장 · 아래 셋 = 가장 떨어진 장 · 숫자는 속 채운 정답 IoU",
            font=_font(18), fill=(90, 90, 90))
-    for k, name in enumerate(("정답 (GT)", "옛 기본", "새 기본")):
+    d.text((24, 84), "천장에서도 틀린 곳 = 3판의 한계 · 천장은 맞는데 새 기본만 틀린 곳 = 다음 개선 대상", font=_font(18), fill=(40, 110, 200))
+    for k, name in enumerate(("정답 (GT)", "옛 기본", "새 기본", "천장")):
         d.text((LW + k * (S + G) + S // 2 - 50, TOP - 34), name, font=_font(22), fill=(30, 30, 30))
     for i, c in enumerate(cases):
         y = TOP + i * (S + G)
