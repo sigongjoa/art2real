@@ -1,0 +1,374 @@
+<title>치마 속 검수대</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans+KR:wght@400;500;600;700&display=swap">
+<style>
+  :root {
+    --ground: #e9edf1;
+    --panel: #f6f8fa;
+    --ink: #1b2229;
+    --ink-soft: #56616c;
+    --rule: #cfd6dd;
+    --resin: #9aa3ad;
+    --fill: #2f74d0;
+    --hull: #d0432c;
+    --stage: #dde3e8;
+    --focus: #2f74d0;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ground: #13171b;
+      --panel: #1a1f25;
+      --ink: #e4e9ee;
+      --ink-soft: #9aa6b1;
+      --rule: #2c343c;
+      --resin: #b3bcc5;
+      --fill: #5b9bf0;
+      --hull: #f06a52;
+      --stage: #0f1316;
+      --focus: #5b9bf0;
+    }
+  }
+  :root[data-theme="dark"] {
+    --ground: #13171b;
+    --panel: #1a1f25;
+    --ink: #e4e9ee;
+    --ink-soft: #9aa6b1;
+    --rule: #2c343c;
+    --resin: #b3bcc5;
+    --fill: #5b9bf0;
+    --hull: #f06a52;
+    --stage: #0f1316;
+    --focus: #5b9bf0;
+  }
+
+  html, body { height: 100%; }
+  body {
+    background: var(--ground);
+    color: var(--ink);
+    font: 400 14px/1.55 "IBM Plex Sans KR", "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif;
+  }
+  .shell {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 340px;
+    height: 100%;
+    gap: 0;
+  }
+  .stage {
+    position: relative;
+    background: var(--stage);
+    min-height: 0;
+  }
+  .stage canvas { display: block; width: 100%; height: 100%; touch-action: none; }
+  .views {
+    position: absolute;
+    left: 16px;
+    bottom: 16px;
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .hint {
+    position: absolute;
+    left: 16px;
+    top: 14px;
+    font: 500 12px/1.4 "IBM Plex Mono", ui-monospace, monospace;
+    color: var(--ink-soft);
+    letter-spacing: 0.02em;
+  }
+
+  aside {
+    background: var(--panel);
+    border-left: 1px solid var(--rule);
+    overflow-y: auto;
+    padding-block: 22px 28px;
+    padding-inline: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+  h1 {
+    margin: 0;
+    font-size: 22px;
+    line-height: 1.25;
+    font-weight: 700;
+    text-wrap: balance;
+  }
+  .lede { margin: 6px 0 0; color: var(--ink-soft); max-width: 36ch; }
+  .label {
+    font: 500 11px/1 "IBM Plex Mono", ui-monospace, monospace;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin: 0 0 10px;
+  }
+
+  .seg { display: grid; gap: 6px; }
+  .chip, .view {
+    appearance: none;
+    border: 1px solid var(--rule);
+    background: var(--panel);
+    color: var(--ink);
+    font: inherit;
+    border-radius: 6px;
+    cursor: pointer;
+  }
+  .chip {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: baseline;
+    gap: 8px;
+    padding: 9px 12px;
+    text-align: left;
+  }
+  .chip small { color: var(--ink-soft); font-size: 12px; }
+  .chip[aria-pressed="true"] { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+  .view { padding: 6px 10px; font-size: 12px; background: color-mix(in srgb, var(--panel) 88%, transparent); }
+  .view[aria-pressed="true"] { border-color: var(--ink); }
+  button:focus-visible, input:focus-visible { outline: 2px solid var(--focus); outline-offset: 2px; }
+
+  .layers { display: grid; gap: 8px; }
+  .layer {
+    display: grid;
+    grid-template-columns: 18px 14px 1fr;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+  }
+  .layer input { margin: 0; accent-color: var(--ink); }
+  .swatch { width: 14px; height: 14px; border-radius: 3px; }
+  .layer span:last-child small { display: block; color: var(--ink-soft); font-size: 12px; line-height: 1.4; }
+
+  .cut { display: grid; gap: 6px; }
+  .cut input { width: 100%; accent-color: var(--ink); }
+  .cut output { font: 500 12px "IBM Plex Mono", ui-monospace, monospace; color: var(--ink-soft); }
+
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  th, td { padding: 6px 0; border-bottom: 1px solid var(--rule); text-align: right; }
+  th:first-child, td:first-child { text-align: left; }
+  th { font: 500 11px "IBM Plex Mono", ui-monospace, monospace; color: var(--ink-soft); letter-spacing: 0.04em; font-weight: 500; }
+  td { font-family: "IBM Plex Mono", ui-monospace, monospace; font-size: 13px; }
+  td.up { color: var(--fill); font-weight: 500; }
+  .note { margin: 10px 0 0; color: var(--ink-soft); font-size: 12.5px; max-width: 40ch; }
+
+  @media (max-width: 760px) {
+    .shell { grid-template-columns: 1fr; grid-template-rows: 62vh auto; height: auto; }
+    aside { border-left: 0; border-top: 1px solid var(--rule); overflow: visible; }
+  }
+</style>
+
+<div class="shell">
+  <div class="stage" id="stage">
+    <div class="hint" id="hint">끌어서 돌리기 · 휠로 확대</div>
+    <div class="views" role="group" aria-label="보는 방향">
+      <button class="view" id="view-front" data-view="front" aria-pressed="false">앞</button>
+      <button class="view" id="view-side" data-view="side" aria-pressed="false">옆</button>
+      <button class="view" id="view-quarter" data-view="quarter" aria-pressed="true">비스듬히</button>
+      <button class="view" id="view-below" data-view="below" aria-pressed="false">밑에서</button>
+    </div>
+  </div>
+
+  <aside>
+    <header>
+      <h1>치마 속 검수대</h1>
+      <p class="lede">정답 메시는 치마 속이 비어 있고 hull 은 속을 채운다. 굿즈 원형은 속이 차도 되니, 파란 부피는 틀린 곳이 아니다.</p>
+    </header>
+
+    <section>
+      <p class="label">케이스</p>
+      <div class="seg" id="cases" role="group" aria-label="케이스"></div>
+    </section>
+
+    <section>
+      <p class="label">겹쳐 보기</p>
+      <div class="layers">
+        <label class="layer" for="layer-truth">
+          <input type="checkbox" id="layer-truth" checked>
+          <span class="swatch" style="background: var(--resin)"></span>
+          <span>정답 메시<small>원본 3D 모델. 치마 속이 비어 있다</small></span>
+        </label>
+        <label class="layer" for="layer-fill">
+          <input type="checkbox" id="layer-fill" checked>
+          <span class="swatch" style="background: var(--fill)"></span>
+          <span>속을 채우며 더해진 부피<small>높이마다 닫힌 속만. 다리 사이 틈은 안 찬다</small></span>
+        </label>
+        <label class="layer" for="layer-hull">
+          <input type="checkbox" id="layer-hull" checked>
+          <span class="swatch" style="background: var(--hull)"></span>
+          <span>지금 원형 (타원 lam 1.00)<small>반투명. 3판에서 깎은 hull</small></span>
+        </label>
+      </div>
+    </section>
+
+    <section class="cut">
+      <p class="label">좌우로 자르기</p>
+      <input type="range" id="cut" min="0" max="100" value="50" aria-describedby="cut-out">
+      <output id="cut-out" for="cut">왼쪽 절반만 보인다</output>
+    </section>
+
+    <section>
+      <p class="label">3D IoU · 격자 128</p>
+      <table>
+        <thead><tr><th>판본</th><th>속 빈 정답</th><th>속 채운 정답</th></tr></thead>
+        <tbody id="scores"></tbody>
+      </table>
+      <p class="note" id="note"></p>
+    </section>
+  </aside>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+const DATA = /*DATA*/null;
+const CASES = [
+  ["avatarsample_d_darkness", "긴 드레스"],
+  ["avatarsample_g", "퍼진 드레스"],
+  ["sakurada_fumiriya", "몸에 붙는 옷"],
+];
+const ROWS = [["이진", "이진 hull"], ["타원1.00", "지금 원형"], ["오라클1.00", "정답 깊이 (천장)"]];
+
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const stage = document.getElementById("stage");
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.localClippingEnabled = true;
+stage.prepend(renderer.domElement);
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(30, 1, 0.01, 50);
+const controls = new THREE.OrbitControls(camera, renderer.domElement);
+controls.enableDamping = !reduce;
+scene.add(new THREE.HemisphereLight(0xffffff, 0x6b7580, 0.85));
+const sun = new THREE.DirectionalLight(0xffffff, 0.75);
+sun.position.set(-1.5, 2.5, -2);
+scene.add(sun);
+
+const clip = new THREE.Plane(new THREE.Vector3(-1, 0, 0), 0);
+const mats = {
+  truth: new THREE.MeshStandardMaterial({ side: THREE.DoubleSide, roughness: 0.75, clippingPlanes: [clip] }),
+  fill: new THREE.MeshStandardMaterial({ side: THREE.DoubleSide, roughness: 0.6, clippingPlanes: [clip] }),
+  hull: new THREE.MeshBasicMaterial({ side: THREE.DoubleSide, transparent: true, opacity: 0.16, depthWrite: false, clippingPlanes: [clip] }),
+};
+function paintTheme() {
+  scene.background = new THREE.Color(css("--stage"));
+  mats.truth.color.set(css("--resin"));
+  mats.fill.color.set(css("--fill"));
+  mats.hull.color.set(css("--hull"));
+}
+paintTheme();
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", paintTheme);
+new MutationObserver(paintTheme).observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
+
+const b64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
+async function gunzip(s) {
+  const stream = new Blob([b64(s)]).stream().pipeThrough(new DecompressionStream("gzip"));
+  return await new Response(stream).arrayBuffer();
+}
+// 원화3d 월드는 z 가 위 · 앞이 +y. three 는 y 가 위 → (x, z, -y) 로 돌린다 (반사 없이 x 축 −90°)
+async function geometry(c, m) {
+  const q = new Uint16Array(await gunzip(m.v));
+  const pos = new Float32Array(q.length);
+  for (let i = 0; i < q.length; i += 3) {
+    const x = c.min[0] + q[i] / 65535 * c.scale;
+    const y = c.min[1] + q[i + 1] / 65535 * c.scale;
+    const z = c.min[2] + q[i + 2] / 65535 * c.scale;
+    pos[i] = x; pos[i + 1] = z; pos[i + 2] = -y;
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  g.setIndex(new THREE.BufferAttribute(new Uint32Array(await gunzip(m.f)), 1));
+  g.computeVertexNormals();
+  return g;
+}
+
+const cache = {};
+let group = null, box = null, current = null;
+const layerOf = { truth: "정답", fill: "속채움", hull: "hull" };
+
+async function load(name) {
+  if (!cache[name]) {
+    const c = DATA[name], g = new THREE.Group(), meshes = {};
+    for (const [k, key] of Object.entries(layerOf)) {
+      meshes[k] = new THREE.Mesh(await geometry(c, c.meshes[key]), mats[k]);
+      meshes[k].renderOrder = k === "hull" ? 2 : 1;
+      g.add(meshes[k]);
+    }
+    cache[name] = { group: g, meshes, box: new THREE.Box3().setFromObject(g) };
+  }
+  return cache[name];
+}
+
+async function show(name) {
+  const hint = document.getElementById("hint");
+  if (!cache[name]) hint.textContent = "모델을 푸는 중…";
+  const c = await load(name);
+  hint.textContent = "끌어서 돌리기 · 휠로 확대";
+  if (group) scene.remove(group);
+  group = c.group; box = c.box; current = name;
+  scene.add(group);
+  for (const k of Object.keys(layerOf)) c.meshes[k].visible = document.getElementById("layer-" + k).checked;
+  document.querySelectorAll(".chip").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.case === name)));
+  setCut();
+  setView(document.querySelector(".view[aria-pressed='true']").dataset.view);
+  scores(name);
+}
+
+function setView(v) {
+  const ctr = box.getCenter(new THREE.Vector3()), size = box.getSize(new THREE.Vector3());
+  const d = Math.max(size.x, size.y, size.z) * 2.6;
+  const dir = { front: [0, 0.05, -1], side: [1, 0.05, 0], quarter: [0.75, 0.35, -0.9], below: [0.35, -1, -0.55] }[v];
+  const n = new THREE.Vector3(...dir).normalize();
+  camera.position.copy(ctr).addScaledVector(n, d);
+  controls.target.copy(ctr);
+  controls.update();
+  document.querySelectorAll(".view").forEach(b => b.setAttribute("aria-pressed", String(b.dataset.view === v)));
+}
+
+function setCut() {
+  const t = +document.getElementById("cut").value / 100;
+  const x = box.min.x + (box.max.x - box.min.x) * t;
+  clip.constant = x;
+  const out = document.getElementById("cut-out");
+  out.value = t >= 0.999 ? "자르지 않음" : t <= 0.001 ? "전부 잘림" : "x " + x.toFixed(3) + " 에서 잘라 왼쪽만";
+}
+
+function scores(name) {
+  const s = DATA[name].점수;
+  document.getElementById("scores").innerHTML = ROWS.map(([k, label]) => {
+    const r = s[k], up = r.속채운정답 - r.빈정답 > 0.02;
+    return `<tr><td>${label}</td><td>${r.빈정답.toFixed(3)}</td><td class="${up ? "up" : ""}">${r.속채운정답.toFixed(3)}</td></tr>`;
+  }).join("");
+  const gain = s["타원1.00"].속채운정답 - s["타원1.00"].빈정답;
+  document.getElementById("note").textContent =
+    `속을 채우면 정답 부피가 ${s["속채움/정답 부피"].toFixed(2)}배가 된다. 지금 원형의 점수는 ${gain >= 0 ? "+" : ""}${gain.toFixed(3)} 바뀐다. ` +
+    (gain > 0.02 ? "낮던 점수의 대부분이 치마 속이었다." : "치마 속이 거의 없어 채점이 그대로다.");
+}
+
+const casesEl = document.getElementById("cases");
+for (const [name, label] of CASES) {
+  const b = document.createElement("button");
+  b.className = "chip"; b.id = "case-" + name; b.dataset.case = name; b.setAttribute("aria-pressed", "false");
+  b.innerHTML = `<span>${label}</span><small>${name}</small>`;
+  b.addEventListener("click", () => show(name));
+  casesEl.append(b);
+}
+document.querySelectorAll(".view").forEach(b => b.addEventListener("click", () => setView(b.dataset.view)));
+for (const k of Object.keys(layerOf)) {
+  document.getElementById("layer-" + k).addEventListener("change", e => { cache[current].meshes[k].visible = e.target.checked; });
+}
+document.getElementById("cut").addEventListener("input", setCut);
+
+function resize() {
+  const w = stage.clientWidth, h = stage.clientHeight;
+  renderer.setSize(w, h, false);
+  camera.aspect = w / Math.max(h, 1);
+  camera.updateProjectionMatrix();
+}
+new ResizeObserver(resize).observe(stage);
+resize();
+show(CASES[0][0]);
+renderer.setAnimationLoop(() => { controls.update(); renderer.render(scene, camera); });
+</script>
