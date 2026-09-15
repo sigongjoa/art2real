@@ -15,6 +15,8 @@ _보류/
 pdfs/
 *.epub
 *.pdf
+# 연구 줄기 논문 PDF 는 담는다 — 원본(.typ)으로 다시 만들 수 있지만, 폰 · 인쇄로 바로 여는 산출물이다 (09-15 사용자 결정)
+!원화3d/논문/**/*.pdf
 
 # trail7 — 남의 저장소 클론과 가중치. clone.sh / huggingface 가 다시 받는다
 트레일/trail7_part3d/OmniPart/

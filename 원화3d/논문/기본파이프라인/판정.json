@@ -1,0 +1,62 @@
+{
+ "판": "점수판 · 실물28 · 옛 기본(파이프 lam0.20) · 새 기본(hull.carve_default) · 빈/속채운 · 격자128·192 (2026-09-15)",
+ "장": 28,
+ "배관 최대차 새 · 옛": [
+  0.0,
+  5e-06
+ ],
+ "배관": "통과",
+ "격자128": {
+  "점수 옛 → 새 (속 채운 정답 중앙)": [
+   0.6832,
+   0.7413
+  ],
+  "속 빈 정답 중앙 옛 → 새": [
+   0.6021,
+   0.6496
+  ],
+  "채택 규칙": {
+   "중앙": 0.0421,
+   "승": 21,
+   "장": 28,
+   "한 장 빼기 최소 중앙": 0.0414,
+   "통과": true
+  },
+  "지는 장": {
+   "cape_Hat_Stylised_lNN3PlrjSa": -0.0202,
+   "cloak_Chest_Closed_AngpV0HxD8": -0.1179,
+   "cloak_Chest_O72u4Drp8k": -0.0578,
+   "mech_Drill_8uBbH7Dvmb": -0.0241,
+   "monster_Mimic_B8HrWzkuNp": -0.0106,
+   "statue_Town_Center_cuQuFJEIfH": -0.0087,
+   "wizard_Evil_Wizard_bdxawstqtq": -0.0069
+  }
+ },
+ "격자192": {
+  "점수 옛 → 새 (속 채운 정답 중앙)": [
+   0.6674,
+   0.7265
+  ],
+  "속 빈 정답 중앙 옛 → 새": [
+   0.585,
+   0.6039
+  ],
+  "채택 규칙": {
+   "중앙": 0.0445,
+   "승": 21,
+   "장": 28,
+   "한 장 빼기 최소 중앙": 0.0428,
+   "통과": true
+  },
+  "지는 장": {
+   "cape_Hat_Stylised_lNN3PlrjSa": -0.0204,
+   "cloak_Chest_Closed_AngpV0HxD8": -0.1173,
+   "cloak_Chest_O72u4Drp8k": -0.0588,
+   "mech_Drill_8uBbH7Dvmb": -0.0224,
+   "monster_Mimic_B8HrWzkuNp": -0.0063,
+   "statue_Town_Center_cuQuFJEIfH": -0.007,
+   "wizard_Evil_Wizard_bdxawstqtq": -0.0068
+  }
+ },
+ "다음": "새 기본을 남긴다"
+}
