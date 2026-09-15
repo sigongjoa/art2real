@@ -246,7 +246,7 @@ def main():
     hist = os.path.join(OUT, "기록")
     os.makedirs(hist, exist_ok=True)
     stamp = datetime.datetime.now().strftime("%Y%m%d_%H%M")
-    json.dump({"때": stamp, "LAM": H.LAM, "SMOOTH": H.SMOOTH, "N": H.N, "rows": rows},
+    json.dump({"때": stamp, "LAM": H.LAM, "DEPTH": H.DEPTH, "DEPTH_LAM": H.DEPTH_LAM, "SMOOTH": H.SMOOTH, "N": H.N, "rows": rows},
               open(os.path.join(hist, "도형_%s.json" % stamp), "w", encoding="utf-8"),
               ensure_ascii=False, indent=1)
 

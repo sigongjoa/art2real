@@ -100,12 +100,13 @@ def build(case):
     masks, deps = {}, {}
     for v, f in src.items():
         d = H.declutter(W.art_mask(os.path.join(base, f)))
-        masks[v], deps[v] = H.to_win(d, H.load_depth(v, d, case=case))
+        dep = H.load_depth(v, d, case=case) if H.DEPTH == "파이프" else np.ones(d.shape, np.float32)
+        masks[v], deps[v] = H.to_win(d, dep)
     p = H.align(masks, back_sign=bs)
     masks = H._warp(masks, p)
     deps = {v: H._warp_one(a, v, p) for v, a in deps.items()}
     plain, axes = H.carve(masks, back_sign=bs)
-    deep, _ = H.carve_depth(masks, deps, back_sign=bs)
+    deep, _ = H.carve_default(masks, deps, back_sign=bs)             # 제품 `hull.py main` 과 같은 기본 깎기 (09-15)
     return plain, deep, axes, p
 
 
@@ -399,7 +400,7 @@ def main():
     json.dump({"때": stamp, "케이스": len(cases), "점수낸장": len(rows),
                "채점불가": [b["case"] for b in broken],
                "판정": verdict, "대조군대비": ver, "판정_앞뒤": verdict2, "앞뒤대비": ver2, "판": TAG,
-               "LAM": H.LAM, "THRESH": H.THRESH, "rows": rows},
+               "LAM": H.LAM, "DEPTH": H.DEPTH, "DEPTH_LAM": H.DEPTH_LAM, "THRESH": H.THRESH, "rows": rows},
               open(os.path.join(hist, "대조_%s.json" % stamp), "w", encoding="utf-8"),
               ensure_ascii=False, indent=1)
     print("  기록 -> out/기록/대조_%s.json" % stamp)

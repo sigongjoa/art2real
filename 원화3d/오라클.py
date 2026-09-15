@@ -100,52 +100,8 @@ def oracle_depth(truth, view):
     return np.clip(h, 0, 1).astype(np.float32)
 
 
-def superellipse(plain, p=2.0):
-    """높이마다 hull 단면(축정렬 직사각형들)에 **내접 초타원** — |x/a|^p + |y/b|^p <= 1.
-
-    p=2 는 타원(= 2026-09-11 의 가정), 클수록 상자에 가고 1 이면 마름모다. **부품마다**
-    따로 넣는다 (높이마다 연결성분별로). `ellipse_depths` 와 단면 그림이 같은 것을 본다."""
-    n = plain.shape[0]
-    I, Jg = np.meshgrid(np.arange(n), np.arange(n), indexing="ij")
-    E = np.zeros_like(plain)
-    for k in range(plain.shape[2]):
-        lab, _ = ndimage.label(plain[:, :, k])
-        for idx, s in enumerate(ndimage.find_objects(lab), 1):
-            a, b = (s[0].stop - s[0].start) / 2, (s[1].stop - s[1].start) / 2
-            ic, jc = s[0].start + a - 0.5, s[1].start + b - 0.5
-            q = np.abs((I[s] - ic) / a) ** p + np.abs((Jg[s] - jc) / b) ** p
-            E[s[0], s[1], k] |= (q <= 1) & (lab[s] == idx)
-    return E
-
-
-def ellipse_depths(plain, axes, back_sign, p=2.0):
-    """hull 만 보고 **오라클을 추정한다** — 높이마다 단면에 초타원을 내접시킨다.
-
-    이진 hull 의 단면은 높이마다 축정렬 직사각형 몇 개다 (x구간 × y구간). 그 안에 내접
-    초타원(`superellipse`, p=2 면 타원)을 넣고, 그 앞·뒤 표면으로 `oracle_depth` 와 **같은
-    규약**의 깊이를 만든다. 정답을 안 본다. 대신 **「단면 모양」 가정 하나**를 넣는다.
-
-    `carve_depth` 는 깊이를 **복셀 중심 화소에서만** 읽으므로 그 화소에만 찍는다. 나머지는
-    1 (= 안 깎는다) 이라, 자가검사도 복셀 중심에서 읽어야 헛통과가 안 난다."""
-    u, _, z = axes
-    n = len(u)
-    E = superellipse(plain, p)
-    j = np.arange(n)[None, :, None]
-    jf, jb = np.where(E, j, n).min(1), np.where(E, j, -1).max(1)  # (x, z) 앞면·뒷면 칸
-    has = jf < n
-    out = {v: np.ones((W.RES, W.RES), np.float32) for v in W.VIEWS}
-    if not has.any():
-        return out
-    ys = np.nonzero(E.any((0, 2)))[0]
-    lo, hi = u[ys.min()], u[ys.max()]                    # **물건의 y 범위 하나로** — oracle 과 같다
-    span = max(hi - lo, 1e-9)
-    hf = np.where(has, (hi - u[np.clip(jf, 0, n - 1)]) / span, 1.0)
-    hb = np.where(has, (u[np.clip(jb, 0, n - 1)] - lo) / span, 1.0)
-    X2, Z2 = np.meshgrid(u, z, indexing="ij")
-    for v, h in (("front", hf), ("back", hb)):
-        py, px = W.topix((back_sign if v == "back" else W.VIEW_AXIS[v][1]) * X2, Z2)
-        out[v][py, px] = np.clip(h, 0, 1)
-    return out
+# 타원 깊이는 09-15 에 기본값이 되어 `hull.py` 로 옮겼다 — 제품 경로가 오라클을 import 하지 않게.
+superellipse, ellipse_depths = H.superellipse, H.ellipse_depths
 
 
 def build(case, truth, lam, which, pexp=2.0, post=None):

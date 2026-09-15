@@ -63,12 +63,13 @@ def build():
     masks, deps, labs = {}, {}, {}
     for v, f in SRC.items():
         d = H.declutter(W.art_mask(os.path.join(H.IN7, f)))
-        masks[v], deps[v], labs[v] = H.to_win(d, H.load_depth(v, d), H.load_labels(v, d))
+        dep = H.load_depth(v, d) if H.DEPTH == "파이프" else np.ones(d.shape, np.float32)   # 타원 기본은 깊이맵을 안 쓴다 — 낡은 깊이맵 예외로 안 멈추게
+        masks[v], deps[v], labs[v] = H.to_win(d, dep, H.load_labels(v, d))
     p = H.align(masks)
     masks = H._warp(masks, p)
     deps = {v: H._warp_one(a, v, p) for v, a in deps.items()}
     labs = {v: H._warp_one(a, v, p) for v, a in labs.items()}
-    vox, axes = H.carve_depth(masks, deps)
+    vox, axes = H.carve_default(masks, deps)         # 제품 기본 깎기 (09-15 타원 lam1.00)
     return vox, axes, labs
 
 

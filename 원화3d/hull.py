@@ -531,6 +531,70 @@ def mesh_from_field(f, axes):
     return V, F
 
 
+def superellipse(plain, p=2.0):
+    """높이마다 hull 단면(축정렬 직사각형들)에 **내접 초타원** — |x/a|^p + |y/b|^p <= 1.
+
+    p=2 는 타원(= 2026-09-11 의 가정), 클수록 상자에 가고 1 이면 마름모다. **부품마다**
+    따로 넣는다 (높이마다 연결성분별로). `ellipse_depths` 와 단면 그림이 같은 것을 본다.
+    (2026-09-15 `오라클.py` 에서 옮겼다 — 기본값이 되어 제품 경로가 쓴다. 오라클은 여기서 가져간다)"""
+    n = plain.shape[0]
+    I, Jg = np.meshgrid(np.arange(n), np.arange(n), indexing="ij")
+    E = np.zeros_like(plain)
+    for k in range(plain.shape[2]):
+        lab, _ = ndimage.label(plain[:, :, k])
+        for idx, s in enumerate(ndimage.find_objects(lab), 1):
+            a, b = (s[0].stop - s[0].start) / 2, (s[1].stop - s[1].start) / 2
+            ic, jc = s[0].start + a - 0.5, s[1].start + b - 0.5
+            q = np.abs((I[s] - ic) / a) ** p + np.abs((Jg[s] - jc) / b) ** p
+            E[s[0], s[1], k] |= (q <= 1) & (lab[s] == idx)
+    return E
+
+
+def ellipse_depths(plain, axes, back_sign, p=2.0):
+    """hull 만 보고 **오라클을 추정한다** — 높이마다 단면에 초타원을 내접시킨다.
+
+    이진 hull 의 단면은 높이마다 축정렬 직사각형 몇 개다 (x구간 × y구간). 그 안에 내접
+    초타원(`superellipse`, p=2 면 타원)을 넣고, 그 앞·뒤 표면으로 `오라클.oracle_depth` 와 **같은
+    규약**의 깊이를 만든다. 정답을 안 본다. 대신 **「단면 모양」 가정 하나**를 넣는다.
+
+    `carve_depth` 는 깊이를 **복셀 중심 화소에서만** 읽으므로 그 화소에만 찍는다. 나머지는
+    1 (= 안 깎는다) 이라, 자가검사도 복셀 중심에서 읽어야 헛통과가 안 난다."""
+    u, _, z = axes
+    n = len(u)
+    E = superellipse(plain, p)
+    j = np.arange(n)[None, :, None]
+    jf, jb = np.where(E, j, n).min(1), np.where(E, j, -1).max(1)  # (x, z) 앞면·뒷면 칸
+    has = jf < n
+    out = {v: np.ones((W.RES, W.RES), np.float32) for v in W.VIEWS}
+    if not has.any():
+        return out
+    ys = np.nonzero(E.any((0, 2)))[0]
+    lo, hi = u[ys.min()], u[ys.max()]                    # **물건의 y 범위 하나로** — oracle 과 같다
+    span = max(hi - lo, 1e-9)
+    hf = np.where(has, (hi - u[np.clip(jf, 0, n - 1)]) / span, 1.0)
+    hb = np.where(has, (u[np.clip(jb, 0, n - 1)] - lo) / span, 1.0)
+    X2, Z2 = np.meshgrid(u, z, indexing="ij")
+    for v, h in (("front", hf), ("back", hb)):
+        py, px = W.topix((back_sign if v == "back" else W.VIEW_AXIS[v][1]) * X2, Z2)
+        out[v][py, px] = np.clip(h, 0, 1)
+    return out
+
+
+# **기본 깎기 (2026-09-15 에 바꿨다).** 타원 단면 · lam 1.00. 09-12 에 벤치 셋 45장 판정을 지나고도 기본값에 안 들어가
+# 사흘 동안 제품이 제자리였다 (메모리 `progress-needs-scoreboard`). 판정 · 점수판은 `실험_20260915/점수판.py`.
+# "파이프" 로 두면 옛 기본 — 깊이.py 깊이맵 · lam `LAM`. `LAM` 은 옛 판본들이 「파이프0.20」 이름으로 쓰니 안 바꾼다.
+DEPTH = "타원"
+DEPTH_LAM = 1.00
+
+
+def carve_default(masks, deps, back_sign=BACK_SIGN):
+    """제품 · 벤치가 같이 쓰는 기본 깎기. 타원이면 `deps` 를 안 쓴다 (hull 에서 만든다)."""
+    if DEPTH == "파이프":
+        return carve_depth(masks, deps, lam=LAM, back_sign=back_sign)
+    plain, axes = carve(masks, back_sign)
+    return carve_depth(masks, ellipse_depths(plain, axes, back_sign), lam=DEPTH_LAM, back_sign=back_sign)
+
+
 def main(case=None, out_name="hull.glb"):
     os.makedirs(OUT, exist_ok=True)
     case = case or CASE
@@ -541,7 +605,8 @@ def main(case=None, out_name="hull.glb"):
         d = declutter(m)
         bb = lambda a: (np.ptp(np.where(a.any(0))[0]) + 1, np.ptp(np.where(a.any(1))[0]) + 1)
         print("  %-6s bbox %s -> 지시선 뺀 뒤 %s" % (v, bb(m), bb(d)))
-        masks[v], deps[v] = to_win(d, load_depth(v, d, case=case))
+        dep = load_depth(v, d, case=case) if DEPTH == "파이프" else np.ones(d.shape, np.float32)   # 타원은 깊이맵이 필요 없다
+        masks[v], deps[v] = to_win(d, dep)
 
     bs = CASES[case]["back_sign"] or pick_back_sign(masks)
     if CASES[case]["back_sign"] is None:
@@ -556,11 +621,12 @@ def main(case=None, out_name="hull.glb"):
     print("  정렬 후  %s" % fmt(miss(masks, bs)))
 
     plain, _ = carve(masks, back_sign=bs)
-    vox, axes = carve_depth(masks, deps, back_sign=bs)
-    print("\n  복셀 %d/%d 남음 (%.1f%%)" % (vox.sum(), vox.size, 100 * vox.sum() / vox.size))
+    vox, axes = carve_default(masks, deps, back_sign=bs)
+    print("\n  기본 깎기 %s lam %.2f" % (DEPTH, DEPTH_LAM if DEPTH != "파이프" else LAM))
+    print("  복셀 %d/%d 남음 (%.1f%%)" % (vox.sum(), vox.size, 100 * vox.sum() / vox.size))
     print("  단면 형태값  이진 hull %.2f -> 깊이 깎기 %.2f 칸  (0 이면 순수 상자)"
           % (box_score(plain), box_score(vox)))
-    assert vox.any(1).sum() >= plain.any(1).sum() * 0.98, "깊이 깎기가 실루엣을 갉았다 — lam 을 낮출 것"
+    assert vox.any(1).sum() >= plain.any(1).sum() * 0.98, "깊이 깎기가 실루엣을 갉았다 — DEPTH_LAM(타원) 이나 LAM(파이프)을 낮출 것"
     # 결과를 매끈하게 — 가로 찢김과 계단을 편다. hull 밖으로는 못 부푼다 (`smooth_field`)
     if SMOOTH_OUT > 0:
         V, F = mesh_from_field(smooth_field(sdf_of(vox), sdf_of(plain)), axes)
