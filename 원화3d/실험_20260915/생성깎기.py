@@ -2,7 +2,8 @@
 """**생성 앞단 + 3판 깎기** (시험 B · 2026-09-15).
 
     python 생성깎기.py 검사                  자가검사만
-    python 생성깎기.py 잰다 [케이스...]       -> out/기록/생성깎기_진행.jsonl
+    python 생성깎기.py 잰다 [케이스...]       기본은 실물 28장 중 안 잰 장 -> out/기록/생성깎기_진행.jsonl
+    python 생성깎기.py 판정                  -> out/기록/생성깎기_판정_<때>.json
     python 생성깎기.py 그림 [케이스...]       정답 · 지금 기본 · 생성 · 생성∩hull · +보충 · 천장 -> out/생성깎기그림.png
 
 판정은 `claudedocs/plan_생성깎기_20260915.md` 그대로다. 사용자 결정: TripoSG 를 앞단에 두고 깎아 나간다.
@@ -26,11 +27,12 @@ import 오라클 as O
 import 정답 as J
 import 표면 as SF
 import win as W
-from 겉면채점 import fill_slices
+from 겉면채점 import bench_cases, fill_slices
 import 생성3D as G3
 
 PROG = os.path.join(HERE, "out", "기록", "생성깎기_진행.jsonl")
 VARS = ("생성", "생성∩hull", "생성∩hull+보충")
+TAG = "생성깎기 v2 · 원형도 속채움 · TripoSG 3판맞춤 · ∩hull · +보충 · 속채운 정답 (2026-09-15)"
 P192 = (W.U1 - W.U0) / 192.0
 
 
@@ -98,13 +100,24 @@ def sil_fit(vox, masks, bs, axes):
     return out
 
 
+def done():
+    """PROG 에 이 판으로 이미 적힌 장."""
+    if not os.path.exists(PROG):
+        return {}
+    return {r["case"]: r for r in map(json.loads, open(PROG, encoding="utf-8")) if r.get("판") == TAG}
+
+
 def measure(cases):
+    have = done()
     for c in cases:
+        if c in have:
+            print("  %-26s 건너뜀" % c[:26], flush=True)
+            continue
         t0 = time.time()
         truth = trimesh.load(os.path.join(HERE, "out", "시트", c, "truth.glb"), force="mesh")
         grids = {tag: (p, *J.grid(truth, p)) for tag, p in (("", J.PITCH), ("·192", P192))}
         vs, plain, axes, masks, bs = variants(c)
-        row = {"case": c, "판": "생성깎기 v2 · 원형도 속채움 · TripoSG 3판맞춤 · ∩hull · +보충 · 속채운 정답 (2026-09-15)"}
+        row = {"case": c, "판": TAG}
         for name, vox in vs.items():
             mesh = O.C.to_mesh(vox, axes)
             r = {"조각": SF.pieces(vox)}
@@ -120,6 +133,42 @@ def measure(cases):
             f.write(json.dumps(row, ensure_ascii=False) + "\n")
         print("  %-26s " % c[:26] + " · ".join("%s %.3f/%.3f 조각%d 넘침f%.3f s%.3f" % (k, v["iou"], v["iou·192"], v["조각"], v["넘침_front"], v["넘침_side"])
                                              for k, v in row.items() if isinstance(v, dict)) + " · %.0f초" % row["초"], flush=True)
+
+
+def verdict():
+    """28장 채택 규칙 — 중앙 > 0 · 과반 승 · 한 장 빼기 모두 중앙 > 0 · 조각 중앙 ≤ 기본 + 1."""
+    have = done()
+    cs = [c for c in bench_cases() if c != "소체"]
+    miss = [c for c in cs if c not in have]
+    cs = [c for c in cs if c in have]
+    med = lambda a: round(float(np.median(a)), 5)
+    out = {"판": TAG, "장": len(cs), "안잰장": miss, "판본": {}}
+    base_pieces = med([have[c]["지금 기본"]["조각"] for c in cs])
+    for v in VARS:
+        rec = {"조각중앙": med([have[c][v]["조각"] for c in cs]), "기본조각중앙": base_pieces}
+        ok = rec["조각중앙"] <= base_pieces + 1
+        for tag in ("iou", "iou·192"):
+            d = np.array([have[c][v][tag] - have[c]["지금 기본"][tag] for c in cs])
+            loo = min(med(np.delete(d, i)) for i in range(len(d)))
+            rec[tag] = {"중앙차": med(d), "승": int((d > 0).sum()), "장": len(d), "한장빼기최소중앙": loo,
+                        "중앙": med([have[c][v][tag] for c in cs]), "기본중앙": med([have[c]["지금 기본"][tag] for c in cs])}
+            ok = ok and med(d) > 0 and (d > 0).sum() * 2 > len(d) and loo > 0
+            if tag == "iou":
+                rec["지는장"] = [[cs[i], round(float(d[i]), 4)] for i in np.argsort(d) if d[i] <= 0][:8]
+        rec["통과"] = bool(ok)
+        out["판본"][v] = rec
+    win = [v for v in VARS if out["판본"][v]["통과"]]
+    out["채택"] = max(win, key=lambda v: out["판본"][v]["iou"]["중앙"]) if win else None
+    q = os.path.join(HERE, "out", "기록", "생성깎기_판정_%s.json" % time.strftime("%Y%m%d_%H%M"))
+    json.dump(out, open(q, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    for v in VARS:
+        r = out["판본"][v]
+        print("  %-14s 128 %.3f→%.3f 차%+.3f 승%d/%d 빼기%+.3f · 192 차%+.3f 승%d 빼기%+.3f · 조각 %.0f/%.0f · %s"
+              % (v, r["iou"]["기본중앙"], r["iou"]["중앙"], r["iou"]["중앙차"], r["iou"]["승"], r["iou"]["장"], r["iou"]["한장빼기최소중앙"],
+                 r["iou·192"]["중앙차"], r["iou·192"]["승"], r["iou·192"]["한장빼기최소중앙"],
+                 r["조각중앙"], r["기본조각중앙"], "통과" if r["통과"] else "탈락"))
+    print("  채택: %s · 안 잰 장 %d · -> %s" % (out["채택"], len(miss), q))
+    return out
 
 
 def figure(cases):
@@ -193,6 +242,8 @@ if __name__ == "__main__":
     H.register_sheets()
     selfcheck()
     if a[:1] == ["잰다"]:
-        measure(a[1:] or G3.PILOT)
+        measure(a[1:] or [c for c in bench_cases() if c != "소체"])
+    elif a[:1] == ["판정"]:
+        verdict()
     elif a[:1] == ["그림"]:
         figure(a[1:] or G3.PILOT)

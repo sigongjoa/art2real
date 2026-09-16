@@ -73,6 +73,8 @@ def main():
                   flush=True)
         except Exception as e:                    # 한 명이 죽어도 나머지는 뽑는다
             print(f"실패 {im}: {type(e).__name__} {e}", flush=True)
+        # 무거운 장(정점 200만+) 뒤에 VRAM 이 조각나 다음 장이 OOM 으로 죽는다 (8GB, 2026-09-16)
+        torch.cuda.empty_cache()
 
 
 if __name__ == "__main__":
