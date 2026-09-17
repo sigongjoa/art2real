@@ -1,0 +1,107 @@
+{
+ "설명": "사후 — 재질 경계가 있는 장만 (결과를 보고 정한 부분집합)",
+ "장": 23,
+ "케이스": [
+  "은둔자",
+  "오메가몬",
+  "avatarsample_d",
+  "avatarsample_d_darkness",
+  "avatarsample_e",
+  "avatarsample_f",
+  "avatarsample_g",
+  "base_female",
+  "base_male",
+  "cloak_Cloche_Qz9XMYysBQ",
+  "hairsample_female",
+  "hairsample_male",
+  "knight_Warrior_RaWl2GJ0NZ",
+  "knight_Warrior_Z6ZUtm6kc1",
+  "mech_Drill_8uBbH7Dvmb",
+  "mech_Mech_4UvIHxnoSR",
+  "monster_Mimic_B8HrWzkuNp",
+  "robot_Robot_ejDr8lRglP",
+  "sakurada_fumiriya",
+  "sendagaya_shino",
+  "witch_Chibi_Witch_dKexfKQOOl",
+  "witch_Witch_vWI9PHfjcy",
+  "wizard_WIzard_Gnome_dEuyzEgrF4"
+ ],
+ "k2": {
+  "Q1 M1>C1": {
+   "중앙차": 0.0492,
+   "승": 15,
+   "패": 8,
+   "장": 23,
+   "한장빼기최소": 0.0389,
+   "통과": true
+  },
+  "Q1 M1>C2": {
+   "중앙차": 0.0373,
+   "승": 14,
+   "패": 9,
+   "장": 23,
+   "한장빼기최소": 0.0345,
+   "통과": true
+  },
+  "Q3 M1>M2": {
+   "중앙차": 0.0114,
+   "승": 14,
+   "패": 4,
+   "장": 23,
+   "한장빼기최소": 0.0087,
+   "통과": true
+  }
+ },
+ "k3": {
+  "Q1 M1>C1": {
+   "중앙차": 0.0558,
+   "승": 14,
+   "패": 9,
+   "장": 23,
+   "한장빼기최소": 0.0529,
+   "통과": true
+  },
+  "Q1 M1>C2": {
+   "중앙차": 0.0367,
+   "승": 15,
+   "패": 8,
+   "장": 23,
+   "한장빼기최소": 0.0337,
+   "통과": true
+  },
+  "Q3 M1>M2": {
+   "중앙차": 0.0231,
+   "승": 19,
+   "패": 2,
+   "장": 23,
+   "한장빼기최소": 0.0222,
+   "통과": true
+  }
+ },
+ "k4": {
+  "Q1 M1>C1": {
+   "중앙차": 0.0546,
+   "승": 18,
+   "패": 5,
+   "장": 23,
+   "한장빼기최소": 0.0505,
+   "통과": true
+  },
+  "Q1 M1>C2": {
+   "중앙차": 0.0656,
+   "승": 17,
+   "패": 6,
+   "장": 23,
+   "한장빼기최소": 0.0628,
+   "통과": true
+  },
+  "Q3 M1>M2": {
+   "중앙차": 0.0365,
+   "승": 22,
+   "패": 1,
+   "장": 23,
+   "한장빼기최소": 0.0359,
+   "통과": true
+  }
+ }
+}
