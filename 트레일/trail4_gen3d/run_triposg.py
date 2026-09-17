@@ -30,6 +30,7 @@ def main():
     ap.add_argument("out", nargs="?", help="한 장일 때의 출력 경로")
     ap.add_argument("--outdir", help="여러 장일 때 여기에 <입력이름>.glb 로 낸다")
     ap.add_argument("--seed", type=int, default=42)
+    ap.add_argument("--seeds", help="쉼표로 여러 씨앗 — 장마다 <이름>_s<씨앗>.glb 로 낸다 (민감도 실험 · 로드 한 번)")
     ap.add_argument("--steps", type=int, default=50)
     ap.add_argument("--cfg", type=float, default=7.0)
     ap.add_argument("--octree", type=int, default=8, help="dense octree depth")
@@ -54,14 +55,18 @@ def main():
             o = a.out
         jobs.append((im, o))
 
-    for im, o in jobs:
+    seeds = [int(x) for x in a.seeds.split(",")] if a.seeds else [None]
+    jobs = [(im, o if sd is None else o.replace(".glb", "_s%d.glb" % sd), a.seed if sd is None else sd) for im, o in jobs for sd in seeds]
+    for im, o, seed in jobs:
+        if os.path.exists(o):                     # 끊겨도 이어 돌린다
+            continue
         try:
             img = prepare_image(im, bg_color=np.array([1.0, 1.0, 1.0]), rmbg_net=rmbg)
             img.save(o.replace(".glb", "_prep.png"))
             t = time.time()
             with torch.no_grad():
                 out = pipe(image=img,
-                           generator=torch.Generator(device=pipe.device).manual_seed(a.seed),
+                           generator=torch.Generator(device=pipe.device).manual_seed(seed),
                            num_inference_steps=a.steps, guidance_scale=a.cfg,
                            use_flash_decoder=False,
                            dense_octree_depth=a.octree,

@@ -115,7 +115,7 @@ def variants(case):
     return out, masks, plain, bs
 
 
-def shaded(mesh, az, frame, S=400):
+def shaded(mesh, az, frame, S=400, tint=None):
     """**눈으로 보는 판** — z 버퍼로 면 번호를 남기고 그 면의 법선으로 명암을 준다.
     09-13 의 화가 알고리즘 렌더러는 앞뒤가 섞이고 명암이 거의 검게 나왔다 (README 「렌더러가 틀렸다」).
     여기선 가림은 깊이로 정하고 색은 면 법선으로만 정한다 — 계단이 있으면 칸마다 명암이 뚝뚝 끊긴다."""
@@ -154,9 +154,10 @@ def shaded(mesh, az, frame, S=400):
         up = m & (d < sz)
         sz[up] = d[up]
         si[up] = i
-    img = np.where(idx >= 0, 255 * lit[np.clip(idx, 0, None)], 247.0)
-    img = img.reshape(S, 2, S, 2).mean((1, 3))                # 2×2 평균 = 화면 안티앨리어싱 (메시가 아니라 그림만)
-    return np.repeat(np.clip(img, 0, 255).astype(np.uint8)[:, :, None], 3, 2)
+    col = lit[:, None] * (np.ones((1, 3)) if tint is None else tint)   # tint: 면마다 RGB 곱 (감지 표시용)
+    img = np.where((idx >= 0)[:, :, None], 255 * col[np.clip(idx, 0, None)], 247.0)
+    img = img.reshape(S, 2, S, 2, 3).mean((1, 3))             # 2×2 평균 = 화면 안티앨리어싱 (메시가 아니라 그림만)
+    return np.clip(img, 0, 255).astype(np.uint8)
 
 
 def selfcheck():
