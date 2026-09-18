@@ -35,12 +35,17 @@ import 대조 as C
 import 정답 as J
 import 생성3D as G3
 from 겉면채점 import bench_cases, fill_slices
-from 생성깎기 import build as gen_build, voxelize, fill_gaps
-from 면 import dihedral
+import 표면 as SF
+from 생성깎기 import build as gen_build, voxelize, fill_gaps, sil_fit
+from 면 import dihedral, roughness
 
 PROG = os.path.join(HERE, "out", "기록", "불리언_진행.jsonl")
-TAG = "불리언 v4 · 실물28 · 생성∩hull 을 복셀 대 메시 불리언 · 계단 · 속채운 정답 IoU (2026-09-18)"
-VARS = ("생성∩hull(복셀)", "생성∩hull(불리언)")
+TAG = "불리언 v6 · 실물28 · 판본 5 · 규약대로 채점(양쪽 속채움 · 128·192) · 거칠기 · 못덮음 · 조각 (2026-09-18)"
+VARS = ("복셀∩hull", "불리언∩hull", "불리언→복셀", "복셀+보충", "불리언+보충")
+PAIRS = {"거칠기": ("불리언∩hull", "복셀∩hull"), "iou": ("불리언∩hull", "복셀∩hull"),
+         "거칠기(보충)": ("불리언+보충", "복셀+보충"), "iou(보충)": ("불리언+보충", "복셀+보충"),
+         "해상도대조": ("불리언→복셀", "복셀∩hull")}
+P192 = (W.U1 - W.U0) / 192.0
 EPS_PX = 0.8                                          # 윤곽 단순화 (화소). 격자 256 의 1/5 이라 실루엣에 영향 없다
 
 
@@ -94,8 +99,9 @@ def prism(mask, view, bs):
     cs = m3.CrossSection(cont, m3.FillRule.EvenOdd)
     ex = cs.extrude(W.U1 - W.U0).translate([0, 0, W.U0])          # 국소 (u, z, 두께)
     # 국소 -> 월드: front·back 은 (sign·u, 두께, z) · side 는 (두께, u, z)
+    # 부호를 두 갈래 **모두**에 넣는다 — side 만 하드코딩이면 언젠가 좌우가 뒤집힌 채 조용히 깎는다 (검토 지적)
     M = ([[sign, 0, 0, 0], [0, 0, 1, 0], [0, 1, 0, 0]] if a == 0
-         else [[0, 0, 1, 0], [1, 0, 0, 0], [0, 1, 0, 0]])
+         else [[0, 0, 1, 0], [sign, 0, 0, 0], [0, 1, 0, 0]])
     out = ex.transform(np.asarray(M, np.float64))
     if out.volume() < 0:                                          # 뒤집힌 감김을 바로 세운다
         out = flip(out)
@@ -127,7 +133,9 @@ def gen_manifold(mesh):
     make = lambda m: m3.Manifold(m3.Mesh(np.ascontiguousarray(np.asarray(m.vertices, np.float32)),
                                          np.ascontiguousarray(np.asarray(m.faces, np.uint32))))
     whole = make(mesh)
-    if not whole.is_empty():
+    # **`is_empty()` 만으로는 못 거른다** — manifold3d 는 비-manifold 입력에서 「비어 있지 않은 쓰레기」를 낸다
+    # (cloak_Chest_O72u4Drp8k 면 80 · hairsample_female 면 1,912 로 실제로 났다). 부피를 원본과 대 본다
+    if not whole.is_empty() and abs(abs(whole.volume()) - abs(mesh.volume)) < 0.35 * abs(mesh.volume):
         # **3판맞춤이 좌우를 뒤집은 장은 감김이 뒤집혀 부피가 음수다** (28장 중 여럿). 복셀 길은 감김을 안 보지만
         # 불리언은 뒤집힌 것을 「바깥」으로 읽어 교집합이 엉뚱해진다 — 바로 세우고 쓴다
         return whole if whole.volume() > 0 else flip(whole)
@@ -169,12 +177,13 @@ def fitted(case, masks):
     return trimesh.Trimesh(V, np.asarray(g.faces), process=False)
 
 
-def score(truth, mesh, pitch=None):
-    pitch = pitch or J.PITCH
+def score(truth, mesh, pitch):
+    """**규약대로** — 정답과 후보 **둘 다** z 층 속채움 (`생성깎기.py:127` 과 같은 자)."""
     T, ot = J.grid(truth, pitch)
     F = fill_slices(T)
     G, og = J.grid(mesh, pitch)
-    A, B = J.common(F, ot, G, og)
+    Gf = fill_slices(G)
+    A, B = J.common(F, ot, Gf, og)
     return round(float((A & B).sum() / max((A | B).sum(), 1)), 5)
 
 
@@ -184,18 +193,39 @@ def one(case):
     gen = fitted(case, masks)
     truth = trimesh.load(os.path.join(HERE, "out", "시트", case, "truth.glb"), force="mesh")
     vox = voxelize(gen, axes) & plain
-    m_vox = C.to_mesh(vox, axes)
     m_bool = boolean_hull(gen, masks, bs)
-    out = {"case": case, "판": TAG}
-    # **불리언이 생 메시를 통째로 잃었는지**를 적는다 — 부피가 복셀 길의 반도 안 되면 그 장은 실패로 읽는다
-    vv = float(vox.sum()) * (axes[0][1] - axes[0][0]) ** 3
-    out["불리언실패"] = bool(abs(m_bool.volume) < 0.5 * vv)
-    for n, m in (("생성∩hull(복셀)", m_vox), ("생성∩hull(불리언)", m_bool)):
+    # **해상도 대조군** — 같은 불리언 결과를 복셀 길과 똑같은 256 격자에 다시 구운 것.
+    # 「메시로 깎아서 좋아진 몫」과 「더 얇게 · 더 곱게 깎아서 좋아진 몫」을 가른다 (검토 지적)
+    vox_of_bool = voxelize(m_bool, axes)
+    patch = fill_gaps(vox, base, plain) & ~vox                 # 보충이 더하는 칸
+    meshes = {"복셀∩hull": C.to_mesh(vox, axes),
+              "불리언∩hull": m_bool,
+              "불리언→복셀": C.to_mesh(vox_of_bool, axes),
+              "복셀+보충": C.to_mesh(vox | patch, axes),
+              "불리언+보충": union_patch(m_bool, patch, axes)}
+    voxels = {"복셀∩hull": vox, "불리언∩hull": vox_of_bool, "불리언→복셀": vox_of_bool,
+              "복셀+보충": vox | patch, "불리언+보충": vox_of_bool | patch}
+    out = {"case": case, "판": TAG, "생": roughness(gen)["거칠기"], "면_생": int(len(gen.faces))}
+    for n, m in meshes.items():
         d = dihedral(m)
-        out[n] = {"계단": d["계단"], "평평": d["평평"], "능선": d["능선"], "면": d["면"],
-                  "iou": score(truth, m), "닫힘": bool(m.is_watertight)}
+        sf = sil_fit(voxels[n], masks, bs, axes)
+        out[n] = {"거칠기": roughness(m)["거칠기"], "계단": d["계단"], "능선": d["능선"], "면": d["면"],
+                  "iou": score(truth, m, J.PITCH), "iou192": score(truth, m, P192),
+                  "못덮음": round(max(sf["못덮음_front"], sf["못덮음_side"]), 4),
+                  "조각": SF.pieces(voxels[n]), "닫힘": bool(m.is_watertight)}
     out["초"] = round(time.time() - t0, 1)
     return out
+
+
+def union_patch(m_bool, patch, axes):
+    """불리언 결과에 보충 칸을 더한다. 보충은 복셀이라 그 자리만 마칭큐브 면이 된다 (계단이 부분적으로 돌아온다)."""
+    import manifold3d as m3
+    if not patch.any():
+        return m_bool
+    pm = C.to_mesh(patch, axes)
+    a = gen_manifold(m_bool)
+    b = gen_manifold(pm)
+    return to_trimesh(m3.Manifold.batch_boolean([a, b], m3.OpType.Add))
 
 
 def rows():
@@ -204,6 +234,7 @@ def rows():
         for line in open(PROG, encoding="utf-8"):
             r = json.loads(line)
             if r.get("판") == TAG:
+                assert r["case"] not in out, "%s 가 같은 판으로 두 번 적혔다 — 코드가 바뀌었으면 TAG 를 올려라" % r["case"]
                 out[r["case"]] = r
     return out
 
@@ -215,27 +246,69 @@ def run(n):
         r = one(c)
         with open(PROG, "a", encoding="utf-8") as f:
             f.write(json.dumps(r, ensure_ascii=False) + "\n")
-        print("  %-36s 계단 %.3f -> %.3f · IoU %.3f -> %.3f · 면 %d -> %d · %.0f초"
-              % (c, r[VARS[0]]["계단"], r[VARS[1]]["계단"], r[VARS[0]]["iou"], r[VARS[1]]["iou"],
-                 r[VARS[0]]["면"], r[VARS[1]]["면"], r["초"]), flush=True)
+        print("  %-30s 거칠기 %.3f -> %.3f (생 %.3f · 재샘플 %.3f) · IoU %.3f -> %.3f · 못덮음 %.3f -> %.3f · %.0f초"
+              % (c, r["복셀∩hull"]["거칠기"], r["불리언∩hull"]["거칠기"], r["생"], r["불리언→복셀"]["거칠기"],
+                 r["복셀∩hull"]["iou"], r["불리언∩hull"]["iou"],
+                 r["복셀∩hull"]["못덮음"], r["불리언∩hull"]["못덮음"], r["초"]), flush=True)
 
 
 def verdict():
     rs = list(rows().values())
-    assert len(rs) >= 28, "%d 장만 돌았다" % len(rs)
+    full = [c for c in bench_cases() if c != "소체"]
+    missing = [c for c in full if c not in rows()]
+    assert len(rs) >= 20, "%d 장만 돌았다" % len(rs)          # 28 장이 목표 · 모자라면 빠진 장을 기록에 남긴다
     med = lambda n, k: round(float(np.median([r[n][k] for r in rs])), 4)
-    d = lambda k: np.array([r[VARS[1]][k] - r[VARS[0]][k] for r in rs], float)
-    v = {"판": TAG, "n": len(rs),
-         "중앙": {n: {k: med(n, k) for k in ("계단", "평평", "능선", "면", "iou")} for n in VARS},
-         "차": {k: {"중앙": round(float(np.median(d(k))), 5), "승": int((d(k) > 0).sum()), "n": len(rs)}
-                for k in ("계단", "iou")},
+    keys = ("거칠기", "계단", "능선", "면", "iou", "iou192", "못덮음", "조각")
+    v = {"판": TAG, "n": len(rs), "목표n": len(full), "빠진장": missing,
+         "생 거칠기 중앙": round(float(np.median([r["생"] for r in rs])), 4),
+         "중앙": {n: {k: med(n, k) for k in keys} for n in VARS},
          "닫힘": {n: int(sum(r[n]["닫힘"] for r in rs)) for n in VARS}}
+    v["차"] = {}
+    for name, (a, b) in PAIRS.items():
+        k = "iou" if name.startswith("iou") else "거칠기" if name.startswith("거칠기") else "거칠기"
+        for kk in (("iou", "iou192") if name.startswith("iou") else (k,)):
+            d = np.array([r[a][kk] - r[b][kk] for r in rs], float)
+            v["차"]["%s·%s" % (name, kk)] = {"중앙": round(float(np.median(d)), 5),
+                                            "승": int((d > 0).sum()), "n": len(rs)}
     p = os.path.join(HERE, "out", "기록", "불리언_%s.json" % time.strftime("%Y%m%d_%H%M"))
     json.dump(v, open(p, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-    print(json.dumps(v["중앙"], ensure_ascii=False, indent=1))
-    print("  차", json.dumps(v["차"], ensure_ascii=False), "· 닫힘", v["닫힘"])
+    print("  %-14s %8s %8s %8s %8s %8s %7s %6s" % ("판본", "거칠기", "계단", "IoU128", "IoU192", "못덮음", "조각", "면"))
+    for n in VARS:
+        d = v["중앙"][n]
+        print("  %-14s %8.3f %8.3f %8.3f %8.3f %8.4f %7.1f %6d"
+              % (n, d["거칠기"], d["계단"], d["iou"], d["iou192"], d["못덮음"], d["조각"], d["면"]))
+    print("  생 거칠기", v["생 거칠기 중앙"])
+    print("  차", json.dumps(v["차"], ensure_ascii=False))
     print("  ->", p)
     return v
+
+
+def 논문자료():
+    """줄기 논문이 읽을 판정 json · 장별 csv · 그림을 `논문/표면계단/` 에 둔다 (숫자를 손으로 안 박는다)."""
+    import csv
+    import glob
+    import shutil
+    import 면 as MM
+    d = os.path.join(HERE, "논문", "표면계단")
+    os.makedirs(os.path.join(d, "그림"), exist_ok=True)
+    for pat, name in (("불리언_2026*.json", "판정.json"), ("면_2026*.json", "면판정.json")):
+        shutil.copyfile(sorted(glob.glob(os.path.join(HERE, "out", "기록", pat)))[-1], os.path.join(d, name))
+    for f in ("불리언.png", "면.png", "불리언_장별.png"):
+        shutil.copyfile(os.path.join(HERE, "out", f), os.path.join(d, "그림", f))
+    br, mr = rows(), MM.rows()
+    cs = [c for c in bench_cases() if c != "소체" and c in br and c in mr]
+    with open(os.path.join(d, "장별.csv"), "w", newline="", encoding="utf-8") as f:
+        w = csv.writer(f)
+        w.writerow(["case", "거칠기_정답", "거칠기_생", "거칠기_복셀", "거칠기_불리언",
+                    "계단_복셀", "계단_불리언", "iou_복셀", "iou_불리언", "면_복셀", "면_불리언"])
+        for c in cs:
+            b, m = br[c], mr[c]
+            w.writerow([c, "%.3f" % m["정답"]["거칠기"], "%.3f" % m["TripoSG생"]["거칠기"],
+                        "%.3f" % b[VARS[0]]["거칠기"], "%.3f" % b[VARS[1]]["거칠기"],
+                        "%.3f" % b[VARS[0]]["계단"], "%.3f" % b[VARS[1]]["계단"],
+                        "%.3f" % b[VARS[0]]["iou"], "%.3f" % b[VARS[1]]["iou"],
+                        b[VARS[0]]["면"], b[VARS[1]]["면"]])
+    print("  -> %s" % d)
 
 
 def selfcheck():
@@ -271,6 +344,8 @@ def main():
         selfcheck()
     elif a == "판정":
         verdict()
+    elif a == "논문자료":
+        논문자료()
     elif a == "그림":
         import 불리언그림
         불리언그림.main(sys.argv[2:] or None)
