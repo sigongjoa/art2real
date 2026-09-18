@@ -1,0 +1,72 @@
+{
+ "판": "논문 4.3 제대로 된 동일 부피 대조군 — 옛 기본(파이프 lam0.20)을 제안(타원 lam1.00) 부피까지 등방 침식 (2026-09-19)",
+ "n": 24,
+ "케이스": [
+  "avatarsample_d",
+  "avatarsample_d_darkness",
+  "avatarsample_e",
+  "avatarsample_f",
+  "base_female",
+  "base_male",
+  "cape_Hat_Stylised_lNN3PlrjSa",
+  "cloak_Chest_Closed_AngpV0HxD8",
+  "cloak_Chest_O72u4Drp8k",
+  "cloak_Cloche_Qz9XMYysBQ",
+  "hairsample_female",
+  "hairsample_male",
+  "knight_Warrior_RaWl2GJ0NZ",
+  "knight_Warrior_Z6ZUtm6kc1",
+  "mech_Drill_8uBbH7Dvmb",
+  "monster_Mimic_B8HrWzkuNp",
+  "robot_Robot_Enemy_Legs_Gun_lFZfDh2hzP",
+  "sakurada_fumiriya",
+  "sendagaya_shino",
+  "witch_Chibi_Witch_dKexfKQOOl",
+  "witch_Witch_vWI9PHfjcy",
+  "wizard_Evil_Wizard_bdxawstqtq",
+  "wizard_WIzard_Gnome_dEuyzEgrF4",
+  "wizard_Wizard_o87Upt5uHX"
+ ],
+ "구성 불가": [
+  "avatarsample_g",
+  "mech_Mech_4UvIHxnoSR",
+  "robot_Robot_ejDr8lRglP",
+  "statue_Town_Center_cuQuFJEIfH"
+ ],
+ "구성 불가 사유": "옛 기본이 제안보다 작아 밀어서 부피를 맞출 수 없다",
+ "제안 − 균일옛@제안부피 128": {
+  "중앙": 0.0298,
+  "승": 18,
+  "장": 24,
+  "한 장 빼기 최소 중앙": 0.0252,
+  "통과": true
+ },
+ "중앙 128": {
+  "제안": 0.7651,
+  "균일옛@제안부피": 0.7137
+ },
+ "제안 − 균일옛@제안부피 ·192": {
+  "중앙": 0.0264,
+  "승": 19,
+  "장": 24,
+  "한 장 빼기 최소 중앙": 0.0237,
+  "통과": true
+ },
+ "중앙 ·192": {
+  "제안": 0.7391,
+  "균일옛@제안부피": 0.6965
+ },
+ "평균": 0.0238,
+ "지는 장": {
+  "cloak_Chest_Closed_AngpV0HxD8": -0.0309,
+  "cloak_Chest_O72u4Drp8k": -0.0432,
+  "mech_Drill_8uBbH7Dvmb": -0.0283,
+  "monster_Mimic_B8HrWzkuNp": -0.0159,
+  "sakurada_fumiriya": -0.0015,
+  "wizard_Evil_Wizard_bdxawstqtq": -0.0408
+ },
+ "못덮음 중앙": {
+  "제안": 0.0099,
+  "균일옛@제안부피": 0.0839
+ }
+}
