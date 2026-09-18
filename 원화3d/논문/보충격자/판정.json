@@ -1,0 +1,110 @@
+{
+ "판": "보충격자 v2 · 실물22 · A~D + D→복셀 대조 · 거칠기 · 규약 채점 · 판본 하나씩 (2026-09-18)",
+ "n": 17,
+ "목표n": 22,
+ "미룬장": [
+  "cloak_Chest_Closed_AngpV0HxD8",
+  "mech_Drill_8uBbH7Dvmb",
+  "cloak_Chest_O72u4Drp8k",
+  "mech_Mech_4UvIHxnoSR",
+  "cloak_Cloche_Qz9XMYysBQ"
+ ],
+ "케이스": [
+  "avatarsample_d",
+  "avatarsample_d_darkness",
+  "avatarsample_e",
+  "avatarsample_f",
+  "avatarsample_g",
+  "base_female",
+  "base_male",
+  "cape_Hat_Stylised_lNN3PlrjSa",
+  "robot_Robot_Enemy_Legs_Gun_lFZfDh2hzP",
+  "knight_Warrior_Z6ZUtm6kc1",
+  "sakurada_fumiriya",
+  "knight_Warrior_RaWl2GJ0NZ",
+  "hairsample_male",
+  "robot_Robot_ejDr8lRglP",
+  "hairsample_female",
+  "sendagaya_shino",
+  "monster_Mimic_B8HrWzkuNp"
+ ],
+ "중앙": {
+  "A 복셀+보충": {
+   "거칠기": 0.3781,
+   "iou": 0.7457,
+   "못덮음": 0.0036,
+   "조각": 1.0,
+   "면": 130890.0,
+   "부피": 0.0141
+  },
+  "B 불리언+복셀보충": {
+   "거칠기": 0.1868,
+   "iou": 0.7538,
+   "못덮음": 0.0028,
+   "조각": 1.0,
+   "면": 600854.0,
+   "부피": 0.0116
+  },
+  "C 불리언+hull보충": {
+   "거칠기": 0.1454,
+   "iou": 0.7161,
+   "못덮음": 0.0026,
+   "조각": 1.0,
+   "면": 526842.0,
+   "부피": 0.0133
+  },
+  "D 불리언+높이장보충": {
+   "거칠기": 0.1389,
+   "iou": 0.7595,
+   "못덮음": 0.0068,
+   "조각": 1.0,
+   "면": 536812.0,
+   "부피": 0.0121
+  },
+  "D→복셀": {
+   "거칠기": 0.3714,
+   "iou": 0.728,
+   "못덮음": 0.006,
+   "조각": 1.0,
+   "면": 129254.0,
+   "부피": 0.0168
+  }
+ },
+ "빈자리중앙": {
+  "front": 0.0119,
+  "side": 0.0619,
+  "back": 0.012
+ },
+ "닫힘": {
+  "A 복셀+보충": 17,
+  "B 불리언+복셀보충": 17,
+  "C 불리언+hull보충": 17,
+  "D 불리언+높이장보충": 17,
+  "D→복셀": 17
+ },
+ "Q": {
+  "Q1 거칠기 D<B": {
+   "중앙": -0.041,
+   "우세(D큼)": 0,
+   "통과": true
+  },
+  "Q2 형상 D≥A−0.005": {
+   "128": 0.00459,
+   "192": 0.00977,
+   "통과": true
+  },
+  "Q3 약속": {
+   "못덮음차": 0.0029,
+   "조각차": 0.0,
+   "통과": false
+  },
+  "Q4 격자 회피": {
+   "중앙": 0.2401,
+   "통과": true
+  },
+  "Q5 C 대 D": {
+   "거칠기차": 0.0024,
+   "iou차": -0.03287
+  }
+ }
+}

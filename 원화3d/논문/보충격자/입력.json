@@ -1,0 +1,90 @@
+{
+ "avatarsample_d": {
+  "case": "avatarsample_d",
+  "부피몫": 0.0178,
+  "표면몫": 0.064,
+  "빈자리": {
+   "front": 0.0047,
+   "side": 0.0345
+  },
+  "덩이": 12,
+  "초": 14.4
+ },
+ "avatarsample_d_darkness": {
+  "case": "avatarsample_d_darkness",
+  "부피몫": 0.1633,
+  "표면몫": 0.2533,
+  "빈자리": {
+   "front": 0.0245,
+   "side": 0.1113
+  },
+  "덩이": 20,
+  "초": 38.8
+ },
+ "avatarsample_e": {
+  "case": "avatarsample_e",
+  "부피몫": 0.026,
+  "표면몫": 0.0688,
+  "빈자리": {
+   "front": 0.0044,
+   "side": 0.0467
+  },
+  "덩이": 8,
+  "초": 22.9
+ },
+ "avatarsample_f": {
+  "case": "avatarsample_f",
+  "부피몫": 0.2592,
+  "표면몫": 0.4057,
+  "빈자리": {
+   "front": 0.1926,
+   "side": 0.0687
+  },
+  "덩이": 7,
+  "초": 27.1
+ },
+ "avatarsample_g": {
+  "case": "avatarsample_g",
+  "부피몫": 0.1177,
+  "표면몫": 0.2377,
+  "빈자리": {
+   "front": 0.0431,
+   "side": 0.05
+  },
+  "덩이": 23,
+  "초": 37.4
+ },
+ "base_female": {
+  "case": "base_female",
+  "부피몫": 0.0204,
+  "표면몫": 0.0753,
+  "빈자리": {
+   "front": 0.0075,
+   "side": 0.0348
+  },
+  "덩이": 12,
+  "초": 29.0
+ },
+ "base_male": {
+  "case": "base_male",
+  "부피몫": 0.0032,
+  "표면몫": 0.017,
+  "빈자리": {
+   "front": 0.0058,
+   "side": 0.0044
+  },
+  "덩이": 2,
+  "초": 23.5
+ },
+ "cape_Hat_Stylised_lNN3PlrjSa": {
+  "case": "cape_Hat_Stylised_lNN3PlrjSa",
+  "부피몫": 0.0017,
+  "표면몫": 0.015,
+  "빈자리": {
+   "front": 0.0005,
+   "side": 0.0074
+  },
+  "덩이": 2,
+  "초": 139.9
+ }
+}
