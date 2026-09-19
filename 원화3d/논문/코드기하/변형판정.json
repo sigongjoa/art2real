@@ -1,0 +1,286 @@
+{
+ "판": "메시변형 v2 · T/T∩H/H/T→S/상한 · 대각 30·45·60 · 축 1024 · IoU128 · 구멍 · 거칠기 (2026-09-19)",
+ "장": [
+  "cape_Hat_Stylised_lNN3PlrjSa",
+  "cloak_Chest_Closed_AngpV0HxD8",
+  "mech_Drill_8uBbH7Dvmb"
+ ],
+ "뺌": {
+  "avatarsample_d": "카메라 자기검증 짐 {'front': 0.99246, 'side': 0.97486, 'back': 0.99243}"
+ },
+ "집계": "장별 값 -> 중앙(판정) · 평균 · 최악 · 최선 같이",
+ "Q4": {
+  "상한_대각평균": {
+   "중앙": 0.9967,
+   "평균": 0.9953,
+   "최소": [
+    "mech_Drill_8uBbH7Dvmb",
+    0.9921
+   ],
+   "최대": [
+    "cloak_Chest_Closed_AngpV0HxD8",
+    0.997
+   ],
+   "장": {
+    "cape_Hat_Stylised_lNN3PlrjSa": 0.9967,
+    "cloak_Chest_Closed_AngpV0HxD8": 0.997,
+    "mech_Drill_8uBbH7Dvmb": 0.9921
+   }
+  },
+  "거칠기차": {
+   "중앙": 0.0032,
+   "평균": 0.0032,
+   "최소": [
+    "mech_Drill_8uBbH7Dvmb",
+    0.0017
+   ],
+   "최대": [
+    "cloak_Chest_Closed_AngpV0HxD8",
+    0.0048
+   ],
+   "장": {
+    "cape_Hat_Stylised_lNN3PlrjSa": 0.0032,
+    "cloak_Chest_Closed_AngpV0HxD8": 0.0048,
+    "mech_Drill_8uBbH7Dvmb": 0.0017
+   }
+  },
+  "통과": true
+ },
+ "Q1_뺌(간격<0.02)": {},
+ "Q1": {
+  "간격": {
+   "중앙": 0.1637,
+   "평균": 0.1455,
+   "최소": [
+    "cloak_Chest_Closed_AngpV0HxD8",
+    0.1014
+   ],
+   "최대": [
+    "mech_Drill_8uBbH7Dvmb",
+    0.1712
+   ],
+   "장": {
+    "cape_Hat_Stylised_lNN3PlrjSa": 0.1637,
+    "cloak_Chest_Closed_AngpV0HxD8": 0.1014,
+    "mech_Drill_8uBbH7Dvmb": 0.1712
+   }
+  },
+  "닫은몫": {
+   "중앙": 0.116,
+   "평균": 0.1214,
+   "최소": [
+    "cape_Hat_Stylised_lNN3PlrjSa",
+    -0.0923
+   ],
+   "최대": [
+    "cloak_Chest_Closed_AngpV0HxD8",
+    0.3403
+   ],
+   "장": {
+    "cape_Hat_Stylised_lNN3PlrjSa": -0.0923,
+    "cloak_Chest_Closed_AngpV0HxD8": 0.3403,
+    "mech_Drill_8uBbH7Dvmb": 0.116
+   }
+  },
+  "승몫": 0.667,
+  "대조_T의몫": {
+   "중앙": -0.1265,
+   "평균": -0.2134,
+   "최소": [
+    "cape_Hat_Stylised_lNN3PlrjSa",
+    -0.5251
+   ],
+   "최대": [
+    "mech_Drill_8uBbH7Dvmb",
+    0.0114
+   ],
+   "장": {
+    "cape_Hat_Stylised_lNN3PlrjSa": -0.5251,
+    "cloak_Chest_Closed_AngpV0HxD8": -0.1265,
+    "mech_Drill_8uBbH7Dvmb": 0.0114
+   }
+  },
+  "대조_H의몫": {
+   "중앙": 0.0358,
+   "평균": -0.2938,
+   "최소": [
+    "mech_Drill_8uBbH7Dvmb",
+    -0.9564
+   ],
+   "최대": [
+    "cape_Hat_Stylised_lNN3PlrjSa",
+    0.0393
+   ],
+   "장": {
+    "cape_Hat_Stylised_lNN3PlrjSa": 0.0393,
+    "cloak_Chest_Closed_AngpV0HxD8": 0.0358,
+    "mech_Drill_8uBbH7Dvmb": -0.9564
+   }
+  },
+  "통과": false
+ },
+ "Q1b": {
+  "T→S−T": {
+   "중앙": 0.0474,
+   "평균": 0.0454,
+   "최소": [
+    "mech_Drill_8uBbH7Dvmb",
+    0.0179
+   ],
+   "최대": [
+    "cape_Hat_Stylised_lNN3PlrjSa",
+    0.0709
+   ],
+   "장": {
+    "cape_Hat_Stylised_lNN3PlrjSa": 0.0709,
+    "cloak_Chest_Closed_AngpV0HxD8": 0.0474,
+    "mech_Drill_8uBbH7Dvmb": 0.0179
+   }
+  },
+  "통과": true
+ },
+ "Q2": {
+  "못덮음비(T→S/T)": {
+   "중앙": 0.1831,
+   "평균": 0.7903,
+   "최소": [
+    "cloak_Chest_Closed_AngpV0HxD8",
+    0.1117
+   ],
+   "최대": [
+    "cape_Hat_Stylised_lNN3PlrjSa",
+    2.0761
+   ],
+   "장": {
+    "cape_Hat_Stylised_lNN3PlrjSa": 2.0761,
+    "cloak_Chest_Closed_AngpV0HxD8": 0.1117,
+    "mech_Drill_8uBbH7Dvmb": 0.1831
+   }
+  },
+  "승몫": 0.667,
+  "넘침차(T→S−T)": {
+   "중앙": -0.0864,
+   "평균": -0.077,
+   "최소": [
+    "cape_Hat_Stylised_lNN3PlrjSa",
+    -0.1275
+   ],
+   "최대": [
+    "mech_Drill_8uBbH7Dvmb",
+    -0.017
+   ],
+   "장": {
+    "cape_Hat_Stylised_lNN3PlrjSa": -0.1275,
+    "cloak_Chest_Closed_AngpV0HxD8": -0.0864,
+    "mech_Drill_8uBbH7Dvmb": -0.017
+   }
+  },
+  "못덮음": {
+   "정답": 0.0,
+   "T": 0.0355,
+   "T∩H": 0.0303,
+   "H": 0.0029,
+   "T→S": 0.0191,
+   "상한": 0.0018
+  },
+  "넘침": {
+   "정답": 0.0002,
+   "T": 0.0938,
+   "T∩H": 0.0048,
+   "H": 0.0049,
+   "T→S": 0.0074,
+   "상한": 0.0003
+  },
+  "통과": false
+ },
+ "Q3": {
+  "T→S−T∩H": {
+   "중앙": 0.0088,
+   "평균": 0.0483,
+   "최소": [
+    "mech_Drill_8uBbH7Dvmb",
+    -0.1646
+   ],
+   "최대": [
+    "cape_Hat_Stylised_lNN3PlrjSa",
+    0.3006
+   ],
+   "장": {
+    "cape_Hat_Stylised_lNN3PlrjSa": 0.3006,
+    "cloak_Chest_Closed_AngpV0HxD8": 0.0088,
+    "mech_Drill_8uBbH7Dvmb": -0.1646
+   }
+  },
+  "T→S−T": {
+   "중앙": 0.1369,
+   "평균": 0.2065,
+   "최소": [
+    "mech_Drill_8uBbH7Dvmb",
+    0.0174
+   ],
+   "최대": [
+    "cape_Hat_Stylised_lNN3PlrjSa",
+    0.4651
+   ],
+   "장": {
+    "cape_Hat_Stylised_lNN3PlrjSa": 0.4651,
+    "cloak_Chest_Closed_AngpV0HxD8": 0.1369,
+    "mech_Drill_8uBbH7Dvmb": 0.0174
+   }
+  },
+  "통과a": false,
+  "통과b": false,
+  "통과": false
+ },
+ "참고": {
+  "대각30": {
+   "정답": 1.0,
+   "T": 0.8656,
+   "T∩H": 0.8895,
+   "H": 0.8977,
+   "T→S": 0.8834,
+   "상한": 0.9974
+  },
+  "대각45": {
+   "정답": 1.0,
+   "T": 0.7521,
+   "T∩H": 0.8263,
+   "H": 0.8329,
+   "T→S": 0.812,
+   "상한": 0.9962
+  },
+  "대각60": {
+   "정답": 1.0,
+   "T": 0.8033,
+   "T∩H": 0.8224,
+   "H": 0.7876,
+   "T→S": 0.8663,
+   "상한": 0.9961
+  },
+  "iou128양쪽": {
+   "정답": 1.0,
+   "T": 0.4405,
+   "T∩H": 0.4618,
+   "H": 0.5788,
+   "T→S": 0.6078,
+   "상한": 0.9838
+  },
+  "구멍45": {
+   "정답": 0.0,
+   "T": 1.0,
+   "T∩H": 1.0,
+   "H": 0.0,
+   "T→S": 0.0,
+   "상한": 0.0
+  },
+  "거칠기": {
+   "정답": 0.0588,
+   "T": 0.0939,
+   "T∩H": 0.2759,
+   "H": 0.2547,
+   "T→S": 0.1922,
+   "상한": 0.054
+  }
+ },
+ "분기": "C · Q1 짐 · Q1b 통과 -> 변형은 T 를 올리지만 T∩H 를 못 넘는다. 다음 계획 후보: T→S 뒤에 정확 불리언 ∩hull"
+}
