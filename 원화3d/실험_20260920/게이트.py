@@ -4,6 +4,7 @@
     python 게이트.py 검사     자가검사 (부품 복원 · 접촉 자 · 조각 수)
     python 게이트.py 판정     -> out/기록/게이트_<때>.json   (다시 최적화하지 않는다 — 저장된 θ 를 읽는다)
     python 게이트.py 그림     -> out/게이트_궤짝.png · out/게이트_드릴.png
+    python 게이트.py 잔차     정답 − 도안 · 도안 − 정답 을 모양으로 -> out/잔차_<이름>.png · 기록 json
 
 기획 `claudedocs/기획_20260920.md` 주 1 · 스키마 `원화3d/도안/스키마.md` · 실물 `궤짝.json`.
 **문턱은 돌리기 전에 여기 적었고 숫자를 보고 안 바꾼다.**
@@ -267,6 +268,93 @@ def 그림():
                 dst, S=300)
 
 
+# ── 잔차 — 「디테일을 못 살린 것」인가 「구조가 틀린 것」인가 ─────────────────
+# **문턱을 보기 전에 적는다.** 디테일이라면 못 덮은 몫이 표면에 잘게 퍼져야 한다 —
+# 최대 조각이 못덮음 전체의 **1/2 미만**. 구조가 틀렸다면 큰 덩어리 한둘이라 1/2 이상이다.
+큰덩어리_문턱 = 0.5
+
+
+def _축(og, shape):
+    p = J.PITCH
+    return [(og[i] + np.arange(shape[i])) * p for i in range(3)]
+
+
+def 잔차메시(vox, og):
+    import hull as HL
+    if not vox.any():
+        return None
+    V, F = HL.mesh_from(vox, _축(og, vox.shape))
+    m = trimesh.Trimesh(V, F, process=True)
+    if m.volume < 0:
+        m.invert()
+    return m
+
+
+def 조각분포(vox):
+    from scipy import ndimage
+    lab, n = ndimage.label(vox)
+    if n == 0:
+        return {"조각": 0, "최대몫": 0.0, "상위5몫": []}
+    sz = np.bincount(lab.ravel())[1:]
+    sz = np.sort(sz)[::-1]
+    t = float(sz.sum())
+    return {"조각": int(n), "최대몫": round(float(sz[0] / t), 4),
+            "상위5몫": [round(float(x / t), 4) for x in sz[:5]]}
+
+
+def 잔차():
+    from PIL import Image, ImageDraw
+    from 계획 import _font
+    H.register_sheets()
+    rs = DA.rows()
+    out = {"판": "잔차 v1 · 도안만 판본 · 정답−도안 · 도안−정답 (2026-09-20)",
+           "때": time.strftime("%Y%m%d_%H%M"), "문턱": "못덮음 최대 조각 몫 < %g 이면 디테일 · 이상이면 구조" % 큰덩어리_문턱,
+           "장": {}}
+    for case in DA.사례:
+        if case not in rs:
+            continue
+        이름 = DA.한글[case]
+        sp = DA.도안[case][0]
+        truth = trimesh.load(os.path.join(HERE, "out", "시트", case, "truth.glb"), force="mesh")
+        frame = ME.AL.frame_of(truth, 45)
+        m = CG.tm(DA.합(DA.도안[case][1]([float(x[1]) for x in sp])))
+        (T, ot), (O, oo) = CG.vox(truth), CG.vox(m)
+        A, B = J.common(T, ot, O, oo)
+        og = np.minimum(ot, oo)
+        못, 넘 = A & ~B, B & ~A
+        cell = J.PITCH ** 3
+        g = {"정답부피": round(float(A.sum() * cell), 5), "도안부피": round(float(B.sum() * cell), 5),
+             "3D IoU": round(float((A & B).sum() / max((A | B).sum(), 1)), 5),
+             "못덮음몫(정답 대비)": round(float(못.sum() / max(A.sum(), 1)), 4),
+             "넘침몫(도안 대비)": round(float(넘.sum() / max(B.sum(), 1)), 4),
+             "못덮음분포": 조각분포(못), "넘침분포": 조각분포(넘)}
+        g["판정"] = "디테일" if g["못덮음분포"]["최대몫"] < 큰덩어리_문턱 else "구조"
+        out["장"][이름] = g
+        ts, cs = [], []
+        for n, v in (("정답", None), ("도안만", None), ("못 덮은 곳 (정답 − 도안)", 못), ("넘친 곳 (도안 − 정답)", 넘)):
+            mm = truth if n == "정답" else (m if n == "도안만" else 잔차메시(v, og))
+            im = Image.fromarray(ME.타일(mm, frame) if mm is not None else np.full((300, 300, 3), 240, np.uint8))
+            if v is not None:
+                d = g["못덮음분포"] if "못 덮은" in n else g["넘침분포"]
+                s = g["못덮음몫(정답 대비)"] if "못 덮은" in n else g["넘침몫(도안 대비)"]
+                ImageDraw.Draw(im).text((6, im.size[1] - 22), "몫 %.3f · 조각 %d · 최대 %.2f"
+                                        % (s, d["조각"], d["최대몫"]), fill=(200, 30, 30), font=_font(15))
+            ts.append(np.asarray(im))
+            cs.append(n)
+        dst = os.path.join(HERE, "out", "잔차_%s.png" % 이름)
+        DC.grid([("%s · 3D %.3f · %s" % (이름, g["3D IoU"], g["판정"]), ts)], cs,
+                "잔차 — 못 살린 것이 디테일인가 구조인가 · %s (45° 명암 · 같은 틀)" % 이름,
+                "빨간 글 = 잔차 부피 몫 · 연결 조각 수 · 최대 조각이 차지하는 몫. 최대 조각 %g 미만이면 표면에 퍼진 디테일, 이상이면 덩어리 하나가 틀린 것" % 큰덩어리_문턱,
+                dst, S=380)
+        print("  %-4s 3D %.4f · 못덮음 %.3f (조각 %d · 최대 %.2f) · 넘침 %.3f (조각 %d · 최대 %.2f) -> %s"
+              % (이름, g["3D IoU"], g["못덮음몫(정답 대비)"], g["못덮음분포"]["조각"], g["못덮음분포"]["최대몫"],
+                 g["넘침몫(도안 대비)"], g["넘침분포"]["조각"], g["넘침분포"]["최대몫"], g["판정"]), flush=True)
+    p = os.path.join(OUT, "잔차_%s.json" % out["때"])
+    json.dump(out, open(p, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    print("  ->", p)
+    return out
+
+
 # ── 자가검사 ─────────────────────────────────────────────────────────────────
 
 def selfcheck():
@@ -296,4 +384,4 @@ if __name__ == "__main__":
     except Exception:
         pass
     a = sys.argv[1] if len(sys.argv) > 1 else "판정"
-    {"검사": selfcheck, "판정": verdict, "그림": 그림}[a]()
+    {"검사": selfcheck, "판정": verdict, "그림": 그림, "잔차": 잔차}[a]()
