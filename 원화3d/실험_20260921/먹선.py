@@ -30,22 +30,45 @@ import 연속hull as CH
 H, W, HERE = RS.H, RS.W, RS.HERE
 어둠 = 120                     # 이보다 어두우면 먹
 선최대굵기 = 5                # 화소(1024). 이보다 굵은 어두운 덩어리는 선이 아니라 **검은 칠**이다
+칠최소 = 60                    # 이보다 작은 「칠」은 테두리를 안 쓴다 (점 부스러기)
+닫기 = 2                       # 끊긴 틈을 잇는 횟수. 3 이면 선이 굵어진다 (화소 4.5 만 -> 5.6 만)
+조각최소 = 20                  # 이보다 작은 조각은 버린다
 테두리 = 2                     # 실루엣 안쪽 이만큼은 안 새긴다 — **맨 바깥 윤곽은 3D 에서 곧 모양의 가장자리**라
                                # 홈을 파면 윤곽이 패인다. 첫 판은 5 였고 가는 선의 **58%**(16,109/27,598 화소)를
                                # 같이 먹었다 — 팔 · 다리가 가늘어 부위 경계선까지 그 띠에 들어갔다.
 
 
-def 먹선지도(png):
-    """원화 -> 먹선 bool (원화 화소 공간). 어두운 화소 − (굵은 어두운 덩어리)."""
+def 먹선지도(png, 진단=None):
+    """원화 -> 먹선 bool. **선이 끊기지 않게** 세 가지를 한다 (2026-09-21 · 사용자 「선들이 연결이 안 되는 거를 이어서」).
+
+    ① **칠의 테두리를 선으로 되살린다.** 굵은 검은 칠(관절 · 포)을 통째로 빼면 거기 닿는 선이
+       **잘린다** — 첫 판이 434 조각으로 부서진 까닭이다. 칠의 **가장자리가 곧 그려진 선**이다.
+    ② **닫기 2 회**로 남은 틈을 잇는다 (안티앨리어싱 · 스캔 탓의 한두 화소 구멍).
+    ③ **20 화소 미만 조각은 버린다** — 칠 테두리가 남기는 점 부스러기.
+
+    조각 434 -> **72** · 100 화소 이상 조각이 담은 몫 0.68 -> **0.96**.
+    """
     import cv2
     im = cv2.imdecode(np.fromfile(png, np.uint8), cv2.IMREAD_UNCHANGED)
     a = im[:, :, 3] > 127 if im.shape[2] == 4 else np.ones(im.shape[:2], bool)
     g = cv2.cvtColor(im[:, :, :3], cv2.COLOR_BGR2GRAY)
+    C = np.ones((3, 3), bool)
     dark = (g < 어둠) & a
-    칠 = ndimage.binary_opening(dark, iterations=선최대굵기 // 2 + 1)      # 굵은 것만 남는다
-    칠 = ndimage.binary_dilation(칠, iterations=선최대굵기 // 2 + 1) & dark
-    안 = ndimage.binary_erosion(a, iterations=테두리)                      # 맨 바깥 윤곽만 뺀다
-    return dark & ~칠 & 안
+    k = 선최대굵기 // 2 + 1
+    칠 = ndimage.binary_dilation(ndimage.binary_opening(dark, iterations=k), iterations=k) & dark
+    가는선 = dark & ~칠
+    lab, _ = ndimage.label(칠, C)                                  # 큰 칠만 테두리를 쓴다 (점 부스러기 제외)
+    sz = np.bincount(lab.ravel())
+    큰칠 = np.isin(lab, np.where(sz >= 칠최소)[0][1:]) if sz.size > 1 else np.zeros_like(칠)
+    테 = 큰칠 & ~ndimage.binary_erosion(큰칠, iterations=2)
+    sel = ndimage.binary_closing(가는선 | 테, C, iterations=닫기)
+    sel &= ndimage.binary_erosion(a, iterations=테두리)             # 맨 바깥 윤곽만 뺀다
+    lab2, _ = ndimage.label(sel, C)
+    s2 = np.bincount(lab2.ravel())
+    sel = np.isin(lab2, np.where(s2 >= 조각최소)[0][1:]) if s2.size > 1 else sel
+    if 진단 is not None:
+        진단.update({"가는선": 가는선, "칠": 칠, "테": 테, "sel": sel})
+    return sel
 
 
 def main(case="오메가몬", sigma=3.0, depth=0.005, N=384):
