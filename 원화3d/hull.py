@@ -50,6 +50,10 @@ CASES = {
     # 세 판이 자동으로 일치하므로 `align` 은 항등에 가깝게 나와야 맞다
     "소체": {"src": {"front": "front.png", "side": "side.png", "back": "back.png"},
              "dir": os.path.join("out", "시트", "소체"), "back_sign": -1},
+    # 2026-09-21 생성 도안. 한 장짜리 삼면도를 `실험_20260921/도안생성.자르기` 로 갈랐다 —
+    # 세 판이 **같은 바닥선 · 같은 키**로 그려져 `align` 이 싸울 거리가 적다
+    "메카2": {"src": {"front": "front.png", "side": "side.png", "back": "back.png"},
+              "dir": os.path.join("out", "도안생성", "메카2", "판"), "back_sign": None},
 }
 # ⚠ `pauldron_front/side/back` 을 케이스로 넣지 말 것. **턴어라운드가 아니다** —
 # 정면은 뿔 4개 달린 어깨갑, 측면은 아치 두 개 뚫린 다른 물건, 후면은 방패+천+원통이고
