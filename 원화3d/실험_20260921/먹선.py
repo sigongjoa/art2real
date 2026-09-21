@@ -30,6 +30,9 @@ import 연속hull as CH
 H, W, HERE = RS.H, RS.W, RS.HERE
 어둠 = 120                     # 이보다 어두우면 먹
 선최대굵기 = 5                # 화소(1024). 이보다 굵은 어두운 덩어리는 선이 아니라 **검은 칠**이다
+테두리 = 2                     # 실루엣 안쪽 이만큼은 안 새긴다 — **맨 바깥 윤곽은 3D 에서 곧 모양의 가장자리**라
+                               # 홈을 파면 윤곽이 패인다. 첫 판은 5 였고 가는 선의 **58%**(16,109/27,598 화소)를
+                               # 같이 먹었다 — 팔 · 다리가 가늘어 부위 경계선까지 그 띠에 들어갔다.
 
 
 def 먹선지도(png):
@@ -41,7 +44,7 @@ def 먹선지도(png):
     dark = (g < 어둠) & a
     칠 = ndimage.binary_opening(dark, iterations=선최대굵기 // 2 + 1)      # 굵은 것만 남는다
     칠 = ndimage.binary_dilation(칠, iterations=선최대굵기 // 2 + 1) & dark
-    안 = ndimage.binary_erosion(a, iterations=5)                          # 외곽선은 홈이 아니다
+    안 = ndimage.binary_erosion(a, iterations=테두리)                      # 맨 바깥 윤곽만 뺀다
     return dark & ~칠 & 안
 
 
