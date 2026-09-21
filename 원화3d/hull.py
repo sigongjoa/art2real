@@ -585,6 +585,134 @@ def ellipse_depths(plain, axes, back_sign, p=2.0, E=None):
 # "파이프" 로 두면 옛 기본 — 깊이.py 깊이맵 · lam `LAM`. `LAM` 은 옛 판본들이 「파이프0.20」 이름으로 쓰니 안 바꾼다.
 DEPTH = "타원"
 DEPTH_LAM = 1.00
+# ── 2026-09-21 채택 ──────────────────────────────────────────────────────────
+FIELD = True        # **깎기를 0/1 복셀이 아니라 연속 장으로.** 가정(높이마다 내접 타원)은 그대로고
+                    # 표현만 바꾼다. 벤치 28 장 · 속 채운 IoU 중앙 0.7413 -> **0.7687** (25 승 3 패 ·
+                    # 192 격자에서도 +0.027 · 한 장 빼기 통과 · 거칠기 0.327 -> 0.071).
+                    # 근거 `실험_20260921/장타원.py`. False 면 옛 복셀 경로.
+SMOOTH_Z = 3.0      # 장을 **높이 방향으로만** 편다 (칸). 울퉁불퉁(높이마다 따로 풀어 생긴 층)을 잡는다.
+                    # ⚠ **벤치로 검증 안 했다** — 오메가몬 한 장을 눈으로 보고 골랐다. 값을 산다:
+                    # 못덮음 앞 3.59 -> 4.19%(σ2) -> 5.04%(σ4). 0 이면 끈다.
+SMOOTH_GUARD = 1.0  # 표면이 어디서도 이만큼(칸) 넘게 안 물러난다 — 칼끝 · 가시를 지킨다
+INK = True          # 원화의 **먹선**을 앞 · 뒤에서 표면에 골로 새긴다. ⚠ **벤치로 검증 안 했다**
+INK_DEPTH = 0.006   # 홈 깊이 (창 단위) — **지어낸 값**
+
+
+def _구간(occ):
+    d = np.diff(np.concatenate(([0], occ.astype(np.int8), [0])))
+    return list(zip(np.where(d == 1)[0], np.where(d == -1)[0]))
+
+
+def _축값(runs, u):
+    """격자 u 마다 (정규화 제곱거리, 반폭). 구간 밖이면 제일 가까운 구간 값(> 1)."""
+    px = (W.U1 - W.U0) / W.RES
+    X = np.full(len(u), 4.0, np.float32)
+    A = np.full(len(u), px, np.float32)
+    for c0, c1 in runs:
+        x0, x1 = W.U0 + c0 * px, W.U0 + c1 * px
+        a, cx = max((x1 - x0) / 2, px / 2), (x0 + x1) / 2
+        q = ((u - cx) / a) ** 2
+        b = q < X
+        X[b], A[b] = q[b], a
+    return X, A
+
+
+def field_ellipse(masks, back_sign=BACK_SIGN, n=None):
+    """**연속 장 타원** — `ellipse_depths` + `carve_depth` 와 같은 가정(높이마다 단면 직사각형에
+    내접 타원)을 복셀 이진화 없이 쓴다. 구간의 끝은 **1024 마스크**에서 읽는다 (격자보다 4 배 촘촘).
+    돌려주는 것은 칸 단위 연속값 (안 +). 2026-09-21 채택 — `실험_20260921/장타원.py`."""
+    n = n or N
+    u = W.U0 + (np.arange(n) + 0.5) / n * (W.U1 - W.U0)
+    z = W.Z0 + (np.arange(n) + 0.5) / n * (W.Z1 - W.Z0)
+    rows = np.clip(((W.Z1 - z) / (W.Z1 - W.Z0) * W.RES).astype(int), 0, W.RES - 1)
+    F, S = masks["front"], masks["side"]
+    B = masks["back"][:, ::-1] if back_sign < 0 else masks["back"]
+    cell = (W.U1 - W.U0) / n
+    g = np.full((n, n, n), -2.0, np.float32)
+    for k, r in enumerate(rows):
+        xr, yr = _구간(F[r] & B[r]), _구간(S[r])
+        if not xr or not yr:
+            continue
+        X, A = _축값(xr, u)
+        Y, Bh = _축값(yr, u)
+        g[:, :, k] = (1.0 - X[:, None] - Y[None, :]) * np.minimum(A[:, None], Bh[None, :]) / 2 / cell
+    return g, (u, u, z)
+
+
+def field_hull(masks, back_sign=BACK_SIGN, n=None):
+    """이진 hull 의 연속 장 — 판마다 2D 부호거리장을 만들어 최솟값(교집합). 상한 노릇을 한다."""
+    n = n or N
+    u = W.U0 + (np.arange(n) + 0.5) / n * (W.U1 - W.U0)
+    z = W.Z0 + (np.arange(n) + 0.5) / n * (W.Z1 - W.Z0)
+    cell = (W.U1 - W.U0) / n
+
+    def d2(mask):
+        a = ndimage.distance_transform_edt(mask) - 0.5
+        b = ndimage.distance_transform_edt(~mask) - 0.5
+        return (np.where(mask, a, -b) * ((W.U1 - W.U0) / W.RES)).astype(np.float32)
+
+    def 표본(S2, uu, zz):
+        col = (uu - W.U0) / (W.U1 - W.U0) * W.RES - 0.5
+        row = (W.Z1 - zz) / (W.Z1 - W.Z0) * W.RES - 0.5
+        C, R = np.meshgrid(col, row, indexing="ij")
+        return ndimage.map_coordinates(S2, [R, C], order=1, mode="nearest").astype(np.float32)
+
+    Sf = 표본(d2(masks["front"]), u, z)
+    Ss = 표본(d2(masks["side"]), u, z)
+    Sb = 표본(d2(masks["back"]), back_sign * u, z)
+    f = np.minimum(np.minimum(Sf[:, None, :], Ss[None, :, :]), Sb[:, None, :])
+    return f / cell, (u, u, z)
+
+
+def field_default(masks, back_sign=BACK_SIGN, n=None):
+    """제품 기본 — 연속 장 타원 + (켜져 있으면) 높이 방향 스무딩. hull 밖으로는 못 나간다."""
+    g, axes = field_ellipse(masks, back_sign, n)
+    if SMOOTH_Z > 0:
+        f, _ = field_hull(masks, back_sign, n)
+        g = np.minimum(np.maximum(ndimage.gaussian_filter1d(g, SMOOTH_Z, axis=2), g - SMOOTH_GUARD), f)
+    return g, axes
+
+
+def ink_map(png, 어둠=120, 선최대굵기=5, 칠최소=60, 닫기=2, 조각최소=20, 테두리=2):
+    """원화 -> **먹선** bool. 어두운 화소 중 가는 것 + **굵은 칠의 테두리**(칠을 통째로 빼면 거기
+    닿는 선이 잘린다 — 조각 434 개로 부서졌다) + 닫기로 틈 잇기 + 점 부스러기 버리기.
+    맨 바깥 윤곽은 뺀다(3D 에서 곧 모양의 가장자리라 파면 윤곽이 패인다).
+    2026-09-21 · `실험_20260921/먹선.py`. ⚠ 값들은 눈으로 골랐다."""
+    import cv2
+    im = cv2.imdecode(np.fromfile(png, np.uint8), cv2.IMREAD_UNCHANGED)
+    a = im[:, :, 3] > 127 if im.ndim == 3 and im.shape[2] == 4 else np.ones(im.shape[:2], bool)
+    g = cv2.cvtColor(im[:, :, :3] if im.ndim == 3 else im, cv2.COLOR_BGR2GRAY)
+    C = np.ones((3, 3), bool)
+    dark = (g < 어둠) & a
+    k = 선최대굵기 // 2 + 1
+    칠 = ndimage.binary_dilation(ndimage.binary_opening(dark, iterations=k), iterations=k) & dark
+    lab, _ = ndimage.label(칠, C)
+    sz = np.bincount(lab.ravel())
+    큰칠 = np.isin(lab, np.where(sz >= 칠최소)[0][1:]) if sz.size > 1 else np.zeros_like(칠)
+    테 = 큰칠 & ~ndimage.binary_erosion(큰칠, iterations=2)
+    sel = ndimage.binary_closing((dark & ~칠) | 테, C, iterations=닫기)
+    sel &= ndimage.binary_erosion(a, iterations=테두리)
+    lab2, _ = ndimage.label(sel, C)
+    s2 = np.bincount(lab2.ravel())
+    return np.isin(lab2, np.where(s2 >= 조각최소)[0][1:]) if s2.size > 1 else sel
+
+
+def carve_ink(mesh, raw, p, back_sign, case, depth=None):
+    """먹선을 앞 · 뒤에서 표면에 골로 새긴다 — **시선 방향 안쪽으로만** 밀어 실루엣이 안 바뀐다."""
+    depth = INK_DEPTH if depth is None else depth
+    src, base = CASES[case]["src"], art_dir(case)
+    m = mesh.subdivide()
+    V = np.asarray(m.vertices, float).copy()
+    Nn = np.asarray(m.vertex_normals)
+    for v, sign, 방향 in (("front", +1, -1), ("back", back_sign, +1)):
+        선 = ink_map(os.path.join(base, src[v]))
+        _, w2 = to_win(declutter(raw[v]), 선.astype(np.float32))
+        창선 = _warp_one(w2, v, p)
+        부드 = np.clip(ndimage.gaussian_filter(창선, 1.0) * 1.6, 0, 1)
+        본다 = Nn[:, 1] * 방향 > 0.35
+        py, px = W.topix(sign * V[:, 0], V[:, 2])
+        V[:, 1] -= 방향 * depth * np.where(본다, 부드[py, px], 0.0)
+    return trimesh.Trimesh(V, np.asarray(m.faces), process=False)
 
 
 def carve_default(masks, deps, back_sign=BACK_SIGN):
@@ -620,20 +748,26 @@ def main(case=None, out_name="hull.glb"):
     print("  side(dy %+.0f s %.4f) · back(dx %+.0f dy %+.0f s %.4f)  <- 잰 값. 판이 바뀌면 다시 나온다" % tuple(p))
     print("  정렬 후  %s" % fmt(miss(masks, bs)))
 
-    plain, _ = carve(masks, back_sign=bs)
-    vox, axes = carve_default(masks, deps, back_sign=bs)
-    print("\n  기본 깎기 %s lam %.2f" % (DEPTH, DEPTH_LAM if DEPTH != "파이프" else LAM))
-    print("  복셀 %d/%d 남음 (%.1f%%)" % (vox.sum(), vox.size, 100 * vox.sum() / vox.size))
-    print("  단면 형태값  이진 hull %.2f -> 깊이 깎기 %.2f 칸  (0 이면 순수 상자)"
-          % (box_score(plain), box_score(vox)))
-    assert vox.any(1).sum() >= plain.any(1).sum() * 0.98, "깊이 깎기가 실루엣을 갉았다 — DEPTH_LAM(타원) 이나 LAM(파이프)을 낮출 것"
-    # 결과를 매끈하게 — 가로 찢김과 계단을 편다. hull 밖으로는 못 부푼다 (`smooth_field`)
-    if SMOOTH_OUT > 0:
-        V, F = mesh_from_field(smooth_field(sdf_of(vox), sdf_of(plain)), axes)
-        print("  스무딩 σ %.1f 칸 (hull 밖으로 못 부풂)" % SMOOTH_OUT)
+    if FIELD:
+        # 2026-09-21 채택 — 연속 장. 복셀 이진화를 안 거친다 (`장타원.py` · 벤치 28 장 +0.028)
+        g, axes = field_default(masks, back_sign=bs)
+        print("\n  기본 깎기 연속 장 타원 · 높이 스무딩 σ %.1f 칸 (가드 %.1f)" % (SMOOTH_Z, SMOOTH_GUARD))
+        V, F = mesh_from_field(g, axes)
+        mesh = trimesh.Trimesh(V, F, process=False)   # process=True 는 넓이 0 인 면을 만들어 메시를 연다
     else:
-        V, F = mesh_from(vox, axes)
-    mesh = trimesh.Trimesh(V, F, process=True)
+        plain, _ = carve(masks, back_sign=bs)
+        vox, axes = carve_default(masks, deps, back_sign=bs)
+        print("\n  기본 깎기 %s lam %.2f" % (DEPTH, DEPTH_LAM if DEPTH != "파이프" else LAM))
+        print("  복셀 %d/%d 남음 (%.1f%%)" % (vox.sum(), vox.size, 100 * vox.sum() / vox.size))
+        print("  단면 형태값  이진 hull %.2f -> 깊이 깎기 %.2f 칸  (0 이면 순수 상자)"
+              % (box_score(plain), box_score(vox)))
+        assert vox.any(1).sum() >= plain.any(1).sum() * 0.98, "깊이 깎기가 실루엣을 갉았다 — DEPTH_LAM(타원) 이나 LAM(파이프)을 낮출 것"
+        if SMOOTH_OUT > 0:
+            V, F = mesh_from_field(smooth_field(sdf_of(vox), sdf_of(plain)), axes)
+            print("  스무딩 σ %.1f 칸 (hull 밖으로 못 부풂)" % SMOOTH_OUT)
+        else:
+            V, F = mesh_from(vox, axes)
+        mesh = trimesh.Trimesh(V, F, process=True)
     # 출력 위생 둘. 눈으로는 안 보이고 슬라이서가 걸린다
     #   ① 부유 파편 — 몇 복셀짜리 조각이 공중에 뜬다. 제일 큰 덩어리만 남긴다
     #   ② 뒤집힌 법선 — 부피가 음수로 나온다. 안팎이 뒤집힌 채로는 캐스팅 못 한다
@@ -644,6 +778,9 @@ def main(case=None, out_name="hull.glb"):
         mesh = big
     if mesh.volume < 0:
         mesh.invert()
+    if INK:
+        mesh = carve_ink(mesh, raw, p, bs, case)
+        print("  먹선 새김 (깊이 %.3f · 시선 방향 안쪽으로만) · 면 %d" % (INK_DEPTH, len(mesh.faces)))
     mesh.export(os.path.join(OUT, out_name))
     print("  메시 정점 %d · 면 %d · 부피 %.4f · 닫힘 %s -> out/%s"
           % (len(mesh.vertices), len(mesh.faces), mesh.volume, mesh.is_watertight, out_name))
