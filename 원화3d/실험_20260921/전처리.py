@@ -61,12 +61,11 @@ Q1문턱, Q2회복, Q3하락 = 0.25, 0.80, 0.05
 
 # ── 연산 둘 ──────────────────────────────────────────────────────────────────
 
-def 배경마스크(rgb, alpha=None, tol=26):
-    """물건 화소 bool. 알파가 있으면 그걸 쓰고, 없으면 **테두리에서 홍수채우기**.
-    배경이 물건과 같은 명도면 새어 들어간다 — 그때는 이 함수가 아니라 원화가 문제다(그대로 적는다)."""
+def 모서리홍수(rgb, tol=26):
+    """테두리 네 모서리에서 홍수채우기. **09-21 `배경` 바퀴에서 기각됐다** —
+    알파를 지워 만든 27 판에서 IoU 중앙 **0.016**, 은둔자 삼면도는 **0.000** 이다.
+    기록과 대조군으로만 남긴다."""
     import cv2
-    if alpha is not None:
-        return alpha > 127
     h, w = rgb.shape[:2]
     ff = np.zeros((h + 2, w + 2), np.uint8)
     img = rgb.copy()
@@ -74,6 +73,40 @@ def 배경마스크(rgb, alpha=None, tol=26):
         cv2.floodFill(img, ff, seed, (0, 0, 0), (tol,) * 3, (tol,) * 3,
                       4 | cv2.FLOODFILL_MASK_ONLY | (255 << 8))
     return ff[1:-1, 1:-1] == 0
+
+
+def grabcut(rgb, 씨=None, iters=5):
+    """`cv2.grabCut`. 씨가 없으면 테두리 4% 안쪽 사각형으로 초기화한다.
+    **09-21 `배경` 바퀴의 승자** — 27/27 에서 모서리홍수를 이기고 IoU 중앙 0.992 · 최악 0.883."""
+    import cv2
+    from scipy import ndimage
+    h, w = rgb.shape[:2]
+    m = np.full((h, w), cv2.GC_PR_BGD, np.uint8)
+    if 씨 is None:
+        d = int(round(0.04 * max(h, w)))
+        m[d:h - d, d:w - d] = cv2.GC_PR_FGD
+    else:
+        m[씨] = cv2.GC_PR_FGD
+        m[ndimage.binary_erosion(씨, np.ones((9, 9), bool))] = cv2.GC_FGD
+        m[~ndimage.binary_dilation(씨, np.ones((15, 15), bool))] = cv2.GC_BGD
+    if not ((m == cv2.GC_PR_FGD).any() or (m == cv2.GC_FGD).any()):
+        return np.zeros((h, w), bool)
+    bgd, fgd = np.zeros((1, 65), np.float64), np.zeros((1, 65), np.float64)
+    try:
+        cv2.grabCut(np.ascontiguousarray(rgb[:, :, ::-1]), m, None, bgd, fgd, iters,
+                    cv2.GC_INIT_WITH_MASK)
+    except cv2.error:
+        return np.zeros((h, w), bool)
+    return (m == cv2.GC_FGD) | (m == cv2.GC_PR_FGD)
+
+
+def 배경마스크(rgb, alpha=None, 방법="grabCut"):
+    """물건 화소 bool. **알파가 있으면 그걸 쓴다** — 09-21 에 우리가 알파를 놓치고 있었고
+    그것만으로 은둔자 재구성 오차가 6.88 -> 3.63 이 됐다.
+    알파가 없으면 `grabCut` (09-21 `배경` 바퀴에서 고른 값)."""
+    if alpha is not None:
+        return alpha > 127
+    return 모서리홍수(rgb) if 방법 == "모서리홍수" else grabcut(rgb)
 
 
 def 레벨(rgb, 물, p=백분위, gamma=감마, 출력=(0.0, 255.0), 선보존=False):
