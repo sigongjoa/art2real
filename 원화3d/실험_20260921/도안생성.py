@@ -38,14 +38,19 @@ OUT = os.path.join(H.OUT, "도안생성")
 
 몸통 = ("an original humanoid mecha character, hard-surface armor made of flat plates, "
         "simple silhouette, chunky forearms and boots, a small crest on the head, "
-        "no weapons, arms held away from the body in a relaxed A-pose, legs slightly apart")
+        # 아래 넷은 **오늘 측정에서 나온 요구**다 (취향이 아니다):
+        "NO weapons and nothing held in the hands, "                     # 쥔 무기는 팔과 한 부위가 된다 (면자르기)
+        "arms held far away from the torso with a clear empty gap on both sides, "   # 분수령이 팔을 가르려면
+        "hands not touching the legs, legs apart with a clear gap between them, "
+        "clearly visible narrowing at the neck, waist, elbows, knees and ankles")    # 잘록한 곳이 관절 후보다
 
 규격 = ("flat vector-style cel shading with only 4 solid colors (white, mid grey, dark grey, gold) "
         "and NO gradients, NO airbrush, NO soft shadows, NO highlights; "
         "clean uniform-width black panel lines that are fully closed loops; "
         "pure white background, no ground shadow, no text, no labels, no arrows, no dimension lines, "
         "no frame, no border; orthographic projection with no perspective and no foreshortening; "
-        "the whole figure fits inside the frame with a small margin, centered")
+        "the whole figure fits inside the frame with a small margin, centered; "
+        "the figure floats with NO ground shadow and NO floor, the background is a single flat white")
 
 판 = {"front": "seen exactly from the front (0 degrees), perfectly symmetrical",
       "side": "seen exactly from the left side (90 degrees), a pure side profile",
@@ -59,6 +64,44 @@ OUT = os.path.join(H.OUT, "도안생성")
 def 프롬프트(v, layer):
     return ("A character model sheet drawing of %s, %s. %s.%s"
             % (몸통, 판[v], 규격, 레이어[layer]))
+
+
+def 삼면프롬프트():
+    """**세 판을 한 장에** — 따로 만들면 판마다 키가 달라 `align` 이 싸운다 (지금 못덮음의 큰 몫).
+    한 장에 같은 바닥선 · 같은 키로 그리게 하고 **우리가 잘라** 세 판으로 만든다."""
+    return ("A turnaround model sheet of %s. Three views of the SAME character side by side, "
+            "left to right: front view (0 degrees), left side view (90 degrees), back view (180 degrees). "
+            "All three drawn at EXACTLY the same scale and the same height, feet on one common baseline, "
+            "evenly spaced with a clear empty white gap between them, none of them overlapping. %s."
+            % (몸통, 규격))
+
+
+def 자르기(png, out디, 여백=0.04):
+    """한 장짜리 삼면도를 **세 판으로 가른다** — 빈 세로 띠에서 자른다 (같은 자·같은 키가 유지된다)."""
+    import cv2
+    im = cv2.imdecode(np.fromfile(png, np.uint8), cv2.IMREAD_COLOR)
+    g = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
+    빈 = (g > 240).all(0)                                          # 세로로 전부 흰 열
+    구간, s = [], None
+    for x, e in enumerate(~빈):
+        if e and s is None:
+            s = x
+        elif not e and s is not None:
+            구간.append((s, x)); s = None
+    if s is not None:
+        구간.append((s, len(빈)))
+    구간 = [c for c in 구간 if c[1] - c[0] >= im.shape[1] * 0.08]
+    print("  세로 덩어리 %d 개: %s" % (len(구간), 구간))
+    os.makedirs(out디, exist_ok=True)
+    낸 = []
+    for (x0, x1), v in zip(구간, ("front", "side", "back")):
+        m = int((x1 - x0) * 여백)
+        조각 = im[:, max(0, x0 - m):min(im.shape[1], x1 + m)]
+        o = os.path.join(out디, "%s.png" % v)
+        cv2.imencode(".png", 조각)[1].tofile(o)
+        낸.append(o)
+        print("   %s -> %s (%d x %d)" % (v, o, 조각.shape[1], 조각.shape[0]))
+    return 낸
 
 
 def 열쇠():
