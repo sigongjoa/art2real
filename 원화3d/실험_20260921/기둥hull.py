@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """**복셀을 안 거치는 hull** — 세 실루엣 기둥의 정확한 메시 교집합 (2026-09-21).
 
-    python 정확hull.py 검사
-    python 정확hull.py 짓기     -> out/정확hull_오메가몬.glb · out/기록/정확hull_<때>.json
-    python 정확hull.py 그림     -> out/정확hull_오메가몬.png
+    python 기둥hull.py 검사
+    python 기둥hull.py 짓기     -> out/정확hull_오메가몬.glb · out/기록/정확hull_<때>.json
+    python 기둥hull.py 그림     -> out/정확hull_오메가몬.png
 
 사용자(09-21): 「hull 이 문제인데? 면이 매끄럽지가 않아」.
 
