@@ -297,9 +297,47 @@ def demo():
     print("  demo 통과")
 
 
+
+def 그림(cases=("마네킹_다리벌림", "mech_Mech_D5wW2jDO42", "robot_Robot_ejDr8lRglP", "sakurada_fumiriya")):
+    """정답 · A · 관절만 · 높이 — 표면 점을 앞에서 본다 (부품마다 색). -> out/부품분할_벤치.png"""
+    import matplotlib
+    matplotlib.use("Agg")
+    import matplotlib.pyplot as plt
+    plt.rcParams["font.family"] = "Malgun Gothic"
+    H.register_sheets()
+    열 = ["정답 (연결 덩어리)", "A 관절×색", "관절만", "높이 자르기 (대조군)"]
+    fig, axs = plt.subplots(len(cases), 4, figsize=(16, 4.4 * len(cases)))
+    rng = np.random.default_rng(0)
+    for i, c in enumerate(cases):
+        w, t, nt = 정답부품(c)
+        raw, masks, bs, p = 판(c)
+        g, ax = H.field_default(masks, back_sign=bs, n=N)
+        O = g > 0
+        _, 부위, _ = MJ.부위(O)
+        부위 = 채우기(부위, O)
+        색, _ = 색라벨(c, raw, masks, p, bs, O)
+        A = 합치기(부위, 색, O)
+        A1 = 합치기(부위, np.zeros_like(색), O)
+        labs = [t, 표본(A, ax, w), 표본(A1, ax, w), 표본(높이자르기(O, int(A.max())), ax, w)]
+        앞 = np.argsort(w[:, 1])[::-1]                                  # 뒤 -> 앞 순서로 찍어 앞이 위에 온다
+        for j, L in enumerate(labs):
+            팔 = rng.permutation(max(int(L.max()) + 1, 1))
+            a = axs[i, j]
+            a.scatter(w[앞, 0], w[앞, 2], c=팔[L[앞]], cmap="tab20", s=1.2, lw=0)
+            a.set_aspect("equal"); a.axis("off")
+            R = "" if j == 0 else " · R %.2f" % 회수율(t, L)
+            a.set_title("%s\n%s · 부품 %d%s" % (c[:28], 열[j], len(np.unique(L)), R), fontsize=10)
+    fig.tight_layout()
+    o = os.path.join(OUT, "부품분할_벤치.png")
+    fig.savefig(o, dpi=80)
+    print("  ->", o)
+
+
 if __name__ == "__main__":
     a = sys.argv[1:]
     if a and a[0] == "demo":
         demo()
+    elif a and a[0] == "그림":
+        그림()
     elif a and a[0] == "벤치":
         벤치(a[1] if len(a) > 1 else None)
