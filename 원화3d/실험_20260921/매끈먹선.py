@@ -1,4 +1,4 @@
-# -*- coding: utf-8 -*-
+﻿# -*- coding: utf-8 -*-
 """**선이 우둘투둘하다** — 홈을 거리장 V 골로 파고 메시를 잘게 나눈다 (2026-09-21).
 
     python 매끈먹선.py [케이스=오메가몬] [깊이=0.015]   -> out/매끈먹선_<케이스>.png
@@ -41,12 +41,20 @@ OUT = H.OUT
 문0, 문1 = 0.20, 0.50           # 법선 게이트 smoothstep 구간
 
 
-def 창선(raw, p, bs, case, v):
+새김조각최소 = 0                 # 창 화소. 0 이면 다 새긴다. > 0 이면 **이보다 작은 먹선 조각은 안 새긴다** (빗금 방지)
+
+
+def 창선(raw, p, bs, case, v, 조각최소=None):
     """원화 먹선 -> 창 1024 bool."""
     src, base = H.CASES[case]["src"], H.art_dir(case)
     s1 = H.ink_map(os.path.join(base, src[v]))
     _, w2 = H.to_win(H.declutter(raw[v]), s1.astype(np.float32))
-    return H._warp_one(w2, v, p) > 0.5
+    선 = H._warp_one(w2, v, p) > 0.5
+    최 = 새김조각최소 if 조각최소 is None else 조각최소
+    if 최 > 0:
+        import 면다듬기 as _FM
+        선 = _FM.선정리(선, 최)
+    return 선
 
 
 def V골(선):
@@ -187,3 +195,4 @@ def main(case="오메가몬", depth=0.015):
 if __name__ == "__main__":
     a = sys.argv
     main(a[1] if len(a) > 1 else "오메가몬", float(a[2]) if len(a) > 2 else 0.015)
+

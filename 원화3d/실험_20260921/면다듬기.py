@@ -39,7 +39,10 @@ import 닮음 as DM
 W = H.W
 OUT = H.OUT
 N = 256
-칸최소 = 12                     # 격자 화소. 이보다 작은 칸은 면을 안 맞춘다 (원래 깊이를 쓴다)
+칸최소 = 40                     # 격자 화소. 이보다 작은 칸은 제 평면을 안 갖고 **이웃 큰 칸에 붙는다** (12 -> 40 · 09-21 흠집)
+선조각최소 = 100                 # 창 화소(1024). 이보다 작은 먹선 조각은 **칸을 가르지 못한다** (새기기는 한다)
+최대밀기 = 3.0                   # 칸. 평면 맞춤이 표면을 이보다 깊이 밀지 못한다 — 흠집 방지
+맞춤허용 = 1.0                   # 칸. 평면이 이보다 안 맞는 칸은 **펴지 않는다** — 원기둥(다리)에 평면을 맞추면 흠집이 난다
 얇음 = 5                        # 칸. 앞뒤 두께가 이보다 얇은 기둥은 면 맞춤에서 뺀다 (칼 · 가시 · 뿔)
 버팀 = 2.0                      # 맞춤에서 이 표준편차 밖은 버리고 다시 맞춘다 (칼 · 가시가 면을 끈다)
 
@@ -60,6 +63,25 @@ def 면맞춤(y, sel):
     return c
 
 
+def 선정리(선, 최소=선조각최소):
+    """**부스러기 선은 칸을 가르지 못하게 한다.** 다리에서만 먹선 조각이 224 개였고 100 화소 이상은 14 개였다 —
+    부스러기마다 딴 평면이 맞춰져 **흠집**이 났다 (09-21 사용자: 「다리 부분에 파인 흠집」)."""
+    lab, n = ndimage.label(선)
+    크 = np.bincount(lab.ravel())
+    if n == 0:
+        return 선
+    return np.isin(lab, np.where(크 >= 최소)[0][1:])
+
+
+def 칸병합(칸, n, 크기, 최소):
+    """작은 칸은 제 평면을 갖지 않고 **제일 가까운 큰 칸**에 붙는다."""
+    큰 = np.isin(칸, np.where(크기 >= 최소)[0][1:]) if len(크기) > 1 else np.zeros_like(칸, bool)
+    if not 큰.any():
+        return 칸
+    idx = ndimage.distance_transform_edt(~큰, return_distances=False, return_indices=True)
+    return np.where((칸 > 0) & ~큰, 칸[tuple(idx)], 칸)
+
+
 def 다듬기(g, 선N, 열):
     """선으로 갈린 칸마다 앞 · 뒤 깊이를 평면으로 바꾼다. **안쪽으로만** 민다."""
     occ = g > 0
@@ -67,11 +89,13 @@ def 다듬기(g, 선N, 열):
     앞 = np.where(있, occ.argmax(1), 0)
     뒤 = np.where(있, N - 1 - occ[:, ::-1].argmax(1), 0)
     두께 = 뒤 - 앞
-    칸, n = ndimage.label(있 & ~선N & 열)
+    칸, n = ndimage.label(있 & ~선정리(선N) & 열)
     크기 = np.bincount(칸.ravel())
+    # ⚠ `칸병합`(작은 칸을 이웃 큰 칸에 붙이기)은 **더 나빴다** — 남의 평면을 뒤집어써 거칠기 0.134 -> 0.174.
+    #    부스러기 칸은 그냥 **안 편다**(아래 칸최소). 09-21 사용자 「다리 부분에 파인 흠집」
     앞2, 뒤2, 편 = 앞.astype(float), 뒤.astype(float), []
     for i in range(1, n + 1):
-        if 크기[i] < 칸최소:
+        if i >= len(크기) or 크기[i] < 칸최소:                # 병합으로 사라진 이름은 건너뛴다
             continue
         sel = (칸 == i) & (두께 >= 얇음)                 # **얇은 기둥은 건드리지 않는다** — 칼끝 · 가시가 사라진다
         if sel.sum() < 칸최소:
@@ -82,7 +106,12 @@ def 다듬기(g, 선N, 열):
             c = 면맞춤(src, sel)
             if c is None:
                 continue
-            dst[sel] = 안쪽(A @ c, src[sel])          # **안쪽으로만** — hull 밖으로 못 나간다
+            맞 = A @ c
+            잔 = float(np.abs(맞 - src[sel]).mean())
+            if 잔 > 맞춤허용:
+                continue                                # **평면이 아닌 칸은 그대로 둔다** (다리는 원기둥이다)
+            # **안쪽으로만** 밀되 **최대밀기 칸까지만** — 안 그러면 칸 경계가 흠집으로 파인다
+            dst[sel] = 안쪽(np.clip(맞, src[sel] - 최대밀기, src[sel] + 최대밀기), src[sel])
             편.append(float(np.abs(A @ c - src[sel]).mean()))
     겹 = 앞2 > 뒤2 - 1
     앞2[겹], 뒤2[겹] = 앞[겹], 뒤[겹]                    # 뒤집힌 칸은 원래대로
@@ -210,5 +239,7 @@ def main(case="오메가몬"):
 
 if __name__ == "__main__":
     main(sys.argv[1] if len(sys.argv) > 1 else "오메가몬")
+
+
 
 
