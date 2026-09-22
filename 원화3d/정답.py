@@ -39,7 +39,7 @@ OUT = os.path.join(os.path.dirname(os.path.abspath(__file__)), "out")
 PITCH = (W.U1 - W.U0) / 128.0                    # 정답 격자. 128 이면 1.2/128 = 0.0094
 
 
-def grid(mesh, pitch=PITCH):
+def grid(mesh, pitch=PITCH, 봉합=0):
     """메시 -> (채운 복셀 bool 배열, 원점 인덱스). 격자는 pitch 로 세계에 고정된다.
 
     **`trimesh.fill()` 을 안 쓴다.** 그건 광선 교차 홀짝이라 닫힌 메시를 전제하는데,
@@ -48,17 +48,23 @@ def grid(mesh, pitch=PITCH):
     실측으로 48장 중 9장이 그랬고 전부 non-watertight 였다.
 
     대신 **바깥에서 홍수채우기**를 한다 — 표면 껍질을 굽고, 경계 밖에서 6방향으로 번지고,
-    안 닿은 곳이 속이다. 구멍이 복셀 한 칸보다 작으면 안 샌다."""
+    안 닿은 곳이 속이다. 구멍이 복셀 한 칸보다 작으면 안 샌다.
+
+    `봉합=k` — 껍질을 k 칸 불려 구멍을 막고 번진 뒤 바깥을 k 칸 되돌린다(닫기). 09-22 knight_Matt 이
+    k=0 에서 새서 정답이 **껍데기만**(채움/껍질 1.02) 남았다 · k=1 이면 4.41, 나머지 8 장 변화 ≤ 1.3%.
+    기본 0 은 지난 점수판을 안 바꾸려고 그대로 뒀다."""
     from scipy import ndimage
     v = mesh.voxelized(pitch=pitch)
     shell = np.asarray(v.matrix, bool)
-    pad = np.pad(shell, 1)
-    outside = ndimage.binary_fill_holes(~pad) if False else None
-    free = ~pad
-    lab, _ = ndimage.label(free)                 # 6방향 이웃(기본 구조요소)
-    out_lab = lab[0, 0, 0]
-    solid = ~((lab == out_lab) | pad) | pad      # 바깥에 안 닿은 빈 곳 + 껍질
-    a = solid[1:-1, 1:-1, 1:-1]
+    k = 봉합
+    pad = np.pad(shell, k + 1)
+    d = ndimage.binary_dilation(pad, iterations=k) if k else pad
+    lab, _ = ndimage.label(~d)                   # 6방향 이웃(기본 구조요소)
+    out = lab == lab[0, 0, 0]
+    if k:
+        out = ndimage.binary_dilation(out, iterations=k)
+    solid = ~out | pad                           # 바깥에 안 닿은 빈 곳 + 껍질
+    a = solid[k + 1:-k - 1, k + 1:-k - 1, k + 1:-k - 1]
     o = np.rint(np.asarray(v.transform)[:3, 3] / pitch).astype(int)
     return a, o
 
