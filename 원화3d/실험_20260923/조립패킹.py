@@ -32,20 +32,22 @@ s = float((hi - lo).max()) / 32000.0
 rng = np.random.default_rng(4)
 
 
-def 가볍게(m, 칸=120):
-    """키트 STL 은 비다양체가 많아 감면이 안 먹는다 — 복셀로 다시 굽는다(보기용)."""
+def 가볍게(m, 칸=220, 면=8000):
+    """키트 STL 은 열려 있어(구멍 · 조각 15 개) 감면이 99k 에서 멈춘다.
+    복셀 **거리장**으로 다시 구우면 닫힌 메시가 되고 그때부터 감면이 먹는다.
+    흐리기(가우시안)는 안 쓴다 — 메카의 모서리가 뭉개진다(09-23 사용자 지적 「샤프하지 않다」)."""
     from scipy import ndimage
     from skimage import measure
     피치 = float(max(m.extents)) / 칸
     V = m.voxelized(pitch=피치).fill()
     A = np.pad(np.asarray(V.matrix, bool), 2)
-    f = ndimage.gaussian_filter(A.astype(np.float32), 0.8)
-    v, faces, _, _ = measure.marching_cubes(f, 0.5)
+    F = ndimage.distance_transform_edt(~A) - ndimage.distance_transform_edt(A)
+    v, faces, _, _ = measure.marching_cubes(F, 0.0)
     v = (v - 2) * 피치 + np.asarray(V.transform)[:3, 3]
     g = trimesh.Trimesh(v, faces[:, ::-1], process=False)
     g.fix_normals()
-    if len(g.faces) > 2500:
-        g = g.simplify_quadric_decimation(face_count=2500)
+    if len(g.faces) > 면:
+        g = g.simplify_quadric_decimation(face_count=면)
     return g
 
 
