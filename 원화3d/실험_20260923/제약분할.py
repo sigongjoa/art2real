@@ -34,6 +34,7 @@ import 면자르기 as MJ
 import 도면벤치_천장 as DC
 import 부피벤치 as PB
 import 조립 as A
+import 원형사 as WH   # 빠짐방향 은 여기 있다 (조립 아님)
 import 깊이추정 as GC
 
 최소몫 = 0.004          # 이보다 작은 조각은 이웃에 돌려준다
@@ -41,7 +42,7 @@ import 깊이추정 as GC
 
 
 def 빠지나(P):
-    return any(A.빠짐방향(P))
+    return any(WH.빠짐방향(P))
 
 
 def 첫토막(P, axis):
