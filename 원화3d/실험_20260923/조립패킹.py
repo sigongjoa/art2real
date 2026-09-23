@@ -32,26 +32,26 @@ s = float((hi - lo).max()) / 32000.0
 rng = np.random.default_rng(4)
 
 
-def 가볍게(m, 칸=220, 면=8000):
-    """키트 STL 은 열려 있어(구멍 · 조각 15 개) 감면이 99k 에서 멈춘다.
-    복셀 **거리장**으로 다시 구우면 닫힌 메시가 되고 그때부터 감면이 먹는다.
-    흐리기(가우시안)는 안 쓴다 — 메카의 모서리가 뭉개진다(09-23 사용자 지적 「샤프하지 않다」)."""
-    from scipy import ndimage
-    from skimage import measure
+def 가볍게(m, 칸=90):
+    """**정점 뭉치기** — 격자에 스냅해 용접하고 납작해진 면을 버린다.
+    키트 STL 은 열려 있고 비다양체라 감면(quadric)이 95k 에서 멈추고, 복셀로 다시 구우면 계단이 생겨
+    면 사이 각 중앙이 0.96° → 13.0° 로 뭉개진다(09-23 사용자 지적 「우둘투둘하다」).
+    뭉치기는 원본 면을 그대로 쓰므로 90 칸에서 각 중앙 5° 안쪽을 지킨다."""
     피치 = float(max(m.extents)) / 칸
-    V = m.voxelized(pitch=피치).fill()
-    A = np.pad(np.asarray(V.matrix, bool), 2)
-    F = ndimage.distance_transform_edt(~A) - ndimage.distance_transform_edt(A)
-    v, faces, _, _ = measure.marching_cubes(F, 0.0)
-    v = (v - 2) * 피치 + np.asarray(V.transform)[:3, 3]
-    g = trimesh.Trimesh(v, faces[:, ::-1], process=False)
-    g.fix_normals()
-    if len(g.faces) > 면:
-        g = g.simplify_quadric_decimation(face_count=면)
+    v = np.asarray(m.vertices)
+    q = np.rint(v / 피치).astype(np.int64)
+    key, inv = np.unique(q, axis=0, return_inverse=True)
+    nv = np.zeros((len(key), 3)); cnt = np.zeros(len(key))
+    np.add.at(nv, inv, v); np.add.at(cnt, inv, 1)
+    nv /= np.maximum(cnt, 1)[:, None]
+    f = inv[np.asarray(m.faces)]
+    f = f[(f[:, 0] != f[:, 1]) & (f[:, 1] != f[:, 2]) & (f[:, 0] != f[:, 2])]
+    g = trimesh.Trimesh(nv, f, process=False)
+    g.remove_unreferenced_vertices(); g.fix_normals()
     return g
 
 
-def 싸기(m, 면한도=2500):
+def 싸기(m):
     m = 가볍게(m)
     q = np.rint((m.vertices - lo) / s).astype(np.int16)
     return {"v": base64.b64encode(q.tobytes()).decode(), "f": base64.b64encode(m.faces.astype(np.uint32).tobytes()).decode()}
