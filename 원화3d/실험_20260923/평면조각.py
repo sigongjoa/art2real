@@ -1,0 +1,132 @@
+# -*- coding: utf-8 -*-
+"""**평면 조각** — 면이 넓게 나오나, 잘게 나오나 (2026-09-23).
+
+    python 평면조각.py       -> out/기록/평면조각_<때>.json · out/평면조각.png
+
+사용자(09-23): 「지금 보면 면이 크게 안 나오고 짧게 짧게 나오는데?」
+법선이 비슷한 이웃 면을 이어 붙여(영역 성장) **평면 조각**으로 묶고, 그 조각이 얼마나 큰지 잰다.
+
+    조각 수                 적을수록 넓은 판이다
+    가장 큰 조각의 면적 몫
+    큰 조각(전체 면적의 1% 이상)이 덮는 몫   ← 「판이 있나」를 한 숫자로
+"""
+import json, os, sys, time
+os.environ.setdefault("OMP_NUM_THREADS", "2")
+import numpy as np
+import trimesh
+import cv2
+from PIL import Image, ImageDraw, ImageFont
+
+sys.path[:0] = [r"G:\art2real\원화3d", r"G:\art2real\원화3d\실험_20260921", r"G:\art2real\원화3d\실험_20260922", r"G:\art2real\원화3d\실험_20260923"]
+import hull as H
+import 정답 as JD
+import 부품분할 as BB
+import 면자르기 as MJ
+import 도면벤치_천장 as DC
+import 지표 as Z
+import 색대응 as CC
+import 깊이칸 as K
+import 깊이추정 as GC
+
+문턱도 = 8.0            # 이웃 면 사이 각이 이보다 작으면 같은 판으로 본다
+
+
+def 조각내기(m, 문턱=문턱도):
+    """법선이 비슷한 이웃 면을 이어 붙인다(영역 성장). 면 라벨을 돌려준다."""
+    m = m.copy(); m.merge_vertices()
+    adj = m.face_adjacency
+    ang = np.degrees(m.face_adjacency_angles)
+    붙 = adj[ang < 문턱]
+    n = len(m.faces)
+    부모 = np.arange(n)
+
+    def 찾기(a):
+        while 부모[a] != a:
+            부모[a] = 부모[부모[a]]; a = 부모[a]
+        return a
+    for a, b in 붙:
+        ra, rb = 찾기(a), 찾기(b)
+        if ra != rb: 부모[ra] = rb
+    라벨 = np.array([찾기(i) for i in range(n)])
+    _, 라벨 = np.unique(라벨, return_inverse=True)
+    return 라벨, m
+
+
+def 재기(m):
+    라벨, mm = 조각내기(m)
+    면적 = mm.area_faces
+    합 = np.bincount(라벨, weights=면적)
+    전체 = 면적.sum()
+    몫 = np.sort(합)[::-1] / max(전체, 1e-9)
+    큰 = 몫[몫 >= 0.01]
+    return {"조각 수": int(len(합)), "가장 큰 조각 몫": round(float(몫[0]), 3),
+            "1% 이상 조각 수": int(len(큰)), "1% 이상이 덮는 몫": round(float(큰.sum()), 3),
+            "면당 면적 중앙": round(float(np.median(면적) / 전체 * 1000), 4)}, 라벨, mm
+
+
+def 칠하기(m, 라벨, 크기=230, yaw=32, pitch=-72):
+    rng = np.random.default_rng(3)
+    pal = rng.integers(70, 235, (라벨.max() + 1, 3))
+    v = np.asarray(m.vertices); v = v - v.mean(0)
+    R = (trimesh.transformations.rotation_matrix(np.radians(yaw), [0, 0, 1])[:3, :3]
+         @ trimesh.transformations.rotation_matrix(np.radians(pitch), [1, 0, 0])[:3, :3])
+    p = v @ R.T
+    tri = p[np.asarray(m.faces)]
+    sc = 크기 * 0.40 / max(np.abs(p[:, [0, 2]]).max(), 1e-9)
+    pts = np.stack([tri[:, :, 0] * sc + 크기 / 2, -tri[:, :, 2] * sc + 크기 / 2], -1).astype(np.int32)
+    order = np.argsort(tri[:, :, 1].mean(1))[::-1]
+    fn = np.asarray(m.face_normals) @ R.T
+    L = np.array([0.35, -0.6, 0.72]); L /= np.linalg.norm(L)
+    sh = np.clip(fn @ L, 0, 1) * 0.55 + 0.45
+    im = np.full((크기, 크기, 3), 255, np.uint8)
+    for i in order:
+        c = tuple(int(x * sh[i]) for x in pal[라벨[i]])
+        cv2.fillConvexPoly(im, pts[i], c)
+    return im
+
+
+def main():
+    F = lambda s: ImageFont.truetype(r"C:\Windows\Fonts\malgun.ttf", s)
+    기록, 줄들, 이름줄 = {}, [], None
+    for c in [GC.케이스들[i] for i in (0, 4, 9)]:
+        raw, masks, bs, p = BB.판(c)
+        g, ax = H.field_default(masks, back_sign=bs, n=BB.N)
+        gh, _ = H.field_hull(masks, back_sign=bs, n=BB.N)
+        ux, uy, z = [np.asarray(a) for a in ax]
+        O = g > 0
+        tm = trimesh.load(os.path.join(H.OUT, "시트", c, "truth.glb"), force="mesh")
+        A, o = JD.grid(tm, 봉합=1)
+        T = DC.우리격자로(A.astype(np.int32), np.asarray(o), ux, uy, z) > 0
+        격, _ = CC.판색(c, raw, masks, p, bs)
+        판 = [("hull", Z.메시로(gh > 0, (ux, uy, z))), ("타원(지금)", Z.메시로(O, (ux, uy, z))),
+             ("색 대응", Z.메시로(CC.깎기(O, 격, 6), (ux, uy, z))), ("정답", tm)]
+        타, 결 = [], {}
+        for 이름, m in 판:
+            r, 라벨, mm = 재기(m)
+            결[이름] = r
+            im = 칠하기(mm, 라벨)
+            pim = Image.fromarray(im)
+            ImageDraw.Draw(pim).text((4, 3), "조각 %d · 큰것 %.0f%%" % (r["조각 수"], 100 * r["1% 이상이 덮는 몫"]),
+                                     fill=(40, 40, 40), font=F(12))
+            타.append((이름, np.asarray(pim)))
+        기록[c] = 결
+        이름줄 = [n for n, _ in 타]
+        row = np.hstack([t for _, t in 타])
+        band = np.full((22, row.shape[1], 3), 255, np.uint8)
+        pim = Image.fromarray(np.vstack([band, row]))
+        ImageDraw.Draw(pim).text((5, 3), c[:34], fill=(80, 80, 80), font=F(14))
+        줄들.append(np.asarray(pim))
+        print("  %-28s " % c[:28] + " | ".join("%s 조각 %4d 큰것 %.2f" % (k, v["조각 수"], v["1% 이상이 덮는 몫"]) for k, v in 결.items()), flush=True)
+    머리 = Image.fromarray(np.full((28, 줄들[0].shape[1], 3), 255, np.uint8))
+    d = ImageDraw.Draw(머리)
+    for i, n in enumerate(이름줄):
+        d.text((i * 230 + 6, 5), n, fill=(25, 25, 25), font=F(15))
+    out = np.vstack([np.asarray(머리)] + 줄들)
+    cv2.imencode(".png", out[:, :, ::-1])[1].tofile(os.path.join(H.OUT, "평면조각.png"))
+    pth = os.path.join(H.OUT, "기록", "평면조각_%s.json" % time.strftime("%Y%m%d_%H%M"))
+    json.dump(기록, open(pth, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    print(pth, os.path.join(H.OUT, "평면조각.png"))
+
+
+if __name__ == "__main__":
+    main()
