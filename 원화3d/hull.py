@@ -621,25 +621,43 @@ def _축값(runs, u):
     return X, A
 
 
-def field_ellipse(masks, back_sign=BACK_SIGN, n=None):
+def _타원판(F, B, S, r, u, cell):
+    """마스크 행 r 하나에서 만든 단면 장."""
+    xr, yr = _구간(F[r] & B[r]), _구간(S[r])
+    if not xr or not yr:
+        return None
+    X, A = _축값(xr, u)
+    Y, Bh = _축값(yr, u)
+    return (1.0 - X[:, None] - Y[None, :]) * np.minimum(A[:, None], Bh[None, :]) / 2 / cell
+
+
+def field_ellipse(masks, back_sign=BACK_SIGN, n=None, 보간=False):
     """**연속 장 타원** — `ellipse_depths` + `carve_depth` 와 같은 가정(높이마다 단면 직사각형에
     내접 타원)을 복셀 이진화 없이 쓴다. 구간의 끝은 **1024 마스크**에서 읽는다 (격자보다 4 배 촘촘).
     돌려주는 것은 칸 단위 연속값 (안 +). 2026-09-21 채택 — `실험_20260921/장타원.py`."""
     n = n or N
     u = W.U0 + (np.arange(n) + 0.5) / n * (W.U1 - W.U0)
     z = W.Z0 + (np.arange(n) + 0.5) / n * (W.Z1 - W.Z0)
-    rows = np.clip(((W.Z1 - z) / (W.Z1 - W.Z0) * W.RES).astype(int), 0, W.RES - 1)
+    행 = np.clip((W.Z1 - z) / (W.Z1 - W.Z0) * W.RES, 0, W.RES - 1)      # 연속 행 위치
+    rows = 행.astype(int)
     F, S = masks["front"], masks["side"]
     B = masks["back"][:, ::-1] if back_sign < 0 else masks["back"]
     cell = (W.U1 - W.U0) / n
     g = np.full((n, n, n), -2.0, np.float32)
-    for k, r in enumerate(rows):
-        xr, yr = _구간(F[r] & B[r]), _구간(S[r])
-        if not xr or not yr:
+    for k in range(n):
+        if not 보간:
+            판 = _타원판(F, B, S, rows[k], u, cell)
+            if 판 is not None: g[:, :, k] = 판
             continue
-        X, A = _축값(xr, u)
-        Y, Bh = _축값(yr, u)
-        g[:, :, k] = (1.0 - X[:, None] - Y[None, :]) * np.minimum(A[:, None], Bh[None, :]) / 2 / cell
+        # **행을 정수로 자르면** 슬라이스 간격이 5,5,6,5,5,6... 으로 흔들려 높이 방향 «맥놀이 띠»가 생긴다
+        # (09-24 사용자 두 번째 지적). 아래 · 위 행의 단면을 만들어 섞는다.
+        r0 = int(np.floor(행[k])); r1 = min(r0 + 1, W.RES - 1); t = float(행[k] - r0)
+        a = _타원판(F, B, S, r0, u, cell)
+        b = _타원판(F, B, S, r1, u, cell) if r1 != r0 else a
+        if a is None and b is None: continue
+        if a is None: g[:, :, k] = b
+        elif b is None: g[:, :, k] = a
+        else: g[:, :, k] = (1 - t) * a + t * b
     return g, (u, u, z)
 
 
