@@ -17,7 +17,9 @@ import 제약분할 as CS
 
 c = sys.argv[1] if len(sys.argv) > 1 else "mech_Mech_4UvIHxnoSR"
 전고 = float(sys.argv[2]) if len(sys.argv) > 2 else 125.0
-out = os.path.join(H.OUT, "출력", c); os.makedirs(out, exist_ok=True)
+먹선 = "먹선" in sys.argv                     # 원화의 판 경계를 홈으로 새긴다
+넓힘 = int(os.environ.get("INK_W", "0"))       # 홈을 화소 단위로 넓힌다 (노즐보다 좁으면 안 찍힌다)
+out = os.path.join(H.OUT, "출력", c + ("_선" if 먹선 else "")); os.makedirs(out, exist_ok=True)
 
 raw, masks, bs, p = BB.판(c)
 g, ax = H.field_default(masks, back_sign=bs, n=BB.N)
@@ -42,6 +44,8 @@ for l in [l for l in np.unique(새) if l]:
     d = np.where(새 == l, 안 - 0.5, -(밖 - 0.5)).astype(np.float32)
     d = ndimage.gaussian_filter(d, 1.0)          # 라벨 격자는 0/1 이라 자른 면에 계단이 남는다 — 한 칸만 고른다
     m = Z.메시로(np.minimum(g, d), (ux, uy, z))
+    if 먹선:
+        m = H.carve_ink(m, raw, p, bs, c)      # 창 좌표에서 새긴다 (배율 맞추기 «전»)
     m.apply_scale(배율)
     if m.volume < 50:                      # 50 mm^3 미만은 출력해도 의미가 없다
         continue

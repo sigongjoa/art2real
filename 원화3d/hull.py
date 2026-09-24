@@ -728,6 +728,9 @@ def carve_ink(mesh, raw, p, back_sign, case, depth=None):
     Nn = np.asarray(m.vertex_normals)
     for v, sign, 방향 in (("front", +1, -1), ("back", back_sign, +1)):
         선 = ink_map(os.path.join(base, src[v]))
+        넓 = int(os.environ.get("INK_W", "0"))
+        if 넓:                                  # 원화 먹선 폭은 0.3 mm 로 **노즐(0.4)보다 좁다** — 넓혀야 찍힌다
+            선 = ndimage.binary_dilation(선, iterations=넓)
         _, w2 = to_win(declutter(raw[v]), 선.astype(np.float32))
         창선 = _warp_one(w2, v, p)
         부드 = np.clip(ndimage.gaussian_filter(창선, 1.0) * 1.6, 0, 1)
