@@ -38,8 +38,20 @@ import 깊이추정 as GC
 
 
 def 메시로(V, 축):
-    f = ndimage.gaussian_filter(np.pad(V, 2).astype(np.float32), 0.6)
-    v, faces, _, _ = measure.marching_cubes(f, 0.5)
+    """등위면을 뽑는다.
+
+    **V 가 실수 장이면 장을 그대로 쓴다(0 등위면).** 예전에는 `g > 0` 으로 0/1 을 만들어 넘겼는데,
+    그러면 연속값을 버리고 복셀 껍데기에서 면을 뽑는 셈이라 **격자 계단이 그대로 남는다**
+    (09-24 사용자 지적으로 찾음: 거칠기 0.098, 격자를 384 로 키우면 0.146 으로 «더 나빠졌다»).
+    장을 그대로 쓰면 0.053 이고 384 에서도 0.055 로 격자에 안 휘둘린다. 정답 메시가 0.082 다."""
+    V = np.asarray(V)
+    if V.dtype == bool or V.dtype == np.uint8:
+        f = ndimage.gaussian_filter(np.pad(V, 2).astype(np.float32), 0.6)
+        수준 = 0.5
+    else:
+        f = np.pad(V.astype(np.float32), 2, constant_values=float(V.min()))
+        수준 = 0.0
+    v, faces, _, _ = measure.marching_cubes(f, 수준)
     v -= 2
     ux, uy, z = 축
     v = np.stack([np.interp(v[:, 0], np.arange(len(ux)), ux),

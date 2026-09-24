@@ -31,11 +31,17 @@ for l in [l for l in np.unique(부위) if l]:
         n += 1; 새 = np.where(c2, n, 새)
 새 = CS.부스러기붙이기(새, O)
 
-전체 = Z.메시로(O, (ux, uy, z))
+전체 = Z.메시로(g, (ux, uy, z))          # 장 그대로 — 0/1 로 바꾸면 격자 계단이 남는다
 배율 = 전고 / float(전체.extents[2])
 쓴, 총부피 = [], 0.0
 for l in [l for l in np.unique(새) if l]:
-    m = Z.메시로(새 == l, (ux, uy, z))
+    # 부품마다 «장» 과 «그 부품 영역까지의 부호거리» 의 최솟값으로 자른다.
+    # 겉면은 장 그대로라 매끈하고, 자른 면도 계단이 아니라 매끈하다.
+    안 = ndimage.distance_transform_edt(새 == l)
+    밖 = ndimage.distance_transform_edt(새 != l)
+    d = np.where(새 == l, 안 - 0.5, -(밖 - 0.5)).astype(np.float32)
+    d = ndimage.gaussian_filter(d, 1.0)          # 라벨 격자는 0/1 이라 자른 면에 계단이 남는다 — 한 칸만 고른다
+    m = Z.메시로(np.minimum(g, d), (ux, uy, z))
     m.apply_scale(배율)
     if m.volume < 50:                      # 50 mm^3 미만은 출력해도 의미가 없다
         continue

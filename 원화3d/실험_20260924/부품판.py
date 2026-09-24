@@ -20,9 +20,11 @@ def 그리기(m, R, 배경):
     """화가 알고리즘. 실제 mm 를 그대로 화소로 옮긴다(부품끼리 크기가 비교된다)."""
     v = np.asarray(m.vertices) @ R.T
     tri = v[np.asarray(m.faces)]
-    fn = np.asarray(m.face_normals) @ R.T
+    # **부드러운 음영.** 면마다 평면 음영을 주면 마칭 큐브 면의 방향 양자화가 띠로 보여
+    # 실제보다 거칠게 보인다 (09-24 확인).
     L = np.array([0.3, -0.62, 0.72]); L /= np.linalg.norm(L)
-    sh = np.clip(fn @ L, 0, 1) * 0.62 + 0.3
+    vn = np.asarray(m.vertex_normals) @ R.T
+    sh = (np.clip(vn @ L, 0, 1) * 0.62 + 0.3)[np.asarray(m.faces)].mean(1)
     x0, z0 = v[:, 0].min(), v[:, 2].min()
     w = int((v[:, 0].max() - x0) / 화소당mm) + 2
     h = int((v[:, 2].max() - z0) / 화소당mm) + 2
