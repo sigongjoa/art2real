@@ -287,8 +287,8 @@ if 판번 >= 8:
             k = 후[0]; P = np.argwhere(M).astype(float)
             값, n, o = 색평면(P, 색2[M], 주, k)
             q = P @ n >= o; 크 = q.sum(), (~q).sum()
-            if 판번 >= 10: q &= np.abs(P[:, 0] - 축i) > 20.5; 크 = q.sum(), (~q).sum()   # 몸통 옆 띠(|dx| ≤ 20, 채점 대칭 구역)엔 색 이음을 안 낸다
-            if 값 < 0.75 or min(크) < 최소: break
+            if 판번 == 10: q &= np.abs(P[:, 0] - 축i) > 20.5; 크 = q.sum(), (~q).sum()   # 몸통 옆 띠(|dx| ≤ 20, 채점 대칭 구역)엔 색 이음을 안 낸다
+            if 값 < 0.75 or min(크) < (int(0.003 * O.sum()) if 판번 >= 11 and 주 == 6 else 최소): break   # E11: 방패(빨강 주색)는 0.3%
             v = lab.max() + 1; idx = P[q].astype(int); lab[idx[:, 0], idx[:, 1], idx[:, 2]] = v; 새.add(v)
             기록.append((p, 이름[주], 이름[k], "법선(%.2f,%.2f,%.2f)" % tuple(n), round(float(값), 2), int(크[0])))
     # ② 가슴 파랑: 대칭 구역 앞 파랑 (복부 컷~목) 을 좌우 합친 (x,z) 볼록 껍질 · 앞 겉 T 칸 판 하나
@@ -307,6 +307,8 @@ if 판번 >= 8:
         v = lab.max() + 1; lab[판M] = v; 새.add(v); 기록.append(("가슴판", int(판M.sum())))
     print("색 부품 %d 개:" % len(새), 기록, flush=True)
     lab = 평면화(lab, 한계=1.5, 새=새)
+    판v = max(새) if 새 else -1
+    색칸 = np.isin(lab, [v for v in 새 if v != 판v]); 판칸 = lab == 판v
     lab = 거울라벨(lab)
     _, lab = np.unique(lab, return_inverse=True); lab = lab.reshape(O.shape); lab = np.where(O, lab, 0)
     os.makedirs(os.path.join(D, 판본), exist_ok=True)
@@ -323,8 +325,12 @@ if 판번 >= 8:
         for (p, q), pts in sorted(짝.items()):
             P = np.array(pts); c = P.mean(0); _, sv, vt = np.linalg.svd(P - c, full_matrices=False); n = vt[-1]
             if (lab[tuple(np.clip(np.round(c + 2 * n), 0, N - 1).astype(int))] == p): n = -n   # 법선은 a → b 쪽
-            평.append({"짝": [p, q], "법선": [round(float(v), 5) for v in n], "점": [round(float(v), 3) for v in c],
+            def 원(v): return "판" if 판칸[lab == v].mean() > .5 else "색" if 색칸[lab == v].mean() > .5 else ""
+            ax = np.abs(n)
+            원천 = ("판" if "판" in (원(p), 원(q)) else "색" if "색" in (원(p), 원(q)) else
+                  "가로" if ax[2] > .99 else "앞뒤" if ax[1] > .99 else "거울" if ax[0] > .99 and abs(c[0] - 축i) < 1.5 else "기운")
+            평.append({"짝": [p, q], "원천": 원천, "법선": [round(float(v), 5) for v in n], "점": [round(float(v), 3) for v in c],
                       "rms": round(float(sv[-1] / np.sqrt(len(P))), 3), "칸": len(P)})
         json.dump(평, open(os.path.join(D, 판본, "평면.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=0)
-        print("평면 %d 짝 · rms 중앙 %.2f · 최대 %.2f" % (len(평), np.median([e["rms"] for e in 평]), max(e["rms"] for e in 평)))
+        import collections; print(collections.Counter(e["원천"] for e in 평)); print("평면 %d 짝 · rms 중앙 %.2f · 최대 %.2f" % (len(평), np.median([e["rms"] for e in 평]), max(e["rms"] for e in 평)))
     print(판본, "(뼈대 %s) 부품" % 뼈, lab.max(), "· %.1f s" % (time.time() - t0))
