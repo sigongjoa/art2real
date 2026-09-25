@@ -146,7 +146,7 @@ def 부풀(n):
 def bb겹(a, b): return all(a[k] <= b[k + 3] and b[k] <= a[k + 3] for k in range(3))
 # 관절 부품(J2 · J4 가 관절.json 피벗·축에 놓은 조립 좌표 STL) ∩ 디자인 장갑 — 장갑 속 비움이 관절 부품을 못 담으면 안 들어간다
 관절MF = {}
-for f in glob.glob(os.path.join(ROOT, r"out\출력\오메가몬_PG\_조립\관절_*.stl")):
+for f in glob.glob(os.path.join(ROOT, r"out\가동\관절배치\관절_*.stl")):   # J1 3바퀴 배치(D3 가 _조립 → 관절배치 로 바꿈)
     try:
         m = 만(trimesh.load(f))
         if m.status() == M.Error.NoError and not m.is_empty(): 관절MF[os.path.basename(f)[3:-4]] = m
@@ -186,6 +186,10 @@ def 재기(jn, k, step=3, 빼기=()):
     return res
 # L 어깨들기 + 방패 연동: 방패 힌지 = 방패빨강 러그 원(y 9·33) 중심 · 축 +y (+ = 바깥 위)
 def 방패힌지():
+    try:   # D3 3바퀴: 부품.json 사양에 힌지 좌표가 있으면 그것(러그 원 맞춤은 정점 떼기로 y 가 9.0 에서 벗어날 수 있다)
+        p = json.load(open(os.path.join(D, "머리어깨", "부품.json"), encoding="utf-8"))["사양"].get("방패힌지mm")
+        if p: return np.array(p, float)
+    except Exception: pass
     v = 부품["방패빨강"][2].vertices; s = v[np.abs(v[:, 1] - 9.0) < 0.05]
     A_ = np.c_[2 * s[:, 0], 2 * s[:, 2], np.ones(len(s))]; c = np.linalg.lstsq(A_, s[:, 0] ** 2 + s[:, 2] ** 2, rcond=None)[0]
     return np.array([c[0], 21.0, c[1]])
