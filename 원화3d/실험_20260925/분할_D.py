@@ -50,8 +50,12 @@ E0, E1 = np.concatenate(E0), np.concatenate(E1); 최소자름 = int(0.004 * N)
 
 
 def _법선들():
+    # 앞뒤 두께는 40 칸뿐이라 깊이로 기운 평면은 넓이가 늘 작다 → 앞뒤 켜 썰기만 고른다.
+    # 블록 나누기에는 깊이 쪽 기울기를 30° 까지만 (앞뒤 모나카 가르기는 다음 층 일)
     t = np.deg2rad(np.arange(0, 180, 15)); c, s = np.cos(t), np.sin(t); z0 = np.zeros_like(t)
-    yz = np.stack([z0, s, c], 1); xz = np.stack([s, z0, c], 1); xy = np.stack([c, s, z0], 1)
+    u = np.deg2rad([-30, -15, 15, 30])
+    yz = np.stack([0 * u, np.sin(u), np.cos(u)], 1); xz = np.stack([s, z0, c], 1)
+    xy = np.stack([np.cos(u), np.sin(u), 0 * u], 1)
     n = np.unique(np.round(np.concatenate([yz, xz, xy]), 6), axis=0)
     return n, n[np.abs(n[:, 0]) < 1e-6]
 
@@ -76,7 +80,7 @@ def 후보(pts, 법선, w, 고정=None):
         area = np.searchsorted(so, d + 0.5) - np.searchsorted(so, d - 0.5)
         ss, sl_ = np.sort(s[su]), np.sort(s[su & ~sl])
         밖 = np.searchsorted(sl_, d + 0.5) - np.searchsorted(sl_, d - 0.5)
-        fA = cA / n0; ok = (cA >= 최소자름) & (n0 - cA >= 최소자름)
+        fA = cA / n0; m0 = max(최소자름, 0.08 * n0); ok = (cA >= m0) & (n0 - cA >= m0)   # 얇은 켜 썰기 막기
         cost = w["wa"] * area / n0 ** (2 / 3) + w["wl"] * 밖 / n0 ** (1 / 3) + w["wb"] * (1 - 4 * fA * (1 - fA))
         for k in np.nonzero(ok)[0]: 낼.append((float(cost[k]), n, float(d[k])))
     낼.sort(key=lambda t: t[0]); return 낼
@@ -118,7 +122,9 @@ def 조각정리(L, 바뀐):
         if not 작: break
         p = 작[0]; a0, a1 = L[E0], L[E1]
         이웃 = np.concatenate([a1[(a0 == p) & (a1 != p)], a0[(a1 == p) & (a0 != p)]])
-        if len(이웃) == 0: 외톨.add(p); continue
+        if len(이웃) == 0:   # 몸에서 떨어진 섬 → 가장 가까운 부품
+            m = L == p; 거 = ((V[~m][:, None, :] - V[m][None, :1, :]) ** 2).sum(-1)[:, 0]
+            L[m] = L[~m][np.argmin(거)]; continue
         L[L == p] = np.bincount(이웃).argmax()
     u, L2 = np.unique(L, return_inverse=True)
     return (L2 + 1).astype(np.int32)
@@ -164,7 +170,7 @@ def 돌리기(이름, w):
         for 누, L, 기록 in 빔:
             if L.max() >= w["목표"]: 자식.append((누, L, 기록)); continue
             for sc, L2, 설명 in 펼치기(L, w):
-                if L2.max() > w["목표"] + 4: continue
+                if L2.max() > w["목표"] + 4 or L2.max() <= L.max(): continue
                 자식.append((누 + sc, L2, 기록 + [설명]))
         # 같은 결과 빼기
         본 = set(); 새빔 = []
@@ -173,6 +179,7 @@ def 돌리기(이름, w):
             if h in 본: continue
             본.add(h); 새빔.append(t)
         빔 = 새빔[:w["빔"]]
+        if not 빔: break
         print("  [%4.0f s] 부품 %s · 누적 %.2f" % (time.time() - T0, [int(b[1].max()) for b in 빔], 빔[0][0]), flush=True)
         if all(b[1].max() >= w["목표"] for b in 빔): break
     누, L, 기록 = min(빔, key=lambda t: t[0])
