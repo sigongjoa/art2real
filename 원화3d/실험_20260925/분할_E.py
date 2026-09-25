@@ -265,10 +265,10 @@ if 판번 >= 8:
     c4 = A.기울스냅(A.스냅(dict(A.컷)))
     AL, AR = A.팔(c4)
     대 = O & ~AL & ~AR
-    뼈 = "A9" if 판번 >= 12 else "A7" if 판번 == 9 else "A4"
+    뼈 = "H5" if 판번 >= 13 else "A9" if 판번 >= 12 else "A7" if 판번 == 9 else "A4"
     뼈이름 = json.load(open(os.path.join(D, 뼈, "이름.json"), encoding="utf-8")) if 판번 >= 12 else {}
     A뒤 = "앞"   # A 이름의 「앞」은 큰 y = 실제 뒤 (발끝 · 원화 앞 판은 작은 y) — 이름이 뒤집혀 있다
-    뺄 = ("L칼", "R대포", "L팔끝")                        # E12: 소켓 부품(칼 · 대포) · 이미 색으로 갈린 드라몬 머리 · 팔끝
+    뺄 = ("L칼", "R대포", "L팔끝") + (("R늑대",) if 판번 >= 13 else ())                        # E12: 소켓 부품(칼 · 대포) · 이미 색으로 갈린 드라몬 머리 · 팔끝
     lab = np.load(os.path.join(D, 뼈, "lab.npy")).astype(np.int32); lab = np.where(O, lab, 0)
     n0 = lab.max(); T = 3
     d앞, d뒤 = iy - 앞, 뒤 - iy
@@ -276,13 +276,26 @@ if 판번 >= 8:
                   np.where(d앞 <= T, cf[:, None, :], np.where(d뒤 <= T, cb[:, None, :], -1)))
     색2 = np.where(O, 색2, -1)
     겉앞 = O & (d앞 == 0); 겉뒤 = O & (d뒤 == 0)
+    # 실제 뒤 부품: 이름 말고 y 로 (뒤 겉 노출 > 앞 겉 노출) — A 이름의 앞/뒤는 뒤집혀 있다
+    실뒤 = {int(v) for v in np.unique(lab[lab > 0]) if (겉뒤 & (lab == v)).sum() > (겉앞 & (lab == v)).sum()}
+    뒤냐 = (lambda k, nm: int(k) in 실뒤) if 판번 >= 13 else (lambda k, nm: nm.endswith(A뒤))
+    if 판번 >= 13:
+        통 = json.load(open(os.path.join(D, 뼈, "막대.json"), encoding="utf-8"))["대포통"]
+        대포 = [int(k) for k, v in 뼈이름.items() if v.startswith("R대포")]; 늑대 = [int(k) for k, v in 뼈이름.items() if v.startswith("R늑대")]
+        G = np.argwhere(np.isin(lab, 대포)); t = (G - np.array(통["점"])) @ np.array(통["축"])
+        깊 = ndimage.distance_transform_edt(np.pad(O, 1))[1:-1, 1:-1, 1:-1]
+        촉 = G[(t > 통["t가름"]) & (깊[tuple(G.T)] <= 2.5)]       # 촉(가름 위) 중 겉 2 칸 안
+        if len(촉):
+            _, ii = ndimage.distance_transform_edt(~np.isin(lab, 늑대), return_indices=True)
+            lab[tuple(촉.T)] = lab[tuple(ii[:, 촉[:, 0], 촉[:, 1], 촉[:, 2]])]
+        print("  대포 촉 겉 칸 %d 개 → 늑대" % len(촉), flush=True)
     최소 = int(0.005 * O.sum()); 새 = set(); 기록 = []
     # ① 팔 부품: 앞 블록(앞 겉 노출 ≥ 뒤 겉 노출)만 · 유채색이 낀 짝만 · 평면 한 장
     for p in range(1, n0 + 1):
         M = lab == p
         if 판번 >= 12:
             nm = 뼈이름.get(str(p), "")
-            if nm.endswith(A뒤) or nm.startswith(뺄) or (M & 대).sum() > 0.5 * M.sum(): continue
+            if 뒤냐(p, nm) or nm.startswith(뺄) or (M & 대).sum() > 0.5 * M.sum(): continue
         elif (M & 대).sum() > 0.5 * M.sum() or (M & 겉앞).sum() < (M & 겉뒤).sum(): continue
         for _ in range(2):                                   # 한 부품에서 많아야 두 번
             M = lab == p; c = 색2[M]; c = c[c >= 0]
@@ -311,11 +324,11 @@ if 판번 >= 8:
             판M = 판M | ((lab == q) & (d앞 <= T))
             판M = 판M & 판M[j]
         if 판번 >= 12:
-            판M &= ~np.isin(lab, [int(k) for k, v in 뼈이름.items() if v.endswith(A뒤)])
+            판M &= ~np.isin(lab, [int(k) for k, v in 뼈이름.items() if 뒤냐(k, v)])
         v = lab.max() + 1; lab[판M] = v; 새.add(v); 기록.append(("가슴판", int(판M.sum())))
     print("색 부품 %d 개:" % len(새), 기록, flush=True)
     if 판번 >= 12:
-        보호 = [int(k) for k, v in 뼈이름.items() if v.endswith(A뒤) or v.startswith(뺄)]
+        보호 = [int(k) for k, v in 뼈이름.items() if 뒤냐(k, v) or v.startswith(뺄)]
         보칸 = np.isin(lab, 보호); 보값 = lab.copy()
     lab = 평면화(lab, 한계=1.5, 새=새)
     if 판번 >= 12:   # 평면화가 흩뿌린 조각: 부품마다 가장 큰 덩어리만 두고 나머지는 평면화 전 번호로
