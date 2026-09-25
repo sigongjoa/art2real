@@ -57,7 +57,8 @@ def 채점(이름):
     b, 짝 = 경계(lab)
     구역 = O & 거울(O)
     bz = b & 구역
-    대칭 = float((거울(b) & ndimage.binary_dilation(b, iterations=1) & bz).sum() / max(bz.sum(), 1))
+    # 09-25 고침(E 가 잡음): 전에는 거울(b) & 팽창(b) & bz 라 1 칸 여유가 안 걸렸다 — 거울 쪽을 팽창한다
+    대칭 = float((ndimage.binary_dilation(거울(b), iterations=1) & bz).sum() / max(bz.sum(), 1))
     rms, w = [], []
     for k, pts in 짝.items():
         P = np.array(pts, float)
