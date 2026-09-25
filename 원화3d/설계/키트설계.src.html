@@ -1,0 +1,275 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>키트 설계</title>
+<style>
+:root{--bg:#f4f4f1;--card:#fff;--line:#deded8;--ink:#1d1d1b;--sub:#77776f;--acc:#0a6cff;--warn:#d9480f;--ok:#2b8a3e}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:13px/1.5 "Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif}
+header{display:flex;align-items:center;gap:10px;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--card);position:sticky;top:0;z-index:5;flex-wrap:wrap}
+header h1{font-size:16px;margin:0 8px 0 0}
+header .sum{color:var(--sub)}header .sum b{color:var(--ink)}
+.sp{flex:1}
+button,select,input{font:inherit}
+button{padding:6px 11px;border:1px solid var(--line);border-radius:8px;background:#fafaf8;cursor:pointer}
+button:hover{background:#eee}button.p{background:var(--acc);border-color:var(--acc);color:#fff}
+button.on{background:var(--ink);color:#fff}
+main{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,.45fr) 340px;gap:12px;padding:12px 16px}
+@media(max-width:1100px){main{grid-template-columns:1fr 1fr}#side-panel{grid-column:1/-1}}
+@media(max-width:700px){main{grid-template-columns:1fr;padding:12px}}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px}
+.card h2{font-size:13px;margin:0 0 6px;color:var(--sub);font-weight:600;display:flex;justify-content:space-between}
+svg{width:100%;height:auto;display:block;touch-action:none;background:#fff;border-radius:8px}
+.box{fill:var(--c);fill-opacity:.14;stroke:var(--c);stroke-width:3;cursor:move}
+.box.sel{fill-opacity:.28;stroke-width:6}
+.box.dim{fill:none;stroke-width:2;stroke-opacity:.35}
+.box.twin{stroke-dasharray:10 7;cursor:pointer}
+.lab{font-size:17px;font-weight:700;fill:var(--c);paint-order:stroke;stroke:#fff;stroke-width:5px;pointer-events:none}
+.h{fill:#fff;stroke:var(--ink);stroke-width:3;cursor:nwse-resize}
+.split{stroke:var(--c);stroke-width:3;stroke-dasharray:4 5;pointer-events:none}
+.jl{stroke:#111;stroke-width:2.5;stroke-dasharray:3 6;pointer-events:none}
+.jp{fill:#fff;stroke:#111;stroke-width:4;pointer-events:none}
+.axis{stroke:#2b8a3e;stroke-width:2;stroke-dasharray:12 8}
+.zone{fill:#0a6cff;fill-opacity:.04}
+label.f{display:block;margin:7px 0 2px;color:var(--sub);font-size:12px}
+.f input,.f select,input.w,select.w{width:100%;padding:5px 7px;border:1px solid var(--line);border-radius:7px;background:#fff}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.list{max-height:260px;overflow:auto;margin-top:6px;border-top:1px solid var(--line)}
+.it{display:flex;gap:6px;align-items:center;padding:5px 4px;border-bottom:1px solid #f0f0ec;cursor:pointer}
+.it:hover{background:#f7f7f4}.it.sel{background:#eaf2ff}
+.dot{width:10px;height:10px;border-radius:3px;flex:none}
+.it .n{flex:1}.it .m{color:var(--sub);font-size:12px}
+ol.steps{padding-left:20px;margin:4px 0}ol.steps li{margin:3px 0}
+.warn{color:var(--warn)}.ok{color:var(--ok)}
+.hint{color:var(--sub);font-size:12px}
+.mode{background:#fff4e6;border:1px solid #ffc078;border-radius:8px;padding:5px 8px;margin:6px 0;display:none}
+</style></head><body>
+<header>
+  <h1>키트 설계 — 오메가몬</h1>
+  <span class="sum" id="sum"></span>
+  <span class="sp"></span>
+  <button id="add">+ 부품</button>
+  <button id="del">부품 지우기</button>
+  <button id="exp" class="p">JSON 내보내기</button>
+  <label><button id="impb">불러오기</button><input id="imp" type="file" accept=".json" hidden></label>
+  <button id="reset">처음 안으로</button>
+</header>
+<main>
+  <section class="card">
+    <h2><span>정면 — 끌어서 옮기기 · 오른아래 모서리로 크기 · 점선 = 거울 짝(자동)</span><span id="mm"></span></h2>
+    <div class="mode" id="mode">붙는 자리: 정면 그림에서 한 곳을 누르세요 (Esc 취소)</div>
+    <svg id="front" viewBox="170 30 690 960"></svg>
+  </section>
+  <section class="card">
+    <h2><span>옆 — 고른 부품의 깊이 · 왼쪽이 앞</span></h2>
+    <svg id="side" viewBox="340 30 290 960"></svg>
+  </section>
+  <section class="card" id="side-panel">
+    <h2><span>고른 부품</span><span id="pcount"></span></h2>
+    <div id="form"></div>
+    <h2 style="margin-top:12px"><span>부품 목록</span></h2>
+    <div class="list" id="list"></div>
+    <h2 style="margin-top:12px"><span>조립 순서</span></h2>
+    <ol class="steps" id="steps"></ol>
+    <h2 style="margin-top:12px"><span>검사</span></h2>
+    <div id="checks"></div>
+  </section>
+</main>
+<script>
+const IMG = {front: "__FRONT__", side: "__SIDE__"};
+const 전고mm = 125, 머리끝 = 45, 발끝 = 968, mmPx = 전고mm / (발끝 - 머리끝);
+const FDM최소 = 1.2;   // mm — 노즐 0.4 세 줄. 이보다 얇은 부품은 뭉개진다
+const 분할종류 = {"통": 1, "앞뒤": 2, "좌우": 2, "위아래": 2};
+const 방식 = ["다보", "볼 조인트", "축(폴리캡)", "끼움 플러그", "접착"];
+const 방향 = ["앞→뒤", "뒤→앞", "위→아래", "아래→위", "옆(밖→안)"];
+const 색표 = ["#e8590c", "#1c7ed6", "#2f9e44", "#ae3ec9", "#f59f00", "#0c8599", "#d6336c", "#5c940d", "#6741d9", "#495057"];
+
+// 기본안 — 09-25 건담식 분할 제안. 좌표는 원화 1024 화소 (정면 x·y, 옆 sx = 깊이 범위)
+const 기본 = {axis: 532, parts: [
+ {id:"가슴", 블록:"몸통", x:445,y:170,w:180,h:130, sx:435,sw:125, 분할:"앞뒤", 비:.45, 거울:false, 부모:null, 방식:"다보", 방향:"앞→뒤", jx:null,jy:null, 메모:"뿌리 부품. 앞 장갑 + 등"},
+ {id:"머리", 블록:"머리", x:495,y:95,w:75,h:95, sx:450,sw:95, 분할:"앞뒤", 비:.5, 거울:false, 부모:"가슴", 방식:"볼 조인트", 방향:"위→아래", jx:532,jy:185, 메모:"얼굴 + 투구"},
+ {id:"뿔", 블록:"머리", x:460,y:45,w:150,h:85, sx:435,sw:115, 분할:"통", 비:.5, 거울:false, 부모:"머리", 방식:"끼움 플러그", 방향:"위→아래", jx:532,jy:118, 메모:"가운데 뿔 + V 안테나. 가늘어 FDM 주의"},
+ {id:"복부", 블록:"몸통", x:490,y:290,w:90,h:110, sx:455,sw:95, 분할:"앞뒤", 비:.5, 거울:false, 부모:"가슴", 방식:"축(폴리캡)", 방향:"아래→위", jx:535,jy:295, 메모:"허리 돌림"},
+ {id:"허리 앞장갑", 블록:"허리", x:490,y:395,w:85,h:115, sx:435,sw:65, 분할:"통", 비:.5, 거울:false, 부모:"복부", 방식:"다보", 방향:"앞→뒤", jx:532,jy:405, 메모:"V 치마"},
+ {id:"허리 옆장갑L", 블록:"허리", x:440,y:340,w:55,h:120, sx:450,sw:110, 분할:"통", 비:.5, 거울:true, 부모:"복부", 방식:"다보", 방향:"옆(밖→안)", jx:490,jy:390, 메모:"금 가시 포함"},
+ {id:"허벅지L", 블록:"다리", x:420,y:400,w:90,h:200, sx:440,sw:120, 분할:"앞뒤", 비:.5, 거울:true, 부모:"복부", 방식:"볼 조인트", 방향:"아래→위", jx:480,jy:410, 메모:"고관절 볼"},
+ {id:"무릎L", 블록:"다리", x:425,y:540,w:75,h:80, sx:460,sw:120, 분할:"통", 비:.5, 거울:true, 부모:"허벅지L", 방식:"다보", 방향:"앞→뒤", jx:462,jy:585, 메모:"무릎 뿔 장갑"},
+ {id:"정강이L", 블록:"다리", x:400,y:600,w:105,h:280, sx:485,sw:105, 분할:"앞뒤", 비:.5, 거울:true, 부모:"허벅지L", 방식:"축(폴리캡)", 방향:"위→아래", jx:458,jy:610, 메모:"무릎 축"},
+ {id:"발L", 블록:"다리", x:290,y:850,w:200,h:115, sx:360,sw:245, 분할:"위아래", 비:.55, 거울:true, 부모:"정강이L", 방식:"볼 조인트", 방향:"위→아래", jx:440,jy:870, 메모:"발톱은 발 위 부품에 붙임"},
+ {id:"왼 어깨·방패", 블록:"워그레이몬 팔", x:350,y:105,w:100,h:155, sx:470,sw:100, 분할:"앞뒤", 비:.5, 거울:false, 부모:"가슴", 방식:"볼 조인트", 방향:"옆(밖→안)", jx:450,jy:200, 메모:"브레이브 실드"},
+ {id:"왼 윗팔", 블록:"워그레이몬 팔", x:365,y:240,w:50,h:95, sx:480,sw:70, 분할:"좌우", 비:.5, 거울:false, 부모:"왼 어깨·방패", 방식:"축(폴리캡)", 방향:"위→아래", jx:395,jy:250, 메모:""},
+ {id:"워그레이몬 머리", 블록:"워그레이몬 팔", x:250,y:250,w:160,h:295, sx:450,sw:140, 분할:"좌우", 비:.5, 거울:false, 부모:"왼 윗팔", 방식:"축(폴리캡)", 방향:"위→아래", jx:385,jy:330, 메모:"팔끝. 가시 두 개 따로 뽑을지"},
+ {id:"칼", 블록:"워그레이몬 팔", x:195,y:355,w:145,h:530, sx:490,sw:40, 분할:"통", 비:.5, 거울:false, 부모:"워그레이몬 머리", 방식:"끼움 플러그", 방향:"위→아래", jx:330,jy:510, 메모:"날이 얇다 — 두께 확인"},
+ {id:"오른 어깨", 블록:"가루몬 팔", x:625,y:100,w:90,h:155, sx:495,sw:115, 분할:"앞뒤", 비:.5, 거울:false, 부모:"가슴", 방식:"볼 조인트", 방향:"옆(밖→안)", jx:625,jy:200, 메모:"금 가시 넷"},
+ {id:"오른 윗팔", 블록:"가루몬 팔", x:650,y:240,w:50,h:95, sx:480,sw:70, 분할:"좌우", 비:.5, 거울:false, 부모:"오른 어깨", 방식:"축(폴리캡)", 방향:"위→아래", jx:675,jy:250, 메모:""},
+ {id:"가루몬 머리", 블록:"가루몬 팔", x:650,y:250,w:175,h:275, sx:450,sw:140, 분할:"좌우", 비:.5, 거울:false, 부모:"오른 윗팔", 방식:"축(폴리캡)", 방향:"위→아래", jx:680,jy:340, 메모:""},
+ {id:"대포", 블록:"가루몬 팔", x:705,y:470,w:105,h:200, sx:470,sw:100, 분할:"좌우", 비:.5, 거울:false, 부모:"가루몬 머리", 방식:"끼움 플러그", 방향:"위→아래", jx:750,jy:500, 메모:"가루몬 캐논"}
+]};
+
+let S; try { S = JSON.parse(localStorage.getItem("키트설계")) } catch (e) {}
+if (!S || !S.parts) S = structuredClone(기본);
+let sel = S.parts[0].id, 찍기 = false;
+const $ = q => document.querySelector(q), NS = "http://www.w3.org/2000/svg";
+const 저장 = () => { try { localStorage.setItem("키트설계", JSON.stringify(S)) } catch (e) {} };
+const 블록색 = () => { const b = [...new Set(S.parts.map(p => p.블록))]; return n => 색표[b.indexOf(n) % 색표.length] };
+const 찾기 = id => S.parts.find(p => p.id === id);
+const 짝이름 = id => id.endsWith("L") ? id.slice(0, -1) + "R" : id + "R";
+const 거울x = (x, w) => 2 * S.axis - x - w;
+const 조각수 = p => 분할종류[p.분할] * (p.거울 ? 2 : 1);
+const mm = v => (v * mmPx).toFixed(1);
+
+function el(tag, a, parent) { const e = document.createElementNS(NS, tag); for (const k in a) e.setAttribute(k, a[k]); parent && parent.appendChild(e); return e }
+
+function 그리기() {
+  const C = 블록색();
+  for (const v of ["front", "side"]) {
+    const g = $("#" + v); g.innerHTML = "";
+    el("image", {href: IMG[v], x: 0, y: 0, width: 1024, height: 1024, opacity: .55}, g);
+    if (v === "front") el("line", {x1: S.axis, x2: S.axis, y1: 0, y2: 1024, class: "axis"}, g);
+    // 이음 선 (정면만)
+    if (v === "front") for (const p of S.parts) {
+      const q = 찾기(p.부모); if (!q || p.jx == null) continue;
+      el("line", {x1: p.x + p.w / 2, y1: p.y + p.h / 2, x2: p.jx, y2: p.jy, class: "jl"}, g);
+      el("line", {x1: q.x + q.w / 2, y1: q.y + q.h / 2, x2: p.jx, y2: p.jy, class: "jl"}, g);
+    }
+    for (const p of S.parts) {
+      const c = C(p.블록), 고름 = p.id === sel;
+      const 판 = [{x: v === "front" ? p.x : p.sx, w: v === "front" ? p.w : p.sw, twin: false}];
+      if (p.거울 && v === "front") 판.push({x: 거울x(p.x, p.w), w: p.w, twin: true});
+      for (const b of 판) {
+        const r = el("rect", {x: b.x, y: p.y, width: b.w, height: p.h, class: "box" + (고름 ? " sel" : "") + (b.twin ? " twin" : "") + (v === "side" && !고름 ? " dim" : ""), style: "--c:" + c}, g);
+        r.dataset.id = p.id; r.dataset.view = v; r.dataset.twin = b.twin ? 1 : "";
+        if (v === "side" && !고름) continue;   // 옆 그림은 고른 부품만 또렷이 — 팔이 몸통을 덮는다
+        const t = el("text", {x: b.x + 4, y: p.y - 6, class: "lab", style: "--c:" + c}, g);
+        t.textContent = b.twin ? 짝이름(p.id) : p.id;
+        // 가르는 선: 앞뒤 → 옆 그림 세로선 · 좌우 → 정면 세로선 · 위아래 → 둘 다 가로선
+        const 비 = p.비 ?? .5;
+        if (p.분할 === "앞뒤" && v === "side") el("line", {x1: b.x + b.w * 비, x2: b.x + b.w * 비, y1: p.y, y2: p.y + p.h, class: "split", style: "--c:" + c}, g);
+        if (p.분할 === "좌우" && v === "front") el("line", {x1: b.x + b.w * 비, x2: b.x + b.w * 비, y1: p.y, y2: p.y + p.h, class: "split", style: "--c:" + c}, g);
+        if (p.분할 === "위아래") el("line", {x1: b.x, x2: b.x + b.w, y1: p.y + p.h * 비, y2: p.y + p.h * 비, class: "split", style: "--c:" + c}, g);
+        if (고름 && !b.twin) { const h = el("rect", {x: b.x + b.w - 11, y: p.y + p.h - 11, width: 22, height: 22, class: "h"}, g); h.dataset.id = p.id; h.dataset.view = v; h.dataset.h = 1 }
+      }
+      if (v === "front" && p.jx != null) {
+        el("circle", {cx: p.jx, cy: p.jy, r: 9, class: "jp"}, g);
+        if (p.거울) el("circle", {cx: 2 * S.axis - p.jx, cy: p.jy, r: 9, class: "jp"}, g);
+      }
+    }
+  }
+  목록(); 폼(); 순서(); 검사();
+  const n = S.parts.reduce((a, p) => a + 조각수(p), 0);
+  $("#sum").innerHTML = `설계 부품 <b>${S.parts.length}</b> · 출력 조각 <b>${n}</b> · 전고 ${전고mm} mm`;
+  저장();
+}
+
+function 목록() {
+  const C = 블록색();
+  $("#list").innerHTML = S.parts.map(p => `<div class="it${p.id === sel ? " sel" : ""}" data-id="${p.id}"><span class="dot" style="background:${C(p.블록)}"></span><span class="n">${p.id}${p.거울 ? " / " + 짝이름(p.id) : ""}</span><span class="m">${p.분할} · ${조각수(p)}조각</span></div>`).join("");
+}
+
+function 폼() {
+  const p = 찾기(sel); if (!p) { $("#form").innerHTML = ""; return }
+  const opt = (arr, v) => arr.map(a => `<option${a === v ? " selected" : ""}>${a}</option>`).join("");
+  const 부모들 = ["(없음 · 뿌리)", ...S.parts.filter(q => q.id !== p.id).map(q => q.id)];
+  const d = mm(p.sw);
+  $("#pcount").textContent = `${mm(p.w)} × ${mm(p.h)} × ${d} mm`;
+  $("#form").innerHTML = `
+  <div class="row2"><label class="f">이름<input data-k="id" value="${p.id}"></label><label class="f">블록<input data-k="블록" value="${p.블록}"></label></div>
+  <div class="row2"><label class="f">나누기<select data-k="분할">${opt(Object.keys(분할종류), p.분할)}</select></label>
+  <label class="f">가르는 자리 ${Math.round((p.비 ?? .5) * 100)}%<input data-k="비" type="range" min=".2" max=".8" step=".05" value="${p.비 ?? .5}"></label></div>
+  <label class="f" style="display:flex;gap:6px;align-items:center"><input data-k="거울" type="checkbox" ${p.거울 ? "checked" : ""} style="width:auto"> 좌우 거울 짝 (반대편 ${짝이름(p.id)} 자동)</label>
+  <label class="f">어디에 붙나 (부모)<select data-k="부모">${opt(부모들, p.부모 ?? "(없음 · 뿌리)")}</select></label>
+  <div class="row2"><label class="f">어떻게<select data-k="방식">${opt(방식, p.방식)}</select></label><label class="f">끼우는 방향<select data-k="방향">${opt(방향, p.방향)}</select></label></div>
+  <label class="f">붙는 자리 ${p.jx == null ? '<span class="warn">없음</span>' : `(${Math.round(p.jx)}, ${Math.round(p.jy)})`}</label>
+  <button id="pick"${찍기 ? ' class="on"' : ""}>정면 그림에서 찍기</button>
+  <label class="f">메모<input data-k="메모" value="${(p.메모 || "").replace(/"/g, "&quot;")}"></label>`;
+  $("#pick").onclick = () => { 찍기 = !찍기; $("#mode").style.display = 찍기 ? "block" : "none"; 폼() };
+  for (const i of $("#form").querySelectorAll("[data-k]")) i.onchange = i.oninput = e => {
+    const k = i.dataset.k; let v = i.type === "checkbox" ? i.checked : i.value;
+    if (k === "비") v = +v;
+    if (k === "부모" && v.startsWith("(없음")) v = null;
+    if (k === "id") { if (!v || 찾기(v)) return; for (const q of S.parts) if (q.부모 === p.id) q.부모 = v; sel = v }
+    if (e.type === "input" && i.tagName === "INPUT" && i.type !== "range") { p[k] = v; return }   // 글자 치는 중엔 다시 안 그림
+    p[k] = v; 그리기();
+  };
+}
+
+function 순서() {   // 뿌리부터 너비 우선 — 부모가 먼저 서야 자식을 붙인다
+  const 뿌리 = S.parts.filter(p => !찾기(p.부모)), 줄 = [...뿌리], 본 = new Set(줄.map(p => p.id)), 낼 = [];
+  while (줄.length) {
+    const p = 줄.shift();
+    const 짝 = p.거울 ? ` (+ ${짝이름(p.id)} 거울)` : "";
+    const 반 = 분할종류[p.분할] === 2 ? `${p.분할} 반쪽 둘을 다보로 맞붙이고, ` : "";
+    낼.push(p.부모 ? `<b>${p.id}</b>${짝} — ${반}<b>${p.부모}</b>에 ${p.방식} · ${p.방향}` : `<b>${p.id}</b> — ${반}뿌리로 세운다`);
+    for (const q of S.parts) if (q.부모 === p.id && !본.has(q.id)) { 본.add(q.id); 줄.push(q) }
+  }
+  const 고리 = S.parts.filter(p => !본.has(p.id));
+  $("#steps").innerHTML = 낼.map(s => `<li>${s}</li>`).join("") + 고리.map(p => `<li class="warn">${p.id} — 부모가 고리를 이룬다</li>`).join("");
+}
+
+function 검사() {
+  const w = [];
+  const 뿌리 = S.parts.filter(p => !찾기(p.부모));
+  if (뿌리.length !== 1) w.push(`뿌리가 ${뿌리.length} 개 (${뿌리.map(p => p.id).join(", ")}) — 하나여야 한 덩어리로 선다`);
+  for (const p of S.parts) {
+    const 얇 = Math.min(p.w, p.sw) * mmPx / (분할종류[p.분할] === 2 && p.분할 !== "위아래" ? 2 : 1);
+    if (얇 < FDM최소 * 2) w.push(`${p.id} — 반쪽 두께 ${얇.toFixed(1)} mm (벽 ${FDM최소} mm 두 겹이 안 들어간다)`);
+    if (p.부모 && p.jx == null) w.push(`${p.id} — 붙는 자리를 안 찍었다`);
+    const q = 찾기(p.부모);
+    if (q && p.jx != null) {
+      const 안 = (b) => p.jx >= b.x - 15 && p.jx <= b.x + b.w + 15 && p.jy >= b.y - 15 && p.jy <= b.y + b.h + 15;
+      if (!안(p) || !안(q)) w.push(`${p.id} — 붙는 자리가 두 부품이 닿는 곳이 아니다`);
+    }
+    if (p.거울 && p.x + p.w > S.axis) w.push(`${p.id} — 거울 짝인데 중심축을 넘는다`);
+  }
+  $("#checks").innerHTML = w.length ? w.map(s => `<div class="warn">· ${s}</div>`).join("") : '<div class="ok">걸린 것 없음</div>';
+}
+
+// 끌기 · 크기 · 찍기
+let drag = null;
+function 좌표(svg, e) { const pt = svg.createSVGPoint(); pt.x = e.clientX; pt.y = e.clientY; return pt.matrixTransform(svg.getScreenCTM().inverse()) }
+for (const v of ["front", "side"]) {
+  const svg = $("#" + v);
+  svg.addEventListener("pointerdown", e => {
+    const P = 좌표(svg, e);
+    if (찍기 && v === "front") { const p = 찾기(sel); p.jx = Math.round(P.x); p.jy = Math.round(P.y); 찍기 = false; $("#mode").style.display = "none"; 그리기(); return }
+    const t = e.target, id = t.dataset && t.dataset.id; if (!id) return;
+    sel = id; const p = 찾기(id);
+    if (t.dataset.twin) { 그리기(); return }
+    drag = {p, v, h: !!t.dataset.h, P0: P, o: {...p}};
+    svg.setPointerCapture(e.pointerId); 그리기();
+  });
+  svg.addEventListener("pointermove", e => {
+    if (!drag || drag.v !== v) return;
+    const P = 좌표(svg, e), dx = Math.round(P.x - drag.P0.x), dy = Math.round(P.y - drag.P0.y), p = drag.p, o = drag.o;
+    if (v === "front") {
+      if (drag.h) { p.w = Math.max(10, o.w + dx); p.h = Math.max(10, o.h + dy) }
+      else { p.x = o.x + dx; p.y = o.y + dy; if (p.jx != null) { p.jx = o.jx + dx; p.jy = o.jy + dy } }
+    } else {
+      if (drag.h) { p.sw = Math.max(10, o.sw + dx); p.h = Math.max(10, o.h + dy) }
+      else { p.sx = o.sx + dx; p.y = o.y + dy; if (p.jy != null) p.jy = o.jy + dy }
+    }
+    그리기();
+  });
+  svg.addEventListener("pointerup", () => drag = null);
+}
+document.addEventListener("keydown", e => { if (e.key === "Escape" && 찍기) { 찍기 = false; $("#mode").style.display = "none"; 폼() } });
+$("#list").onclick = e => { const it = e.target.closest(".it"); if (it) { sel = it.dataset.id; 그리기() } };
+$("#add").onclick = () => {
+  let n = 1; while (찾기("새 부품" + n)) n++;
+  S.parts.push({id: "새 부품" + n, 블록: "기타", x: 480, y: 480, w: 80, h: 80, sx: 470, sw: 90, 분할: "통", 비: .5, 거울: false, 부모: sel, 방식: "다보", 방향: "앞→뒤", jx: null, jy: null, 메모: ""});
+  sel = "새 부품" + n; 그리기();
+};
+$("#del").onclick = () => { const p = 찾기(sel); if (!p) return; for (const q of S.parts) if (q.부모 === p.id) q.부모 = p.부모; S.parts = S.parts.filter(q => q !== p); sel = S.parts[0]?.id; 그리기() };
+$("#reset").onclick = () => { S = structuredClone(기본); sel = S.parts[0].id; 그리기() };
+$("#exp").onclick = () => {
+  const 낼 = {도안: "키트설계/1", 대상: "오메가몬", 전고_mm: 전고mm, mm_per_px: mmPx, 축_x: S.axis,
+    부품: S.parts.map(p => ({...p, 짝: p.거울 ? 짝이름(p.id) : null, 조각수: 조각수(p),
+      치수_mm: {폭: +mm(p.w), 높이: +mm(p.h), 깊이: +mm(p.sw)}}))};
+  const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify(낼, null, 1)], {type: "application/json"}));
+  a.download = "키트설계_오메가몬.json"; a.click();
+};
+$("#impb").onclick = () => $("#imp").click();
+$("#imp").onchange = async e => { try { const j = JSON.parse(await e.target.files[0].text()); S = {axis: j.축_x ?? j.axis, parts: j.부품 ?? j.parts}; sel = S.parts[0].id; 그리기() } catch (err) { $("#checks").innerHTML = `<div class="warn">읽지 못했습니다: ${err.message}</div>` } };
+$("#mm").textContent = `1 px = ${mmPx.toFixed(3)} mm`;
+그리기();
+</script>
+</body></html>
