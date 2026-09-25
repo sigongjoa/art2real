@@ -57,6 +57,11 @@ def 채점(이름):
     b, 짝 = 경계(lab)
     구역 = O & 거울(O)
     bz = b & 구역
+    대칭전체 = float((ndimage.binary_dilation(거울(b), iterations=1) & bz).sum() / max(bz.sum(), 1))
+    # 09-25: 팔(칼 · 대포 쪽)은 원래 좌우가 다른 디자인 — 대칭 구역에서 뺀다 (A · B · E 에이전트 제안, E 의 팔 구역 정의)
+    X, _, Zk = np.indices(O.shape, sparse=True); dx = np.abs(X - 축i)
+    팔 = ((dx > 20) & (Zk >= 62)) | ((dx > 36) & (Zk >= 28))
+    bz = bz & ~팔
     # 09-25 고침(E 가 잡음): 전에는 거울(b) & 팽창(b) & bz 라 1 칸 여유가 안 걸렸다 — 거울 쪽을 팽창한다
     대칭 = float((ndimage.binary_dilation(거울(b), iterations=1) & bz).sum() / max(bz.sum(), 1))
     rms, w = [], []
@@ -75,7 +80,7 @@ def 채점(이름):
     위 = np.concatenate([선["front"][ii, kk], 선["back"][ii, kk]])
     선위 = float((겉 & 위).sum() / max(겉.sum(), 1))
     값 = {"부품": int(n), "최소몫": round(float(크.min()), 4), "최대몫": round(float(크.max()), 3),
-         "대칭": round(대칭, 3), "평면RMS칸": round(평면, 3), "선위": round(선위, 3)}
+         "대칭": round(대칭, 3), "대칭전체": round(대칭전체, 3), "평면RMS칸": round(평면, 3), "선위": round(선위, 3)}
     # 그림: 앞 · 뒤에서 본 부품 + 높이 3 곳 가로 단면
     rng = np.random.default_rng(7); 색 = rng.uniform(.3, .95, (lab.max() + 1, 3)); 색[0] = 1
     fig, axs = plt.subplots(1, 5, figsize=(22, 8), gridspec_kw={"width_ratios": [1, 1, .7, .7, .7]})
