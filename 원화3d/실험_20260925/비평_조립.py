@@ -17,7 +17,7 @@ from PIL import Image
 
 ROOT = r"G:\art2real\원화3d"; D = os.path.join(ROOT, r"out\출력\오메가몬_PG\디자인")
 ART = r"G:\art2real\트레일\trail7_part3d\in"
-TAG = "2바퀴"
+TAG = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--tag=")), "3바퀴")   # python 비평_조립.py --tag=N바퀴
 t0 = time.time()
 def log(*a): print("[%4.0fs]" % (time.time() - t0), *a, flush=True)
 관 = {a["이름"]: a for a in json.load(open(os.path.join(ROOT, r"out\가동\관절.json"), encoding="utf-8"))["관절"]}
