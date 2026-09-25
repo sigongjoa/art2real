@@ -42,7 +42,7 @@ for blk in ("몸통", "다리", "머리어깨"):
     info = json.load(open(os.path.join(D, blk, "부품.json"), encoding="utf-8"))["부품"]
     for n, p in info.items():
         m = trimesh.load(os.path.join(D, blk, p.get("파일", n + ".stl")))
-        부품[n] = (blk, 뼈(blk, n), m, 색(blk, n, p))
+        부품[n] = (blk, p.get("뼈") or 뼈(blk, n), m, 색(blk, n, p))   # 부품.json 에 「뼈」가 있으면 그것
 뼈메시 = {os.path.basename(f)[:-4]: trimesh.load(f) for f in glob.glob(os.path.join(ROOT, r"out\가동\프레임\*.stl"))}
 log("부품", len(부품), "뼈", len(뼈메시))
 def 만(tm): return M.Manifold(M.Mesh(vert_properties=np.asarray(tm.vertices, np.float32), tri_verts=np.asarray(tm.faces, np.uint32)))
