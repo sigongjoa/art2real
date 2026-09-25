@@ -69,6 +69,15 @@ def 블록(c):
     else:
         넣("R늑대", R & (Zi >= c["R대포"] + c.get("대포기울", 0.0) * (X - 138)))   # 늑대 턱 (A4~ 기울임)
     넣("R대포", R)
+    for 키, 부, 남 in (("칼막대", "L칼", ("L팔끝", "L팔끝주황", "L칼")), ("대포통", "R대포", ("R늑대", "R대포"))):
+        if 키 not in c: continue                                # 원통 / 막대로 떼고 꽂기 (A9)
+        m, d, r, t0, t컷, t1 = c[키]
+        P = np.stack([X - m[0], Y - m[1], Zi - m[2]], -1).astype(np.float32); t = P @ d
+        꽂이 = (np.linalg.norm(P - t[..., None] * d, axis=-1) <= r) & (t >= t0) & (t <= t1)   # 원통 전체 (컷 아래 틈도 메움)
+        구역 = np.isin(lab, [이름.index(n) + 1 for n in 남 if n in 이름]); k부 = 이름.index(부) + 1
+        옛 = lab == k부
+        if 부 == "R대포": lab[옛 & (t > t컷)] = 이름.index("R늑대") + 1   # 축에 수직인 평면 위는 늑대 머리
+        lab[구역 & 꽂이] = k부                                   # 머리 속으로 든 원통 = 꽂이 (머리 쪽은 소켓)
     return lab, 이름
 
 
@@ -207,9 +216,29 @@ def 평면내보내기(이름표, 문턱=0.5):
             if (새 == 몫).all(): break
             몫 = 새
         return [(m, (몫 == j).sum()) for j, m in enumerate(면)]
-    낼 = []
+    낼 = []; 이름 = {}; 막 = {}
+    if os.path.exists(os.path.join(C.D, 이름표, "이름.json")):
+        이름 = {int(k): v for k, v in json.load(open(os.path.join(C.D, 이름표, "이름.json"), encoding="utf-8")).items()}
+    if os.path.exists(os.path.join(C.D, 이름표, "막대.json")):
+        막 = json.load(open(os.path.join(C.D, 이름표, "막대.json"), encoding="utf-8"))
+    팔이름 = ("L어깨", "L윗팔", "L팔끝", "L칼", "R어깨", "R윗팔", "R늑대", "R대포")
+    def 원천(np_, na, nb):
+        if abs(np_[2]) > .97: s_ = "가로"
+        elif abs(np_[1]) > .97: s_ = "앞뒤"
+        elif abs(np_[0]) > .97: s_ = "세로"
+        else: s_ = "기운"
+        if ("팔끝" in na and "팔끝" in nb and ("주황" in na) != ("주황" in nb)) or ({na[:3], nb[:3]} == {"R늑", "R대"}): s_ = "색" if s_ != "앞뒤" else s_
+        return s_
     for (p, q), P in sorted(쌍.items()):
-        P = np.array(P)
+        P = np.array(P); na, nb = 이름.get(p, "?"), 이름.get(q, "?")
+        for 키, 부 in (("칼막대", "L칼"), ("대포통", "R대포")):   # 막대 짝: 원통 겉 점은 소켓(원통)으로, 나머지만 평면
+            if 키 in 막 and (na.startswith(부) or nb.startswith(부)) and not (na.startswith(부) and nb.startswith(부)):
+                m_, d_ = np.array(막[키]["점"]), np.array(막[키]["축"]); t_ = (P - m_) @ d_
+                ρ = np.linalg.norm(P - m_ - t_[:, None] * d_, axis=1); 통 = np.abs(ρ - 막[키]["반지름"]) <= 1.0
+                if 통.sum():
+                    낼.append({"짝": [p, q], "원천": "소켓", "원통": 막[키], "칸": int(통.sum())})
+                P = P[~통]
+        if len(P) == 0: continue
         면 = [(맞춤(P), len(P))]
         for k in (2, 3):
             if 면[0][0][2] <= 문턱 and len(면) == 1 or all(m[0][2] <= 문턱 for m in 면): break
@@ -217,11 +246,30 @@ def 평면내보내기(이름표, 문턱=0.5):
             새 = k평면(P, k)
             if 새: 면 = 새
         for (n, c0, rms), m in 면:
-            낼.append({"짝": [p, q], "법선": [round(float(v), 5) for v in n], "점": [round(float(v), 3) for v in c0],
-                      "rms": round(float(rms), 3), "칸": int(m)})
+            e = {"짝": [p, q], "원천": 원천(n, na, nb), "법선": [round(float(v), 5) for v in n], "점": [round(float(v), 3) for v in c0],
+                 "rms": round(float(rms), 3), "칸": int(m)}
+            if na.startswith("R") and nb.startswith("R") and not any(na.startswith(k) or nb.startswith(k) for k in 팔이름): e["거울"] = True
+            if m < 10: e["원천"] += "(작은 접촉)"
+            낼.append(e)
     json.dump(낼, open(os.path.join(C.D, 이름표, "평면.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=0)
-    나쁨 = [e for e in 낼 if e["rms"] > 문턱]
+    나쁨 = [e for e in 낼 if e.get("rms", 0) > 문턱]
     print("  %s 평면.json: 짝 %d · 평면 %d · rms>%.1f 인 평면 %d (칸 %d)" % (이름표, len(쌍), len(낼), 문턱, len(나쁨), sum(e["칸"] for e in 나쁨)), flush=True)
+
+
+def 막대축(c, 꽂이=10):
+    """칼 · 대포를 막대 / 원통으로: 블록의 L칼 · R대포(아래쪽) 칸 주축 = 축, 85% 반지름, 끝 t0 ~ 이음 t컷 + 꽂이.
+    칼: t컷 = 칼날 윗끝(칼 가로 컷). 대포: 축을 따라 올라가며 앞 판 색이 보라가 되는 첫 자리 = 늑대 머리와 가르는 평면(축에 수직)."""
+    lab, 이름 = 블록(c); c = dict(c); 보판 = 색판(C.I["색앞"], 1)
+    for 키, 부, 아래 in (("칼막대", "L칼", 999), ("대포통", "R대포", 95)):
+        V = np.argwhere((lab == 이름.index(부) + 1) & (Zi < 아래)).astype(float); m = V.mean(0)
+        d = np.linalg.svd(V - m, full_matrices=False)[2][0]; d = d if d[2] > 0 else -d
+        t = (V - m) @ d; r = float(np.percentile(np.linalg.norm(V - m - t[:, None] * d, axis=1), 85)) + 0.5
+        # 가름 평면(축에 수직): 칼 = 칼날 윗끝 · 대포 = 축이 A7 의 대포 컷 높이를 지나는 자리 (축 위 앞 색은 끝까지 회검이라 색으로는 못 정했다)
+        t컷 = float(t.max()) if 부 == "L칼" else float((c["R대포"] - m[2]) / d[2])
+        c[키] = (m, d.astype(np.float32), r, float(t.min()) - 2, t컷, t컷 + 꽂이)
+        print("  %s: 축 (%.2f, %.2f, %.2f) · 반지름 %.1f 칸 · 가름 평면 t %.1f (z≈%.0f) · 꽂이 %d 칸" % (
+            키, *d, r, c[키][4], (m + c[키][4] * d)[2], 꽂이), flush=True)
+    return c
 
 
 def 자동높이(c):
@@ -336,8 +384,14 @@ def 짓기(이름표, c, 가를, y스냅=0):
     L, R = 팔(c)
     lab = 조각정리(lab, O & ((X <= 축) | L | R))
     lab, 이름 = 거울짓기(lab, 이름)
-    _, lab = np.unique(lab, return_inverse=True); lab = lab.reshape(O.shape)
+    u, lab = np.unique(lab, return_inverse=True); lab = lab.reshape(O.shape)
     os.makedirs(os.path.join(C.D, 이름표), exist_ok=True)
+    import json
+    json.dump({int(i): 이름[int(k) - 1] for i, k in enumerate(u) if k > 0}, open(os.path.join(C.D, 이름표, "이름.json"), "w", encoding="utf-8"), ensure_ascii=False)
+    if any(k in c for k in ("칼막대", "대포통")):
+        json.dump({k: {"점": [round(float(v), 3) for v in c[k][0]], "축": [round(float(v), 5) for v in c[k][1]], "반지름": round(c[k][2], 2),
+                       "t": [round(c[k][3], 2), round(c[k][5], 2)], "t가름": round(c[k][4], 2)} for k in ("칼막대", "대포통") if k in c},
+                  open(os.path.join(C.D, 이름표, "막대.json"), "w", encoding="utf-8"), ensure_ascii=False)
     np.save(os.path.join(C.D, 이름표, "lab.npy"), lab.astype(np.int16))
     print(이름표, "부품", lab.max(), "컷", c, flush=True)
 
@@ -354,5 +408,6 @@ if __name__ == "__main__":
     c6 = 색컷(기울스냅(스냅(자동높이(c0)))); 짓기("A6", c6, 가를 + ["L팔끝주황"], y스냅=3)
     c7 = 대포색컷(칼깊이컷(기울스냅(c3, 허벅지각=35))); 짓기("A7", c7, 가를)      # 칼 깊이 · 허벅지 ±35° · 대포 색
     c8 = 대포꺾인컷(c7); 짓기("A8", c8, 가를 + ["L팔끝주황"])                 # + 드라몬 머리 앞뒤 · 대포 꺾인 면 둘
-    for n in sys.argv[1:] or ("A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8"): C.채점(n)
-    for n in ("A4", "A7", "A8"): 평면내보내기(n)
+    c9 = 막대축(c7); 짓기("A9", c9, 가를 + ["L팔끝주황"])      # 대포 원통 · 칼 막대 떼고 꽂기
+    for n in sys.argv[1:] or ("A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8", "A9"): C.채점(n)
+    for n in ("A4", "A7", "A8", "A9"): 평면내보내기(n)
