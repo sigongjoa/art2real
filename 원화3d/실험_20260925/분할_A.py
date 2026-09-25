@@ -339,8 +339,8 @@ def 앞뒤(lab, 이름, 가를, y스냅=0):
                 드 = 이음 & ((앞칸 == yy - 1) | (앞칸 == yy) | (뒤칸 == yy - 1) | (뒤칸 == yy))
                 점.append((드 & 선판).sum() - (드 & ~선판).sum() - 0.5 * abs(yy - y0))
             y0 = y0 - y스냅 + int(np.argmax(점))
-        새.append(n + "뒤"); lab[M & (Y < y0)] = len(새)
-        새[k - 1] = n + "앞"
+        새.append(n + "앞"); lab[M & (Y < y0)] = len(새)          # 작은 y = 앞 (발끝 · 채점기 앞 겉 · 원화 앞 판)
+        새[k - 1] = n + "뒤"
     return lab, 새
 
 
