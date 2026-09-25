@@ -127,7 +127,7 @@ p고 = 단면중심("L허벅지", 103.0, d허)
 p허벅회 = 단면중심("L허벅지", 94.0, d허)
 p무1 = 단면중심("L무릎+L허벅지+L정강이", 84.0); p무2 = 단면중심("L무릎+L정강이", 77.0)
 p발목 = 단면중심("L정강이", 35.0, d정); p발목[2] = mm([0, 0, 30.0])[2]
-p발끝 = 단면중심("L발", d=Y, 기준=mm([0, 86.0, 25.0]))
+p발끝 = 단면중심("L발", d=Y, 기준=mm([0, 90.0, 25.0]))    # 3바퀴: +4 칸 뒤 — 힌지 자식 혀+깃(12) 이 발끝 밖으로 안 나가게
 p발앞 = 단면중심("L발", d=Y, 기준=mm([0, 79.0, 25.0])); p뒤꿈 = 단면중심("L발", d=Y, 기준=mm([0, 110.0, 25.0]))
 a무 = 수직(X, d정)
 다리 = [
@@ -155,7 +155,8 @@ xq = 칸(mm([축i - 17.0, 0, 0]))[0]; 면 = 깊[xq].copy(); zq = [칸(mm([0, 0, 
 면[:, :zq[0]] = -9; 면[:, zq[1]:] = -9; yq, zq_ = np.unravel_index(np.argmax(면), 면.shape)
 ps = np.array([ax_mm[0][xq], ax_mm[1][yq], ax_mm[2][zq_]]); 어깨z192 = (zq_ - 0.5) / 2
 print("어깨 다리: x %.1f mm 에서 겉까지 최대 %.1f mm (z %.1f mm · 192 색인 %.1f)" % (ps[0], 면.max(), ps[2], 어깨z192))
-p회L = ps + X * 6.0; p스L = np.array([mm([축i - 8.0, 0, 0])[0], ps[1], ps[2]])   # 스윙 · 회전 · 들기 외피가 안 겹치게 벌림
+# 3바퀴: J2 실물 길이로 배치 — 스윙(z 축 · 받이 R 6.5) 은 x −12.5 · 회전(x 축) 은 x −29.5 · z +7.5 (스윙 자식 깃 위로 링크가 넘어가게)
+p회L = np.array([-13.5 - 17.0, ps[1], ps[2] + 5.5]); p스L = np.array([-13.5, ps[1], ps[2]])   # 스윙 깃(R 6.5) 이 목 소켓(R 7.5) 에 안 닿게 13.5
 어깨 = [("어깨스윙", "가슴", "어깨축", "축", p스L, Z, [[Z, -15, 30]], dict(길이=8.0)),
         ("어깨회전", "어깨축", "어깨블록", "축", p회L, -X, [[-X, -180, 180]], dict(길이=6.0))]
 for n_, 부, 자, 종, p, a, 범, kw in 어깨:
@@ -166,11 +167,10 @@ for n_, 부, 자, 종, p, a, 범, kw in 어깨:
 # 팔: 어깨들기 ~ 팔끝회전은 L 을 짓고 R 은 거울 (1바퀴 비평 공통 3 — 좌우 피벗 2~6 mm · 축 ~10° 어긋남). 무기 쥠만 좌우 따로.
 d윗 = 주축("L윗팔"); d끝 = 주축("L팔끝")
 p들 = 단면중심("L윗팔+L어깨", 어깨z192 - 1.0)
-p팔1 = 단면중심("L윗팔", 123.0, d윗); p팔2 = 단면중심("L팔끝", 117.0, d끝)
+p팔1 = 단면중심("L윗팔", 126.0, d윗); p팔2 = 단면중심("L팔끝", 120.0, d끝)      # 3바퀴: +3 칸 위 — 팔꿈치 자식 포크(11.4) 가 팔끝회전 받이에 안 닿게
 d윗 = (p팔1 - p들) / np.linalg.norm(p팔1 - p들)                # 윗팔회전 축 = 윗팔 원통 축 (들기 피벗 → 팔꿈치 피벗) (D3)
 # 피벗 = 그 축 위에서 좌우 둘 다 겉까지 가장 먼 곳 (들기 · 팔꿈치 외피와 안 겹치는 구간 안)
-L윗 = np.linalg.norm(p팔1 - p들); ts = np.arange(11.5, L윗 - 11.5, 0.5)       # 들기 · 팔꿈치 외피(R 6.66) + 회전축 반길이 4 + 0.8
-p윗회 = p들 + d윗 * ts[np.argmax([min(깊이(p들 + t * d윗), 깊이(거울(p들 + t * d윗))) for t in ts])]
+p윗회 = p들 + d윗 * 21.5        # 3바퀴: 들기 자식 혀(≈12) + 윗팔회전 받이(8.7) 가 안 겹치는 거리 (J2 실물)
 p끝회 = 단면중심("L팔끝", 108.0, d끝)
 a팔 = 수직(-X, d윗)
 팔 = [("어깨들기", "어깨블록", "윗팔위", "힌지", p들, Y, [[Y, 0, 90]], {}),
@@ -189,153 +189,251 @@ for s in "LR":
     c = 막대["칼" if s == "L" else "대포"]; m_, d_ = np.array(c["점"]), np.array(c["축"])
     a = mm(m_ + d_) - mm(m_); a /= np.linalg.norm(a)
     # 외피 자리: 대포 = 꽂이 아래쪽(t가름+2 칸 · 위는 거울 팔끝회전 자리) · 칼 = 꽂이 윗끝에서 손 속으로 8 mm (꽂이 자리는 겉까지 2.5 mm 뿐 — 칼 꽂이를 손 속 축까지 늘려야)
-    mid = mm(m_ + (c["t가름"] + 10.0) * d_) + 8.0 * a if s == "L" else mm(m_ + (c["t가름"] + 2.0) * d_)
+    mid = mm(m_ + (c["t가름"] + 10.0) * d_) + 8.0 * a if s == "L" else mm(m_ + (c["t가름"] - 8.0) * d_)
     j = 관(s + ("칼쥠" if s == "L" else "대포쥠"), s + "손", s + ("칼" if s == "L" else "대포"), "축", mid, a, [[a, -180, 180]])
     j["끼움"] = "E13 %s 원통(Ø%.1f · 꽂이 10 칸) 축 위 · 손 소켓에서 무기가 돈다. 외피 윗끝 = 꽂이 윗끝" % ("칼막대" if s == "L" else "대포통", 2 * c["반지름"] * C)
 J = {j["이름"]: j for j in 관절}
 
-# ── 뼈 (캡슐 토막들) ─────────────────────────────────────────────
-def P(n, k="피벗"): return J[n][k]
-def 끝(n): j = J[n]; return j["피벗"] + j["축"] * (j["외피길이"] / 2 + 1.0)
-뼈 = {
-    "허리": [(P("복부허리"), 가운(단면중심("허리", 106.0))), (P("L고관절벌림"), 가운(단면중심("허리", 106.0))), (가운(단면중심("허리", 106.0)), P("R고관절벌림"))],
-    "복부": [(P("복부허리"), P("가슴복부"))],
-    "가슴": [(P("가슴복부"), P("목아래")), (P("L어깨스윙"), P("R어깨스윙"))],
-    "목": [(P("목아래"), P("목위"))],
-    "머리": [(P("목위"), P("목위") + Z * 12)],
-}
-for s in "LR":
-    뼈[s + "허벅지위"] = [(P(s + "고관절"), P(s + "허벅지회전"))]
-    뼈[s + "허벅지"] = [(P(s + "허벅지회전"), P(s + "무릎"))]
-    뼈[s + "정강이"] = [(P(s + "무릎", "피벗2"), P(s + "발목볼"))]
-    뼈[s + "고관절블록"] = [(P(s + "고관절벌림"), P(s + "고관절"))]
-    뼈[s + "발목블록"] = [(P(s + "발목볼"), P(s + "발목"))]
-    fx = (lambda p: p) if s == "L" else 거울
-    뼈[s + "발"] = [(fx(p뒤꿈), P(s + "발끝")), (P(s + "발목"), (fx(p뒤꿈) + P(s + "발끝")) / 2)]   # 뒤꿈치–발끝 막대 + 발목에서 내려오는 기둥
-    뼈[s + "발끝"] = [(P(s + "발끝"), fx(p발앞))]
-    뼈[s + "어깨축"] = [(P(s + "어깨스윙"), P(s + "어깨회전"))]
-    뼈[s + "어깨블록"] = [(P(s + "어깨회전"), P(s + "어깨들기"))]
-    뼈[s + "윗팔위"] = [(P(s + "어깨들기"), P(s + "윗팔회전"))]
-    뼈[s + "윗팔"] = [(P(s + "윗팔회전"), P(s + "팔꿈치"))]
-    뼈[s + "팔끝"] = [(P(s + "팔꿈치", "피벗2"), P(s + "팔끝회전"))]
-    쥠 = J[s + ("칼쥠" if s == "L" else "대포쥠")]
-    뼈[s + "손"] = [(P(s + "팔끝회전"), 끝(쥠["이름"]))]
 
-def 선거리(G, a, b, 매개=False):                # 점들 G(…,3) 에서 선분 ab 까지 거리 (매개=True 면 t 도)
-    ab = b - a; t = np.clip(((G - a) @ ab) / max(ab @ ab, 1e-9), 0, 1)
-    d = np.linalg.norm(G - a - t[..., None] * ab, axis=-1); return (d, t) if 매개 else d
-def 외피안(j, G):                             # 관절 외피 안인 점
-    p, a, R = j["피벗"], j["축"], j["외피R"]
-    if j["종류"] == "볼": return np.linalg.norm(G - p, axis=-1) <= R
-    t = (G - p) @ a
-    if j["종류"] == "이중힌지":
-        q2 = j["피벗2"]; Gp = G - t[..., None] * a
-        return (선거리(Gp, p, q2 - ((q2 - p) @ a) * a) <= R) & (np.abs(t) <= j["외피폭"] / 2)
-    L = j.get("외피길이", j.get("외피폭"))
-    return (np.linalg.norm(G - p - t[..., None] * a, axis=-1) <= R) & (np.abs(t) <= L / 2)
 
-# 뼈 = 토막마다 마디 9 개의 로프트(이웃 마디 구의 볼록 껍질). 마디 반지름 = 앞뒤 1/8 구간 축 위 점에서 (겉까지 − 2.4 − 0.2) 최소,
-# 관절 외피 안 점은 가장 가까운 밖 점 값으로. [2, 7] mm 로 자른다 (2 로 올라간 곳 = 여유 부족 → 검사에서 드러난다).
-def 마디(a, b):
-    ts = np.linspace(0, 1, 41); g = a + ts[:, None] * (b - a)
-    r = np.array([np.nan if any(외피안(j, x[None])[0] for j in 관절) else 깊이(x) - 두께 - 0.2 for x in g])
-    ok = ~np.isnan(r); 원 = float(np.nanmin(r)) if ok.any() else None
-    r = np.interp(np.arange(41), np.nonzero(ok)[0], r[ok]) if ok.any() else np.array([깊이(x) - 두께 - 0.2 for x in g])   # 전부 외피 안이면 그 자리 여유 그대로
-    return [(g[i], float(np.clip(r[max(0, i - 5):i + 6].min(), 2.0, 7.0))) for i in range(0, 41, 5)], 원
-뼈마디 = {}; 뼈원여유 = {}
-거울뼈 = ("허벅지위", "허벅지", "정강이", "발", "발끝", "어깨축", "어깨블록", "고관절블록", "발목블록", "윗팔위", "윗팔", "팔끝")
-for n, 토막 in 뼈.items():
-    if n[0] == "R" and n[1:] in 거울뼈:                     # 거울 뼈는 왼쪽 마디를 뒤집어
-        뼈마디[n] = [[(거울(p), r) for p, r in 줄] for 줄 in 뼈마디["L" + n[1:]]]; 뼈원여유[n] = 뼈원여유["L" + n[1:]]; continue
-    ms = [마디(a, b) for a, b in 토막]; 뼈마디[n] = [m for m, _ in ms]
-    원 = [o for _, o in ms if o is not None]; 뼈원여유[n] = min(원) if 원 else None
 
-# ── 384 칸으로 칠하기 (검사 · 그림) ──────────────────────────────
-def 칠(fn, lo, hi):                           # 상자 안 384 칸을 시험 → 칸 번호(평탄) 배열
-    sl = [np.arange(max(0, 칸(lo)[k] - 1), min(384, 칸(hi)[k] + 2)) for k in range(3)]
-    I = np.stack(np.meshgrid(*sl, indexing="ij"), -1).reshape(-1, 3)
-    g = np.stack([ax_mm[k][I[:, k]] for k in range(3)], 1)
-    return np.ravel_multi_index(tuple(I[fn(g)].T), (384,) * 3)
-def 판(ix): M = np.zeros(384 ** 3, bool); M[ix] = True; return M.reshape((384,) * 3)
-관M = {}
-for j in 관절:
-    R = j["외피R"] + max(j.get("외피길이", 0), j.get("외피폭", 0)) / 2 + (np.linalg.norm(j["피벗2"] - j["피벗"]) if "피벗2" in j else 0)
-    관M[j["이름"]] = 칠(lambda g, j=j: 외피안(j, g), j["피벗"] - R, j["피벗"] + R)
-외피M = 판(np.concatenate(list(관M.values())))
-뼈M = {}
-def 로프트안(g, a, b, ra, rb, A, Bp):          # A→Bp = 토막 전체: 양 끝은 토막에 수직인 평면으로 자른다(외피 너머로 삐져나온 머리 없게)
-    d, t = 선거리(g, a, b, True); u = (g - A) @ (Bp - A) / ((Bp - A) @ (Bp - A)); return (d <= ra + t * (rb - ra)) & (u >= 0) & (u <= 1)
-for n, 줄들 in 뼈마디.items():
-    ix = np.unique(np.concatenate([칠(lambda g, a=a, b=b, ra=ra, rb=rb, A=줄[0][0], Bp=줄[-1][0]: 로프트안(g, a, b, ra, rb, A, Bp), np.minimum(a, b) - 7, np.maximum(a, b) + 7)
-                                   for 줄 in 줄들 for (a, ra), (b, rb) in zip(줄[:-1], 줄[1:])]))
-    뼈M[n] = ix[~외피M.ravel()[ix]]
 
-# ── 메시 (manifold3d) ────────────────────────────────────────────
-SEG = 32
+
+
+
+# ════════ 뼈 = J2 관절 부품 사이 링크 (3바퀴 · 09-26) ════════════════════════════
+# 관절마다 J2 부품(관절부품.만들기)을 피벗 · 축에 놓고(틀 = J4 장갑.py 관절틀과 같은 규칙), 부모 부품 결합 구멍 ↔ 자식 부품 결합 구멍
+# 사이를 캡슐 링크가 잇는다. 양 끝 D 촉(구멍 − 2×0.20). 링크가 안 나오면(부품끼리 닿음 · 입구 사이 < 4) 그 뼈의 J2 부품을
+# 결합 없는 판으로 바꿔 뼈 메시에 통합한다(관절 부품 + 링크 한 덩어리). 장갑 결합 = 뼈 쪽 구멍 Ø2.2 × 3 (장갑 보스 촉 Ø2.0).
+import trimesh, 관절부품 as JB
+J2캐시 = os.path.join(OUT, "_J2캐시"); os.makedirs(J2캐시, exist_ok=True); os.makedirs(os.path.join(OUT, "관절배치"), exist_ok=True)
+def 만(v, f): return mf.Manifold(mf.Mesh(vert_properties=np.ascontiguousarray(v, np.float32), tri_verts=np.ascontiguousarray(f, np.uint32)))
+def 트(m): g = m.to_mesh(); return trimesh.Trimesh(np.asarray(g.vert_properties)[:, :3], np.asarray(g.tri_verts), process=False)
+def 저장(m, path): 트(m).export(path)
+r3 = lambda a: [round(float(x), 2) for x in a]
+_J2 = {}
+def J2(g, 결합=True):
+    """규격 g 의 J2 부품 (결합 구멍 있음/없음) — 캐시. 반환 dict(부품={이름: Manifold}, 표)."""
+    k = (g, 결합)
+    if k in _J2: return _J2[k]
+    base = os.path.join(J2캐시, "%s_%s" % (g, "결합" if 결합 else "통합"))
+    if os.path.exists(base + ".npz"):
+        d = np.load(base + ".npz"); 표 = json.load(open(base + ".json", encoding="utf-8"))
+        부품 = {n: 만(d[n + "_v"], d[n + "_f"]) for n in 표["부품이름"]}
+    else:
+        j = JB.만들기(g, 결합=결합); 부품 = JB.부품들(j); 표 = JB.표(j); 표["부품이름"] = list(부품)
+        np.savez_compressed(base + ".npz", **{n + s_: np.asarray(getattr(트(m), a)) for n, m in 부품.items() for s_, a in (("_v", "vertices"), ("_f", "faces"))})
+        json.dump(표, open(base + ".json", "w", encoding="utf-8"), ensure_ascii=False)
+        print("  J2 %s(%s) 만듦" % (g, "결합" if 결합 else "통합"), flush=True)
+    _J2[k] = dict(부품=부품, 표=표); return _J2[k]
+def 단(v): v = np.asarray(v, float); return v / np.linalg.norm(v)
+def 놓기(m, R, t): return m.transform(np.c_[R, np.asarray(t, float)])
 def 돌림(a):                                  # z → a 회전 행렬
-    a = a / np.linalg.norm(a); v = np.cross(Z, a); c = a @ Z
+    a = 단(a); v = np.cross(Z, a); c = a @ Z
     if np.linalg.norm(v) < 1e-9: return np.eye(3) if c > 0 else np.diag([1, -1, -1.0])
     K = np.array([[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]]); return np.eye(3) + K + K @ K / (1 + c)
-def 놓기(m, R, t): return m.transform(np.hstack([R, np.asarray(t, float)[:, None]]).tolist())
-def 캡슐(a, b, ra, rb): return mf.Manifold.batch_hull([mf.Manifold.sphere(ra, SEG).translate(tuple(a)), mf.Manifold.sphere(rb, SEG).translate(tuple(b))])
-def 외피메시(j):
-    p, a, R = j["피벗"], j["축"], j["외피R"]
-    if j["종류"] == "볼": return mf.Manifold.sphere(R, SEG).translate(tuple(p))
-    L = j.get("외피길이", j.get("외피폭"))
-    cy = lambda c: 놓기(mf.Manifold.cylinder(L, R, R, SEG, True), 돌림(a), c)
-    if j["종류"] == "이중힌지": return mf.Manifold.batch_hull([cy(p), cy(j["피벗2"])])
-    return cy(p)
-import trimesh
-def 저장(m, path):
-    t = m.to_mesh(); trimesh.Trimesh(np.asarray(t.vert_properties)[:, :3], np.asarray(t.tri_verts)).export(path)
-외피합 = mf.Manifold.batch_boolean([외피메시(j) for j in 관절], mf.OpType.Add)
-저장(외피합, os.path.join(OUT, "관절외피.stl"))
-뼈부피 = {}; 뼈메시 = {}
-for n, 토막 in 뼈.items():
-    if n[0] == "R" and n[1:] in 거울뼈:
-        m = 뼈메시["L" + n[1:]].mirror((1, 0, 0))            # 다리 · 어깨축/블록 = 왼쪽 거울
-    else:
-        def 줄메시(줄):
-            A, Bp = 줄[0][0], 줄[-1][0]; d = (Bp - A) / np.linalg.norm(Bp - A)
-            m = mf.Manifold.batch_boolean([캡슐(a, b, ra, rb) for (a, ra), (b, rb) in zip(줄[:-1], 줄[1:])], mf.OpType.Add)
-            return m.trim_by_plane(tuple(d), float(d @ A)).trim_by_plane(tuple(-d), float(-d @ Bp))
-        m = mf.Manifold.batch_boolean([줄메시(줄) for 줄 in 뼈마디[n]], mf.OpType.Add) - 외피합
-    if not m.is_empty():                                        # 외피가 잘라 남긴 부스러기(가장 큰 조각의 5 % 미만) 버림
-        cs = m.decompose(); vm = max(c.volume() for c in cs); m = mf.Manifold.batch_boolean([c for c in cs if c.volume() >= 0.05 * vm], mf.OpType.Add)
-    뼈메시[n] = m; 뼈부피[n] = m.volume()
-    if not m.is_empty(): 저장(m, os.path.join(OUT, "프레임", n + ".stl"))
+def 볼록덧(m, d, n=26):
+    v = np.asarray(m.to_mesh().vert_properties)[:, :3]
+    k = np.arange(n) + 0.5; φ = np.arccos(1 - 2 * k / n); θ = np.pi * (1 + 5 ** 0.5) * k
+    dirs = np.c_[np.cos(θ) * np.sin(φ), np.sin(θ) * np.sin(φ), np.cos(φ)]
+    return mf.Manifold.hull_points((v[:, None, :] + d * dirs[None]).reshape(-1, 3))
+def 캡슐(a, b, ra, rb, seg=32): return mf.Manifold.batch_hull([mf.Manifold.sphere(ra, seg).translate(tuple(a)), mf.Manifold.sphere(rb, seg).translate(tuple(b))])
+def 상자겹침(a, b, 여유=0.0):
+    A, Bb = a.bounding_box(), b.bounding_box()
+    return all(A[i] - 여유 <= Bb[i + 3] and Bb[i] - 여유 <= A[i + 3] for i in range(3))
+def 겹침(a, b): return (a ^ b).volume() if 상자겹침(a, b) else 0.0
 
-# ── 검사 ─────────────────────────────────────────────────────────
-v = h ** 3
-검 = {}
-안f = 안.ravel(); Bf = B.ravel()
-for n, ix in 뼈M.items():
-    rs = [r for 줄 in 뼈마디[n] for _, r in 줄]
-    s = len(ix); 검[n] = dict(최소지름=round(2 * min(rs), 1), 최대지름=round(2 * max(rs), 1), 축여유=None if 뼈원여유[n] is None else round(뼈원여유[n] + 0.2, 2),
-                              칸=int(s), 안쪽몫=round(float(안f[ix].sum() / max(s, 1)), 3), 몸밖mm3=round(float((~Bf[ix]).sum() * v), 1),
-                              조각=len(뼈메시[n].decompose()) if not 뼈메시[n].is_empty() else 0, 부피mm3=round(뼈부피[n], 1))
-전뼈 = 판(np.concatenate(list(뼈M.values())))
-외검 = {n: dict(부피mm3=round(float(len(ix) * v), 1), 장갑층mm3=round(float((Bf[ix] & ~안f[ix]).sum() * v), 1), 몸밖mm3=round(float((~Bf[ix]).sum() * v), 1))
-        for n, ix in 관M.items()}
-요약 = dict(뼈_안쪽몫=round(float((전뼈 & 안).sum() / 전뼈.sum()), 4), 뼈_몸밖mm3=round(float((전뼈 & ~B).sum() * v), 1),
-          뼈_최소지름=min(검[n]["최소지름"] for n in 뼈), 뼈_여유부족=[n for n in 뼈 if 뼈원여유[n] is not None and 뼈원여유[n] < 2.0], 뼈_외피사이만=[n for n in 뼈 if 뼈원여유[n] is None],
-          외피_몸밖mm3=round(float((외피M & ~B).sum() * v), 1), 외피_장갑층mm3=round(float((외피M & B & ~안).sum() * v), 1),
-          외피_부피mm3=round(float(외피M.sum() * v), 1), 칸mm=round(h, 3), 몸높이mm=300.0)
-외피겹침 = []
-ns = list(관M)
+# ── 틀 (지역 → 세계) : z = 자식 쪽 · 힌지 x = 관절 축 (관절부품.py 좌표 · J4 관절틀과 같은 규칙) ──
+뼈이름 = sorted(({j["부모"] for j in 관절} | {j["자식"] for j in 관절}) - {"L칼", "R대포"})
+def 자식방향(j):
+    다음 = [k["피벗"] for k in 관절 if k["부모"] == j["자식"]]
+    if 다음: return 단(np.mean(다음, 0) - j["피벗"])
+    return {"머리": Z, "L발끝": -Y, "R발끝": -Y, "L칼": -j["축"], "R대포": -j["축"]}[j["자식"]]
+def 틀(j):
+    a = j["축"]; 자 = 자식방향(j)
+    if j["종류"] in ("볼", "축"):
+        z = a if a @ 자 >= 0 else -a
+        x = 단(np.cross(Y, z)) if abs(z @ Y) < 0.9 else 단(np.cross(Z, z))
+    else:
+        x = a; 자 = (j["피벗2"] - j["피벗"]) if j["종류"] == "이중힌지" else 자 * 1.0
+        z = 단(자 - (자 @ x) * x)
+    return np.c_[x, np.cross(z, x), z]
+for j in 관절: j["틀"] = 틀(j); j["규격이름"] = j["규격"].split("(")[0]
+
+# ── 뼈마다 끝(관절 부품 쪽) 모으기 ──
+끝 = {n: [] for n in 뼈이름}
+for j in 관절:
+    for 쪽 in ("부모", "자식"):
+        n = j[쪽]
+        if n in 끝: 끝[n].append(dict(관절=j, 쪽=쪽))
+def 부품놓기(e, 결합):
+    j = e["관절"]; d = J2(j["규격이름"], 결합); 표 = d["표"]; R, p = j["틀"], j["피벗"]
+    m = d["부품"][e["쪽"]]
+    e["m"] = 놓기(m, R, p); e["표"] = 표; e["결합"] = 결합
+    b = J2(j["규격이름"], True)["표"]["결합"][e["쪽"]]; e["구멍"] = b
+    if 결합:
+        sgn = 1 if b["방향"] == "+z" else -1
+        e["E"] = R @ np.array(b["입구xyz"], float) + p; e["d_in"] = sgn * R[:, 2]
+    else:
+        bb = m.bounding_box(); zf = bb[2] if e["쪽"] == "부모" else bb[5]
+        e["E"] = R @ np.array([0, 0, zf]) + p; e["d_in"] = (1 if e["쪽"] == "부모" else -1) * R[:, 2]
+    e["d_out"] = -e["d_in"]
+    return e
+
+# ── 링크 반지름: 축 위 표본에서 (겉까지 − 2.4 − 0.3) 최소 · [하한, 5] ──
+def 링크r(a, b, 하한=2.5):
+    ts = np.linspace(0, 1, 25); r = min(깊이(a + t * (b - a)) for t in ts) - 두께 - 0.3
+    return float(np.clip(r, 하한, 5.0))
+
+뼈메시 = {}; 뼈기록 = {}; 통합표 = {}; 장갑구멍 = {}
+모든부품 = []   # (뼈 · 관절 · 쪽 · Manifold) 배치된 J2 부품 (검사용)
+for n in 뼈이름:                                   # 1 차: 부품 전부 먼저 놓고 통합 여부 결정
+    es = 끝[n]
+    for e in es: 부품놓기(e, True)
+    통합 = False; 이유 = ""
+    for i in range(len(es)):
+        for k in range(i + 1, len(es)):
+            v = 겹침(es[i]["m"], es[k]["m"]); dist = np.linalg.norm(es[i]["E"] - es[k]["E"])
+            if v > 0.01: 통합 = True; 이유 = "부품 닿음 %s·%s %.0f" % (es[i]["관절"]["이름"], es[k]["관절"]["이름"], v)
+            elif dist < 4.0: 통합 = True; 이유 = "입구 사이 %.1f" % dist
+    if 통합:
+        for e in es: 부품놓기(e, False)
+    통합표[n] = dict(통합=통합, 이유=이유)
+    for e in es:
+        e["촉d"] = (e["구멍"]["구멍지름"] - 2 * JB.결합틈) if not 통합 else 0.0
+        모든부품.append((n, e["관절"]["이름"], e["쪽"], e["m"]))
+for j in 관절:                                    # 링크 · 핀도 놓는다
+    d = J2(j["규격이름"], True); s_ = d["표"]["치수"].get("축사이", 0.0)
+    for k, m in d["부품"].items():
+        if k in ("부모", "자식"): continue
+        모든부품.append((None, j["이름"], k, 놓기(m.translate([0, 0, s_]) if k == "핀2" else m, j["틀"], j["피벗"])))
+def 남의부품(n, m, 여유=0.5): return [mm_ for (bn, jn, k, mm_) in 모든부품 if bn != n and 상자겹침(mm_, m, 여유)]
+for n in 뼈이름:                                   # 2 차: 링크
+    es = 끝[n]; 통합, 이유 = 통합표[n]["통합"], 통합표[n]["이유"]
+    # A = 링크 시작점: 링크 모드 = 입구에서 r+0.3 밖(구 끝이 입구 면에 닿음) · 통합 = 부품 끝에서 r−1 밖(구가 1 mm 만 부품에 물림 — 소켓 바닥 1.2 를 뚫지 않게)
+    def A점(e, r): return e["E"] + e["d_out"] * ((r + 0.3) if not 통합 else (max(r - 1.0, 0.5) if e["쪽"] == "부모" else 0.5))   # 통합 자식 깃은 속이 차 있어 구가 들어가도 된다
+    if len(es) == 1:
+        e = es[0]; r = max(2.5, e["촉d"] / 2 + 0.6); e["r"] = r; e["A"] = A점(e, r)
+        # 토막 방향: 밖(d_out) · 그에 수직한 네 방향 중 겉까지 ≥ 2.4+r 가 가장 길게 이어지는 쪽 (머리 · 발끝은 곧게 뻗으면 몸 밖)
+        후보 = [e["d_out"]] + [단(v - (v @ e["d_in"]) * e["d_in"]) * sg for v in (X, Z) for sg in (1, -1) if np.linalg.norm(v - (v @ e["d_in"]) * e["d_in"]) > 0.3]
+        def 길이(dv):
+            t = 0.0
+            while t < 12.0 and 깊이(e["A"] + (t + 0.5) * dv) >= 두께 + r: t += 0.5
+            return t
+        dv = max(후보, key=길이); 허브 = e["A"] + max(길이(dv), 3.0) * dv
+        토막 = [(e["A"], 허브, r, r)]
+    else:
+        중심 = np.mean([e["E"] for e in es], 0)
+        for e in es:
+            r = 링크r(e["E"], 중심, max(2.5, e["촉d"] / 2 + 0.6)); e["r"] = r; e["A"] = A점(e, r)
+        # 끝 A 들을 최소 신장 트리로 잇는다 (허브를 두면 허브가 부품 속에 들어가 링크가 잘렸다 — 허리)
+        토막 = []; 남은 = list(range(1, len(es))); 든 = [0]
+        while 남은:
+            i, k = min(((i, k) for i in 든 for k in 남은), key=lambda t: np.linalg.norm(es[t[0]]["A"] - es[t[1]]["A"]))
+            든.append(k); 남은.remove(k)
+            if 통합 and (es[i]["m"] ^ es[k]["m"]).volume() > 0.01: continue     # 통합 부품끼리 이미 물려 있으면 그 사이 링크는 없다
+            토막.append((es[i]["A"], es[k]["A"], es[i]["r"], es[k]["r"]))
+    링크 = mf.Manifold.batch_boolean([캡슐(a, b, ra, rb) for a, b, ra, rb in 토막], mf.OpType.Add) if 토막 else mf.Manifold()
+    빼기 = [볼록덧(m, 0.3) for m in (남의부품(n, 링크) if not 링크.is_empty() else [])] + ([e["m"] for e in es] if not 통합 else [])
+    if 빼기: 링크 = 링크 - mf.Manifold.batch_boolean(빼기, mf.OpType.Add)
+    # 장갑 구멍 Ø2.2 × 3 : 가장 긴 토막(≥ 6) 의 30 % · 70 % · 앞(−y)/뒤(+y) 겉에서 안으로. 반지름 < 3.6 이면 그 자리에 보스 구(R 3.6) 를 덧대고(몸 안이면) 뚫는다
+    구멍들 = []
+    if 토막:
+        a, b, ra, rb = max(토막, key=lambda t: np.linalg.norm(t[1] - t[0])); L = np.linalg.norm(b - a); 축 = 단(b - a)
+        if L >= 3.0:
+            for t, 쪽v in (((0.3, -Y), (0.7, Y)) if L >= 6.0 else ((0.5, -Y),)):
+                d = 쪽v - (쪽v @ 축) * 축
+                if np.linalg.norm(d) < 0.3: d = X - (X @ 축) * 축
+                d = 단(d); c = a + t * (b - a); r = ra + t * (rb - ra)
+                if r < 3.6:
+                    if 깊이(c) < 두께 + 3.6: continue
+                    링크 = 링크 + mf.Manifold.sphere(3.6, 32).translate(tuple(c)); r = 3.6
+                겉점 = c + d * r
+                링크 = 링크 - 놓기(mf.Manifold.cylinder(3.5, 1.1, 1.1, 32), 돌림(-d), 겉점 + d * 0.5)
+                구멍들.append(dict(위치mm=r3(겉점), 방향=r3(-d), 지름=2.2, 깊이=3.0))
+    if not 구멍들 and 통합:      # 링크가 없는 통합 뼈: 끝마다 부품 옆(앞/뒤)에 보스 구 R 3.6 을 덧대고(몸 안 · 남의 부품과 안 닿을 때만) 뚫는다
+        for e in sorted(es, key=lambda e: e["쪽"] != "자식"):
+            v = np.asarray(e["m"].to_mesh().vert_properties)[:, :3]; c0 = e["E"] + e["d_in"] * 2.5
+            for 쪽v in (-Y, Y):
+                lat = 쪽v - (쪽v @ e["d_in"]) * e["d_in"]
+                if np.linalg.norm(lat) < 0.3: lat = X - (X @ e["d_in"]) * e["d_in"]
+                lat = 단(lat); w = float(((v - c0) @ lat).max()) + 2.0; c = c0 + lat * w
+                if 깊이(c) < 두께 + 3.6: continue
+                보스 = mf.Manifold.sphere(3.6, 32).translate(tuple(c))
+                if any(겹침(보스, m) > 0.01 for m in 남의부품(n, 보스)): continue
+                겉점 = c + lat * 3.6
+                링크 = 링크 + 보스 - 놓기(mf.Manifold.cylinder(3.5, 1.1, 1.1, 32), 돌림(-lat), 겉점 + lat * 0.5)
+                구멍들.append(dict(위치mm=r3(겉점), 방향=r3(-lat), 지름=2.2, 깊이=3.0, 보스="구 R3.6"))
+                break
+            if len(구멍들) >= 2: break
+    장갑구멍[n] = 구멍들
+    촉들 = []
+    if not 통합:
+        for e in es:
+            b = e["구멍"]; 면 = b["구멍지름"] / 2 - b["D컷"] - JB.결합틈
+            m = JB.D구멍z(e["촉d"], -2.5, b["깊이"] - 0.3, 컷=e["촉d"] / 2 - 면)      # 지역: +z 가 구멍 속 · D 면 +y
+            R = e["관절"]["틀"]; sgn = 1 if b["방향"] == "+z" else -1
+            Rz = np.c_[sgn * R[:, 0], R[:, 1], sgn * R[:, 2]]                      # 부품 지역 y(D 면) 그대로 · z 를 구멍 속으로
+            촉들.append(놓기(m, Rz, e["E"]))
+        뼈m = mf.Manifold.batch_boolean([링크] + 촉들, mf.OpType.Add)
+    else:
+        뼈m = mf.Manifold.batch_boolean([링크] + [e["m"] for e in es], mf.OpType.Add)
+    뼈메시[n] = 뼈m
+    뼈기록[n] = dict(토막=토막, 촉=촉들, 몸=링크, 끝=es)
+    print("  뼈 %-8s 끝 %d %s · 링크 조각 %d · 부피 %.0f" % (n, len(es), "통합(%s)" % 이유 if 통합 else "링크", len(링크.decompose()) if not 링크.is_empty() else 0, 뼈m.volume()), flush=True)
+
+for f in os.listdir(os.path.join(OUT, "관절배치")): os.remove(os.path.join(OUT, "관절배치", f))
+for (bn, jn, k, m) in 모든부품: 저장(m, os.path.join(OUT, "관절배치", "관절_%s_%s.stl" % (jn, k)))
+for f in os.listdir(os.path.join(OUT, "프레임")): os.remove(os.path.join(OUT, "프레임", f))
+for n, m in 뼈메시.items():
+    if not m.is_empty(): 저장(m, os.path.join(OUT, "프레임", n + ".stl"))
+저장(mf.Manifold.batch_boolean([m for (_, _, _, m) in 모든부품], mf.OpType.Add), os.path.join(OUT, "관절외피.stl"))
+
+# ── 검사 ──
+J2겹침 = []
+for i in range(len(모든부품)):
+    for k in range(i + 1, len(모든부품)):
+        (bi, ji, ki, mi), (bk, jk, kk, mk) = 모든부품[i], 모든부품[k]
+        if bi is not None and bi == bk and 통합표[bi]["통합"]: continue
+        v = 겹침(mi, mk)
+        if v > 0.01: J2겹침.append(["%s·%s" % (ji, ki), "%s·%s" % (jk, kk), round(v, 2)])
+뼈J2겹침 = []; 촉미접촉 = []; 검 = {}
+for n, rec in 뼈기록.items():
+    몸 = rec["몸"]
+    for (bn, jn, k, m) in 모든부품:
+        if bn == n and 통합표[n]["통합"]: continue                    # 통합 부품은 뼈와 한 덩어리 · 링크 모드면 제 부품과도 안 닿아야(촉 빼고)
+        v = 겹침(몸, m)
+        if v > 0.01: 뼈J2겹침.append([n, "%s·%s" % (jn, k), round(v, 2)])
+    for e, 촉 in zip(rec["끝"], rec["촉"]):
+        if 겹침(촉, 몸) < 0.5: 촉미접촉.append([n, e["관절"]["이름"]])
+    m = 뼈메시[n]; v = np.asarray(m.to_mesh().vert_properties)[:, :3]
+    idx = np.array([칸(p) for p in v]); dv = 깊[tuple(idx.T)]
+    rs = [ra for _, _, ra, rb in rec["토막"]] + [rb for _, _, ra, rb in rec["토막"]] or [e["r"] for e in rec["끝"]]
+    검[n] = dict(최소지름=round(2 * min(rs), 1), 최대지름=round(2 * max(rs), 1), 조각=len(m.decompose()), 부피mm3=round(m.volume(), 1),
+                안쪽몫=round(float((dv >= 두께).mean()), 3), 몸밖정점몫=round(float((dv < 0).mean()), 3), 통합=통합표[n]["통합"], 통합이유=통합표[n]["이유"],
+                장갑구멍수=len(장갑구멍[n]), 촉=len(rec["촉"]))
+뼈끼리 = []
+ns = list(뼈메시)
 for i in range(len(ns)):
     for k in range(i + 1, len(ns)):
-        o = len(np.intersect1d(관M[ns[i]], 관M[ns[k]], assume_unique=True))
-        if o: 외피겹침.append([ns[i], ns[k], round(float(o * v), 1)])
-요약["외피_겹침"] = 외피겹침
+        v = 겹침(뼈메시[ns[i]], 뼈메시[ns[k]])
+        if v > 0.01: 뼈끼리.append([ns[i], ns[k], round(v, 2)])
+zs_all = np.concatenate([np.asarray(m.to_mesh().vert_properties)[:, 2] for (_, _, _, m) in 모든부품] + [np.asarray(m.to_mesh().vert_properties)[:, 2] for m in 뼈메시.values()])
+요약 = dict(J2끼리겹침쌍=len(J2겹침), J2끼리겹침mm3=round(sum(v for _, _, v in J2겹침), 1), 뼈J2겹침쌍=len(뼈J2겹침), 뼈J2겹침mm3=round(sum(v for _, _, v in 뼈J2겹침), 1),
+          촉미접촉=촉미접촉, 뼈끼리겹침=뼈끼리, 통합뼈=[n for n in 뼈이름 if 통합표[n]["통합"]], 뼈_최소지름=min(검[n]["최소지름"] for n in 검),
+          뼈_안쪽몫=round(float(np.mean([검[n]["안쪽몫"] for n in 검])), 4), 뼈_여러조각=[n for n in 검 if 검[n]["조각"] > 1],
+          장갑구멍수=sum(len(v) for v in 장갑구멍.values()), 장갑구멍없는뼈=[n for n in 뼈이름 if not 장갑구멍[n]],
+          골격z범위=[round(float(zs_all.min()), 1), round(float(zs_all.max()), 1)], 칸mm=round(h, 3), 몸높이mm=300.0, J2부품수=len(모든부품))
+요약["J2끼리겹침"] = J2겹침; 요약["뼈J2겹침"] = 뼈J2겹침
 
-# ── 관절.json ───────────────────────────────────────────────────
-r3 = lambda a: [round(float(x), 2) for x in a]
-def 꽂이(n, p, 결):                            # 뼈 끝 = J2 뼈촉(D 컷 돌기)이 관절 부품 구멍에 들어간다. 뼈 끝 마디 지름이 촉+1.2 보다 작으면 표시
-    if n not in 뼈마디: return None
-    D = 2 * min(((np.linalg.norm(q - p), r) for 줄 in 뼈마디[n] for q, r in 줄), key=lambda t: t[0])[1]
-    촉 = 결.get("뼈촉지름")
-    return dict(뼈끝지름=round(D, 1), 뼈촉지름=촉, 구멍지름=결.get("구멍지름"), 깊이=결.get("깊이"), 판정="됨" if 촉 and D >= 촉 + 1.2 else "뼈끝 가늚")
+# ── 관절.json (형식 유지 + 장갑구멍 · 통합 · 틀 · 배치파일) ──
+def 끝정보(n, 쪽j):
+    if n not in 뼈기록: return None
+    e = next((e for e in 뼈기록[n]["끝"] if e["관절"] is 쪽j), None)
+    if e is None: return None
+    if e["결합"]:
+        b = e["구멍"]; return dict(뼈끝지름=round(2 * e["r"], 1), 뼈촉지름=round(e["촉d"], 2), 구멍지름=b["구멍지름"], 깊이=b["깊이"], 입구mm=r3(e["E"]), 판정="됨")
+    return dict(뼈끝지름=round(2 * e["r"], 1), 뼈촉지름=None, 구멍지름=None, 깊이=None, 입구mm=r3(e["E"]), 판정="통합(부품이 뼈에 한 덩어리)")
 out = []
 for i, j in enumerate(관절, 1):
     e = dict(번호=i, 이름=j["이름"], 부모뼈=j["부모"], 자식뼈=j["자식"], 종류=j["종류"], 규격=j["규격"], 피벗mm=r3(j["피벗"]), 축=r3(j["축"]),
@@ -343,36 +441,42 @@ for i, j in enumerate(관절, 1):
              외피=dict(모양={"볼": "구", "축": "원기둥", "힌지": "원기둥", "이중힌지": "두 원기둥 껍질"}[j["종류"]], 반지름mm=round(j["외피R"], 2),
                      **({"길이mm": round(j["외피길이"], 2)} if "외피길이" in j else {}), **({"폭mm": round(j["외피폭"], 2)} if "외피폭" in j else {}),
                      **({"둘째축피벗mm": r3(j["피벗2"])} if "피벗2" in j else {})),
-             피벗여유mm=round(j["여유"], 2), 부모끝=꽂이(j["부모"], j["피벗"], j["결합"].get("부모", {})), 자식끝=꽂이(j["자식"], j.get("피벗2", j["피벗"]), j["결합"].get("자식", {})),
+             틀=[r3(j["틀"][:, k]) for k in range(3)],
+             피벗여유mm=round(j["여유"], 2), 부모끝=끝정보(j["부모"], j), 자식끝=끝정보(j["자식"], j),
              거울짝=(("R" + j["이름"][1:]) if j["이름"].startswith("L") else ("L" + j["이름"][1:]) if j["이름"].startswith("R") else None),
-             검사=외검[j["이름"]])
+             배치파일={k: "관절배치/관절_%s_%s.stl" % (j["이름"], k) for (_, jn, k, _) in 모든부품 if jn == j["이름"]})
     if j["이름"][1:] in ("칼쥠", "대포쥠"): e["거울짝"] = None; e["메모"] = j["끼움"]
     if "무릎" in j["이름"]: e["메모"] = "무릎 장갑 연동(굽히면 무릎 장갑이 따라 들림) — 기록만, J4"
     if "팔끝회전" in j["이름"]: e["메모"] = "짐승 머리 입 벌림은 선택 — 이번 판 없음"
     out.append(e)
 규격표 = dict(출처="out/가동/관절규격.json (J2) — 이름 · 외피반지름 · 폭W · 축사이 · 뼈촉 그대로",
-           외피="볼 = 구 R · 회전축 = 원기둥 R × (축길이+1) · 힌지 = 원기둥 R × W · 이중힌지 = 피벗 · 둘째축피벗 두 원기둥 볼록 껍질",
-           뼈끝="J2 결합: 뼈 쪽 D 컷 촉(뼈촉지름)이 관절 부품 구멍에 들어간다. 촉은 아직 뼈 메시에 안 붙였다(J2 깊이·D 면 방향 확정 뒤)",
-           여유부족="자리 여유(겉까지 − 2.4) 안에 드는 J2 규격이 없어 가장 작은 것을 넣음 — 외피가 장갑층으로 들어간다")
+           틀="관절.json 「틀」 = 지역 x, y, z 축(세계) · 관절부품.py 좌표(피벗 원점 · 부모 −z · 자식 +z · 힌지 축 x). 관절배치/*.stl 은 이 틀로 놓은 J2 부품",
+           뼈="뼈 = 부모 부품 결합 구멍 ↔ 자식 부품 결합 구멍 사이 캡슐 링크 + 양 끝 D 촉(구멍 − 2×0.20 · 깊이 5.7 · D 면 = 부품 결합정보). 「통합」 뼈는 J2 부품(결합 없음)이 뼈 메시에 한 덩어리 — 관절배치 STL 도 그 판",
+           장갑결합="장갑 보스 촉 Ø2.0 · 뼈 쪽 구멍 Ø2.2 × 깊이 3 (「장갑구멍」 위치 = 뼈 겉점 · 방향 = 뼈 속으로). 반지름 3.6 미만 뼈에는 없음")
 json.dump(dict(설명=__doc__, 척도=dict(mm_per_192칸=round(C, 4), 원점="발바닥 중앙 (x 거울 면 · y 바닥 두 칸 평균 · z 바닥)"),
-               규격표=규격표, 관절=out, 뼈={n: dict(마디=[[r3(list(p) + [2 * r]) for p, r in 줄] for 줄 in 뼈마디[n]], 파일="프레임/%s.stl" % n, **검[n]) for n in 뼈}, 요약=요약),
+               규격표=규격표, 관절=out,
+               뼈={n: dict(마디=[[r3(list(a) + [2 * ra]), r3(list(b) + [2 * rb])] for a, b, ra, rb in 뼈기록[n]["토막"]], 파일="프레임/%s.stl" % n,
+                          장갑구멍=장갑구멍[n], **검[n]) for n in 뼈이름}, 요약=요약),
           open(os.path.join(OUT, "관절.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 
-# ── 그림 ────────────────────────────────────────────────────────
+# ── 그림 ──
 import matplotlib; matplotlib.use("Agg")
 import matplotlib.pyplot as plt
+from matplotlib.collections import PolyCollection
 plt.rcParams["font.family"] = "Malgun Gothic"
 fig, axs = plt.subplots(1, 3, figsize=(22, 12), gridspec_kw=dict(width_ratios=[5, 2.2, 1.3]))
 bw = np.argwhere(B.any((1, 2)))[[0, -1], 0]; bd = np.argwhere(B.any((0, 2)))[[0, -1], 0]
 색 = plt.cm.tab20(np.linspace(0, 1, 20))
+def 그리기(ax_, m, i, fc, alpha):
+    t = 트(m); tri = t.vertices[t.faces][:, :, [i, 2]]
+    ax_.add_collection(PolyCollection(tri, facecolors=fc, edgecolors="none", alpha=alpha))
 for ax_, (i, k, nm) in zip(axs[:2], ((0, 1, "앞 (x-z · 작은 y 쪽에서)"), (1, 0, "옆 (y-z · 작은 y = 앞 = 왼쪽)"))):
     e = (ax_mm[i][0], ax_mm[i][-1], ax_mm[2][0], ax_mm[2][-1])
     ax_.imshow(B.any(k).T, origin="lower", extent=e, cmap="Greys", alpha=0.18)
     ax_.contour(ax_mm[i], ax_mm[2], 안.any(k).T, [0.5], colors="0.55", linewidths=0.6)
-    for c_, (n, ix) in enumerate(뼈M.items()):
-        im = np.zeros((384, 384, 4)); I = np.unravel_index(ix, (384,) * 3); pr = np.zeros((384, 384), bool); pr[I[i], I[2]] = True; pr = pr.T
-        im[pr] = list(색[c_ % 20][:3]) + [0.85]; ax_.imshow(im, origin="lower", extent=e)
-    pr = 외피M.any(k).T; im = np.zeros((384, 384, 4)); im[pr] = [1, 0.2, 0.1, 0.45]; ax_.imshow(im, origin="lower", extent=e)
+    for (_, _, _, m) in 모든부품: 그리기(ax_, mf.Manifold.hull(m), i, (1, 0.2, 0.1), 0.35)
+    for c_, (n, m) in enumerate(뼈메시.items()):
+        if not m.is_empty(): 그리기(ax_, m, i, 색[c_ % 20][:3], 0.75)
     for n_, j in enumerate(관절, 1):
         p, a = j["피벗"], j["축"]
         ax_.plot(p[i], p[2], "k.", ms=4)
@@ -382,12 +486,15 @@ for ax_, (i, k, nm) in zip(axs[:2], ((0, 1, "앞 (x-z · 작은 y 쪽에서)"), 
     ax_.set_title(nm); ax_.set_aspect("equal"); ax_.set_xlabel("mm"); ax_.grid(alpha=0.2)
     ax_.set_ylim(-5, 305); lim = (bw if i == 0 else bd); ax_.set_xlim(ax_mm[i][lim[0]] - 5, ax_mm[i][lim[1]] + 5)
 axs[2].axis("off")
-axs[2].text(0, 1, chr(10).join("%2d %s  %s" % (i, j["이름"], j["규격"]) for i, j in enumerate(관절, 1)), transform=axs[2].transAxes, fontsize=10, va="top")
-
-fig.suptitle("오메가몬 PG 골격 · 뼈(색) · 관절 외피(빨강) · 축(파랑) · 회색 선 = 겉에서 2.4 mm 안쪽", fontsize=13)
+axs[2].text(0, 1, "\n".join("%2d %s  %s" % (i, j["이름"], j["규격"]) for i, j in enumerate(관절, 1)) + "\n\n통합 뼈: " + ", ".join(요약["통합뼈"]),
+            transform=axs[2].transAxes, fontsize=10, va="top")
+fig.suptitle("오메가몬 PG 골격 3바퀴 · 뼈(색 · J2 부품 사이 링크 + D 촉) · J2 부품(빨강 볼록껍질) · 축(파랑) · 회색 선 = 겉에서 2.4 mm 안쪽", fontsize=13)
 fig.tight_layout(); fig.savefig(os.path.join(OUT, "골격.png"), dpi=90)
 
-print("관절 %d · 뼈 %d · 칸 %.3f mm" % (len(관절), len(뼈), h))
-for e in out: print("%2d %-8s %-4s %-8s 여유 %5.1f 외피R %4.1f 몸밖 %6.1f 장갑층 %7.1f" % (e["번호"], e["이름"], e["종류"], e["규격"], e["피벗여유mm"], e["외피"]["반지름mm"], e["검사"]["몸밖mm3"], e["검사"]["장갑층mm3"]))
-for n, d in 검.items(): print("  뼈 %-8s Ø%4.1f~%4.1f 축여유 %s 안쪽몫 %.3f 몸밖 %.1f 조각 %d 부피 %.0f" % (n, d["최소지름"], d["최대지름"], d["축여유"], d["안쪽몫"], d["몸밖mm3"], d["조각"], d["부피mm3"]))
-print(json.dumps(요약, ensure_ascii=False))
+print("관절 %d · 뼈 %d · J2 부품 %d" % (len(관절), len(뼈이름), len(모든부품)))
+for n, d in 검.items(): print("  뼈 %-8s Ø%4.1f~%4.1f 조각 %d 안쪽몫 %.3f 몸밖 %.3f %s 구멍 %d 촉 %d" % (n, d["최소지름"], d["최대지름"], d["조각"], d["안쪽몫"], d["몸밖정점몫"], "통합(%s)" % d["통합이유"] if d["통합"] else "링크", d["장갑구멍수"], d["촉"]))
+print(json.dumps({k: v for k, v in 요약.items() if k not in ("J2끼리겹침", "뼈J2겹침")}, ensure_ascii=False))
+print("J2끼리:", J2겹침); print("뼈↔J2:", 뼈J2겹침)
+if len(sys.argv) > 1 and sys.argv[1] == "완료":
+    open(os.path.join(OUT, "3바퀴_뼈완료.txt"), "w", encoding="utf-8").write("3바퀴 뼈 완료 %s\n%s\n" % (
+        __import__("datetime").datetime.now().isoformat(timespec="seconds"), json.dumps({k: v for k, v in 요약.items() if k not in ("J2끼리겹침", "뼈J2겹침")}, ensure_ascii=False)))
