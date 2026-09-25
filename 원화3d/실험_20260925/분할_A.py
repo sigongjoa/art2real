@@ -59,7 +59,13 @@ def 블록(c):
     넣("R어깨", R & (Zi >= c["R어깨"]))
     넣("R윗팔", R & (Zi >= c["R윗팔"]) & (X <= 128))
     if "대포색" in c:                                           # 늑대(보라) ↔ 대포(회검) 색 경계 평면 (A7)
-        a, b_, o = c["대포색"]; 넣("R늑대", R & (a * X + b_ * Zi >= o))
+        v = c["대포색"]
+        if not isinstance(v[2], str): 늑 = v[0] * X + v[1] * Zi >= v[2]
+        else:                                                   # 꺾인 평면 둘 (A8): (면1, 면2, 합침 'and'|'or')
+            (a1, b1, o1), (a2, b2, o2), 합 = v
+            p1, p2 = a1 * X + b1 * Zi >= o1, a2 * X + b2 * Zi >= o2
+            늑 = (p1 & p2) if 합 == "and" else (p1 | p2)
+        넣("R늑대", R & 늑)
     else:
         넣("R늑대", R & (Zi >= c["R대포"] + c.get("대포기울", 0.0) * (X - 138)))   # 늑대 턱 (A4~ 기울임)
     넣("R대포", R)
@@ -155,6 +161,67 @@ def 대포색컷(c):
     print("  대포 색 컷: 보라 %d · 회검 %d → 법선 (x %.2f, z %.2f) (수평에서 %.0f°) · 균형 정확도 %.2f" % (
         보.sum(), 회.sum(), *n, np.degrees(np.arctan2(-n[0], n[1])), 값), flush=True)
     c = dict(c); c["대포색"] = (n[0], n[1], o); return c
+
+
+def 대포꺾인컷(c):
+    """대포 경계를 꺾인 평면 둘로: 안쪽(x < xb) 과 바깥쪽(주둥이 쪽) 을 따로 맞춘 뒤 AND / OR 로 이어 붙인다.
+    두 면이 만나는 모서리에서 꺾이므로 셋째 면(세로 벽)이 생기지 않는다."""
+    _, R = 팔(c); M = (R & (Zi < c["R윗팔"])).any(1)
+    p = 색판(C.I["색앞"], 1); r, g, b = p[..., 0], p[..., 1], p[..., 2]
+    보 = (M & (b > .5) & (b > r + .05) & (b > g + .05))[M]; 회 = (M & (p.max(-1) < .35))[M]
+    xz = np.argwhere(M).astype(float)
+    법선들 = [np.array([np.cos(a), np.sin(a)]) for a in np.radians(np.arange(0, 360, 5))]
+    최 = None
+    for xb in np.quantile(xz[:, 0], np.linspace(.25, .75, 9)):
+        안 = xz[:, 0] < xb
+        if min((보 & 안).sum(), (회 & 안).sum(), (보 & ~안).sum(), (회 & ~안).sum()) < 10: continue
+        n1, o1, _ = _판별(xz[안], 보[안], 회[안], 법선들); n2, o2, _ = _판별(xz[~안], 보[~안], 회[~안], 법선들)
+        p1, p2 = xz @ n1 >= o1, xz @ n2 >= o2
+        for 합, q in (("and", p1 & p2), ("or", p1 | p2)):
+            값 = ((q & 보).sum() / 보.sum() + (~q & 회).sum() / 회.sum()) / 2
+            if 최 is None or 값 > 최[0]: 최 = (값, (n1[0], n1[1], o1), (n2[0], n2[1], o2), 합, xb)
+    각 = lambda v: np.degrees(np.arctan2(-v[0], v[1]))
+    print("  대포 꺾인 컷: xb %.0f · 안 %.0f° · 바깥 %.0f° · %s · 균형 정확도 %.2f" % (최[4], 각(최[1]), 각(최[2]), 최[3], 최[0]), flush=True)
+    c = dict(c); c["대포색"] = (최[1], 최[2], 최[3]); return c
+
+
+def 평면내보내기(이름표, 문턱=0.5):
+    """lab 의 맞닿은 부품 짝마다 이음면 평면 → 평면.json [{짝, 법선, 점, rms, 칸}] (격자 색인 좌표 · lab 과 같은 축).
+    이음 점 = 이웃한 두 칸의 가운데(칸 + 0.5·축). 한 짝이 평면 하나로 안 맞으면(rms > 문턱) k-평면으로 최대 3 개까지 나눈다."""
+    import json
+    lab = np.load(os.path.join(C.D, 이름표, "lab.npy")).astype(np.int32); 쌍 = {}
+    for a in range(3):
+        a0 = np.take(lab, range(0, N - 1), axis=a); a1 = np.take(lab, range(1, N), axis=a)
+        d = (a0 != a1) & (a0 > 0) & (a1 > 0); idx = np.argwhere(d).astype(float); idx[:, a] += 0.5
+        for P, p, q in zip(idx, a0[d], a1[d]): 쌍.setdefault((int(min(p, q)), int(max(p, q))), []).append(P)
+    def 맞춤(P):
+        c0 = P.mean(0); _, s, vt = np.linalg.svd(P - c0, full_matrices=True)     # 점 1~2 개면 법선은 아무 방향 (칸 수로 걸러 쓸 것)
+        return vt[2], c0, (s[2] if len(s) > 2 else 0.0) / np.sqrt(len(P))
+    def k평면(P, k):
+        n, c0, _ = 맞춤(P); _, _, vt = np.linalg.svd(P - c0, full_matrices=False)
+        t = (P - c0) @ vt[0]; 몫 = np.minimum((np.argsort(np.argsort(t)) * k) // len(P), k - 1)   # 긴 축으로 k 등분해서 시작
+        for _ in range(20):
+            면 = [맞춤(P[몫 == j]) if (몫 == j).sum() >= 3 else None for j in range(k)]
+            if any(m is None for m in 면): return None
+            거 = np.stack([np.abs((P - m[1]) @ m[0]) for m in 면], 1); 새 = 거.argmin(1)
+            if (새 == 몫).all(): break
+            몫 = 새
+        return [(m, (몫 == j).sum()) for j, m in enumerate(면)]
+    낼 = []
+    for (p, q), P in sorted(쌍.items()):
+        P = np.array(P)
+        면 = [(맞춤(P), len(P))]
+        for k in (2, 3):
+            if 면[0][0][2] <= 문턱 and len(면) == 1 or all(m[0][2] <= 문턱 for m in 면): break
+            if len(P) < 20 * k: break
+            새 = k평면(P, k)
+            if 새: 면 = 새
+        for (n, c0, rms), m in 면:
+            낼.append({"짝": [p, q], "법선": [round(float(v), 5) for v in n], "점": [round(float(v), 3) for v in c0],
+                      "rms": round(float(rms), 3), "칸": int(m)})
+    json.dump(낼, open(os.path.join(C.D, 이름표, "평면.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=0)
+    나쁨 = [e for e in 낼 if e["rms"] > 문턱]
+    print("  %s 평면.json: 짝 %d · 평면 %d · rms>%.1f 인 평면 %d (칸 %d)" % (이름표, len(쌍), len(낼), 문턱, len(나쁨), sum(e["칸"] for e in 나쁨)), flush=True)
 
 
 def 자동높이(c):
@@ -286,4 +353,6 @@ if __name__ == "__main__":
     c5 = 색컷(c4); 짓기("A5", c5, 가를 + ["L팔끝주황"], y스냅=3)              # (a)+(b)+(c)
     c6 = 색컷(기울스냅(스냅(자동높이(c0)))); 짓기("A6", c6, 가를 + ["L팔끝주황"], y스냅=3)
     c7 = 대포색컷(칼깊이컷(기울스냅(c3, 허벅지각=35))); 짓기("A7", c7, 가를)      # 칼 깊이 · 허벅지 ±35° · 대포 색
-    for n in sys.argv[1:] or ("A1", "A2", "A3", "A4", "A5", "A6", "A7"): C.채점(n)
+    c8 = 대포꺾인컷(c7); 짓기("A8", c8, 가를 + ["L팔끝주황"])                 # + 드라몬 머리 앞뒤 · 대포 꺾인 면 둘
+    for n in sys.argv[1:] or ("A1", "A2", "A3", "A4", "A5", "A6", "A7", "A8"): C.채점(n)
+    for n in ("A4", "A7", "A8"): 평면내보내기(n)

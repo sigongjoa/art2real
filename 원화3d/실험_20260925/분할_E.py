@@ -16,6 +16,7 @@ from scipy import ndimage
 
 t0 = time.time()
 판본 = sys.argv[1] if len(sys.argv) > 1 else "E1"
+판번 = int(판본[1:])
 D = r"G:\art2real\원화3d\out\분할후보"
 I = np.load(os.path.join(D, "입력.npz"))
 O, ux, z, 축i = I["O"], I["ux"], I["z"], float(I["축i"])
@@ -77,7 +78,7 @@ X, Zi = np.meshgrid(np.arange(N), np.arange(N), indexing="ij")
 팔2 = ((np.abs(X - 축i) > 20) & (Zi >= 62)) | ((X < 64) & (Zi >= 28))  # 워그레이몬 팔·칼 / 가루몬 팔·대포 (x, z)
 팔구 = O & 팔2[:, None, :]
 대 = O & ~팔구
-if 판본 >= "E1":
+if 판번 >= 1:
     # 대칭 구역은 왼쪽 반(x ≤ 축)의 색을 거울로 (팔 제외)
     j = np.round(2 * 축i - np.arange(N)).astype(int)
     오 = np.arange(N) > 축i
@@ -90,7 +91,7 @@ if 판본 >= "E1":
 블록 = np.zeros(O.shape, np.int32)
 for k in 자름: 블록[:, :, k:] += 1
 블록 = np.where(대, 블록, 99)  # 팔은 높이로 안 가름
-if 판본 >= "E3":  # 머리: 목 위 가운데 기둥 (|dx| ≤ 10.5) 을 옷깃 · 어깨에서 떼어 낸다 — 세로 평면 둘
+if 판번 >= 3:  # 머리: 목 위 가운데 기둥 (|dx| ≤ 10.5) 을 옷깃 · 어깨에서 떼어 낸다 — 세로 평면 둘
     머리 = (np.abs(X - 축i) <= 10.5)[:, None, :] & (Zi >= 150)[:, None, :]
     블록 = np.where(대 & 머리, 50, 블록)
 
@@ -153,7 +154,7 @@ def 거울라벨(lab):
     return 합치기(out, int(0.002 * O.sum()), 같은색=False)
 
 
-if 판본 < "E5":
+if 판번 < 5:
     # ── ④ 색 × 블록 연결 성분 ────────────────────────────────────
     키 = np.where(O, 색 * 100 + 블록, -1)
     lab = np.zeros(O.shape, np.int32); n = 0
@@ -170,9 +171,9 @@ if 판본 < "E5":
 
 
 
-if 판본 < "E5":
-    if 판본 >= "E2":
-        lab = 평면화(lab, 한계=1.5 if 판본 >= "E4" else 2.5)
+if 판번 < 5:
+    if 판번 >= 2:
+        lab = 평면화(lab, 한계=1.5 if 판번 >= 4 else 2.5)
         lab = 거울라벨(lab)
         _, lab = np.unique(lab, return_inverse=True); lab = lab.reshape(O.shape); lab = np.where(O, lab, 0)
 
@@ -203,7 +204,7 @@ def 크게보기(lab, 경로):
     Image.fromarray(im).resize((im.shape[1] * 4, im.shape[0] * 4), Image.NEAREST).save(경로)
 
 
-if "E5" <= 판본 < "E8":
+if 5 <= 판번 < 8:
     import 분할_A as A
     c4 = A.기울스냅(A.스냅(dict(A.컷)))
     AL, AR = A.팔(c4)
@@ -219,15 +220,15 @@ if "E5" <= 판본 < "E8":
     j = np.round(2 * 축i - np.arange(N)).astype(int).clip(0, N - 1)
     m = 대 & (np.arange(N) > 축i)[:, None, None] & 대[j]
     색2 = np.where(m, 색2[j], 색2)
-    최소 = int((0.005 if 판본 >= "E6" else 0.003) * O.sum()); 새 = set(); 기록 = []
+    최소 = int((0.005 if 판번 >= 6 else 0.003) * O.sum()); 새 = set(); 기록 = []
     for p in range(1, n0 + 1):
         M = lab == p
         c = 색2[M]; c = c[c >= 0]
         if not len(c): continue
         주 = np.bincount(c).argmax()
         for k in np.unique(c):
-            if k == 주 or (판본 >= "E6" and 주 in (0, 1) and k in (0, 1)): continue   # E6~: 흰↔검 은 안 가름 (먹 · 음영 흔적이 많다)
-            판부 = 판본 >= "E7" and (M & 대).sum() > 0.5 * M.sum() and 주 == 0 and k == 2   # 대칭 구역 흰 위 파랑 = 가슴 무늬 판
+            if k == 주 or (판번 >= 6 and 주 in (0, 1) and k in (0, 1)): continue   # E6~: 흰↔검 은 안 가름 (먹 · 음영 흔적이 많다)
+            판부 = 판번 >= 7 and (M & 대).sum() > 0.5 * M.sum() and 주 == 0 and k == 2   # 대칭 구역 흰 위 파랑 = 가슴 무늬 판
             A_ = ndimage.binary_closing(M & (색2 == k), iterations=5 if 판부 else 2) & M   # 가는 무늬 사이를 메워 판 하나로
             l, nk = ndimage.label(A_)
             크 = np.bincount(l.ravel()); 크[0] = 0
@@ -258,13 +259,13 @@ def 색평면(P, 색v, 주, k):
     return 최
 
 
-if 판본 >= "E8":
+if 판번 >= 8:
     from skimage.morphology import convex_hull_image
     import 분할_A as A
     c4 = A.기울스냅(A.스냅(dict(A.컷)))
     AL, AR = A.팔(c4)
     대 = O & ~AL & ~AR
-    뼈 = "A7" if 판본 >= "E9" else "A4"
+    뼈 = "A7" if 판번 == 9 else "A4"
     lab = np.load(os.path.join(D, 뼈, "lab.npy")).astype(np.int32); lab = np.where(O, lab, 0)
     n0 = lab.max(); T = 3
     d앞, d뒤 = iy - 앞, 뒤 - iy
@@ -286,6 +287,7 @@ if 판본 >= "E8":
             k = 후[0]; P = np.argwhere(M).astype(float)
             값, n, o = 색평면(P, 색2[M], 주, k)
             q = P @ n >= o; 크 = q.sum(), (~q).sum()
+            if 판번 >= 10: q &= np.abs(P[:, 0] - 축i) > 20.5; 크 = q.sum(), (~q).sum()   # 몸통 옆 띠(|dx| ≤ 20, 채점 대칭 구역)엔 색 이음을 안 낸다
             if 값 < 0.75 or min(크) < 최소: break
             v = lab.max() + 1; idx = P[q].astype(int); lab[idx[:, 0], idx[:, 1], idx[:, 2]] = v; 새.add(v)
             기록.append((p, 이름[주], 이름[k], "법선(%.2f,%.2f,%.2f)" % tuple(n), round(float(값), 2), int(크[0])))
@@ -297,6 +299,11 @@ if 판본 >= "E8":
     if 파.sum() > 20:
         껍 = convex_hull_image(파)
         판M = 대 & 껍[:, None, :] & (d앞 <= T) & (lab > 0)
+        if 판번 >= 10:
+            # 껍질 밖 부스러기: 판이 먹은 가슴 앞 부품의 앞 겉이 겨드랑이에 조각으로 남는다 → 그 부품 앞 T 칸을 판에 다 넣고 좌우 교집합으로 거울 맞춤
+            q = np.bincount(lab[판M]).argmax()
+            판M = 판M | ((lab == q) & (d앞 <= T))
+            판M = 판M & 판M[j]
         v = lab.max() + 1; lab[판M] = v; 새.add(v); 기록.append(("가슴판", int(판M.sum())))
     print("색 부품 %d 개:" % len(새), 기록, flush=True)
     lab = 평면화(lab, 한계=1.5, 새=새)
@@ -305,4 +312,19 @@ if 판본 >= "E8":
     os.makedirs(os.path.join(D, 판본), exist_ok=True)
     np.save(os.path.join(D, 판본, "lab.npy"), lab.astype(np.int16))
     크게보기(lab, os.path.join(D, 판본, "크게.png"))
+    if 판번 >= 10:  # 이웃 짝마다 경계 칸에 맞춘 평면 (격자 색인 좌표 · 경계 칸 = 짝의 작은 색인 쪽 칸 + 0.5 를 그 축으로)
+        짝 = {}
+        for a in range(3):
+            a0 = np.take(lab, range(0, N - 1), axis=a); a1 = np.take(lab, range(1, N), axis=a)
+            d = (a0 != a1) & (a0 > 0) & (a1 > 0)
+            P = np.argwhere(d).astype(float); P[:, a] += 0.5
+            for pt, p, q in zip(P, a0[d], a1[d]): 짝.setdefault((int(min(p, q)), int(max(p, q))), []).append(pt)
+        평 = []
+        for (p, q), pts in sorted(짝.items()):
+            P = np.array(pts); c = P.mean(0); _, sv, vt = np.linalg.svd(P - c, full_matrices=False); n = vt[-1]
+            if (lab[tuple(np.clip(np.round(c + 2 * n), 0, N - 1).astype(int))] == p): n = -n   # 법선은 a → b 쪽
+            평.append({"짝": [p, q], "법선": [round(float(v), 5) for v in n], "점": [round(float(v), 3) for v in c],
+                      "rms": round(float(sv[-1] / np.sqrt(len(P))), 3), "칸": len(P)})
+        json.dump(평, open(os.path.join(D, 판본, "평면.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=0)
+        print("평면 %d 짝 · rms 중앙 %.2f · 최대 %.2f" % (len(평), np.median([e["rms"] for e in 평]), max(e["rms"] for e in 평)))
     print(판본, "(뼈대 %s) 부품" % 뼈, lab.max(), "· %.1f s" % (time.time() - t0))
