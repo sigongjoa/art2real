@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>부품 속 — 오메가몬</title>
+<style>
+:root{--bg:#f4f4f1;--card:#fff;--line:#deded8;--ink:#1d1d1b;--sub:#77776f;--acc:#0a6cff}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:13px/1.5 "Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif}
+#v{position:fixed;inset:0}
+.card{position:fixed;background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+#top{left:12px;top:12px;right:12px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+#top h1{font-size:15px;margin:0}
+#top .s{color:var(--sub)}#top .s b{color:var(--ink)}
+input[type=range]{width:160px;accent-color:var(--acc)}
+button{font:inherit;padding:5px 10px;border:1px solid var(--line);border-radius:8px;background:#fafaf8;cursor:pointer}
+button.on{background:var(--ink);color:#fff}
+#side{right:12px;top:70px;bottom:12px;width:300px;overflow:auto}
+#side h2{font-size:12px;color:var(--sub);margin:6px 0;font-weight:600}
+.it{display:flex;gap:6px;align-items:center;padding:4px;border-bottom:1px solid #f0f0ec;cursor:pointer}
+.it:hover{background:#f7f7f4}.it.sel{background:#eaf2ff}
+.dot{width:10px;height:10px;border-radius:3px;flex:none}
+.it .n{flex:1}.it .m{color:var(--sub);font-size:12px}
+.pc{padding:3px 0 3px 16px;color:#333;display:flex;justify-content:space-between;gap:6px}
+.pc .m{color:var(--sub);font-size:12px;white-space:nowrap}
+#legend{left:12px;bottom:12px;color:var(--sub);font-size:12px;max-width:520px}
+@media(max-width:700px){#side{top:auto;height:40%;left:12px;right:12px;width:auto}#legend{display:none}}
+</style></head><body>
+<div id="v"></div>
+<div class="card" id="top">
+  <h1>부품 속 — 오메가몬</h1><span class="s" id="sum"></span>
+  <label>벌리기 <input id="ex" type="range" min="0" max="1" step=".01" value=".35"></label>
+  <button id="all" class="on">전체</button>
+  <label><input id="solo" type="checkbox"> 고른 부품만</label>
+</div>
+<div class="card" id="side"><h2>부품 — 누르면 그 부품의 조각이 벌어진다</h2><div id="list"></div></div>
+<div class="card" id="legend">색 = 블록 · 회색 = 관절 부품(볼 · 폴리캡 · 플러그) · 반쪽은 속이 빈 컵(벽 1.2 mm)이고 속 기둥(보스) 두 개 — 한쪽 보스에 핀, 다른 쪽에 구멍 · 전고 125 mm</div>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+<script type="module">
+import * as THREE from "three";
+import {OrbitControls} from "three/addons/controls/OrbitControls.js";
+const D = __DATA__;
+const b64 = (s, T) => { const b = atob(s), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return new T(u.buffer) };
+const R = new THREE.WebGLRenderer({antialias: true}); R.setPixelRatio(devicePixelRatio); R.setClearColor(0xf4f4f1);
+document.getElementById("v").appendChild(R.domElement);
+const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(35, 1, 1, 2000);
+cam.position.set(110, 30, 300);
+const ctl = new OrbitControls(cam, R.domElement); ctl.enableDamping = true;
+scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8a80, 1.6));
+const L = new THREE.DirectionalLight(0xffffff, 1.6); L.position.set(80, 120, 150); scene.add(L);
+const L2 = new THREE.DirectionalLight(0xffffff, .6); L2.position.set(-100, 40, -120); scene.add(L2);
+
+// 부품마다 중심 (몸 중심에서 벌어지는 방향)
+const 부품중심 = {};
+const items = D.map(d => {
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.BufferAttribute(b64(d.v, Float32Array), 3));
+  g.setIndex(new THREE.BufferAttribute(b64(d.f, Uint32Array), 1)); g.computeVertexNormals(); g.computeBoundingBox();
+  const m = new THREE.Mesh(g, new THREE.MeshStandardMaterial({color: d.색, roughness: .65, metalness: 0, side: THREE.DoubleSide, transparent: true}));
+  const c = g.boundingBox.getCenter(new THREE.Vector3());
+  const key = d.조각.replace(/ (앞|뒤|왼|오|위|아래)$/, "").replace(/ — .*/, "");
+  (부품중심[key] ??= []).push(c);
+  scene.add(m); return {d, m, c, key};
+});
+for (const k in 부품중심) { const a = 부품중심[k], s = new THREE.Vector3(); a.forEach(v => s.add(v)); 부품중심[k] = s.multiplyScalar(1 / a.length) }
+
+let sel = null;
+function 배치() {
+  const e = +document.getElementById("ex").value, solo = document.getElementById("solo").checked;
+  for (const it of items) {
+    const 고름 = sel === it.key;
+    const 부품벌림 = 부품중심[it.key].clone().multiplyScalar(sel ? 0 : e * .9);        // 전체 보기: 부품끼리 벌어짐
+    const 반벌림 = it.d.벌림 ? new THREE.Vector3(...it.d.벌림).multiplyScalar((sel ? (고름 ? 1 : 0) : 1) * e * (고름 ? 40 : 14)) : new THREE.Vector3();
+    const 관절벌림 = it.d.종류 === "관절" && 고름 ? new THREE.Vector3(0, 0, e * 30) : new THREE.Vector3();
+    it.m.position.copy(부품벌림).add(반벌림).add(관절벌림);
+    it.m.visible = !(solo && sel && !고름);
+    it.m.material.opacity = sel && !고름 ? .12 : 1; it.m.material.depthWrite = !(sel && !고름);
+  }
+}
+// 목록: 부품 → 조각
+const 묶음 = {}; for (const it of items) (묶음[it.key] ??= []).push(it);
+const list = document.getElementById("list");
+list.innerHTML = Object.entries(묶음).map(([k, a]) => {
+  const c = a[0].d.색 === "#9a9a92" ? (a.find(x => x.d.종류 !== "관절")?.d.색 ?? "#999") : a[0].d.색;
+  const n = a.filter(x => x.d.종류 !== "관절").length;
+  return `<div class="it" data-k="${k}"><span class="dot" style="background:${c}"></span><span class="n">${k}</span><span class="m">${n} 조각${a.length > n ? " + 관절" : ""}</span></div>` +
+    a.map(x => `<div class="pc" data-k="${k}"><span>${x.d.조각.replace(k, "").trim() || "통"}${x.d.종류 === "관절" ? "" : ""}</span><span class="m">${x.d.치수.join("×")} mm · ${x.d.부피} cm³</span></div>`).join("");
+}).join("");
+list.onclick = e => { const r = e.target.closest("[data-k]"); if (!r) return; sel = sel === r.dataset.k ? null : r.dataset.k; 표시(); };
+document.getElementById("all").onclick = () => { sel = null; 표시() };
+document.getElementById("ex").oninput = 배치; document.getElementById("solo").onchange = 배치;
+function 표시() {
+  for (const el of list.querySelectorAll(".it")) el.classList.toggle("sel", el.dataset.k === sel);
+  document.getElementById("all").classList.toggle("on", !sel);
+  if (sel) { ctl.target.copy(부품중심[sel]) } else ctl.target.set(0, 0, 0);
+  배치();
+}
+const 조각수 = D.filter(d => d.종류 !== "관절").length, 관절수 = D.length - 조각수;
+const 부피 = D.filter(d => d.종류 !== "관절").reduce((a, d) => a + d.부피, 0);
+document.getElementById("sum").innerHTML = `출력 조각 <b>${조각수}</b> · 관절 부품 <b>${관절수}</b> · 합 ${부피.toFixed(1)} cm³ ≈ <b>${(부피 * 1.24).toFixed(0)} g</b> (PLA)`;
+function 크기() { const w = innerWidth, h = innerHeight; R.setSize(w, h); cam.aspect = w / h; cam.updateProjectionMatrix() }
+addEventListener("resize", 크기); 크기();
+if (location.hash) sel = decodeURIComponent(location.hash.slice(1)); 표시();
+R.setAnimationLoop(() => { ctl.update(); R.render(scene, cam) });
+</script>
+</body></html>

@@ -13,6 +13,7 @@ def 박기(path):
 c = "오메가몬"; src, base = H.CASES[c]["src"], H.art_dir(c)
 here = os.path.dirname(os.path.abspath(__file__))
 t = open(os.path.join(here, "키트설계.src.html"), encoding="utf-8").read()
+t = t.replace("__BASE__", open(os.path.join(here, "기본안_%s.json" % c), encoding="utf-8").read())
 t = t.replace("__FRONT__", 박기(os.path.join(base, src["front"]))).replace("__SIDE__", 박기(os.path.join(base, src["side"])))
 out = os.path.join(H.OUT, "키트설계_%s.html" % c); open(out, "w", encoding="utf-8").write(t)
 print(out, "%.0f KB" % (os.path.getsize(out) / 1024))
