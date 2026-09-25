@@ -33,13 +33,14 @@ button.on{background:var(--ink);color:#fff}
 </div>
 <div class="card" id="side"><h2>부품 — 누르면 그 부품의 조각이 벌어진다</h2><div id="list"></div></div>
 <div class="card" id="legend">색 = 블록 · 회색 = 관절 부품(볼 · 폴리캡 · 플러그) · 반쪽은 속이 빈 컵(벽 1.2 mm)이고 속 기둥(보스) 두 개 — 한쪽 보스에 핀, 다른 쪽에 구멍 · 전고 125 mm</div>
-<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
-<script type="module">
-import * as THREE from "three";
-import {OrbitControls} from "three/addons/controls/OrbitControls.js";
+<script>__THREE__</script>
+<script>
+const THREE = window.THREE, OrbitControls = window.OrbitControls;   // three.js 를 파일 안에 넣었다 — 미리보기 창은 외부 스크립트를 못 받는다
 const D = __DATA__;
 const b64 = (s, T) => { const b = atob(s), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return new T(u.buffer) };
-const R = new THREE.WebGLRenderer({antialias: true}); R.setPixelRatio(devicePixelRatio); R.setClearColor(0xf4f4f1);
+let R;
+try { R = new THREE.WebGLRenderer({antialias: true}) } catch (e) { document.getElementById("v").innerHTML = '<p style="padding:90px 20px">이 화면은 WebGL(3D)을 못 씁니다 — PC 브라우저에서 열어 주세요.</p>'; throw e }
+ R.setPixelRatio(devicePixelRatio); R.setClearColor(0xf4f4f1);
 document.getElementById("v").appendChild(R.domElement);
 const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(35, 1, 1, 2000);
 cam.position.set(110, 30, 300);
