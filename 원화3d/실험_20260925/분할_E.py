@@ -265,7 +265,10 @@ if 판번 >= 8:
     c4 = A.기울스냅(A.스냅(dict(A.컷)))
     AL, AR = A.팔(c4)
     대 = O & ~AL & ~AR
-    뼈 = "A7" if 판번 == 9 else "A4"
+    뼈 = "A9" if 판번 >= 12 else "A7" if 판번 == 9 else "A4"
+    뼈이름 = json.load(open(os.path.join(D, 뼈, "이름.json"), encoding="utf-8")) if 판번 >= 12 else {}
+    A뒤 = "앞"   # A 이름의 「앞」은 큰 y = 실제 뒤 (발끝 · 원화 앞 판은 작은 y) — 이름이 뒤집혀 있다
+    뺄 = ("L칼", "R대포", "L팔끝")                        # E12: 소켓 부품(칼 · 대포) · 이미 색으로 갈린 드라몬 머리 · 팔끝
     lab = np.load(os.path.join(D, 뼈, "lab.npy")).astype(np.int32); lab = np.where(O, lab, 0)
     n0 = lab.max(); T = 3
     d앞, d뒤 = iy - 앞, 뒤 - iy
@@ -277,7 +280,10 @@ if 판번 >= 8:
     # ① 팔 부품: 앞 블록(앞 겉 노출 ≥ 뒤 겉 노출)만 · 유채색이 낀 짝만 · 평면 한 장
     for p in range(1, n0 + 1):
         M = lab == p
-        if (M & 대).sum() > 0.5 * M.sum() or (M & 겉앞).sum() < (M & 겉뒤).sum(): continue
+        if 판번 >= 12:
+            nm = 뼈이름.get(str(p), "")
+            if nm.endswith(A뒤) or nm.startswith(뺄) or (M & 대).sum() > 0.5 * M.sum(): continue
+        elif (M & 대).sum() > 0.5 * M.sum() or (M & 겉앞).sum() < (M & 겉뒤).sum(): continue
         for _ in range(2):                                   # 한 부품에서 많아야 두 번
             M = lab == p; c = 색2[M]; c = c[c >= 0]
             if not len(c): break
@@ -304,15 +310,39 @@ if 판번 >= 8:
             q = np.bincount(lab[판M]).argmax()
             판M = 판M | ((lab == q) & (d앞 <= T))
             판M = 판M & 판M[j]
+        if 판번 >= 12:
+            판M &= ~np.isin(lab, [int(k) for k, v in 뼈이름.items() if v.endswith(A뒤)])
         v = lab.max() + 1; lab[판M] = v; 새.add(v); 기록.append(("가슴판", int(판M.sum())))
     print("색 부품 %d 개:" % len(새), 기록, flush=True)
+    if 판번 >= 12:
+        보호 = [int(k) for k, v in 뼈이름.items() if v.endswith(A뒤) or v.startswith(뺄)]
+        보칸 = np.isin(lab, 보호); 보값 = lab.copy()
     lab = 평면화(lab, 한계=1.5, 새=새)
+    if 판번 >= 12:   # 평면화가 흩뿌린 조각: 부품마다 가장 큰 덩어리만 두고 나머지는 평면화 전 번호로
+        for v in np.unique(lab[lab > 0]):
+            l, k = ndimage.label(lab == v)
+            if k > 1:
+                크 = np.bincount(l.ravel()); 크[0] = 0; 떨 = (l > 0) & (l != 크.argmax()); lab[떨] = 보값[떨]
+    if 판번 >= 12: lab[보칸] = 보값[보칸]; lab[~보칸 & np.isin(lab, 보호)] = 보값[~보칸 & np.isin(lab, 보호)]   # 평면화가 보호 부품을 넘나들지 않게
     판v = max(새) if 새 else -1
     색칸 = np.isin(lab, [v for v in 새 if v != 판v]); 판칸 = lab == 판v
-    lab = 거울라벨(lab)
-    _, lab = np.unique(lab, return_inverse=True); lab = lab.reshape(O.shape); lab = np.where(O, lab, 0)
+    if 판번 >= 12:   # 뼈대 번호를 지킨다 (A9 평면 · 이름 이어받기) — 뼈대는 이미 거울 · 새 부품은 팔(비대칭)과 거울 맞춘 가슴 판뿐
+        이름12 = dict(뼈이름)
+        for v in sorted(새): 이름12[str(v)] = "가슴판" if v == 판v else "색%d" % v
+    else:
+        lab = 거울라벨(lab)
+        _, lab = np.unique(lab, return_inverse=True); lab = lab.reshape(O.shape); lab = np.where(O, lab, 0)
+    if 판번 >= 12:   # 부스러기(< 50 칸, 가장 큰 덩어리 아님) → 가장 넓게 닿은 이웃
+        for v in np.unique(lab[lab > 0]):
+            l, k = ndimage.label(lab == v)
+            if k < 2: continue
+            크 = np.bincount(l.ravel()); 크[0] = 0
+            for i in np.nonzero((크 > 0) & (크 < 50))[0]:
+                m = l == i; 테 = ndimage.binary_dilation(m) & ~m & (lab > 0) & (lab != v)
+                if 테.any(): lab[m] = np.bincount(lab[테]).argmax()
     os.makedirs(os.path.join(D, 판본), exist_ok=True)
     np.save(os.path.join(D, 판본, "lab.npy"), lab.astype(np.int16))
+    if 판번 >= 12: json.dump(이름12, open(os.path.join(D, 판본, "이름.json"), "w", encoding="utf-8"), ensure_ascii=False)
     크게보기(lab, os.path.join(D, 판본, "크게.png"))
     if 판번 >= 10:  # 이웃 짝마다 경계 칸에 맞춘 평면 (격자 색인 좌표 · 경계 칸 = 짝의 작은 색인 쪽 칸 + 0.5 를 그 축으로)
         짝 = {}
@@ -322,6 +352,9 @@ if 판번 >= 8:
             P = np.argwhere(d).astype(float); P[:, a] += 0.5
             for pt, p, q in zip(P, a0[d], a1[d]): 짝.setdefault((int(min(p, q)), int(max(p, q))), []).append(pt)
         평 = []
+        뼈평 = {}
+        if 판번 >= 12:
+            for e in json.load(open(os.path.join(D, 뼈, "평면.json"), encoding="utf-8")): 뼈평.setdefault(tuple(e["짝"]), []).append(e)   # 한 짝에 평면 + 소켓 둘일 수 있다
         for (p, q), pts in sorted(짝.items()):
             P = np.array(pts); c = P.mean(0); _, sv, vt = np.linalg.svd(P - c, full_matrices=False); n = vt[-1]
             if (lab[tuple(np.clip(np.round(c + 2 * n), 0, N - 1).astype(int))] == p): n = -n   # 법선은 a → b 쪽
@@ -329,8 +362,10 @@ if 판번 >= 8:
             ax = np.abs(n)
             원천 = ("판" if "판" in (원(p), 원(q)) else "색" if "색" in (원(p), 원(q)) else
                   "가로" if ax[2] > .99 else "앞뒤" if ax[1] > .99 else "거울" if ax[0] > .99 and abs(c[0] - 축i) < 1.5 else "기운")
+            if 판번 >= 12 and p <= n0 and q <= n0 and (p, q) in 뼈평:
+                평 += 뼈평[(p, q)]; continue            # A9 항목 그대로 (원천 · 원통 포함)
             평.append({"짝": [p, q], "원천": 원천, "법선": [round(float(v), 5) for v in n], "점": [round(float(v), 3) for v in c],
                       "rms": round(float(sv[-1] / np.sqrt(len(P))), 3), "칸": len(P)})
         json.dump(평, open(os.path.join(D, 판본, "평면.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=0)
-        import collections; print(collections.Counter(e["원천"] for e in 평)); print("평면 %d 짝 · rms 중앙 %.2f · 최대 %.2f" % (len(평), np.median([e["rms"] for e in 평]), max(e["rms"] for e in 평)))
+        import collections; print(collections.Counter(e["원천"] for e in 평)); print("평면 %d 짝 · rms 중앙 %.2f · 최대 %.2f" % (len(평), np.median([e.get("rms", 0) for e in 평]), max(e.get("rms", 0) for e in 평)))
     print(판본, "(뼈대 %s) 부품" % 뼈, lab.max(), "· %.1f s" % (time.time() - t0))

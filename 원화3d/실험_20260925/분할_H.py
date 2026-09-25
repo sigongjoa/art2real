@@ -60,6 +60,9 @@ def 키트읽기(번호, 밀도=40.0):
     return P, L, 이름, np.array(역), h
 
 
+옮긴이름 = {}
+
+
 def 옮기기(번호):
     """오메가몬 몸(팔 뺀) 왼 반 + 가운데의 칸마다 키트 부품 번호 (0 = 없음)."""
     P, L, 이름, 역, h = 키트읽기(번호)
@@ -102,6 +105,7 @@ def 옮기기(번호):
         _, j = 나무.query(np.c_[k, np.full(len(k), tz)])
         lab[xs, ys, z] = L[j] + 1
     print("  %s 옮긴 부품:" % 번호, {이름[i]: int((lab == i + 1).sum()) for i in range(len(이름))}, flush=True)
+    옮긴이름[번호] = 이름
     return lab
 
 
@@ -200,6 +204,113 @@ def 앞뒤반(lab):
         y0 = int(np.argmax(M.sum((0, 2)))); n += 1; lab[M & (Y < y0)] = n
     return lab
 
+
+def 꺾은선(x, h, 최대=3, 줄임=0.3):
+    """h(x) 에 맞춘 이어진 꺾은선 (조각 1 ~ 최대). 조각을 늘려 RMS 가 줄임 칸 넘게 줄 때만 늘린다 → 함수 f(X)."""
+    x, h = np.asarray(x, float), np.asarray(h, float)
+    def 맞(꺾):
+        B = np.column_stack([np.ones_like(x), x] + [np.maximum(x - k, 0) for k in 꺾])
+        c = np.linalg.lstsq(B, h, rcond=None)[0]; return float(np.sqrt(np.mean((B @ c - h) ** 2))), c, list(꺾)
+    후 = np.unique(x)[2:-2] + .5
+    최 = 맞([])
+    if 최대 >= 2 and len(후):
+        새 = min((맞([k]) for k in 후), key=lambda t: t[0])
+        if 최[0] - 새[0] > 줄임: 최 = 새
+    if 최대 >= 3 and len(최[2]) == 1:
+        새 = min((맞([a, b]) for i, a in enumerate(후) for b in 후[i + 3:]), key=lambda t: t[0])
+        if 최[0] - 새[0] > 줄임: 최 = 새
+    r, c, 꺾 = 최
+    print("    꺾은선: 조각 %d · 꺾임 x %s · 기울기 %s · RMS %.2f 칸" % (len(꺾) + 1, [round(k, 1) for k in 꺾],
+          [round(float(v), 2) for v in np.cumsum(c[1:])], r), flush=True)
+    return lambda X_: c[0] + c[1] * X_ + sum(ck * np.maximum(X_ - k, 0) for ck, k in zip(c[2:], 꺾))
+
+
+def 짓기H5():
+    """A9 뼈대에 건담 키트 모양 둘만 이식: 허리/허벅지 경계 = V 스커트 꺾은 평면 · 무릎 아래(앞 반) = 뾰족 무릎 장갑 꺾은 평면.
+    모양(꺾은선)은 H1 전이 라벨에서 x 마다 이음 높이 중앙값 → 꺾은선 맞춤. 컷 면은 모두 법선 y = 0 인 평면 조각이다."""
+    import json, shutil
+    t0 = time.time(); d9 = os.path.join(C.D, "A9"); d5 = os.path.join(C.D, "H5")
+    lab = np.load(os.path.join(d9, "lab.npy")).astype(np.int32); lab = np.where(O, lab, 0); lab9 = lab.copy()
+    이름 = {int(k): v for k, v in json.load(open(os.path.join(d9, "이름.json"), encoding="utf-8")).items()}
+    id_ = {v: k for k, v in 이름.items()}
+    g = 옮기기("529278"); kn = 옮긴이름["529278"]
+    W, T, Cf = kn.index("Waist") + 1, kn.index("Right_thigh") + 1, kn.index("Right_calf") + 1
+    좌 = X < 축
+
+    def y가름(n):                                             # A 의 앞뒤 가름 y0 (Y < y0 쪽 라벨)
+        a, b = id_[n + "앞"], id_[n + "뒤"]
+        ya, yb = np.nonzero((lab == a).any((0, 2)))[0], np.nonzero((lab == b).any((0, 2)))[0]
+        return (yb.max() + 1, b, a) if yb.mean() < ya.mean() else (ya.max() + 1, a, b)
+    def 반쪽(n):
+        y0, 작, 큰 = y가름(n); return np.where(Y < y0, 작, 큰)
+
+    def 이음높이(위, 아래, S, 위쪽끝, 겉="작"):                  # (x,y) 기둥마다 위 부품 아래끝(또는 아래 부품 위끝) → x 마다 겉 3 기둥 중앙값
+        xs, h = [], []                                          # 겉 = 작은 y(앞 겉) · 큰 y(뒤 겉) — 눈에 보이는 이음선 모양
+        for x in range(축 - 3):
+            a = (g[x] == 위) & S[x]; b = (g[x] == 아래) & S[x]; ok = a.any(1) & b.any(1)
+            if ok.sum() < 2: continue
+            z = (N - 1 - np.argmax(b[:, ::-1], 1)) if 위쪽끝 else np.argmax(a, 1)
+            yy = np.nonzero(ok)[0]; yy = yy[:3] if 겉 == "작" else yy[-3:]
+            xs.append(x); h.append(float(np.median(z[yy])))
+        return xs, h
+
+    # ① V 스커트: 허리 ↔ 허벅지
+    ysW, _, _ = y가름("허리")
+    허 = np.isin(lab, [id_[n] for n in ("허리앞", "허리뒤", "L허벅지앞", "L허벅지뒤")]) & 좌 & (np.abs(X - 축) > 3)
+    lo = np.nonzero(np.isin(lab, [id_["L허벅지앞"], id_["L허벅지뒤"]]).any((0, 1)))[0].min() + 4
+    hi = np.nonzero(np.isin(lab, [id_["복부앞"], id_["복부뒤"]]).any((0, 1)))[0].min() - 3
+    면 = {}
+    for 쪽, S in (("작은y", Y < ysW), ("큰y", Y >= ysW)):
+        print("  V 스커트 %s:" % 쪽, flush=True); 면[쪽] = 꺾은선(*이음높이(W, T, S, False, 쪽[0]))
+    경 = np.clip(np.where(Y < ysW, 면["작은y"](X), 면["큰y"](X)), lo, hi)
+    lab[허] = np.where(Zi >= 경, 반쪽("허리"), 반쪽("L허벅지"))[허]
+    # ② 뾰족 무릎: 무릎 ↔ 정강이, 앞(작은 y) 반만 · 뒤는 원래 가로 컷
+    ysK, _, _ = y가름("L정강이")
+    무 = np.isin(lab, [id_[n] for n in ("L무릎", "L정강이앞", "L정강이뒤")]) & 좌
+    zK = np.nonzero((lab == id_["L무릎"]).any((0, 1)))[0]
+    print("  뾰족 무릎 (앞 반):", flush=True)
+    f = 꺾은선(*이음높이(T, Cf, Y < ysK, True))
+    경 = np.where(Y < ysK, np.clip(f(X) + 1, zK.min() - 6, zK.max() - 1), zK.min())
+    lab[무] = np.where(Zi >= 경, id_["L무릎"], 반쪽("L정강이"))[무]
+    # 거울: 왼 → 오른 (L 이름 → R 이름, 가운데 이름은 그대로)
+    바뀐 = [id_[n] for n in ("허리앞", "허리뒤", "L허벅지앞", "L허벅지뒤", "L무릎", "L정강이앞", "L정강이뒤")]
+    짝 = {k: id_.get("R" + 이름[k][1:], k) if 이름[k].startswith("L") else k for k in 바뀐}
+    오 = np.isin(lab9, list(set(짝.values()))) & (X > 축)
+    j = np.clip(2 * 축 - np.arange(N), 0, N - 1); 거 = lab[j]
+    쓸 = 오 & np.isin(거, 바뀐)
+    lab[쓸] = np.vectorize(lambda v: 짝.get(v, v))(거[쓸])
+    lab = A.조각정리(lab, O)
+    os.makedirs(d5, exist_ok=True)
+    for f_ in ("이름.json", "막대.json"): shutil.copy(os.path.join(d9, f_), os.path.join(d5, f_))
+    np.save(os.path.join(d5, "lab.npy"), lab.astype(np.int16))
+    크게보기(lab, os.path.join(d5, "크게.png")); C.채점("H5")
+    # 평면.json: A9 것 그대로 · 경계 칸이 달라진 짝만 새로 맞춰 갈아 끼운다
+    A.평면내보내기("H5")
+    새 = json.load(open(os.path.join(d5, "평면.json"), encoding="utf-8"))
+    옛 = json.load(open(os.path.join(d9, "평면.json"), encoding="utf-8"))
+    _, p9 = C.경계(lab9); _, p5 = C.경계(lab)
+    달라 = {k for k in set(p9) | set(p5) if sorted(p9.get(k, [])) != sorted(p5.get(k, []))}
+    달라 = {(int(a), int(b)) for a, b in 달라}
+    def 원천(e):
+        ns = [이름.get(v, "?") for v in e["짝"]]
+        if e["원천"].startswith("앞뒤") or e["원천"].startswith("소켓"): return e["원천"]
+        if any("무릎" in n for n in ns) and any("정강이" in n for n in ns): return "키트무릎"
+        if any("허리" in n for n in ns) and any("허벅지" in n for n in ns): return "키트V"
+        return e["원천"]
+    합 = [e for e in 옛 if tuple(e["짝"]) not in 달라]
+    for e in 새:
+        if tuple(e["짝"]) in 달라: e["원천"] = 원천(e); 합.append(e)
+    합.sort(key=lambda e: tuple(e["짝"]))
+    json.dump(합, open(os.path.join(d5, "평면.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=0)
+    print("  평면.json: A9 %d 항 → 바뀐 짝 %d · H5 %d 항 (키트V %d · 키트무릎 %d · rms>0.5 %d) · %.0f s" % (
+        len(옛), len(달라), len(합), sum(e["원천"] == "키트V" for e in 합), sum(e["원천"] == "키트무릎" for e in 합),
+        sum(e.get("rms", 0) > .5 for e in 합), time.time() - t0), flush=True)
+    for e in 합:
+        if e["원천"] in ("키트V", "키트무릎"): print("   ", e["짝"], [이름.get(v) for v in e["짝"]], e["원천"], e["법선"], e["rms"], e["칸"])
+
+
+if __name__ == "__main__" and sys.argv[1:] == ["H5"]:
+    짓기H5(); sys.exit()
 
 if __name__ == "__main__":
     t0 = time.time()
