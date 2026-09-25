@@ -149,7 +149,6 @@ def main(c="오메가몬"):
     n반 = sum(1 for x in 데 if x["종류"] != "관절"); n관 = len(데) - n반
     print("조각 %d (관절 %d) · 삼각형 %d · 닫힘 %d/%d" % (n반, n관, sum(len(t[4].faces) for t in 조각들), sum(x["닫힘"] for x in 데), len(데)))
     t = open(os.path.join(here, "부품속.src.html"), encoding="utf-8").read().replace("__DATA__", json.dumps(데, ensure_ascii=False))
-    t = t.replace("__THREE__", open(os.path.join(here, "three.iife.js"), encoding="utf-8").read())
     out = os.path.join(H.OUT, "부품속_%s.html" % c); open(out, "w", encoding="utf-8").write(t)
     print(out, "%.1f MB" % (os.path.getsize(out) / 2 ** 20))
 

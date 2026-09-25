@@ -1,29 +1,30 @@
-<!doctype html>
-<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>부품 속 — 오메가몬</title>
+<title>오메가몬 부품 속</title>
 <style>
-:root{--bg:#f4f4f1;--card:#fff;--line:#deded8;--ink:#1d1d1b;--sub:#77776f;--acc:#0a6cff}
+:root{--bg:#f4f4f1;--card:rgba(255,255,255,.92);--line:#deded8;--ink:#1d1d1b;--sub:#6f6f67;--acc:#0a6cff;--hov:#f0f0ea;--selbg:#e3edff}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#1b1c1a;--card:rgba(38,39,36,.92);--line:#3a3b37;--ink:#ecebe6;--sub:#a3a39a;--acc:#5c9dff;--hov:#2c2d2a;--selbg:#243552;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1b1c1a;--card:rgba(38,39,36,.92);--line:#3a3b37;--ink:#ecebe6;--sub:#a3a39a;--acc:#5c9dff;--hov:#2c2d2a;--selbg:#243552;color-scheme:dark}
 *{box-sizing:border-box}
-html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font:13px/1.5 "Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif}
-#v{position:fixed;inset:0}
-.card{position:fixed;background:rgba(255,255,255,.92);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
-#top{left:12px;top:12px;right:12px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--ink);font:13px/1.5 "Malgun Gothic","Apple SD Gothic Neo",system-ui,sans-serif}
+#v{position:fixed;inset:0}#v canvas{display:block}
+.card{position:fixed;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+#top{left:12px;top:calc(12px + env(safe-area-inset-top, 0px));right:12px;display:flex;gap:14px;align-items:center;flex-wrap:wrap}
 #top h1{font-size:15px;margin:0}
 #top .s{color:var(--sub)}#top .s b{color:var(--ink)}
 input[type=range]{width:160px;accent-color:var(--acc)}
-button{font:inherit;padding:5px 10px;border:1px solid var(--line);border-radius:8px;background:#fafaf8;cursor:pointer}
-button.on{background:var(--ink);color:#fff}
-#side{right:12px;top:70px;bottom:12px;width:300px;overflow:auto}
+button{font:inherit;padding:5px 10px;border:1px solid var(--line);border-radius:8px;background:var(--hov);color:var(--ink);cursor:pointer}
+button:focus-visible,.it:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+button.on{background:var(--ink);color:var(--bg)}
+#side{right:12px;top:calc(70px + env(safe-area-inset-top, 0px));bottom:calc(12px + env(safe-area-inset-bottom, 0px));width:300px;overflow:auto}
 #side h2{font-size:12px;color:var(--sub);margin:6px 0;font-weight:600}
-.it{display:flex;gap:6px;align-items:center;padding:4px;border-bottom:1px solid #f0f0ec;cursor:pointer}
-.it:hover{background:#f7f7f4}.it.sel{background:#eaf2ff}
+.it{display:flex;gap:6px;align-items:center;padding:4px;border-bottom:1px solid var(--line);cursor:pointer}
+.it:hover{background:var(--hov)}.it.sel{background:var(--selbg)}
 .dot{width:10px;height:10px;border-radius:3px;flex:none}
 .it .n{flex:1}.it .m{color:var(--sub);font-size:12px}
-.pc{padding:3px 0 3px 16px;color:#333;display:flex;justify-content:space-between;gap:6px}
+.pc{padding:3px 0 3px 16px;color:var(--ink);display:flex;justify-content:space-between;gap:6px}
 .pc .m{color:var(--sub);font-size:12px;white-space:nowrap}
-#legend{left:12px;bottom:12px;color:var(--sub);font-size:12px;max-width:520px}
+#legend{left:12px;bottom:calc(12px + env(safe-area-inset-bottom, 0px));color:var(--sub);font-size:12px;max-width:520px}
 @media(max-width:700px){#side{top:auto;height:40%;left:12px;right:12px;width:auto}#legend{display:none}}
-</style></head><body>
+</style>
 <div id="v"></div>
 <div class="card" id="top">
   <h1>부품 속 — 오메가몬</h1><span class="s" id="sum"></span>
@@ -33,21 +34,22 @@ button.on{background:var(--ink);color:#fff}
 </div>
 <div class="card" id="side"><h2>부품 — 누르면 그 부품의 조각이 벌어진다</h2><div id="list"></div></div>
 <div class="card" id="legend">색 = 블록 · 회색 = 관절 부품(볼 · 폴리캡 · 플러그) · 반쪽은 속이 빈 컵(벽 1.2 mm)이고 속 기둥(보스) 두 개 — 한쪽 보스에 핀, 다른 쪽에 구멍 · 전고 125 mm</div>
-<script>__THREE__</script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/build/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.147.0/examples/js/controls/OrbitControls.js"></script>
 <script>
-const THREE = window.THREE, OrbitControls = window.OrbitControls;   // three.js 를 파일 안에 넣었다 — 미리보기 창은 외부 스크립트를 못 받는다
+const OrbitControls = THREE.OrbitControls;
 const D = __DATA__;
 const b64 = (s, T) => { const b = atob(s), u = new Uint8Array(b.length); for (let i = 0; i < b.length; i++) u[i] = b.charCodeAt(i); return new T(u.buffer) };
 let R;
 try { R = new THREE.WebGLRenderer({antialias: true}) } catch (e) { document.getElementById("v").innerHTML = '<p style="padding:90px 20px">이 화면은 WebGL(3D)을 못 씁니다 — PC 브라우저에서 열어 주세요.</p>'; throw e }
- R.setPixelRatio(devicePixelRatio); R.setClearColor(0xf4f4f1);
+ R.setPixelRatio(devicePixelRatio); R.setClearColor(getComputedStyle(document.body).backgroundColor);
 document.getElementById("v").appendChild(R.domElement);
 const scene = new THREE.Scene(), cam = new THREE.PerspectiveCamera(35, 1, 1, 2000);
 cam.position.set(110, 30, 300);
 const ctl = new OrbitControls(cam, R.domElement); ctl.enableDamping = true;
-scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8a80, 1.6));
-const L = new THREE.DirectionalLight(0xffffff, 1.6); L.position.set(80, 120, 150); scene.add(L);
-const L2 = new THREE.DirectionalLight(0xffffff, .6); L2.position.set(-100, 40, -120); scene.add(L2);
+scene.add(new THREE.HemisphereLight(0xffffff, 0x8a8a80, .55));
+const L = new THREE.DirectionalLight(0xffffff, .75); L.position.set(80, 120, 150); scene.add(L);
+const L2 = new THREE.DirectionalLight(0xffffff, .3); L2.position.set(-100, 40, -120); scene.add(L2);
 
 // 부품마다 중심 (몸 중심에서 벌어지는 방향)
 const 부품중심 = {};
@@ -102,4 +104,3 @@ addEventListener("resize", 크기); 크기();
 if (location.hash) sel = decodeURIComponent(location.hash.slice(1)); 표시();
 R.setAnimationLoop(() => { ctl.update(); R.render(scene, cam) });
 </script>
-</body></html>
