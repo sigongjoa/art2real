@@ -13,7 +13,7 @@
   붙이기 = 조각을 모델 실루엣 안으로 1 mm 늘리고 곁 부품(실루엣 안 2.5 mm 둘레)을 뺀다 → 주인 겉면에 맞닿는 면으로 붙임(접착).
       주인은 안 판다 — 2 mm 껍질 가장자리에 홈을 파면 주인이 20 조각 넘게 쪼개졌다(09-26 첫 판).
   색 = 조각 원화에서 먹선(검)을 뺀 가장 많은 부류의 RGB 중앙값."""
-import os, sys, json, time, importlib.util as IU
+import os, sys, json, time, glob, importlib.util as IU
 import numpy as np, trimesh, manifold3d as M
 from scipy import ndimage
 from skimage import measure
@@ -24,8 +24,9 @@ _sp = IU.spec_from_file_location("색분할25", os.path.join(os.path.dirname(os.
 C = IU.module_from_spec(_sp); _sp.loader.exec_module(C)      # 이름 「색분할」 이 다른 실험 폴더와 겹쳐 경로로 읽는다
 
 OUT = os.path.join(DD.D, "돌출"); os.makedirs(OUT, exist_ok=True)
+ROOT가동 = os.path.join(os.path.dirname(DD.D), "..", "..", "가동")
 해상, X0, X1, Z0, Z1 = 0.25, -140.0, 140.0, -15.0, 330.0          # mm 격자
-최소거리, 최소넓이, 뿌리, 끝비율, 최대두께 = 3.0, 15.0, 2.5, 0.3, 6.0
+최소거리, 최소넓이, 뿌리, 끝비율, 최대두께, 최소부피 = 3.0, 15.0, 2.5, 0.3, 6.0, 160.0
 t_ = time.time()
 def log(*a): print("[%4.0fs]" % (time.time() - t_), *a, flush=True)
 
@@ -55,6 +56,7 @@ def 만폴드(tm):
     return m
 
 def main():
+    for f in glob.glob(os.path.join(OUT, "*.stl")): os.remove(f)          # 번호가 바뀌면 옛 STL 이 남는다
     부품 = DD.부품읽기(색분할=True)
     원f, 원b = DD.원화선("정면"), DD.원화선("뒤")
     앞, 이름들 = C.앞부품지도("정면", 부품)
@@ -63,7 +65,18 @@ def main():
     빠 = ndimage.binary_opening(빠, iterations=2)
     거리 = ndimage.distance_transform_edt(~Mo) * 해상
     가까 = ndimage.distance_transform_edt(~Mo, return_distances=False, return_indices=True)
-    옆 = 옆기둥(); lab, n = ndimage.label(빠)
+    # 09-26 검토: 돌출 9 개가 서로 다른 뼈의 부품에 걸쳐 붙어 관절을 잠갔다 → 빠진 조각을 「가장 가까운 모델 부품」으로 나누고
+    # 나눔 경계를 2 칸(0.5 mm) 비운다 — 조각 하나는 부품 하나에만 붙는다.
+    최근 = 주인지도[가까[0], 가까[1]]
+    경계 = np.zeros_like(빠)
+    for d in ((0, 1), (1, 0), (1, 1), (1, -1)):
+        경계 |= 빠 & np.roll(빠, d, (0, 1)) & (최근 != np.roll(최근, d, (0, 1)))
+    옆 = 옆기둥(); lab, n = ndimage.label(빠 & ~ndimage.binary_dilation(경계, iterations=1))
+    관절들 = []   # 관절 부품 · 뼈 실물 — 돌출은 여기서 0.3 떨어진다(발등 돌출이 발목 관절에 408 mm³ 파고들었다)
+    for f in glob.glob(os.path.join(ROOT가동, "관절배치", "*.stl")) + glob.glob(os.path.join(ROOT가동, "프레임", "*.stl")):
+        t = trimesh.load(f, force="mesh"); t.merge_vertices()
+        mm_ = M.Manifold(M.Mesh(vert_properties=np.asarray(t.vertices, np.float32), tri_verts=np.asarray(t.faces, np.uint32)))
+        if mm_.status() == M.Error.NoError and not mm_.is_empty(): 관절들.append((t.bounds, mm_))
     디스크 = lambda r: np.hypot(*np.mgrid[-r:r + 1, -r:r + 1]) <= r
     결과 = {"설명": __doc__, "부품": {}}; 목록 = []
     for i in range(1, n + 1):
@@ -71,9 +84,10 @@ def main():
         if 넓 < 최소넓이 or 멀 < 최소거리: continue
         근 = ndimage.binary_dilation(r, 디스크(int(뿌리 / 해상))) & Mo           # 주인 찾는 자리(모델 실루엣 안 2.5 mm)
         겹 = ndimage.binary_dilation(r, 디스크(int(1.0 / 해상))) & Mo             # 부품이 실루엣 안으로 들어가는 폭 1 mm — 곁 부품에 맞닿게 깎인다
-        주 = 주인지도[근]; 주 = 주[주 >= 0]
+        주 = 최근[r]; 주 = 주[주 >= 0]
         if not len(주): continue
-        주인 = 이름들[np.bincount(주).argmax()]; tm = 부품[주인][0]
+        k주 = np.bincount(주).argmax(); 주인 = 이름들[k주]; tm = 부품[주인][0]
+        겹 = 겹 & (주인지도 == k주)                                              # 실루엣 안으로는 주인 부품 자리로만
         ys, xs = np.nonzero(근 | r); xmm, zmm = gx[xs], gz[ys]
         V = np.asarray(tm.vertices); 곁 = (V[:, 0] >= xmm.min() - 3) & (V[:, 0] <= xmm.max() + 3) & (V[:, 2] >= zmm.min() - 3) & (V[:, 2] <= zmm.max() + 3)
         if 곁.sum() < 3: continue
@@ -87,10 +101,19 @@ def main():
             return np.c_[P[:, 0], yc + (P[:, 1] - yc) * f, P[:, 2]]
         층 = [판(cs, yc - Tr / 2, yc + Tr / 2).warp_batch(쐐기)]
         곁부품 = set(이름들[j] for j in np.unique(주인지도[ndimage.binary_dilation(근, iterations=8)]) if j >= 0)
-        m = (M.Manifold.batch_boolean(층, M.OpType.Add) ^ 옆) - M.Manifold.batch_boolean([만폴드(부품[q][0]) for q in 곁부품], M.OpType.Add)
+        집 = 주인.split("_")[0]                                                  # 같은 원부품(본체 · 끼움)은 맞닿아도 된다
+        남 = [만폴드(부품[q][0]) for q in 곁부품 if q.split("_")[0] != 집]
+        남 = [x.translate(list(0.3 * np.array(v))) for x in 남 for v in ((0, 0, 0), (1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1))]   # 다른 부품과 0.3 틈(붙이면 관절이 잠긴다)
+        m = (M.Manifold.batch_boolean(층, M.OpType.Add) ^ 옆) - M.Manifold.batch_boolean([만폴드(부품[q][0]) for q in 곁부품 if q.split("_")[0] == 집] + 남, M.OpType.Add)
+        lo, hi = np.array(m.bounding_box()[:3]) - 1, np.array(m.bounding_box()[3:]) + 1
+        곁관절 = [j for b, j in 관절들 if np.all(b[0] <= hi) and np.all(lo <= b[1])]
+        if 곁관절:
+            J = M.Manifold.batch_boolean(곁관절, M.OpType.Add)
+            m = m - M.Manifold.batch_boolean([J] + [J.translate(list(0.3 * np.array(v))) for v in ((1,0,0),(-1,0,0),(0,1,0),(0,-1,0),(0,0,1),(0,0,-1))], M.OpType.Add)
         ps = [p for p in m.decompose() if p.volume() >= 3.0]
         if not ps: continue
         m = M.Manifold.batch_boolean(ps, M.OpType.Add)
+        if m.volume() < 최소부피: continue          # 0.2 g 미만 — 나눈 뒤 생긴 부스러기 · 붙이기 어렵다(적게)
         c_ = rgb[r].astype(float) / 255; 부 = DD.색부류(c_[None])[0]; 밝 = 부 != 3
         주부류 = np.bincount(부[밝]).argmax() if 밝.any() else 3
         색 = np.median(c_[부 == 주부류], 0)
@@ -105,6 +128,7 @@ def main():
             부채나누기(m, 양).export(fn); wt = trimesh.load(fn).is_watertight
         결과["부품"][이름].update(닫힘=bool(wt), 부피mm3=round(m.volume(), 1), 무게g_PLA=round(m.volume() * 1.24e-3, 2))
         log(이름, "넓이 %.0f · 멀리 %.1f · y %.1f±%.1f · %.2f g · 닫힘 %s" % (넓, 멀, yc, T / 2, m.volume() * 1.24e-3, wt))
+    결과["입력해시"] = DD.입력해시(DD.선행["돌출"])
     json.dump(결과, open(os.path.join(OUT, "부품.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     log("돌출 %d · %.1f g" % (len(목록), sum(v["무게g_PLA"] for v in 결과["부품"].values())))
 

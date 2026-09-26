@@ -11,7 +11,7 @@
   · 패널라인 = 규칙(직선 · 45°) V 홈 폭 0.8 · 깊이 0.5 (두 계단 근사).
   · 가동: 무릎 뒤 파냄 · 무릎 장갑은 정강이에 핀 · 발목 · 발끝 힌지 둘레 원통 컷. 무릎 90/150 · 발목 ±30 · 고관절 앞차기 90 에서 교집합 부피를 잰다.
 좌표 = 관절.json: mm · 원점 발바닥 중앙 · [x 좌우, y 깊이(작은 y 가 앞), z 높이]."""
-import os, sys, json, time
+import os, sys, json, time, glob
 os.environ.setdefault("OMP_NUM_THREADS", "4"); os.environ.setdefault("INK_W", "1")
 import numpy as np, trimesh, manifold3d as M
 from scipy import ndimage
@@ -914,6 +914,19 @@ if __name__ == "__main__":
     for k in list(부): 부[k], 뗀[k] = 떼기(부[k])
     for k in list(중): 중[k], 뗀[k] = 떼기(중[k])
     부R = {k: 거울(m) for k, m in 부.items()}
+    # 09-26 검토: R 쪽만 관절 겹침(R정강이뒤 ∩ R무릎_자식 67 · R발등/발끝 72 · R허벅지뒤 26 mm³) — R 관절 배치가 L 의 정확한 거울이 아니다
+    #   → 거울 뒤 R 관절 실물(+0.3, 축 6 방향 밀기 합)을 한 번 더 뺀다.
+    R관절 = []
+    for f in glob.glob(os.path.join(ROOT, "out", "가동", "관절배치", "관절_R*.stl")):
+        t = trimesh.load(f, force="mesh"); t.merge_vertices()
+        mm_ = M.Manifold(M.Mesh(vert_properties=np.asarray(t.vertices, np.float32), tri_verts=np.asarray(t.faces, np.uint32)))
+        if mm_.status() == M.Error.NoError and not mm_.is_empty(): R관절.append(mm_)
+    if R관절:
+        RJ = 합(R관절); RJ = 합([RJ] + [RJ.translate(tuple(0.3 * np.array(v))) for v in ((1, 0, 0), (-1, 0, 0), (0, 1, 0), (0, -1, 0), (0, 0, 1), (0, 0, -1))])
+        for k in 부R:
+            뺀 = 부R[k] - RJ
+            if 부피(부R[k]) - 부피(뺀) > 0.5: 로그("  R 관절 여유 뺌", k, "%.1f mm³" % (부피(부R[k]) - 부피(뺀)))
+            부R[k] = 뺀
     실 = dict(L=실루엣오차(부, "L"), R=실루엣오차(부R, "R")); 로그("실루엣", json.dumps(실, ensure_ascii=False))
     자, 그림용 = 자세검사(부, 부R, 속); 로그("자세", json.dumps(자, ensure_ascii=False))
     제 = 제작검사(부, 중, 속); 로그("제작", json.dumps(제, ensure_ascii=False))

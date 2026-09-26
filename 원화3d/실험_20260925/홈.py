@@ -142,6 +142,7 @@ def main():
             부채나누기(m, 양).export(fn); wt = trimesh.load(fn).is_watertight
         결과["부품"][n] = dict(파일=n + ".stl", 색=list(map(float, 부품[n][1])), 닫힘=bool(wt), 조각=len(m.decompose()),
                              파낸mm3=round(만폴드(부품[n][0]).volume() - m.volume(), 1))
+    결과["입력해시"] = DD.입력해시(DD.선행["홈"])
     json.dump(결과, open(os.path.join(OUT, "부품.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     log("홈 판 부품 %d · 선 정면 %d 뒤 %d" % (len(파인), len(결과["선"].get("정면", [])), len(결과["선"].get("뒤", []))),
         {k: v for k, v in 결과["부품"].items() if not v["닫힘"] or v["조각"] > 1})

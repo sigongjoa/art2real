@@ -23,7 +23,7 @@ import 디테일대조 as DD
 from 메시출력 import 부채나누기
 
 D = DD.D; SRC = os.path.join(D, "머리어깨"); OUT = os.path.join(D, "색분할"); os.makedirs(OUT, exist_ok=True)
-틈, 턱, 겉층, 열기mm, 최소mm2, 부스러기mm3 = 0.15, 1.2, 1.0, 1.2, 25.0, 3.0
+틈, 턱, 겉층, 열기mm, 최소mm2, 부스러기mm3 = 0.15, 1.2, 1.0, 1.2, 100.0, 3.0   # 09-26 검토: 25 → 100 (작은 끼움 11 개가 0.3 g 미만 · 얼룩)
 대상 = {"정면": ["L팔끝앞", "L손앞", "R팔끝앞", "R손앞"], "뒤": ["L팔끝뒤", "L손뒤", "R팔끝뒤", "R손뒤"]}
 안쪽 = {"정면": 1.0, "뒤": -1.0}          # 겉에서 속으로 가는 y 방향
 부류이름 = {1: "흰회", 3: "검", 4: "금", 5: "주황", 6: "빨강", 7: "파랑", 8: "하늘"}
@@ -64,6 +64,8 @@ def 영역단면(mask, 보기):
     return M.CrossSection(polys, M.FillRule.EvenOdd).simplify(0.05) if polys else M.CrossSection()
 
 def main():
+    import glob
+    for f in glob.glob(os.path.join(OUT, "*.stl")): os.remove(f)
     부품 = DD.부품읽기(); 결과 = {"설명": __doc__, "대체": [], "부품": {}}; 보기그림 = []
     for 보기, 목록 in 대상.items():
         원 = DD.원화선(보기); 부 = 원["색"]; rgb = 원["rgb"].astype(np.float32) / 255
@@ -74,22 +76,26 @@ def main():
             바탕 = int(np.bincount(부[보임]).argmax()); part = 읽기(os.path.join(SRC, n + ".stl"))
             O = part - part.translate([0.011, 안쪽[보기] * 겉층, 0.017]); 속 = part - O   # x·z 흔듦: y 와 나란한 옆벽이 제자리에 겹쳐 붙는 것 막음
             본체 = part; 끼움들 = []; 도색 = []
-            for k in sorted(set(np.unique(부[보임])) - {0, 바탕}):
+            영역 = []
+            for k in sorted(set(np.unique(부[보임])) - {0, 바탕, 3}):      # 3 = 검: 먹선 · 음영 · 입속 — 끼우면 검은 얼룩이 됐다(09-26 검토) → 도색도 안 함
                 mk = ndimage.binary_opening(보임 & (부 == k), disk)
                 lab, nl = ndimage.label(mk)
                 for i in range(1, nl + 1):
-                    reg = lab == i
-                    if reg.sum() * s * s < 최소mm2:
-                        if reg.sum() * s * s >= 4.0: 도색.append((부류이름.get(k, str(k)), round(reg.sum() * s * s, 1)))
+                    reg = lab == i; 넓 = reg.sum() * s * s
+                    if 넓 < 최소mm2:
+                        if 넓 >= 4.0: 도색.append((부류이름.get(k, str(k)), round(넓, 1)))
                         continue
                     cs = 영역단면(reg, 보기)
-                    if cs.is_empty(): continue
-                    rd = lambda d: cs.offset(d, M.JoinType.Round)
-                    끼, _ = 추림((O ^ 기둥(cs)) + (속 ^ 기둥(rd(턱))))
-                    if 끼.is_empty(): continue
-                    본체 = 본체 - (O ^ 기둥(rd(틈))) - (속 ^ 기둥(rd(턱 + 틈)))
-                    c = np.median(rgb[reg], 0).round(3).tolist()
-                    끼움들.append(("%s_%s%d" % (n, 부류이름.get(k, str(k)), len(끼움들) + 1), 끼, c, round(reg.sum() * s * s, 1)))
+                    if not cs.is_empty(): 영역.append((k, reg, cs, 넓))
+            for i, (k, reg, cs, 넓) in enumerate(영역):
+                rd = lambda d, c=cs: c.offset(d, M.JoinType.Round)
+                남 = [c.offset(턱 + 틈, M.JoinType.Round) for j, (_, _, c, _) in enumerate(영역) if j != i]
+                턱cs = rd(턱) - M.CrossSection.batch_boolean(남, M.OpType.Add) if 남 else rd(턱)   # 이웃 끼움 턱끼리 겹침 482 mm³ → 이웃 쪽 턱 자리는 본체에 남긴다
+                끼, _ = 추림((O ^ 기둥(cs)) + (속 ^ 기둥(턱cs)))
+                if 끼.is_empty(): continue
+                본체 = 본체 - (O ^ 기둥(rd(틈))) - (속 ^ 기둥(턱cs.offset(틈, M.JoinType.Round)))
+                c = np.median(rgb[reg], 0).round(3).tolist()
+                끼움들.append(("%s_%s%d" % (n, 부류이름.get(k, str(k)), len(끼움들) + 1), 끼, c, round(넓, 1)))
             if not 끼움들: log(n, "바탕", 부류이름[바탕], "— 나눌 영역 없음"); continue
             본체, 버림 = 추림(본체)
             바탕색 = np.median(rgb[보임 & (부 == 바탕)], 0).round(3).tolist()
@@ -102,6 +108,7 @@ def main():
                 결과["부품"][이름] = dict(파일=이름 + ".stl", 색=c, 원래=n, 보기=보기, 원화넓이mm2=넓, 닫힘=bool(wt),
                                        조각=len(m.decompose()), 부피mm3=round(m.volume(), 1), 무게g_PLA=round(m.volume() * 1.24e-3, 2))
             log(n, "바탕", 부류이름[바탕], "끼움", len(끼움들), [(a, 넓) for a, _, _, 넓 in 끼움들], "도색(작은 영역)", 도색, "본체 부스러기 %.1f mm3" % 버림)
+    결과["입력해시"] = DD.입력해시(DD.선행["색분할"])
     json.dump(결과, open(os.path.join(OUT, "부품.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     작 = {k: v for k, v in 결과["부품"].items() if v["무게g_PLA"] < 0.3 or not v["닫힘"]}
     log("부품 %d (대체 %d) · 0.3 g 미만 또는 안 닫힘:" % (len(결과["부품"]), len(결과["대체"])), {k: (v["무게g_PLA"], v["닫힘"], v["조각"]) for k, v in 작.items()})

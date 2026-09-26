@@ -129,11 +129,25 @@ def 원화선(이름):
     return dict(A=A, rgb=im[:, :, :3], 종류=종류, 갈=갈, 색=부)
 
 # ── 모델 ──
+def 입력해시(blocks):
+    """블록들의 STL 전부 sha1 — 색분할 · 돌출 · 홈이 짓는 순간의 입력을 적어 두고, 읽을 때 같은지 본다(옛 STL 섞임 막기 · 09-26 검토)."""
+    import hashlib
+    h = hashlib.sha1()
+    for blk in blocks:
+        d = os.path.join(D, blk)
+        for f in sorted(os.listdir(d)):
+            if f.endswith(".stl"): h.update(f.encode("utf-8")); h.update(open(os.path.join(d, f), "rb").read())
+    return h.hexdigest()
+선행 = {"색분할": ("몸통", "다리", "머리어깨"), "돌출": ("몸통", "다리", "머리어깨", "색분할"), "홈": ("몸통", "다리", "머리어깨", "색분할", "돌출")}
 def 부품읽기(색분할=False, 돌출=False, 홈=False):
+    assert not 돌출 or 색분할, "돌출은 색분할 위에서 지었다"
+    assert not 홈 or (돌출 and 색분할), "홈은 색분할 · 돌출 위에서 지었다"
     """색분할=True 면 색분할/부품.json 의 부품을 더하고 「대체」 된 원래 부품을 뺀다."""
     부품 = {}
     for blk in ("몸통", "다리", "머리어깨") + (("색분할",) if 색분할 else ()) + (("돌출",) if 돌출 else ()) + (("홈",) if 홈 else ()):
-        info = json.load(open(os.path.join(D, blk, "부품.json"), encoding="utf-8"))["부품"]
+        J = json.load(open(os.path.join(D, blk, "부품.json"), encoding="utf-8")); info = J["부품"]
+        if blk in 선행 and J.get("입력해시") and J["입력해시"] != 입력해시(선행[blk]):
+            raise RuntimeError("%s 는 지금과 다른 입력으로 지었다 — %s.py 를 다시 돌려라" % (blk, blk))
         for n, p in info.items():
             f = os.path.join(D, blk, p.get("파일", n + ".stl"))
             if not os.path.exists(f): 부품[n] = None; continue
