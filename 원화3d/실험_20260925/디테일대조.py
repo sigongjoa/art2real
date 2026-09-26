@@ -129,10 +129,10 @@ def 원화선(이름):
     return dict(A=A, rgb=im[:, :, :3], 종류=종류, 갈=갈, 색=부)
 
 # ── 모델 ──
-def 부품읽기(색분할=False):
+def 부품읽기(색분할=False, 돌출=False):
     """색분할=True 면 색분할/부품.json 의 부품을 더하고 「대체」 된 원래 부품을 뺀다."""
     부품 = {}
-    for blk in ("몸통", "다리", "머리어깨") + (("색분할",) if 색분할 else ()):
+    for blk in ("몸통", "다리", "머리어깨") + (("색분할",) if 색분할 else ()) + (("돌출",) if 돌출 else ()):
         info = json.load(open(os.path.join(D, blk, "부품.json"), encoding="utf-8"))["부품"]
         for n, p in info.items():
             f = os.path.join(D, blk, p.get("파일", n + ".stl"))
@@ -293,9 +293,10 @@ def 겹침그림(base, 원rows, 모rows, 굵기=2):
 def 상자(A, pad=20):
     ys, xs = np.where(A); return max(ys.min() - pad, 0), min(ys.max() + pad, 1023), max(xs.min() - pad, 0), min(xs.max() + pad, 1023)
 
-색분할 = "--색분할" in sys.argv; 꼬리 = "_색분할" if 색분할 else ""   # python 디테일대조.py --색분할 → 디테일_대조_색분할.*
+색분할, 돌출 = "--색분할" in sys.argv, "--돌출" in sys.argv   # python 디테일대조.py --색분할 [--돌출] → 디테일_대조_색분할[_돌출].*
+꼬리 = ("_색분할" if 색분할 else "") + ("_돌출" if 돌출 else "")
 def main():
-    부품 = 부품읽기(색분할=색분할); 없 = [n for n, v in 부품.items() if v is None]
+    부품 = 부품읽기(색분할=색분할, 돌출=돌출); 없 = [n for n, v in 부품.items() if v is None]
     log("부품", len(부품) - len(없), "STL 없음", 없)
     결과 = {"설명": __doc__, "STL없는부품": 없, "보기": {}}; 그림 = {}
     for 이름 in ("정면", "옆", "뒤"):
