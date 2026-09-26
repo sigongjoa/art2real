@@ -94,6 +94,8 @@ def main():
         c_ = rgb[r].astype(float) / 255; 부 = DD.색부류(c_[None])[0]; 밝 = 부 != 3
         주부류 = np.bincount(부[밝]).argmax() if 밝.any() else 3
         색 = np.median(c_[부 == 주부류], 0)
+        주색 = np.asarray(부품[주인][1], float)
+        if DD.색부류(주색[None, None])[0, 0] == 주부류: 색 = 주색     # 같은 부류면 주인 색 그대로 — 원화 중앙값은 주인 색과 조금 달라 가짜 색 경계가 생긴다(발톱)
         이름 = "돌출%02d_%s" % (len(목록) + 1, 주인)
         목록.append(이름); 결과["부품"][이름] = dict(파일=이름 + ".stl", 색=색.round(3).tolist(), 주인=주인, 넓이mm2=round(넓, 1), 멀리mm=round(멀, 1),
                                                중심xz=[round(float(xmm.mean()), 1), round(float(zmm.mean()), 1)], y=[round(float(yc), 1), round(float(T), 1)])
