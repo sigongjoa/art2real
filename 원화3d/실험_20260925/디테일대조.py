@@ -129,9 +129,10 @@ def 원화선(이름):
     return dict(A=A, rgb=im[:, :, :3], 종류=종류, 갈=갈, 색=부)
 
 # ── 모델 ──
-def 부품읽기():
+def 부품읽기(색분할=False):
+    """색분할=True 면 색분할/부품.json 의 부품을 더하고 「대체」 된 원래 부품을 뺀다."""
     부품 = {}
-    for blk in ("몸통", "다리", "머리어깨"):
+    for blk in ("몸통", "다리", "머리어깨") + (("색분할",) if 색분할 else ()):
         info = json.load(open(os.path.join(D, blk, "부품.json"), encoding="utf-8"))["부품"]
         for n, p in info.items():
             f = os.path.join(D, blk, p.get("파일", n + ".stl"))
@@ -140,6 +141,8 @@ def 부품읽기():
             if isinstance(c, str): c = {"흰": (0.93, 0.93, 0.95), "검정": (0.22, 0.22, 0.25), "금": (0.9, 0.72, 0.2)}.get(c)
             if c is None: c = (0.3, 0.38, 0.75) if "파랑" in n else (0.22, 0.22, 0.25) if n.startswith("복부") else (0.9, 0.72, 0.2) if "금뿔" in n else (0.9, 0.9, 0.92)
             부품[n] = (trimesh.load(f), tuple(c))
+    if 색분할:
+        for n in json.load(open(os.path.join(D, "색분할", "부품.json"), encoding="utf-8"))["대체"]: 부품.pop(n)
     return 부품
 def 래스터(V, F, cx, r0, s, W=1024):
     """정사영 z 버퍼 (순수 numpy). V 는 화면 좌표 [X, Y, 깊이]. → 깊이 버퍼(mm · 배경 -inf), 삼각형 id(-1 배경)."""
@@ -290,8 +293,9 @@ def 겹침그림(base, 원rows, 모rows, 굵기=2):
 def 상자(A, pad=20):
     ys, xs = np.where(A); return max(ys.min() - pad, 0), min(ys.max() + pad, 1023), max(xs.min() - pad, 0), min(xs.max() + pad, 1023)
 
+색분할 = "--색분할" in sys.argv; 꼬리 = "_색분할" if 색분할 else ""   # python 디테일대조.py --색분할 → 디테일_대조_색분할.*
 def main():
-    부품 = 부품읽기(); 없 = [n for n, v in 부품.items() if v is None]
+    부품 = 부품읽기(색분할=색분할); 없 = [n for n, v in 부품.items() if v is None]
     log("부품", len(부품) - len(없), "STL 없음", 없)
     결과 = {"설명": __doc__, "STL없는부품": 없, "보기": {}}; 그림 = {}
     for 이름 in ("정면", "옆", "뒤"):
@@ -316,7 +320,7 @@ def main():
                           부위=표, 방법수=cnt, 방법예=예, 부위방법=부위방법)
         log(이름, "빠진 비율 %.3f · 방법 %s" % (빠L / oL, cnt))
         그림[이름] = (원, 모, 원rows, 모rows, 표)
-    json.dump(결과, open(os.path.join(D, "디테일_대조.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    json.dump(결과, open(os.path.join(D, "디테일_대조%s.json" % 꼬리), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 
     # 그림 1: 판 × (원화 선 | 모델 선 | 겹침)
     fig, axs = plt.subplots(3, 3, figsize=(27, 30))
@@ -330,7 +334,7 @@ def main():
                                      (겹침그림(base원, 원rows, 모rows), "%s 겹침 — 초록 짝 있음 · 빨강 빠짐 %.0f mm (%.0f%%) · 파랑 모델에만 %.0f mm" % (이름, v["빠진길이mm"], 100 * v["빠진비율"], v["모델만길이mm"])))):
             ax = axs[i, j]; ax.imshow(img[y0:y1, x0:x1]); ax.set_title(t, fontsize=11); ax.axis("off")
     fig.suptitle("오메가몬 원화 vs PG 디자인 판 — 선 대조 (2 mm 안 짝 · 부위 = 관절 높이 상자)", fontsize=16); fig.tight_layout(rect=[0, 0, 1, 0.985])
-    fig.savefig(os.path.join(D, "디테일_대조.png"), dpi=70); plt.close(fig); log("그림 1")
+    fig.savefig(os.path.join(D, "디테일_대조%s.png" % 꼬리), dpi=70); plt.close(fig); log("그림 1")
 
     # 그림 2: 가장 많이 빠진 부위 상위 5 (정면 · 빠진 길이 기준) — 원화 오림 | 모델 렌더 + 빠진 선 | 겹침
     원, 모, 원rows, 모rows, 표 = 그림["정면"]; f, cx, r0, s, R, sg = 보기["정면"]
@@ -350,8 +354,8 @@ def main():
                                      (겹침그림(0.55 + 0.45 * base원, [r for r in 원rows if r[1] == b], [r for r in 모rows if r[1] == b]), "겹침 · 빠짐 %.0f/%.0f mm (%.0f%%) · 종류 %s" % (v["빠진길이mm"], v["원화길이mm"], 100 * (v["빠진비율"] or 0), " ".join("%s %.0f" % kv for kv in v["빠진종류mm"].items()))))):
             ax = axs[i, j]; ax.imshow(img[y0:y1, x0:x1]); ax.set_title(t, fontsize=12); ax.axis("off")
     fig.suptitle("정면 · 빠진 선 길이 상위 5 부위", fontsize=16); fig.tight_layout(rect=[0, 0, 1, 0.985])
-    fig.savefig(os.path.join(D, "디테일_대조_상위5.png"), dpi=70); plt.close(fig); log("그림 2")
-    json.dump(결과, open(os.path.join(D, "디테일_대조.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    fig.savefig(os.path.join(D, "디테일_대조%s_상위5.png" % 꼬리), dpi=70); plt.close(fig); log("그림 2")
+    json.dump(결과, open(os.path.join(D, "디테일_대조%s.json" % 꼬리), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 
     # md
     L = ["# 디테일 대조 — 원화 선 vs PG 디자인 판 (2026-09-26)", "",
@@ -389,8 +393,8 @@ def main():
           "- 모델에만 있는 파랑 선은 원화에 없는 선 — 부품 이음·격자 계단·다면 모서리. 많으면 「공장 선」이 아니라 「부서진 면」으로 읽힌다.",
           "- 옆 판 원화에는 팔이 안 그려져 있다(어깨 돔 뒤로 숨김). 모델 옆 렌더의 팔 선은 전부 「모델에만」으로 센다 — 옆 모델만 수치는 그만큼 부풀어 있다.",
           "- 부위 상자 경계에 걸친 선분은 중점이 속한 쪽으로 센다. 팔끝은 어깨 상자(z > 232)에 가려 위쪽 가시가 어깨로 갈 수 있다."]
-    open(os.path.join(D, "디테일_대조.md"), "w", encoding="utf-8").write("\n".join(L))
-    log("끝", os.path.join(D, "디테일_대조.md"))
+    open(os.path.join(D, "디테일_대조%s.md" % 꼬리), "w", encoding="utf-8").write("\n".join(L))
+    log("끝", os.path.join(D, "디테일_대조%s.md" % 꼬리))
 
 if __name__ == "__main__":
     main()
