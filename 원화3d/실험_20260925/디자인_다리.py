@@ -91,6 +91,12 @@ def RDP(T, tol):
         if e[k] > tol: keep.add(i + 1 + k); 나눔(i, i + 1 + k); 나눔(i + 1 + k, j)
     나눔(0, len(T) - 1); return T[sorted(keep)]
 
+def 매끈(T, σ=3.0, 걸음=2.0, 허용=0.5):
+    """4바퀴: RDP 로 몇 장만 남기면 단면 높이마다 꺾임이 몰려 가로 띠가 보인다 → 1 mm 표를 σ mm 가우스로 펴고 걸음마다 단면."""
+    S = T.copy(); G = ndimage.gaussian_filter1d(T[:, 1:], σ, axis=0, mode="nearest")
+    S[:, 1:] = T[:, 1:] + np.clip(G - T[:, 1:], -허용, 허용)     # 원화 표에서 허용 mm 밖으로는 안 편다 (σ 3 만으로는 정강이 아랫단 나팔이 깎여 정면 발 빠짐 127→155)
+    k = np.unique(np.r_[np.arange(0, len(S), int(round(걸음))), len(S) - 1]); return S[k]
+
 # ════════ ② 단면 · 로프트 ════════════════════════════════════════
 def 팔각(a0, a1, b0, b1, c앞, c뒤):
     """(a, b) 평면 팔각. b 가 작은 쪽 = 앞(모따기 c앞)."""
@@ -220,7 +226,7 @@ def z단면(T, c앞, c뒤):
     return [(r[0], 둥근(팔각(r[1], r[2], r[3], r[4], c앞 * min(r[2] - r[1], r[4] - r[3]), c뒤 * min(r[2] - r[1], r[4] - r[3])), 둥글기 * min(r[2] - r[1], r[4] - r[3]))) for r in T]
 
 def 허벅지모양():
-    T = RDP(계열(허벅지아래, 허벅지위, -22, 허벅지덮기), 0.8)
+    T = 매끈(계열(허벅지아래, 허벅지위, -22, 허벅지덮기))
     S = z단면(T, 0.30, 0.22)
     겉 = 로프트(S); 안 = 로프트(S, d=-두께)
     안 = 자름(자름(안, Z, [0, 0, 허벅지아래 + 두께]), -Z, [0, 0, 허벅지위 - 두께])
@@ -231,7 +237,7 @@ def 허벅지모양():
     return dict(겉=겉, 안=안, 단면=T, 갈안=로프트(S, d=-(두께 - 0.3)) ^ 겉)
 
 def 정강이모양():
-    T = RDP(계열(정강이아래, 정강이위, -30, 정강이덮기), 0.8)
+    T = 매끈(계열(정강이아래, 정강이위, -30, 정강이덮기))
     S = z단면(T, 0.42, 0.25)                  # 앞 모따기 크게 = 앞 능선
     겉 = 로프트(S); 안 = 로프트(S, d=-두께)
     안 = 자름(자름(안, Z, [0, 0, 정강이아래 + 두께]), -Z, [0, 0, 정강이위 - 두께])
@@ -922,7 +928,12 @@ if __name__ == "__main__":
         if f.endswith(".stl"): os.remove(os.path.join(OUT, f))
     for 이름, m in [("L" + k, m) for k, m in 부.items()] + [("R" + k, m) for k, m in 부R.items()] + list(중.items()):
         f = os.path.join(OUT, "%s.stl" % 이름); 트(m).export(f)
-        wt, nc = 닫힘검사(f); k0 = 이름[1:] if 이름[0] in "LR" and 이름[1:] in 부 else 이름
+        wt, nc = 닫힘검사(f)
+        for 양 in (0.03, 0.06, 0.10):    # 떼기로도 남은 자기 접촉 정점 → 부채 나누기 (메시출력.py · 4바퀴 허벅지앞 모서리 5)
+            if wt: break
+            from 메시출력 import 부채나누기
+            부채나누기(m, 양).export(f); wt, nc = 닫힘검사(f)
+        k0 = 이름[1:] if 이름[0] in "LR" and 이름[1:] in 부 else 이름
         표[이름] = dict(뗀점=뗀.get(k0, 0), 부피mm3=round(부피(m), 1), 무게g=round(부피(m) * PLA, 2), 닫힘=wt, 조각=nc,
                       색="금" if "발톱" in 이름 else "검정" if any(s in 이름 for s in 검정) else "흰", 제작=제.get(k0))
     무게 = round(sum(v["무게g"] for v in 표.values()), 1)
