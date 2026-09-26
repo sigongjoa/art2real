@@ -861,6 +861,17 @@ for k, d in 부품.items():
             t2 = 부채나누기(m, 양); t2.export(fn); re = trimesh.load(fn, force="mesh"); wt = bool(re.is_watertight)
             if wt: break
         로그("  %s 부채 나누기·떼기 → 닫힘 %s" % (k, wt))
+        if not wt:   # 4바퀴: STL 왕복(정점 병합) → 부피 5 mm³ 미만 껍질 버림 → 부채 나누기 (R팔끝앞의 부피 0 껍질 47 개가 이걸로 닫혔다)
+            t2 = trimesh.load(fn, force="mesh"); t2.merge_vertices()
+            m2 = M.Manifold(M.Mesh(vert_properties=np.asarray(t2.vertices, np.float32), tri_verts=np.asarray(t2.faces, np.uint32)))
+            if m2.status() == M.Error.NoError and not m2.is_empty():
+                ps2 = [c for c in m2.decompose() if c.volume() >= 5.0]
+                if ps2:
+                    m2 = M.Manifold.batch_boolean(ps2, M.OpType.Add).simplify(0.02)
+                    for 양 in (0.03, 0.06, 0.10):
+                        부채나누기(m2, 양).export(fn); re = trimesh.load(fn, force="mesh"); wt = bool(re.is_watertight)
+                        if wt: m = m2; d["m"] = m; break
+                    로그("  %s STL 왕복 · 껍질 버림 → 닫힘 %s" % (k, wt))
         if not wt:   # 그래도 안 닫히면: 가장 큰 조각만 남기고(빈 속 버림) 다시
             ps = sorted([q for q in m.decompose() if q.volume() > 0], key=lambda q: -q.volume())
             if ps:
