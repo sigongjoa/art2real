@@ -31,9 +31,12 @@ K = 1.9; RHO = 1.24e-3          # g/mm³
 겹침문턱 = 0.5                  # mm³
 
 # ======================= 부품 읽기 (가장 새 판) =======================
+후 = "후" in sys.argv                                   # 고친 부품(부품_NN_조립.stl, EG_조립고침.py)으로 다시 잰다
+꼬리 = "_후" if 후 else ("_전" if "전" in sys.argv else "")   # 「전」 = 고친 검사기로 원본을 다시
 def 최신():
     best = {}
     for f in glob.glob(os.path.join(SRC, "부품_*.stl")):
+        if f.endswith("_조립.stl"): continue
         m = re.match(r"부품_(\d+)(?:_(v\d|무기4))?\.stl", os.path.basename(f)); n = int(m.group(1)); v = m.group(2) or "v2"
         r = {"v2": 2, "v3": 3, "v4": 4, "무기4": 0}[v]
         if n not in best or r > best[n][0]: best[n] = (r, f)
@@ -165,6 +168,10 @@ def 무기놓기():
     for n in (37, 51): 부품들["%02d" % n] = dict(n=n, T=T38.copy(), 색=회)
 무기놓기()
 무기 = {"03", "04", "25", "28", "37", "38", "51"}
+# 놓기는 원본 모양으로 정했다(중심 = 원본 상자 중심) → 고친 부품은 놓은 뒤에 바꿔 끼운다
+if 후:
+    for f in glob.glob(os.path.join(SRC, "부품_*_조립.stl")):
+        n = int(re.match(r"부품_(\d+)_조립\.stl", os.path.basename(f)).group(1)); P[n] = trimesh.load(f); 파일[n] = os.path.basename(f)
 
 def 메시(이름, T=None):
     d = 부품들[이름]; m = P[d["n"]].copy(); m.apply_transform(d["T"] if T is None else T @ d["T"])
@@ -381,7 +388,7 @@ if __name__ == "__main__":
         연결.append(줄); print(c, p, 방식, 줄["판정"], 줄.get("원인", ""), flush=True)
     결과["연결"] = 연결
 
-    json.dump(결과, open(os.path.join(OUT, "조립.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1, default=lambda o: o.tolist() if hasattr(o, "tolist") else str(o))
+    json.dump(결과, open(os.path.join(OUT, "조립%s.json" % 꼬리), "w", encoding="utf-8"), ensure_ascii=False, indent=1, default=lambda o: o.tolist() if hasattr(o, "tolist") else str(o))
 
     # ======================= ③ 가동 =======================
     몸부 = [k for k in 부품들 if k not in 무기]
@@ -390,16 +397,17 @@ if __name__ == "__main__":
         bs = 볼찾기(P[부품들[이름]["n"]]); c = [점(이름, b[2]) for b in bs]
         return min(c, key=lambda x: np.linalg.norm(x - 참조)) if c else np.asarray(참조, float)
     목볼 = 볼몸("06", [0, 0.3, z목 + 3]); 어깨볼 = 볼몸("R15", 어깨 + [-3, 0, 0]); 손목볼 = 볼몸("R26", 손목)
-    엉볼 = 볼몸("29", [-4.5, 0, 고관절[2]]); 배볼 = 볼몸("21", [0, 0, z배 - 2]); 발볼 = 점("R54", [Xb, 0, Zb])
+    엉볼 = 볼몸("29", [-4.5, 0, 고관절[2]]); 엉볼 = 엉볼 * [-1, 1, 1] if 엉볼[0] > 0 else 엉볼   # 09-27 고침: 원본 29 는 볼이 +X 에만 — 오른 다리를 왼 볼로 돌렸다
+    배볼 = 볼몸("21", [0, 0, z배 - 2]); 발볼 = 점("R54", [Xb, 0, Zb])
     팔꿈치축 = 점("R23", [3.0, 10.3, 1.65])
     X_, Y_, Z_ = np.eye(3)
     관절 = [  # 이름, 움직이는 뿌리, 중심, 축, (+ 방향 이름, − 방향 이름)
         ("목", "07", 목볼, X_, ("숙임", "들기")), ("목", "07", 목볼, Z_, ("왼쪽 돌림", "오른쪽 돌림")),
-        ("어깨(집게)", "R12", 어깨, X_, ("뒤로", "앞으로")), ("어깨(볼)", "R12", 어깨볼, Y_, ("옆 들기", "안으로(몸 쪽)")),
+        ("어깨(집게)", "R15", 어깨, X_, ("뒤로", "앞으로")), ("어깨(볼)", "R12", 어깨볼, Y_, ("옆 들기", "안으로(몸 쪽)")),
         ("팔꿈치", "R23", 팔꿈치축, X_, ("뒤로", "굽힘(앞)")), ("손목", "R26", 손목볼, X_, ("뒤", "앞")), ("손목", "R26", 손목볼, Y_, ("밖", "안")),
         ("허리", "27", 배볼, Z_, ("+", "−")),
         ("고관절", "R31", 엉볼, X_, ("뒤로", "앞차기")), ("고관절", "R31", 엉볼, Y_, ("벌리기", "안으로")),
-        ("무릎", "R44", 무릎몸, X_, ("굽힘(뒤)", "앞")), ("발목", "R52", 요람몸, X_, ("발끝 내림", "발끝 올림")), ("발목", "R52", 발볼, Y_, ("발바닥 바깥쪽으로", "발바닥 안쪽으로")),
+        ("무릎", "R44", 무릎몸, X_, ("굽힘(뒤)", "앞")), ("발목", "R54", 요람몸, X_, ("발끝 내림", "발끝 올림")), ("발목", "R52", 발볼, Y_, ("발바닥 바깥쪽으로", "발바닥 안쪽으로")),
     ]
     자손_ = {}
     for c, p, _, _ in 그래프:
@@ -423,12 +431,27 @@ if __name__ == "__main__":
         반경 = max(np.linalg.norm(몸[k].vertices - c0, axis=1).max() for k in 움) + 0.5
         고 = [k for k in 고 if np.linalg.norm(np.clip(c0, 몸[k].bounds[0], 몸[k].bounds[1]) - c0) < 반경]
         m움 = 합(움); m고 = 합(고); 기준 = (m움 ^ m고).volume()
+        # 후: 앞치마 34(+41 · 42)는 36 경첩(34↔36 「축」)으로 따로 돈다 — 다리에 밀리면 0~80° 들어 올려 비키는지 본다
+        연 = [k for k in ("34", "41", "42") if k in 고] if (후 and 이름 == "고관절") else []
+        if 연:
+            m고0 = 합([k for k in 고 if k not in 연]); m연 = 합(연); b34 = 몸["34"].bounds
+            경첩 = np.array([0, b34.mean(0)[1], b34[1][2] - 0.3]); 연기준 = (m연 ^ m고0).volume()
+        def 막힘(T):
+            mT = m움.transform(T[:3, :])
+            if (mT ^ m고).volume() - 기준 <= 겹침문턱: return False
+            if not 연: return True
+            v0 = (mT ^ m고0).volume()
+            for b in range(10, 81, 10):
+                for sb in (1, -1):
+                    mb = m연.transform(회전(X_, sb * b, 경첩)[:3, :])
+                    if v0 + (mT ^ mb).volume() + (mb ^ m고0).volume() - 연기준 - 기준 <= 겹침문턱: return False
+            return True
         줄 = dict(관절=이름, 축=np.round(ax, 2).tolist(), 중심=np.round(c0, 2).tolist(), 기준겹침mm3=round(기준, 2))
         for sgn, 방 in ((+1, 방향[0]), (-1, 방향[1])):
             한계, 누구 = 180, None
             for a in range(3, 181, 3):
                 T = 회전(ax, sgn * a, c0)
-                if (m움.transform(T[:3, :]) ^ m고).volume() - 기준 > 겹침문턱:
+                if 막힘(T):
                     한계 = a - 3; 쌍 = {}
                     for u in 움:
                         mu = MM[u].transform(T[:3, :])
@@ -478,7 +501,7 @@ if __name__ == "__main__":
         "한 발 앞 + 팔 앞": [(8, "R", -18), (11, "R", 18), (8, "L", 18), (11, "L", -18), (2, "R", -60), (4, "R", -60), (2, "L", -30)],
     }
     토크관절 = {"목": (0, "07", False), "어깨": (3, "R12", False), "팔꿈치": (4, "R23", False), "손목": (5, "R26", False), "허리": (7, "27", True),
-               "고관절": (8, "R31", True), "무릎": (10, "R44", True), "발목": (11, "R52", True)}
+               "고관절": (8, "R31", True), "무릎": (10, "R44", True), "발목": (11, "R54", True)}
     포징 = {}; 자세T = {}
     for 자, 각 in 자세들.items():
         T = 자세(각); 자세T[자] = T; g, m = 무게중심(T); poly = 지지(T); e = 여유(poly, g[:2])
@@ -499,7 +522,17 @@ if __name__ == "__main__":
         포징[자] = dict(무게중심mm=np.round(g, 2).tolist(), 무게g=round(m, 3), 지지안=bool(e > 0), 여유mm_체계=round(e, 2), 여유mm_실척=round(e * K, 2), 토크=토)
         print("포징", 자, 포징[자]["지지안"], 포징[자]["여유mm_체계"], flush=True)
     결과["포징"] = 포징
-    json.dump(결과, open(os.path.join(OUT, "조립.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1, default=lambda o: o.tolist() if hasattr(o, "tolist") else str(o))
+
+    # ======================= ⑤ 출력성: 실척(×1.9)에서 0.8 mm 보다 얇은 곳 =======================
+    # 속 격자(0.08 체계 = 0.15 실척)를 반지름 0.4 실척 공으로 열기(opening) — 공이 못 들어가는 속 = 얇은 벽. ponytail: 격자 5 칸짜리 근사
+    rv = 0.4 / K / 0.08; o = np.arange(-int(rv), int(rv) + 1); 공 = (o[:, None, None] ** 2 + o[None, :, None] ** 2 + o[None, None, :] ** 2) <= rv ** 2
+    얇음 = {}
+    for n in sorted({부품들[k]["n"] for k in 몸부}):
+        S_ = 격자(n)[0]; 열 = ndimage.binary_opening(S_, 공); t_ = (S_ & ~열).sum() * 0.08 ** 3 * K ** 3
+        얇음[str(n)] = dict(얇은mm3_실척=round(float(t_), 1), 비율=round(float((S_ & ~열).sum() / max(S_.sum(), 1)), 3))
+    결과["출력성"] = dict(기준="실척 두께 < 0.8 mm (opening 공 r 0.4)", 부품=얇음, 합mm3=round(sum(v["얇은mm3_실척"] for v in 얇음.values()), 1))
+    print("출력성 합", 결과["출력성"]["합mm3"], flush=True)
+    json.dump(결과, open(os.path.join(OUT, "조립%s.json" % 꼬리), "w", encoding="utf-8"), ensure_ascii=False, indent=1, default=lambda o: o.tolist() if hasattr(o, "tolist") else str(o))
 
     # ======================= 그림 =======================
     from shapely.geometry import Polygon
@@ -515,7 +548,7 @@ if __name__ == "__main__":
         ph = Image.open(os.path.join(KIT, f)).convert("RGB"); ph = ph.crop(box) if box else ph; ph.thumbnail((W, W))
         캔.paste(ph, (i * W + (W - ph.size[0]) // 2, 26)); 캔.paste(그리기(None, d, W, 무기도=True), (i * W, W + 50))
         dr.text((i * W + 6, 4), 이름 + "  [위 사진 | 아래 조립]", fill=(0, 0, 0), font=글꼴)
-    캔.save(os.path.join(OUT, "조립_사진대조.png"))
+    캔.save(os.path.join(OUT, "조립_사진대조%s.png" % 꼬리))
     칸 = []
     for j, 줄 in zip(관절, 가동):
         이름, 뿌, c0, ax, 방향 = j
@@ -529,7 +562,7 @@ if __name__ == "__main__":
             칸.append(im)
     열 = 6; 캔 = Image.new("RGB", (300 * 열, 300 * ((len(칸) + 열 - 1) // 열)), "white")
     for i, im in enumerate(칸): 캔.paste(im, ((i % 열) * 300, (i // 열) * 300))
-    캔.save(os.path.join(OUT, "가동한계.png"))
+    캔.save(os.path.join(OUT, "가동한계%s.png" % 꼬리))
     칸 = []
     for 자, T in 자세T.items():
         g = np.array(포징[자]["무게중심mm"]); poly = 지지(T)
@@ -543,4 +576,4 @@ if __name__ == "__main__":
             칸.append(im)
     캔 = Image.new("RGB", (380 * 2, 380 * len(자세T)), "white")
     for i, im in enumerate(칸): 캔.paste(im, ((i % 2) * 380, (i // 2) * 380))
-    캔.save(os.path.join(OUT, "포징.png")); print("그림 끝")
+    캔.save(os.path.join(OUT, "포징%s.png" % 꼬리)); print("그림 끝")
