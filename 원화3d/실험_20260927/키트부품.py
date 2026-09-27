@@ -12,17 +12,20 @@ from scipy import ndimage
 from skimage import measure
 
 D = r"G:\art2real\원화3d\out\키트\EG_RX78"
-부품표 = {"방패": dict(사진="d_egx01_j1.jpg", 상자=(800, 50, 940, 290), 색="빨강")}   # 상자 = 사진 화소 (x0, y0, x1, y1)
+부품표 = {"방패": dict(사진="d_egx01_j1.jpg", 상자=(800, 50, 940, 290), 색="빨강"),   # 상자 = 사진 화소 (x0, y0, x1, y1)
+         "정강이": dict(사진="d_egx01_j1.jpg", 상자=(615, 495, 715, 660), 색="흰"),
+         "정강이_짝": dict(사진="d_egx01_j1.jpg", 상자=(495, 495, 590, 662), 색="흰")}      # 거울 짝(다른 실물 부품) — held-out
 
 def 색마스크(rgb, 색):
     r, g, b = [rgb[..., i].astype(float) for i in range(3)]
     if 색 == "빨강": return (r > 110) & (r - g > 60) & (r - b > 50)
+    if 색 == "흰": return (g - r) > 3.0                     # 키트의 흰 PS 는 녹색 기가 돈다(g − r ≈ 6~9) · 배경 회색은 0
     raise ValueError(색)
 
 def 떼기(이름):
     p = 부품표[이름]; im = np.array(Image.open(os.path.join(D, p["사진"])).convert("RGB"))
     x0, y0, x1, y1 = p["상자"]; crop = im[y0:y1, x0:x1]
-    m = ndimage.binary_closing(색마스크(crop, p["색"]), iterations=2)
+    m = ndimage.binary_closing(ndimage.binary_opening(색마스크(crop, p["색"]), iterations=1), iterations=3)
     lab, n = ndimage.label(m); m = lab == (np.bincount(lab.ravel())[1:].argmax() + 1)
     겉 = ndimage.binary_fill_holes(m)
     # 주축 정렬: 긴 축을 세로로
@@ -44,7 +47,7 @@ if __name__ == "__main__":
     for t in np.arange(0, 1.001, 0.05):
         Y = (1 - t) * L * k; dr.line([(0, Y), (big.size[0], Y)], fill=(0, 0, 255) if round(t * 100) % 10 == 0 else (170, 170, 255))
         if round(t * 100) % 10 == 0: dr.text((2, Y + 1), "%.1f" % t, fill=(0, 0, 255))
-    for u in np.arange(-0.3, 0.301, 0.05):
+    for u in np.arange(-0.5, 0.501, 0.05):
         X = (cx + u * L) * k; dr.line([(X, 0), (X, big.size[1])], fill=(0, 140, 0) if round(u * 100) % 10 == 0 else (170, 220, 170))
         if round(u * 100) % 10 == 0: dr.text((X + 2, 2), "%.1f" % u, fill=(0, 120, 0))
     big.save(os.path.join(D, 이름 + "_격자.png"))
