@@ -17,18 +17,21 @@ import 디테일대조 as DD
 
 D = KP.D; OUT = os.path.join(D, "방패"); os.makedirs(OUT, exist_ok=True)
 L = 70.0                                   # 임의 척도 (mm)
-면폭, 낙차, 두께, 윗면z = 0.075, 0.030, 0.022, 0.050     # 정규(L 배) — 옆 면이 꺾이는 u · 가장자리까지 내려가는 양 · 판 두께 (가정)
+꺾임u, 낙차, 두께, 윗면z, 홈깊이 = 0.125, 0.030, 0.022, 0.050, 0.45     # 정규(L 배) — 옆 면이 꺾이는 u · 가장자리까지 내려가는 양 · 판 두께 (가정)
 창 = dict(u=0.093, v0=0.880, v1=0.955)      # 사진에서 읽음(좌우 평균)
 십자 = dict(세로=(0.035, 0.578), 가로v=0.352, 가로u=0.110, 폭=0.013)
 
 def 반폭곡선(겉):
-    """행마다 좌우 반폭 평균 → v(아래 0 → 위 1) 의 함수. 대칭화."""
+    """행마다 좌우 반폭 → v(아래 0 → 위 1) 의 함수. 대칭 부품: 좌우가 0.015 넘게 다르면 한쪽이 덜 잡힌 것(반사광 · 그림자) → 큰 쪽, 아니면 평균."""
     H, W = 겉.shape; cx = W / 2; v, w = [], []
     for r in range(H):
         xs = np.nonzero(겉[r])[0]
         if len(xs) == 0: continue
-        v.append(1 - (r + 0.5) / H); w.append(((cx - xs.min()) + (xs.max() + 1 - cx)) / 2 / H)
-    return np.array(v)[::-1], np.array(w)[::-1]
+        a, b = (cx - xs.min()) / H, (xs.max() + 1 - cx) / H
+        if min(a, b) < 0.05: continue                                  # 맨 위 · 아래 끝 줄(한쪽만 걸린 줄)
+        v.append(1 - (r + 0.5) / H); w.append(max(a, b) if abs(a - b) > 0.015 else (a + b) / 2)
+    v, w = np.array(v)[::-1], np.array(w)[::-1]
+    return np.r_[0.0, v, 1.0], np.r_[w[0], w, w[-1]]
 def rdp(P, tol):
     if len(P) < 3: return P
     a, b = P[0], P[-1]; d = b - a; n = np.linalg.norm(d)
@@ -41,32 +44,24 @@ def 기둥z(poly, z0, z1): return M.CrossSection([반시계(poly).tolist()]).ext
 
 def 짓기():
     g = np.load(os.path.join(D, "방패_정답.npz")); v, w = 반폭곡선(g["겉"])
-    P = rdp(np.c_[w, v], 0.010)                                      # 직선 다각형(실물은 직선 윤곽 — 0.004 는 화소 잡음까지 따라가 울퉁불퉁했다)
+    P = rdp(np.c_[w, v], 0.008)                                      # 직선 다각형
     윤곽 = np.vstack([P, (P * [-1, 1])[::-1]]) * L                   # (x, y) mm · y = 길이 방향
-    t, zt, b_, 낙 = 두께 * L, 윗면z * L, 면폭 * L, 낙차 * L
-    m = 기둥z(윤곽, 0.0, t).refine_to_length(0.8)
-    # 옆 면 꺾임: 아래 몸(v < 0.76)의 옆 가장자리에서 면폭 안쪽까지 기울어 내려간다 → 꺾임선이 가장자리와 나란하다(실물 · 런너 사진)
-    옆 = P[(P[:, 1] > 0.015) & (P[:, 1] < 0.77)] * L
-    seg = np.array([(옆[i], 옆[i + 1]) for i in range(len(옆) - 1)])
-    def 거리(Q):
-        d = np.full(len(Q), 1e9)
-        for a_, c_ in seg:
-            e = c_ - a_; u = np.clip(((Q - a_) @ e) / (e @ e), 0, 1); d = np.minimum(d, np.linalg.norm(Q - (a_ + u[:, None] * e), axis=1))
-        return d
+    t, zt = 두께 * L, 윗면z * L
+    판 = 기둥z(윤곽, 0.0, t)
+    사각 = lambda u0, v0, u1, v1, z0, z1: 기둥z(np.array([(u0, v0), (u1, v0), (u1, v1), (u0, v1)]) * L, z0, z1)
+    h = 십자["폭"] / 2; zg = (1 - 홈깊이) * t
+    홈 = [사각(-h, 십자["세로"][0], h, 십자["세로"][1], zg, t + 1), 사각(-십자["가로u"], 십자["가로v"] - h, 십자["가로u"], 십자["가로v"] + h, zg, t + 1),
+         기둥z(np.array([(0, 십자["가로v"] - 0.03), (0.022, 십자["가로v"]), (0, 십자["가로v"] + 0.03), (-0.022, 십자["가로v"])]) * L, zg, t + 1)]
+    홈 += [사각(sx * 십자["가로u"] - 0.012, 십자["가로v"] - 0.009, sx * 십자["가로u"] + 0.012, 십자["가로v"] + 0.009, zg, t + 1) for sx in (-1, 1)]   # 가로 끝 작은 네모
+    보스 = [M.Manifold.cylinder(0.35, 0.02 * L, 0.02 * L, 32).translate([sx * 0.128 * L, 0.805 * L, t - 0.05]) for sx in (-1, 1)]
+    m = (판 - 사각(-창["u"], 창["v0"], 창["u"], 창["v1"], -1, t + 1) - M.Manifold.batch_boolean(홈, M.OpType.Add)) + M.Manifold.batch_boolean(보스, M.OpType.Add)
+    m = m.refine_to_length(0.7)                                       # 홈 · 구멍 · 보스를 판 상태에서 넣고 → 잘게 나눈 뒤 → 한꺼번에 꺾는다
+    # 꺾임선은 가운데 축과 나란한 곧은 선(|u| = 꺾임u) · 옆 면은 평면(설명서 그림 · 실물 사진으로 확인 — 「가장자리와 나란」은 내가 잘못 읽은 것)
+    a_ = 꺾임u * L; 기울기 = 낙차 / (0.2 - 꺾임u)
     def 꺾기(V):
-        Q = np.c_[np.abs(V[:, 0]), V[:, 1]]; d = 거리(Q)
         위 = np.clip((0.78 * L - V[:, 1]) / (0.03 * L), 0, 1)             # 윗 블록(v > 0.78)은 평평
-        return np.c_[V[:, 0], V[:, 1], V[:, 2] + zt - 낙 * np.clip((b_ - d) / b_, 0, 1) * 위]
-    m = m.warp_batch(꺾기)
-    창m = 기둥z(np.array([(-창["u"], 창["v0"]), (창["u"], 창["v0"]), (창["u"], 창["v1"]), (-창["u"], 창["v1"])]) * L, -10, 20)
-    h = 십자["폭"] / 2
-    십 = [기둥z(np.array([(-h, 십자["세로"][0]), (h, 십자["세로"][0]), (h, 십자["세로"][1]), (-h, 십자["세로"][1])]) * L, -10, 20),
-         기둥z(np.array([(-십자["가로u"], 십자["가로v"] - h), (십자["가로u"], 십자["가로v"] - h), (십자["가로u"], 십자["가로v"] + h), (-십자["가로u"], 십자["가로v"] + h)]) * L, -10, 20),
-         기둥z(np.array([(0, 십자["가로v"] - 0.03), (0.022, 십자["가로v"]), (0, 십자["가로v"] + 0.03), (-0.022, 십자["가로v"])]) * L, -10, 20)]   # 가운데 마름모
-    홈 = M.Manifold.batch_boolean(십, M.OpType.Add) ^ (m - m.translate([0, 0, -0.45 * t]))          # 앞면 홈(관통 아님)
-    보스 = M.Manifold.batch_boolean([M.Manifold.cylinder(0.5, 0.02 * L, 0.02 * L, 32).translate([sx * 0.128 * L, 0.805 * L, zt + t - 0.1]) for sx in (-1, 1)], M.OpType.Add)
-    m = (m + 보스) - 창m - 홈
-    return m, P
+        return np.c_[V[:, 0], V[:, 1], V[:, 2] + zt - 기울기 * np.maximum(np.abs(V[:, 0]) - a_, 0) * 위]
+    return m.warp_batch(꺾기), P
 def 위실루엣(tm, H=400):
     """위에서 본 실루엣을 정규 격자(H 행 = 길이 1)로."""
     V = tm.vertices[:, [0, 1, 2]]; F = tm.faces; s = L / H; W = int(0.6 * L / s)
@@ -96,9 +91,14 @@ def iou(a, b): return float((a & b).sum() / max((a | b).sum(), 1))
 
 if __name__ == "__main__":
     m, P = 짓기(); g = m.to_mesh(); tm = trimesh.Trimesh(np.asarray(g.vert_properties)[:, :3], np.asarray(g.tri_verts), process=False)
-    tm.export(os.path.join(OUT, "방패.stl")); 닫힘 = bool(trimesh.load(os.path.join(OUT, "방패.stl")).is_watertight)
+    fn = os.path.join(OUT, "방패.stl"); tm.export(fn); 닫힘 = bool(trimesh.load(fn).is_watertight)
+    if not 닫힘:
+        from 메시출력 import 부채나누기
+        for 양 in (0.02, 0.04, 0.08):
+            부채나누기(m, 양).export(fn); 닫힘 = bool(trimesh.load(fn).is_watertight)
+            if 닫힘: tm = trimesh.load(fn); break
     모 = 위실루엣(tm); 모겉 = ndimage.binary_fill_holes(모)
-    결과 = dict(L_mm=L, 닫힘=닫힘, 부피mm3=round(m.volume(), 1), 윤곽꼭짓점=len(P) * 2, 가정=dict(면폭=면폭, 낙차=낙차, 두께=두께))
+    결과 = dict(L_mm=L, 닫힘=닫힘, 부피mm3=round(m.volume(), 1), 윤곽꼭짓점=len(P) * 2, 가정=dict(꺾임u=꺾임u, 낙차=낙차, 두께=두께, 홈깊이=홈깊이))
     그림 = []
     for 이름, 사진, 상자 in (("짓는 데 쓴 사진(j1)", "d_egx01_j1.jpg", KP.부품표["방패"]["상자"]), ("held-out(런너 사진 · 비스듬)", "d_egx01_runner.jpg", (56, 58, 224, 132))):
         겉, 색 = 정답실루엣(사진, 상자); best = None
