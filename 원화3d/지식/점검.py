@@ -15,7 +15,7 @@ def 점검(오늘=None):
         t = open(p, encoding="utf-8").read(); 이름 = os.path.relpath(p, R).replace("\\", "/")
         for l in re.findall(r"\]\(([^)#]+)\)", t):
             if not l.startswith("http") and not os.path.exists(os.path.normpath(os.path.join(os.path.dirname(p), l))): 문제.append("깨진 링크 %s → %s" % (이름, l))
-        if 이름.startswith(("규칙/", "부위/", "베이스/")) and 이름 not in 목차: 문제.append("목차에 없음 " + 이름)
+        if 이름.startswith(("규칙/", "부위/", "베이스/", "자료/")) and 이름 not in 목차: 문제.append("목차에 없음 " + 이름)
         if 이름.startswith("규칙/"):
             문제 += ["머리 칸 빠짐 %s: %s" % (이름, k) for k in 칸 if k not in t]
             for s in re.findall(r"`(실험_\d+/[^`]+\.py)`", t):
