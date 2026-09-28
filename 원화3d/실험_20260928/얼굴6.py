@@ -36,7 +36,7 @@ OUT = os.path.join(F3.ROOT, "out", "출력", "오메가몬_PG", "디자인_얼�
 z0 = 273.4                      # 누움 기준 높이(1 단 윗변 = 코 쐐기 바로 아래)
 누움 = float(np.tan(np.radians(각)))   # 5b: 0.15 (8.5°)
 단차 = 0.3
-y1 = -6.5                       # 1 단 가운데 앞면(z0) — 코 쐐기(−6.79)보다 살짝 뒤
+y1 = -5.2   # 6b: 마스크는 차양 밑으로 물러남(5d: −6.5 = 눈 아래가 가장 앞 → 주둥이)                       # 1 단 가운데 앞면(z0) — 코 쐐기(−6.79)보다 살짝 뒤
 #      윗변 반폭 · 윗변 z · 옆 모서리 반폭 · 옆 모서리 z · 가운데 V 끝 z — 5b 보다 좁고(8.8→7.0) 짧게(턱z 까지 비례)
 _s = (z0 - 턱z) / (273.4 - 262.1)
 def _z(z): return z0 - (273.4 - z) * _s
@@ -61,7 +61,7 @@ def 밑자르개(d, yb=8.0):         # 턱 끝(+d 위) 에서 뒤로 올라가�
 날개 = [(8.6, 276.4), (11.6, 277.2), (13.8, 272.5), (13.0, 266.4), (10.6, 268.4), (8.6, 271.0)]
 날개점 = [(x, 1.5 + 0.6 * (x - 9), z) for x, z in 날개] + [(x, 14.0, z) for x, z in 날개]
 날개덩이 = 덩이(날개점) + 덩이([(-x, y, z) for x, y, z in 날개점])
-코 = [(0, -6.9, 275.2), (2.6, -5.4, 274.0)]      # 바퀴 3: 콧등 점도 이마 능선 선에 맞춰 뒤로(얼굴 5: −7.6 · −5.8)
+코 = [(0, -5.8, 275.2), (2.6, -4.4, 274.0)]      # 바퀴 3: 콧등 점도 이마 능선 선에 맞춰 뒤로(얼굴 5: −7.6 · −5.8)
 
 def 미늘(k, pg, 위=()):
     앞 = [(x, 면y(x, z, k), z) for x, z in pg]
@@ -71,17 +71,24 @@ def 미늘(k, pg, 위=()):
 
 # 속심: 옛 주둥이턱 — 앞은 3 단 면 뒤 0.3 에서, 밑은 턱 끝에서 뒤로 올라가는 면에서 자른다(수평 밑면 · 상자 모서리 없음)
 표 = dict(T.표)
-부리 = 덩이(표.pop("부리")).trim_by_plane([0, 0, 1], 274.5)
+부리 = 덩이(표.pop("부리")).trim_by_plane([0, 0, 1], 274.5).trim_by_plane([0, 1, 0], -6.0)
+# 6b: 가장 앞은 눈 위 차양(FRA 옆모습) — 차양 앞변을 앞으로, 눈은 그 밑 깊이
+_차양 = {(0, -3.0, 281.0): (0, -6.8, 280.6), (6.0, -2.0, 282.4): (6.0, -4.4, 282.4), (10.6, 0.2, 281.0): (10.6, -1.0, 281.0)}
+assert all(p in 표["눈두덩"] for p in _차양); 표["눈두덩"] = [_차양.get(p, p) for p in 표["눈두덩"]]
 _자름 = 앞자르개(0.3) + 밑자르개(0.0)
 속심 = M.Manifold.batch_boolean([덩이(p) for p in 표.values()] + [부리, 덩이(T.능선)], M.OpType.Add) - _자름
+눈안 = 2.5   # 6b: 눈을 가운데로(눈 사이가 넓으면 물개) — 눈 면이 x 따라 뒤로 가므로 y 도 같이
+def 안으로(m):
+    b = m.bounding_box(); s = np.sign(b[0] + b[3]); return m.translate([-s * 눈안, -눈안 * 5.0 / 11.0, 0])
+창L, 창R = 안으로(E.창L), 안으로(E.창R)
 미늘합 = M.Manifold.batch_boolean(미늘들, M.OpType.Add) - 밑자르개(0.0)
 마스크 = 미늘합 ^ F3.앞반                                   # 6: 마스크는 따로 한 부품(투구 밑으로 들어감)
 새겉 = M.Manifold.batch_boolean([속심, 날개덩이], M.OpType.Add) ^ F3.앞반
 새속 = M.Manifold.batch_boolean([T.속(표[k]) for k in ("두개", "눈면", "주둥이턱")], M.OpType.Add) - 앞자르개(2.3) - 밑자르개(2.0)
 껍질 = (새겉 - 새속) + ((F3.옛["투구앞"] ^ 새속) ^ F3.앞반)
 가면 = V홈(껍질 - T.머리막 - F3.꽂는것, (0, -3.9, 285.0), (0, -6.2, 277.2), (0, -1, 0.3), 폭=0.6, 깊=0.5)
-가면 = max((가면 - E.창L - E.창R - 마스크).decompose(), key=lambda p: p.volume())
-마스크 = 마스크 - E.창L - E.창R - T.머리막 - F3.꽂는것
+가면 = max((가면 - 창L - 창R - 마스크).decompose(), key=lambda p: p.volume())
+마스크 = 마스크 - 창L - 창R - T.머리막 - F3.꽂는것
 때("가면")
 
 # 몸(목 둘레만) — 얼굴 5 와 같은 부품 · 깃 · 목은 얼굴 5 STL
@@ -97,8 +104,8 @@ for n in ("목깃옆L", "목깃옆R", "목깃안검정"): 몸[n] = F1.읽기(os.
 
 # ════════ 6: 부품 나눔(썸네일 단계 — 끄덕 · 틈 · 속 비움 검사는 고른 안만 나중에) ════════
 from 얼굴3 import 눈면y
-눈 = {n: F1.읽기(os.path.join(D5, n + ".stl")) for n in ("눈L", "눈R")}
-바탕 = {"눈바탕L": E.새["눈바탕L_v5"][0], "눈바탕R": E.새["눈바탕R_v5"][0]}
+눈 = {n: 안으로(F1.읽기(os.path.join(D5, n + ".stl"))) for n in ("눈L", "눈R")}
+바탕 = {"눈바탕L": 안으로(E.새["눈바탕L_v5"][0]), "눈바탕R": 안으로(E.새["눈바탕R_v5"][0])}
 부품 = {}
 if 안 == "A":   # 눈 면(흰 얼굴)을 떼어 검은 속머리로 · 1 mm 뒤로 물려 투구와 마스크 사이 틈으로 보이게
     띠영역 = M.Manifold()
@@ -120,7 +127,8 @@ def 그림():
     d = os.path.join(OUT, "_그림"); os.makedirs(d, exist_ok=True); jf, pf = os.path.join(d, "빠른.json"), os.path.join(d, "빠른.py")
     L = []
     for n, (m, c) in 부품.items(): 메(m).export(os.path.join(OUT, n + ".stl")); L.append((os.path.join(OUT, n + ".stl"), c))
-    L += [(os.path.join(F1.DES, "몸통", n + ".stl"), 색["흰"]) for n in ("가슴앞", "목깃")]
+    if "--머리만" in sys.argv: L = [l for l in L if "목깃" not in l[0]]
+    else: L += [(os.path.join(F1.DES, "몸통", n + ".stl"), 색["흰"]) for n in ("가슴앞", "목깃")]
     json.dump(dict(부품=L, out=d.replace("\\", "/"), 컷=컷), open(jf, "w", encoding="utf-8"), ensure_ascii=False)
     open(pf, "w", encoding="utf-8").write(F3.빠른.replace("line_thickness = 1.6", "line_thickness = 1.0"))
     r = subprocess.run([F1.BLENDER, "-b", "-P", pf, "--", jf], capture_output=True); assert r.returncode == 0, r.stderr[-2000:]
@@ -150,3 +158,5 @@ def 시트():
 if __name__ == "__main__":
     그림()
     if "--시트" in sys.argv: 시트()
+
+
