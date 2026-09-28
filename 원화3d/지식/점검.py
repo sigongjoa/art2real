@@ -1,7 +1,7 @@
 ﻿# -*- coding: utf-8 -*-
 """지식 위키 점검 — 셀 수 있는 것만. python 점검.py  (문제 있으면 종료 코드 1)
 
-깨진 링크 · 목차에 없는 쪽 · 규칙 머리 칸 빠짐 · 검사 칸의 스크립트 없음 · 30 일 넘게 확인 안 됨.
+깨진 링크 · 목차에 없는 쪽 · 규칙 머리 칸 빠짐 · 검사 칸의 스크립트 없음 · 30 일 넘게 확인 안 됨 · 조립 HTML 이 부품과 다름.
 """
 import os, re, sys, datetime
 R = os.path.dirname(os.path.abspath(__file__)); 원화3d = os.path.dirname(R)
@@ -22,6 +22,8 @@ def 점검(오늘=None):
                 if not os.path.exists(os.path.join(원화3d, s)): 문제.append("검사 스크립트 없음 %s: %s" % (이름, s))
             m = re.search(r"확인한 날: (\d{4})-(\d\d)-(\d\d)", t)
             if m and "상태: 쓰는 중" in t and (오늘 - datetime.date(*map(int, m.groups()))).days > 30: 문제.append("30 일 넘게 확인 안 됨 " + 이름)
+    import subprocess
+    if 오늘 == datetime.date.today() and subprocess.run([sys.executable, os.path.join(R, "조립.py"), "--점검"], capture_output=True).returncode: 문제.append("조립 HTML 이 지금 부품과 다름 — python 조립.py")
     return 쪽, 문제
 
 if __name__ == "__main__":
