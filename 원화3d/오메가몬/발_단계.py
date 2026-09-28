@@ -22,25 +22,28 @@ def 몸(불=0.0): return M.Manifold.batch_boolean([M.Manifold.hull_points(단면
 
 # 발톱(정면 px): 뿌리 꼭짓점 · 가장 넓은 곳 가운데 · 반폭 · 끝
 발톱표 = [((659, 899), (668, 932), 17, (676, 965)), ((700, 893), (722, 925), 20, (752, 961)), ((737, 897), (758, 920), 16, (786, 946))]
-def 발톱(뿌, 중, 반, 끝, 불=0.0):
+def 발톱(뿌, 중, 반, 끝, 불=0.0, 뒤=0.0):
     """잎 모양 발톱: 뭉툭한 뿌리 고리 → 가장 넓은 고리 → 끝. 고리는 타원 12 점 + 위 능선 한 점."""
     r = 반 * k + 불
     def 고리(px, py, y, r): return [(X(px) + r * np.cos(t), y + r * 0.8 * np.sin(t), Z(py) - r * 0.55 * np.sin(t)) for t in np.linspace(0, 2 * np.pi, 12, endpoint=False)] + [(X(px) + r * 0.2, y - r * 0.5, Z(py) + r * 0.75)]
     뿌리 = (뿌[0] * 0.65 + 중[0] * 0.35, 뿌[1] * 0.65 + 중[1] * 0.35)
-    return 쐐기(고리(*뿌리, -24, r * 0.72) + 고리(*중, -35, r), (X(끝[0]), -56 - 불, Z(끝[1])))
+    A = 고리(*뿌리, -24, r * 0.72); m = 쐐기(A + 고리(*중, -35, r), (X(끝[0]), -56 - 불, Z(끝[1])))
+    return m + M.Manifold.hull_points(A + [(x, y + 뒤, z) for x, y, z in A]) if 뒤 else m      # 뒤 = 뿌리 고리를 뒤로 늘인 길이(파내는 도형 용)
+def 자리(t): return 발톱(*t, 불=1.65) ^ 상(-100, 100, -29, 100, 0, 100)
 def 덮개(t):
-    """발톱 뿌리를 감싸는 흰 테 — 원화에서 흰 윤곽이 발톱 윗머리를 감싸 도는 곳. 발톱을 0.9 부풀려 뿌리 쪽만."""
-    return (발톱(*t, 불=0.9) ^ 상(-100, 100, -29, 100, 0, 100)) - 발톱(*t, 불=0.3)
+    """발톱 뿌리를 감싸는 흰 테 — 원화에서 흰 윤곽이 발톱 윗머리를 감싸 도는 곳. 발톱을 1.65 부풀려 뿌리 쪽만 · 벽 1.2.
+    속은 발톱(+0.45)의 뿌리 고리를 뒤로 4 mm 늘여 판다: 뿌리 면이 부풀려도 제자리라 그냥 빼면 두께 0 인 막이 남는다."""
+    return 자리(t) - 발톱(*t, 불=0.45, 뒤=4.0)
 
 def 단계1(): return {"발": (몸() + M.Manifold.batch_boolean([발톱(*t) for t in 발톱표], M.OpType.Add), 흰)}
 def 단계2():
     """나누기 — 원화의 색 경계: 금색 발톱 셋."""
-    P = {"발": (몸() - M.Manifold.batch_boolean([발톱(*t, 불=0.3) for t in 발톱표], M.OpType.Add), 흰)}
+    P = {"발": (몸() - M.Manifold.batch_boolean([발톱(*t, 불=0.45) for t in 발톱표], M.OpType.Add), 흰)}
     for i, t in enumerate(발톱표, 1): P["발톱%d" % i] = (발톱(*t), 금)
     return P
 def 단계3():
     """겹치기 — 발톱 뿌리를 감싸는 흰 테 셋."""
-    P = 단계2()
+    P = 단계2(); P["발"] = (P["발"][0] - M.Manifold.batch_boolean([자리(t) for t in 발톱표], M.OpType.Add), 흰)      # 테가 제 자리를 가진다(발 몸통에 깎여 조각나지 않게)
     for i, t in enumerate(발톱표, 1): P["덮개%d" % i] = (덮개(t), 흰)
     return P
 def 단계4():
@@ -49,5 +52,14 @@ def 단계4():
     P["발"] = (P["발"][0] - ((몸(0.5) - 몸(-0.45)) ^ 상(-100, 100, -100, 100, 3.0, 3.7)), 흰)
     return P
 
+def 닫힘검사(이름):
+    """단계4 STL 을 다시 읽어: 닫힘 · 한 덩어리. 목록(이름 · 크기 · 부피)을 찍는다."""
+    import glob, trimesh
+    for f in sorted(glob.glob(os.path.join(OUT, 이름, "단계4", "*.stl"))):
+        m = trimesh.load(f, force="mesh"); m.merge_vertices(); n = os.path.basename(f)[:-4]; 덩 = len(m.split(only_watertight=False))
+        print("%-10s %5.1f × %5.1f × %5.1f mm  %8.1f mm³" % ((n,) + tuple(m.extents) + (m.volume,)))
+        assert m.is_watertight and 덩 == 1, (n, "닫힘", m.is_watertight, "덩어리", 덩)
+
 if __name__ == "__main__":
     단계시트("발", [("1 큰 덩어리", 단계1), ("2 나누기", 단계2), ("3 겹치기", 단계3), ("4 작은 것", 단계4)], 프, 속, (690, 900), 110.0)
+    닫힘검사("발")
