@@ -98,12 +98,13 @@ for 판 in a["판"]:
         b = next(n for n in m.node_tree.nodes if n.type == "BSDF_PRINCIPLED"); b.inputs["Base Color"].default_value = (*c, 1); b.inputs["Roughness"].default_value = 0.5
         o.data.materials.append(m)
     w = bpy.data.worlds.new("w"); sc.world = w; w.use_nodes = True; w.node_tree.nodes["Background"].inputs[0].default_value = (0.62, 0.62, 0.64, 1)
-    for loc, e in (((-300, -500, 600), 3.5), ((500, -300, 150), 1.2)):
+    for loc, e in (((-300, -500, 600), 2.2), ((500, -300, 150), 0.8)):
         d = bpy.data.lights.new("s", "SUN"); d.energy = e; o = bpy.data.objects.new("s", d); sc.collection.objects.link(o)
         o.rotation_euler = (Vector((0, 0, 0)) - Vector(loc)).to_track_quat("-Z", "Y").to_euler()
     cam = bpy.data.objects.new("c", bpy.data.cameras.new("c")); sc.collection.objects.link(cam); sc.camera = cam
     cam.data.type = "ORTHO"; cam.data.clip_end = 20000; cam.data.ortho_scale = 판["폭"]
     sc.render.engine = "BLENDER_EEVEE"; sc.render.resolution_x, sc.render.resolution_y = 판["해상"]
+    sc.view_settings.view_transform = "Standard"      # Filmic 은 색을 씻어낸다(파랑 → 연보라 · 빨강 → 분홍)
     sc.render.use_freestyle = True; sc.render.line_thickness = 1.0
     fs = sc.view_layers[0].freestyle_settings; fs.crease_angle = math.radians(140)
     for l in list(fs.linesets): fs.linesets.remove(l)
