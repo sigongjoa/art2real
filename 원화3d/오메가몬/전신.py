@@ -31,7 +31,7 @@ if __name__ == "__main__":
             m = trimesh.util.concatenate(ts).copy(); m.apply_transform(trimesh.transformations.rotation_matrix(np.radians(각), [0, 0, 1])); f = os.path.join(T, "%s_%d.stl" % (보기, i)); m.export(f); L.append((f, list(색)))
         판.append(dict(부품=L, 폭=폭, 해상=(1024, 1024), 중심=list(map(float, c)), out=os.path.join(T, 보기 + ".png")))
     jf = os.path.join(T, "판.json"); json.dump(dict(판=판), open(jf, "w", encoding="utf-8"), ensure_ascii=False)
-    pf = os.path.join(T, "블.py"); open(pf, "w", encoding="utf-8").write(블.replace("line_thickness = 1.0", "line_thickness = 1.2"))
+    pf = os.path.join(T, "블.py"); open(pf, "w", encoding="utf-8").write(블.replace("line_thickness = 1.0", "line_thickness = 0.7")      # 굵은 선은 눈 같은 작은 부품을 덮는다)
     r = subprocess.run([BLENDER, "-b", "-P", pf, "--", jf], capture_output=True); assert r.returncode == 0, r.stderr[-2000:]
     원 = 원화그림().transform((1024, 1024), Image.AFFINE, (1, 0, 537 - 512, 0, 1, 0), fillcolor=(255, 255, 255))
     im = {n: Image.open(os.path.join(T, n + ".png")).convert("RGB") for n in ("정면", "반옆", "옆")}
