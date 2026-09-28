@@ -1,7 +1,7 @@
 ﻿# -*- coding: utf-8 -*-
 """소체 생성기 (2026-09-28) — 골격 · 비율 · 체형 · 키 → 소체 STL + 관절표 JSON.
 
-    python 생성기.py            -> 이족 8 (비율 4 × 남 · 여) + 사족 2 를 짓고 검사 · 그림 out/소체/소체_시트.png
+    python 생성기.py            -> 이족 8 (비율 4 × 남 · 여) 을 짓고 검사 · 그림 out/소체/소체_시트.png
     from 생성기 import 이족, 사족;  몸, 관절, 뼈 = 이족("영웅", "남", 300)
 위키: 원화3d/지식/베이스/ · 관절 목록은 S.H.Figuarts 소체(볼 · 이중 경첩 · 발목 흔들 · 발끝)를 따름.
 수치는 드로잉 통념(가설) — 우리 키트 실측으로 아직 안 맞춤.
@@ -59,24 +59,7 @@ def 이족(비율="영웅", 체형="남", 키=300.0):
         뼈 += [(목J, 어), (어, 팔), (팔, 손), (배J, 고), (고, 무), (무, 발), (발, 끝)]
     return 합(몸), 관, 뼈
 
-def 사족(비율="사실", 키=150.0):
-    h = 키; L = 1.2 * h; k = 1.25 if 비율 == "맹수" else 1.0; 관 = []
-    def J(이름, 종류, c, 범위=""): 관.append(dict(이름=이름, 종류=종류, 위치=[round(float(v), 2) for v in c], 축=(1, 0, 0), 범위=범위)); return np.array(c, float)
-    목J = J("목", "볼", (0, -0.5 * L, 0.85 * h), "들기 · 숙이기 30"); 머리J = J("머리", "볼", (0, -0.78 * L, 1.08 * h), "±30")
-    턱J = J("아래턱", "경첩", (0, -0.86 * L, 1.0 * h), "0~40"); 꼬J = J("꼬리", "볼사슬", (0, 0.55 * L, 0.76 * h), "마디당 ±20")
-    몸 = [공((0, -0.25 * L, 0.72 * h), np.array([0.24 * h * k, 0.36 * L, 0.26 * h * k])), 공((0, 0.32 * L, 0.72 * h), (0.19 * h, 0.3 * L, 0.2 * h)),
-         막대(목J, 머리J, 0.12 * h * k, 0.1 * h), 공((0, -0.93 * L, 1.06 * h), np.array([0.15, 0.28, 0.15]) * h * k),
-         막대(꼬J, (0, 0.8 * L, 0.72 * h), 0.05 * h, 0.04 * h), 막대((0, 0.8 * L, 0.72 * h), (0, 1.0 * L, 0.5 * h), 0.04 * h, 0.025 * h)]
-    뼈 = [(목J, 머리J), (머리J, 턱J), (목J, 꼬J)]
-    for s, 쪽 in ((1, "L"), (-1, "R")):
-        견 = J("견갑" + 쪽, "볼", (s * 0.18 * h * k, -0.4 * L, 0.72 * h), "앞뒤 60"); 팔 = J("팔꿈치" + 쪽, "경첩", (s * 0.2 * h * k, -0.36 * L, 0.42 * h), "0~120")
-        손 = J("앞발목" + 쪽, "경첩", (s * 0.2 * h * k, -0.4 * L, 0.1 * h), "0~90"); 앞끝 = (s * 0.2 * h * k, -0.48 * L, 0.03 * h)
-        고 = J("고관절" + 쪽, "볼", (s * 0.17 * h, 0.42 * L, 0.72 * h), "앞뒤 60"); 무 = J("무릎" + 쪽, "경첩", (s * 0.2 * h, 0.28 * L, 0.45 * h), "0~120")
-        뒤 = J("뒤꿈치" + 쪽, "경첩", (s * 0.2 * h, 0.52 * L, 0.24 * h), "0~90"); 뒤끝 = (s * 0.2 * h, 0.46 * L, 0.03 * h)
-        몸 += [막대(견, 팔, 0.09 * h * k, 0.07 * h * k), 막대(팔, 손, 0.06 * h * k, 0.05 * h), 막대(손, 앞끝, 0.05 * h, 0.045 * h),
-              막대(고, 무, 0.1 * h, 0.07 * h), 막대(무, 뒤, 0.06 * h, 0.045 * h), 막대(뒤, 뒤끝, 0.045 * h, 0.04 * h)]
-        뼈 += [(목J, 견), (견, 팔), (팔, 손), (꼬J, 고), (고, 무), (무, 뒤)]
-    return 합(몸), 관, 뼈
+# 사족 · 조류 · 뱀 · 물고기 · 다족 · 탈것 · 부착은 골격들.py
 
 # ════════ 검사 ════════
 def 재기(몸, 관, 뼈, 키, n=None, 이족형=True):
@@ -136,32 +119,20 @@ if __name__ == "__main__":
         x = i * 간격; 뼈m, 볼m, 경m = 뼈대(관, 뼈)
         묶음["정면몸"].append(돌려(몸, 0, x)); 묶음["옆몸"].append(돌려(몸, -90, x)); 묶음["정면뼈"].append(돌려(뼈m, 0, x)); 묶음["정면볼"].append(돌려(볼m, 0, x)); 묶음["정면경첩"].append(돌려(경m, 0, x))
         print(b, t, 표[b + t], flush=True)
-    사 = [("사실", 150.0), ("맹수", 150.0)]; 묶음.update(사옆몸=[], 사옆뼈=[], 사옆볼=[], 사옆경첩=[])
-    for i, (b, h) in enumerate(사):
-        몸, 관, 뼈 = 사족(b, h); 표["사족" + b] = 재기(몸, 관, 뼈, 1.1 * h, 이족형=False) if False else dict(조각=len(몸.decompose()))
-        assert 표["사족" + b]["조각"] == 1
-        d = os.path.join(OUT, "사족_%s" % b); os.makedirs(d, exist_ok=True)
-        trimesh.Trimesh(몸.to_mesh().vert_properties[:, :3], 몸.to_mesh().tri_verts).export(os.path.join(d, "소체.stl"))
-        json.dump(dict(골격="사족", 비율=b, 키=h, 관절=관), open(os.path.join(d, "관절.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-        뼈m, 볼m, 경m = 뼈대(관, 뼈, 2.5); x = i * 900.0   # 옆 · 3/4 를 450 씩 띄움(길이 ±180)
-        묶음["사옆몸"] += [돌려(몸, -90, x), 돌려(몸, -35, x + 450)]; 묶음["사옆뼈"].append(돌려(뼈m, -90, i * 450.0)); 묶음["사옆볼"].append(돌려(볼m, -90, i * 450.0)); 묶음["사옆경첩"].append(돌려(경m, -90, i * 450.0))
-        print("사족", b, 표["사족" + b], flush=True)
     T = os.path.join(OUT, "_그림"); os.makedirs(T, exist_ok=True)
     def 저장(k):
         m = 합(묶음[k]); f = os.path.join(T, k + ".stl"); trimesh.Trimesh(m.to_mesh().vert_properties[:, :3], m.to_mesh().tri_verts).export(f); return f
     cx = 간격 * 3.5; W = 간격 * 8 + 40
     판 = [dict(부품=[(저장("정면몸"), 색["몸"])], 폭=W, 해상=(2400, 620), 중심=(cx, 0, 150), out=os.path.join(T, "정면.png")),
          dict(부품=[(저장("옆몸"), 색["몸"])], 폭=W, 해상=(2400, 620), 중심=(cx, 0, 150), out=os.path.join(T, "옆.png")),
-         dict(부품=[(저장("정면뼈"), 색["뼈"]), (저장("정면볼"), 색["볼"]), (저장("정면경첩"), 색["경첩"])], 폭=W, 해상=(2400, 620), 중심=(cx, 0, 150), out=os.path.join(T, "뼈.png")),
-         dict(부품=[(저장("사옆몸"), 색["몸"])], 폭=1850, 해상=(2400, 420), 중심=(675, 0, 100), out=os.path.join(T, "사족.png")),
-         dict(부품=[(저장("사옆뼈"), 색["뼈"]), (저장("사옆볼"), 색["볼"]), (저장("사옆경첩"), 색["경첩"])], 폭=920, 해상=(1200, 420), 중심=(225, 0, 100), out=os.path.join(T, "사족뼈.png"))]
+         dict(부품=[(저장("정면뼈"), 색["뼈"]), (저장("정면볼"), 색["볼"]), (저장("정면경첩"), 색["경첩"])], 폭=W, 해상=(2400, 620), 중심=(cx, 0, 150), out=os.path.join(T, "뼈.png")),]
     jf = os.path.join(T, "판.json"); json.dump(dict(판=판), open(jf, "w", encoding="utf-8"), ensure_ascii=False)
     pf = os.path.join(T, "블.py"); open(pf, "w", encoding="utf-8").write(블)
     r = subprocess.run([BLENDER, "-b", "-P", pf, "--", jf], capture_output=True); assert r.returncode == 0, r.stderr[-2000:]
     # 시트
     ft, fs = ImageFont.truetype(r"C:\Windows\Fonts\malgunbd.ttf", 26), ImageFont.truetype(r"C:\Windows\Fonts\malgun.ttf", 17)
-    img = {k: Image.open(os.path.join(T, k + ".png")).convert("RGB") for k in ("정면", "옆", "뼈", "사족", "사족뼈")}
-    S = Image.new("RGB", (2420, 60 + 3 * 700 + 960), (245, 245, 243)); dr = ImageDraw.Draw(S)
+    img = {k: Image.open(os.path.join(T, k + ".png")).convert("RGB") for k in ("정면", "옆", "뼈")}
+    S = Image.new("RGB", (2420, 60 + 3 * 700), (245, 245, 243)); dr = ImageDraw.Draw(S)
     dr.text((10, 10), "소체 생성기 — 이족 8(비율 4 × 남 · 여) · 키 300 mm · 빨강 = 볼 · 파랑 = 경첩", font=ft, fill=(20, 20, 20))
     for r_, (k, 제목) in enumerate((("정면", "정면"), ("옆", "옆"), ("뼈", "뼈대 + 관절"))):
         y = 60 + r_ * 700; S.paste(img[k], (10, y + 30)); dr.text((14, y), 제목, font=ft, fill=(20, 20, 20))
@@ -169,7 +140,5 @@ if __name__ == "__main__":
             for i, (b, t) in enumerate(이족들):
                 q = 표[b + t]; px = 10 + (i + 0.5) * 2400 / 8 - 90
                 dr.text((px, y + 652), "%s %s · %.1f 두신 · 어깨/머리 %.2f" % (b, t, q["두신"], q["어깨폭_머리폭"]), font=fs, fill=(30, 30, 30))
-    y = 60 + 3 * 700; dr.text((14, y), "사족 — 사실(옆 · 3/4) · 맹수(옆 · 3/4) · 아래: 뼈대(사실 · 맹수)", font=ft, fill=(20, 20, 20))
-    S.paste(img["사족"], (10, y + 40)); S.paste(img["사족뼈"], (10, y + 480))
     p = os.path.join(OUT, "소체_시트.png"); S.save(p); print("시트", p, S.size)
 
