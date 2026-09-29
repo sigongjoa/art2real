@@ -33,30 +33,31 @@ def 음영합치기(라벨, im3, 여유=6, 색차=10, 띠=5, 최소띠=60):
         for b in ids[x + 1:]:
             band = 팽[a] & (라벨 == b); n = int(band.sum())
             if n < 최소띠: continue
-            경계 = 팽3[a] & 팽3[b]; 경밝 = float(np.median(g[경계])) if 경계.any() else 0.0; La, Lb = float(np.median(g[라벨 == a])), float(np.median(g[라벨 == b]))
-            선있음 = 경밝 < min(La, Lb) - 여유                                                       # 경계가 양쪽 면보다 어두우면 먹선(옅은 선도 잡힌다) · 사이면 명암 경계
+            경계 = 팽3[a] & 팽3[b]; La, Lb = float(np.median(g[라벨 == a])), float(np.median(g[라벨 == b]))
+            if not 경계.any(): continue
+            경밝 = float(np.median(g[경계])); 선있음 = 경밝 < min(La, Lb) - 여유                      # 밝기만으로는 옅은 먹선(80)과 그늘 면(68)을 못 가른다(09-29) → 자동 합침 대신 **후보 제안 · 사람 결정**
             dc = float(np.hypot(*(색[a][1:] - 색[b][1:])))
             비 = min(La, Lb) / max(La, Lb, 1)                                                      # 셀 음영 톤 비는 0.55~0.85 · 검정 대 흰은 0.2 미만
-            if not 선있음 and dc < 색차 and 비 >= 0.45 and min(La, Lb) >= 40: 부모[찾(a)] = 찾(b); 합침.append((int(a), int(b), int(경밝), int(La), int(Lb), round(dc, 1)))
-    새 = 라벨.copy()
-    for i in ids: 새[라벨 == i] = 찾(i)
-    번호 = {v: k_ + 1 for k_, v in enumerate(sorted(set(새[새 > 0].tolist()), key=lambda v: (np.nonzero(새 == v)[0].mean(), np.nonzero(새 == v)[1].mean())))}
-    return np.vectorize(lambda v: 번호.get(v, 0))(새).astype(np.int32), 합침
+            if not 선있음 and dc < 색차 and 비 >= 0.45 and min(La, Lb) >= 40: 합침.append(dict(쌍=(int(a), int(b)), 경계밝기=int(경밝), 면밝기=(int(La), int(Lb)), 색차=round(dc, 1), 경계=경계))
+    return 라벨, 합침                                                                                  # 라벨은 그대로 · 합침 = 후보(사람이 고른다)
 if __name__ == "__main__":
     ft = ImageFont.truetype(r"C:\Windows\Fonts\malgunbd.ttf", 22); fs = ImageFont.truetype(r"C:\Windows\Fonts\malgunbd.ttf", 15); 판들 = []; 표 = {}
     for n in ("02_정면", "02_3-4", "02_옆"):
         im = 읽기(기록[n]["파일"]); sil = 읽기(J(D, n + "_실루엣.png"), cv2.IMREAD_GRAYSCALE) > 0; 선3 = 읽기(J(D, n + ("_선닫힘.png" if os.path.exists(J(D, n + "_선닫힘.png")) else "_선.png")), cv2.IMREAD_GRAYSCALE) < 128   # 면닫기.py 결과가 있으면 그것
         sil3 = cv2.resize(sil.astype(np.uint8), (선3.shape[1], 선3.shape[0]), interpolation=cv2.INTER_NEAREST) > 0; 라벨, 선 = 면나누기(sil3, 선3)
-        im3_ = cv2.resize(im, (선3.shape[1], 선3.shape[0]), interpolation=cv2.INTER_CUBIC); 전 = len([i for i in np.unique(라벨) if i > 0]); 라벨, 합침 = 음영합치기(라벨, im3_); ids = [i for i in np.unique(라벨) if i > 0]; print(n, "음영 합침", 전, "→", len(ids), 합침[:8])
+        im3_ = cv2.resize(im, (선3.shape[1], 선3.shape[0]), interpolation=cv2.INTER_CUBIC); 라벨, 후보 = 음영합치기(라벨, im3_); ids = [i for i in np.unique(라벨) if i > 0]; print(n, "면", len(ids), "· 합칠 후보", [c["쌍"] for c in 후보])
         np.savez_compressed(J(D, n + "_영역.npz"), 라벨=라벨); 표[n] = {int(i): int((라벨 == i).sum()) for i in ids}
         rng = np.random.RandomState(5); im3 = cv2.resize(im, (선3.shape[1], 선3.shape[0]), interpolation=cv2.INTER_CUBIC); 면 = np.full(im3.shape, 255, np.uint8)
         for i in ids: 면[라벨 == i] = tuple(int(x) for x in rng.randint(60, 240, 3))
-        면[선 & sil3] = (0, 0, 0); 겹 = cv2.addWeighted(im3, 0.45, 면, 0.55, 0)
+        면[선 & sil3] = (0, 0, 0)
+        for c in 후보: 면[cv2.dilate(c["경계"].astype(np.uint8), np.ones((5, 5), np.uint8)) > 0] = (0, 0, 255)          # 합칠 후보 경계 = 빨강
+        겹 = cv2.addWeighted(im3, 0.45, 면, 0.55, 0)
         x0, y0, x1, y1 = [v * S for v in 기록[n]["상자"]]; A = Image.fromarray(면[y0:y1, x0:x1][:, :, ::-1]); B = Image.fromarray(겹[y0:y1, x0:x1][:, :, ::-1]); d = ImageDraw.Draw(A)
         for i in ids:
             ys, xs = np.nonzero(라벨[y0:y1, x0:x1] == i)
             if len(xs): d.text((int(np.median(xs)) - 8, int(np.median(ys)) - 9), str(i), font=fs, fill=(0, 0, 0), stroke_width=2, stroke_fill=(255, 255, 255))
-        out = Image.new("RGB", (A.width * 2 + 10, A.height), (250, 250, 248)); out.paste(A, (0, 0)); out.paste(B, (A.width + 10, 0)); ImageDraw.Draw(out).text((8, 6), "%s  면 %d" % (n, len(ids)), font=ft, fill=(0, 0, 0), stroke_width=2, stroke_fill=(255, 255, 255)); out.save(J(D, n + "_영역.png"))
+        out = Image.new("RGB", (A.width * 2 + 10, A.height), (250, 250, 248)); out.paste(A, (0, 0)); out.paste(B, (A.width + 10, 0)); ImageDraw.Draw(out).text((8, 6), "%s  면 %d · 빨강 = 합칠 후보 %s" % (n, len(ids), " ".join("%d+%d" % c["쌍"] for c in 후보)), font=ft, fill=(0, 0, 0), stroke_width=2, stroke_fill=(255, 255, 255)); out.save(J(D, n + "_영역.png"))
+        표[n + "_후보"] = [dict(쌍=c["쌍"], 경계밝기=c["경계밝기"], 면밝기=c["면밝기"], 색차=c["색차"]) for c in 후보]
         h = 520; 판들.append(out.resize((int(out.width * h / out.height), h))); print(n, "면", len(ids))
     W = max(p.width for p in 판들); 시트 = Image.new("RGB", (W, sum(p.height + 6 for p in 판들)), (250, 250, 248)); y = 0
     for p in 판들: 시트.paste(p, (0, y)); y += p.height + 6
