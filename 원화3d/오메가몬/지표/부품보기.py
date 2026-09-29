@@ -9,6 +9,7 @@ from PIL import Image, ImageDraw, ImageFont
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); from 집합 import OUT, 장면, J
 from 부품투영 import 단위, 찍기, 읽기
 from 자세 import 캡처 as 캡처2D
+from 고리2 import 캡처선, 거리표
 자세 = json.load(open(J(OUT, "자세2.json"), encoding="utf-8")); D6 = J(OUT, "..", "머리", "단계4")
 장들 = {"정면 yt_172": "정면", "3/4 M04": "3-4", "옆 yt_235": "옆"}
 부품 = [(os.path.basename(f)[:-4], trimesh.load(f, process=False, force="mesh")) for f in sorted(glob.glob(J(D6, "*.stl"))) if os.path.basename(f) != "프레임.stl"]
@@ -27,22 +28,33 @@ if __name__ == "__main__":
     for 이름, 태그 in 장들.items():
         f, _ = 캡처2D[이름]; im = 읽기(J(장면, f)); H, W = im.shape[:2]; ID = id지도(자세[이름], (H, W))
         c_ = np.load(J(OUT, "윤곽2_%s_전체.npy" % 태그)); sil = np.zeros((H, W), np.uint8); cv2.fillPoly(sil, [c_.astype(np.int32)], 1); sil = sil > 0
-        ov = im.copy()
+        ov = im.copy(); 캡 = 캡처선(태그, im); D = 거리표(캡); u = 자세[이름]["s"]
+        라벨3 = np.load(J(OUT, "영역_%s.npz" % 태그))["라벨"]; 면 = cv2.resize(라벨3.astype(np.float32), (W, H), interpolation=cv2.INTER_NEAREST).astype(np.int32); 캡라벨 = np.zeros((H, W), np.int32)
+        for r_ in np.unique(면):                                                                  # 캡처 면마다: 이긴 부품이 40 % 넘게 덮으면 그 부품 라벨(고리3 규칙)
+            if r_ <= 0: continue
+            mm_ = 면 == r_; ids = ID[mm_]; ids = ids[ids > 0]
+            if ids.size == 0: continue
+            cnt = np.bincount(ids); i_ = int(cnt.argmax())
+            if cnt[i_] >= 0.4 * mm_.sum(): 캡라벨[mm_] = i_
         for i, (n, _) in enumerate(부품, 1):
-            m = ID == i; px = int(m.sum()); 표[n][태그] = dict(화소=px, 보임=px >= 80, 캡처안=round(float((m & sil).sum() / px), 2) if px else None)
+            m = ID == i; px = int(m.sum()); 경 = (cv2.Laplacian((ID == i).astype(np.float32), cv2.CV_32F) != 0) & m
+            거 = float(np.median(D[경]) / u) if 경.any() else None                                   # 부품 경계 → 가장 가까운 캡처 선 거리(단위 · 중앙값) = 자리 오차
+            b = 캡라벨 == i; iou = round(float((m & b).sum() / max(1, (m | b).sum())), 2) if b.any() else None       # 정체를 보는 자: 렌더 부품 i vs 캡처에서 i 로 라벨된 면
+            표[n][태그] = dict(화소=px, 보임=px >= 80, 캡처안=round(float((m & sil).sum() / px), 2) if px else None, 선거리=round(거, 1) if 거 is not None else None, IoU=iou)
             if px: ov[m] = 색[n][::-1]
         vis = cv2.addWeighted(im, 0.35, ov, 0.65, 0); 경계 = cv2.Laplacian(ID.astype(np.float32), cv2.CV_32F) != 0; vis[경계] = (0, 0, 0)
         cs, _ = cv2.findContours(sil.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE); cv2.drawContours(vis, cs, -1, (255, 255, 255), 2)
         ys, xs = np.nonzero((ID > 0) | sil); y0, y1, x0, x1 = max(0, ys.min() - 30), ys.max() + 30, max(0, xs.min() - 30), xs.max() + 30
         crop = vis[y0:y1, x0:x1]; crop = cv2.resize(crop, (int(crop.shape[1] * 620 / crop.shape[0]), 620)); p = Image.fromarray(crop[:, :, ::-1]); ImageDraw.Draw(p).text((8, 6), "%s  yaw %.0f pitch %.0f roll %.0f  s %.1f" % (태그, 자세[이름]["yaw"], 자세[이름]["pitch"], 자세[이름]["roll"], 자세[이름]["s"]), font=ft, fill=(255, 255, 255), stroke_width=2, stroke_fill=(0, 0, 0)); 판들.append(p)
     # 범례 + 표
-    L = Image.new("RGB", (300, 620), (250, 250, 248)); d = ImageDraw.Draw(L); d.text((8, 6), "부품   정면 3/4 옆  (○보임 ·숫자=캡처안)", font=ft, fill=(0, 0, 0))
+    L = Image.new("RGB", (300, 620), (250, 250, 248)); d = ImageDraw.Draw(L); d.text((8, 6), "부품   정면 3/4 옆  (부품 IoU · —=라벨 없음)", font=ft, fill=(0, 0, 0))
     for k, (n, _) in enumerate(부품):
         y = 30 + k * 27; d.rectangle((8, y, 26, y + 18), fill=색[n]); d.text((32, y), n, font=ft, fill=(0, 0, 0))
         for j, 태그 in enumerate(장들.values()):
-            r = 표[n][태그]; d.text((150 + j * 50, y), ("%.0f" % (100 * r["캡처안"]) if r["보임"] else "—"), font=ft, fill=(0, 0, 0) if r["보임"] else (160, 160, 160))
+            r = 표[n][태그]; v = r["IoU"]; d.text((150 + j * 50, y), (("%.2f" % v) if (r["보임"] and v is not None) else "—"), font=ft, fill=((200, 0, 0) if v < 0.6 else (0, 120, 0)) if (r["보임"] and v is not None) else (160, 160, 160))
     S = Image.new("RGB", (sum(p.width for p in 판들) + L.width + 40, 620), (250, 250, 248)); x = 0
     for p in 판들: S.paste(p, (x, 0)); x += p.width + 10
     S.paste(L, (x, 0)); S.save(J(OUT, "부품보기.png")); json.dump(표, open(J(OUT, "부품보기.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print(J(OUT, "부품보기.png")); print("%-10s %6s %6s %6s" % ("부품", "정면", "3/4", "옆"))
-    for n, _ in 부품: print("%-10s " % n + " ".join("%6s" % (("%d%%" % (100 * 표[n][t]["캡처안"])) if 표[n][t]["보임"] else "—") for t in 장들.values()))
+    for n, _ in 부품: print("%-10s " % n + " ".join("%6s" % (("%.2f" % 표[n][t]["IoU"]) if (표[n][t]["보임"] and 표[n][t]["IoU"] is not None) else "—") for t in 장들.values()))
+    print("(부품 IoU: 렌더 부품 i vs 캡처에서 i 로 라벨된 면 · — = 그 시점 캡처에 이 부품으로 라벨된 면이 없음)")
