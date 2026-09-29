@@ -36,11 +36,12 @@ def 고르기(조건, 키=lambda f: -f["n"]): c = [i for i, f in 면.items() if 
 볼L = 고르기(lambda f: -40 < f["cx"] < -18 and 40 < f["cy"] < 80 and f["밝기"] >= 70 and f["y1"] < 92)[:1]; 볼R = 고르기(lambda f: 18 < f["cx"] < 40 and 40 < f["cy"] < 80 and f["밝기"] >= 70 and f["y1"] < 92)[:1]   # 깃(y1 > 92)은 뺀다
 이름 = {"뿔": 뿔, "눈L": 눈L, "눈R": 눈R, "부리": 가운데아래[:3], "볼L": 볼L, "볼R": 볼R}
 if os.path.exists(J(D, "자료3D2_이름.json")):                                                          # 사람이(없으면 Claude 가) 번호 그림을 보고 붙인 이름이 규칙보다 우선
-    손 = json.load(open(J(D, "자료3D2_이름.json"), encoding="utf-8")); 이름 = {k: 손[k] for k in 이름}; 뿔, 눈L, 눈R, 볼L, 볼R = 이름["뿔"], 이름["눈L"], 이름["눈R"], 이름["볼L"], 이름["볼R"]; 가운데아래 = 이름["부리"]
+    손 = json.load(open(J(D, "자료3D2_이름.json"), encoding="utf-8")); 이름 = {k: 손[k] for k in 이름}; 이름["투구"] = 손.get("투구", []); 뿔, 눈L, 눈R, 볼L, 볼R = 이름["뿔"], 이름["눈L"], 이름["눈R"], 이름["볼L"], 이름["볼R"]; 가운데아래 = 이름["부리"]
 print("면 이름(자리로):", {k: v for k, v in 이름.items()})
 # ── 치수 ──
 치 = {}
-치["돔"] = dict(반폭_y20=반폭(20), 반폭_y35=반폭(35), 앞_y30=옆z(30), 뒤_y30=옆z(30, False), 앞_y5=옆z(5), 뒤_y5=옆z(5, False))
+투 = [면[i] for i in 이름.get("투구", []) if i in 면]; 돔위 = min(f["y0"] for f in 투) if 투 else 33.0; 돔중 = (돔위 + 88) / 2      # 머리 높이 100 에 뿔이 들어 있어 돔은 투구 면의 위(≈33)부터
+치["돔"] = dict(위=돔위, 중심y=돔중, 반폭=반폭(돔중), 앞=옆z(돔중), 뒤=옆z(돔중, False), 앞_위=옆z(돔위 + 3), 뒤_위=옆z(돔위 + 3, False))
 f = 면[뿔[0]] if 뿔 else None; 치["뿔"] = dict(밑폭=(f["x1"] - f["x0"]) if f else 12, 끝y=f["y0"] if f else 0, 밑y=f["y1"] if f else 40, 앞_끝=옆z(max(0.0, f["y0"] if f else 0)), 앞_밑=옆z(f["y1"] if f else 40))
 치["눈"] = {k: (dict(cx=면[v[0]]["cx"], cy=면[v[0]]["cy"], w=면[v[0]]["x1"] - 면[v[0]]["x0"], hgt=면[v[0]]["y1"] - 면[v[0]]["y0"]) if v else None) for k, v in (("L", 눈L), ("R", 눈R))}
 치["부리"] = [dict(cy=면[i]["cy"], y0=면[i]["y0"], y1=면[i]["y1"], 반폭=(면[i]["x1"] - 면[i]["x0"]) / 2, 앞=옆z(면[i]["cy"])) for i in 가운데아래[:3]]
@@ -52,8 +53,8 @@ json.dump(dict(이름=이름, 치수=치), open(J(D, "자료3D2.json"), "w", enc
 def 타원체(cx, cy, cz, rx, ry, rz): return M.Manifold.sphere(1.0, 48).scale([rx, ry, rz]).translate([cx, cy, cz])
 def 쐐(점): return M.Manifold.hull_points([list(map(float, p)) for p in 점])
 부품 = {}
-d = 치["돔"]; rx = d["반폭_y35"]; zc = (d["앞_y30"] + d["뒤_y30"]) / 2; rz = (d["앞_y30"] - d["뒤_y30"]) / 2; ry = 46.0
-부품["돔"] = 타원체(0, 46, zc, rx, ry, rz) - M.Manifold.cube([200, 200, 200], True).translate([0, 88 + 100, 0])   # 꼭대기 y 0 · 얼굴 y 88 아래는 자름
+d = 치["돔"]; rx = d["반폭"]; zc = (d["앞"] + d["뒤"]) / 2; rz = (d["앞"] - d["뒤"]) / 2; ry = 88 - d["중심y"]
+부품["돔"] = 타원체(0, d["중심y"], zc, rx, ry, rz) - M.Manifold.cube([200, 200, 200], True).translate([0, 88 + 100, 0])   # 투구 위(y≈33)에서 얼굴 y 88 까지
 p = 치["뿔"]; bw = p["밑폭"] / 2; 부품["뿔"] = 쐐([(-bw, p["밑y"], p["앞_밑"] - 6), (bw, p["밑y"], p["앞_밑"] - 6), (-bw * 0.9, p["밑y"], p["앞_밑"] + 2), (bw * 0.9, p["밑y"], p["앞_밑"] + 2), (0, p["끝y"], p["앞_끝"] - 2), (0, p["끝y"] + 1, p["앞_끝"] + 1)])
 for k, s in (("L", -1), ("R", 1)):
     e = 치["눈"][k]
@@ -63,9 +64,12 @@ for k, s in (("L", -1), ("R", 1)):
         구멍 = M.Manifold.cube([e["w"], e["hgt"], 30], True).translate([e["cx"], e["cy"], zf + 15 - 4]); 부품["돔"] = 부품["돔"] - 구멍; 부품["눈구멍" + k] = M.Manifold.cube([e["w"] - 1, e["hgt"] - 1, 1.5], True).translate([e["cx"], e["cy"], zf - 4])
 for j, b in enumerate(치["부리"]):
     zb = b["앞"]; zt = 옆z(b["y0"]); 부품["부리%d" % (j + 1)] = 쐐([(-b["반폭"], b["y0"], zt - 10), (b["반폭"], b["y0"], zt - 10), (-b["반폭"], b["y0"], zt), (b["반폭"], b["y0"], zt), (-b["반폭"] * 0.7, b["y1"], zb - 10), (b["반폭"] * 0.7, b["y1"], zb - 10), (0, b["y1"], zb)])
-for k, s in (("L", -1), ("R", 1)):
-    v = 치["볼"][k]
-    if v: 부품["볼" + k] = 쐐([(v["x0"] if s < 0 else v["x1"], v["y0"], 옆z(v["y0"]) - 14), (v["x1"] if s < 0 else v["x0"], v["y0"], 옆z(v["y0"]) - 6), (v["x1"] if s < 0 else v["x0"], v["y1"], 옆z(v["y1"]) - 4), (v["x0"] if s < 0 else v["x1"], v["y1"], 옆z(v["y1"]) - 16), (v["x0"] if s < 0 else v["x1"], v["y0"], 옆z(v["y0"]) - 17), (v["x1"] if s < 0 else v["x0"], v["y1"], 옆z(v["y1"]) - 7)])
+for k, s, ids_ in (("L", -1, 볼L), ("R", 1, 볼R)):
+    if not ids_: continue
+    m_ = (라벨 == ids_[0]).astype(np.uint8); cs__, _ = cv2.findContours(m_, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE); poly = cv2.approxPolyDP(max(cs__, key=cv2.contourArea), 2.0, True).reshape(-1, 2).astype(float)
+    P = [U(px, py) for px, py in poly]; 안 = min(P, key=lambda q: abs(q[0]))[0]; 밖 = max(P, key=lambda q: abs(q[0]))[0]
+    zof = lambda x, y: 옆z(y) - 6 - 12 * (abs(x) - abs(안)) / max(1e-3, abs(밖) - abs(안))                  # 볼 판: 안쪽은 얼굴 앞면 가까이 · 바깥으로 갈수록 뒤로(날개)
+    부품["볼" + k] = 쐐([(x, y, zof(x, y)) for x, y in P] + [(x, y, zof(x, y) - 2.5) for x, y in P])
 for n_, m in 부품.items():
     mm_ = m.to_mesh(); t = trimesh.Trimesh(np.array(mm_.vert_properties)[:, :3], np.array(mm_.tri_verts), process=False)
     if t.volume < 0: t.invert()
