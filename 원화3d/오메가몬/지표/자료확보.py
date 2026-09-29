@@ -16,10 +16,13 @@ D = J(OUT, "..", "자료"); os.makedirs(D, exist_ok=True)
     "02_옆":     (J(장면, "yt_235.0_머리_옆.jpg"), (400, 0, 990, 305), "밝기"),
 }
 def 선(im, sil, S=3):
-    im3 = cv2.bilateralFilter(cv2.resize(im, None, fx=S, fy=S, interpolation=cv2.INTER_CUBIC), 7, 30, 7); _, e = 소벨선(im3)
+    """Sobel/Canny ∪ 먹선(블랙햇 15 px · 적응 문턱 31 px) — 둘 다 이미지 필터. Sobel 만으로는 면이 안 닫힌다(09-29 자료영역 첫 판: 정면 투구 + 얼굴이 한 면)."""
+    im3 = cv2.bilateralFilter(cv2.resize(im, None, fx=S, fy=S, interpolation=cv2.INTER_CUBIC), 7, 30, 7); _, e = 소벨선(im3); e = e > 0
+    g = cv2.cvtColor(im3, cv2.COLOR_BGR2GRAY); bh = cv2.morphologyEx(g, cv2.MORPH_BLACKHAT, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15)))
+    e = e | (bh > 18) | (cv2.adaptiveThreshold(g, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 31, 6) > 0)
     m3 = cv2.erode(cv2.resize(sil, None, fx=S, fy=S, interpolation=cv2.INTER_NEAREST), np.ones((5, 5), np.uint8)) > 0
     테 = cv2.Laplacian(cv2.resize(sil, None, fx=S, fy=S, interpolation=cv2.INTER_NEAREST).astype(np.float32), cv2.CV_32F) != 0
-    return ((e > 0) & m3) | 테
+    return (e & m3) | 테
 if __name__ == "__main__":
     기록 = {}
     for 이름, (f, 상자, 방식) in 대상.items():

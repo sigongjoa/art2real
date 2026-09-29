@@ -11,6 +11,9 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); from 집합 impo
 읽기 = lambda p: cv2.imdecode(np.fromfile(p, np.uint8), cv2.IMREAD_COLOR)
 def 세선(b):
     if hasattr(cv2, "ximgproc"): return cv2.ximgproc.thinning(b)
+    try:
+        from skimage.morphology import skeletonize; return (skeletonize(b > 0) * 255).astype(np.uint8)          # Zhang-Suen — 침식 흉내는 골격이 조각난다(09-29)
+    except ImportError: pass
     skel = np.zeros_like(b); e = b.copy(); k = cv2.getStructuringElement(cv2.MORPH_CROSS, (3, 3))
     while cv2.countNonZero(e):
         o = cv2.morphologyEx(e, cv2.MORPH_OPEN, k); skel |= e - o; e = cv2.erode(e, k)

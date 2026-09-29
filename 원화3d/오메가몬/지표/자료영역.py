@@ -12,7 +12,7 @@ D = J(OUT, "..", "자료"); 기록 = json.load(open(J(D, "자료.json"), encodin
 def 면나누기(sil3, 선3):
     선 = cv2.morphologyEx(선3.astype(np.uint8), cv2.MORPH_CLOSE, np.ones((닫힘, 닫힘), np.uint8)) > 0
     n, lab, st, _ = cv2.connectedComponentsWithStats((sil3 & ~선).astype(np.uint8), connectivity=4)
-    큰 = [i for i in range(1, n) if st[i, cv2.CC_STAT_AREA] >= 최소]; 라벨 = np.where(np.isin(lab, 큰), lab, 0).astype(np.int32)
+    최소_ = max(최소, int(0.004 * sil3.sum())); 큰 = [i for i in range(1, n) if st[i, cv2.CC_STAT_AREA] >= 최소_]; 라벨 = np.where(np.isin(lab, 큰), lab, 0).astype(np.int32)   # 실루엣의 0.4 % 미만은 이웃에 합침
     for i in range(1, n):
         if i in 큰: continue
         m = lab == i; nb = 라벨[(cv2.dilate(m.astype(np.uint8), np.ones((7, 7), np.uint8)) > 0) & (라벨 > 0)]
@@ -24,7 +24,7 @@ def 면나누기(sil3, 선3):
 if __name__ == "__main__":
     ft = ImageFont.truetype(r"C:\Windows\Fonts\malgunbd.ttf", 22); fs = ImageFont.truetype(r"C:\Windows\Fonts\malgunbd.ttf", 15); 판들 = []; 표 = {}
     for n in ("02_정면", "02_3-4", "02_옆"):
-        im = 읽기(기록[n]["파일"]); sil = 읽기(J(D, n + "_실루엣.png"), cv2.IMREAD_GRAYSCALE) > 0; 선3 = 읽기(J(D, n + "_선.png"), cv2.IMREAD_GRAYSCALE) < 128
+        im = 읽기(기록[n]["파일"]); sil = 읽기(J(D, n + "_실루엣.png"), cv2.IMREAD_GRAYSCALE) > 0; 선3 = 읽기(J(D, n + ("_선닫힘.png" if os.path.exists(J(D, n + "_선닫힘.png")) else "_선.png")), cv2.IMREAD_GRAYSCALE) < 128   # 면닫기.py 결과가 있으면 그것
         sil3 = cv2.resize(sil.astype(np.uint8), (선3.shape[1], 선3.shape[0]), interpolation=cv2.INTER_NEAREST) > 0; 라벨, 선 = 면나누기(sil3, 선3); ids = [i for i in np.unique(라벨) if i > 0]
         np.savez_compressed(J(D, n + "_영역.npz"), 라벨=라벨); 표[n] = {int(i): int((라벨 == i).sum()) for i in ids}
         rng = np.random.RandomState(5); im3 = cv2.resize(im, (선3.shape[1], 선3.shape[0]), interpolation=cv2.INTER_CUBIC); 면 = np.full(im3.shape, 255, np.uint8)
