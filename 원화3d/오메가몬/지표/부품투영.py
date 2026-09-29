@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(
 from 자세 import 캡처 as 캡처2D
 읽기 = lambda p: cv2.imdecode(np.fromfile(p, np.uint8), cv2.IMREAD_COLOR)
 F = json.load(open(J(OUT, "랜드마크3D.json"), encoding="utf-8"))
+if os.path.exists(J(OUT, "자세2.json")): F["자세"].update(json.load(open(J(OUT, "자세2.json"), encoding="utf-8")))   # 실루엣으로 다시 잡은 자세 우선
 k = 0.349; 머리mm = 83 * k; cx_mm, top_mm = 공통.X(535), 공통.Z(100)
 def 단위(V):
     """모델 mm (x 오른쪽 · y 뒤 + · z 위 +) → 머리 단위 (x 오른쪽 · y 아래 · z 앞)"""
