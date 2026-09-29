@@ -21,22 +21,28 @@ for 부품, 짝 in 선택.items():
         for i in (짝.get(열) or []): 이름[t][i] = 부품
 # ── 바탕: 복셀 깎기 ──
 xs, ys, zs = np.arange(-55, 56.0), np.arange(-40, 101.0), np.arange(-60, 71.0); G = np.stack(np.meshgrid(xs, ys, zs, indexing="ij"), -1).reshape(-1, 3); 살 = np.ones(len(G), bool)      # y 100 = 턱 · 그 밑(목 · 깃)은 머리가 아니다 · 옆 뿔은 x ±55 · z 70 까지
+추가 = json.load(open(J(D, "시점추가.json"), encoding="utf-8")) if os.path.exists(J(D, "시점추가.json")) and "--3장" not in sys.argv else {}
+for t, v in 추가.items(): 시점[t] = t; 자세[t] = v["자세"]; 기록[t] = dict(파일=v["파일"], 상자=v["상자"])
 실루엣 = {}; 모름 = {}
 for t, 자이름 in 시점.items():
     sil = 읽기(J(D, t + "_실루엣.png"))[:, :, 0] > 127; 실루엣[t] = sil; m = np.zeros_like(sil)
     if t == "02_3-4":                                                                              # 3/4 실루엣은 뿔이 잘려 있다(배경 성분에 붙음) → 눈 위는 모름
         L = np.load(J(D, t + "_영역.npz"))["라벨"]; r = np.nonzero(np.isin(L, [7, 8]).any(1))[0].min() // S; m[:r] = True
+    if t in 추가: m |= 읽기(J(D, t + "_모름.png"))[:, :, 0] > 127; r = max(3, int(0.03 * 100 * 자세[t]["s"])); sil = cv2.dilate(sil.astype(np.uint8), np.ones((2 * r + 1, 2 * r + 1), np.uint8)) > 0; 실루엣[t] = sil
     x0, y0, x1, y1 = 기록[t]["상자"]; b = np.ones_like(m); b[y0:y1, x0:x1] = False; m |= b                    # 상자 밖 = 모름(장마다 실루엣이 덮는 범위가 다르다 · 옆은 턱 밑이 잘림)
     모름[t] = m
 def 깎기():
-    살 = np.ones(len(G), bool)
-    for t, 자이름 in 시점.items():                                                                    # 상자 = 머리가 있는 범위(옆은 가로만 · 세로는 턱이 잘려 모름)
+    살 = np.ones(len(G), bool); 거부 = np.zeros(len(G), np.int8)                                       # 추가 장은 표결: 둘 이상이 「밖」이라야 깎는다(자세가 실루엣만으로 잡혀 하나는 틀릴 수 있다)
+    for t, 자이름 in 시점.items():                                                                    # 상자 = 머리가 있는 범위(옆은 가로만 · 세로는 턱이 잘려 모름 · 추가 장은 망토 · 프레임에 잘려 안 씀)
+        if t in 추가: continue
         x0, y0, x1, y1 = 기록[t]["상자"]; uv, _ = 찍기(G, 자세[자이름]); 살 &= (uv[:, 0] >= x0) & (uv[:, 0] < x1)
         if t != "02_옆": 살 &= (uv[:, 1] >= y0) & (uv[:, 1] < y1)
     for t, 자이름 in 시점.items():
         sil, m = 실루엣[t], 모름[t]; H, W = sil.shape; uv, _ = 찍기(G, 자세[자이름]); u, v = np.round(uv).astype(int).T; 안 = (u >= 0) & (u < W) & (v >= 0) & (v < H)
-        밖 = 안.copy(); 밖[안] = ~sil[v[안], u[안]] & ~m[v[안], u[안]]; 살 &= ~밖
-    return 살
+        밖 = 안.copy(); 밖[안] = ~sil[v[안], u[안]] & ~m[v[안], u[안]]
+        if t in 추가: 거부 += 밖
+        else: 살 &= ~밖
+    return 살 & (거부 < 1)                                                                     # 상자 버그 고친 뒤(09-30) 표결은 안 쓴다 · 장마다 혼자 깎는다
 def 겉(살):
     V = 살.reshape(len(xs), len(ys), len(zs)); 속 = V.copy()
     for ax in (0, 1, 2):
@@ -51,17 +57,18 @@ from scipy.optimize import minimize
 for 바퀴 in range(3):                                                                              # ① 재등록: 정면 자세는 고정(기준 틀) · 3/4 · 옆 자세를 껍질 재투영 IoU 로 다시 맞추고 다시 깎는다
     점 = G[겉(살)]
     for t, 자이름 in 시점.items():
-        if t == "02_정면": print("  %s 재투영 IoU %.3f (기준 · 고정)" % (t, 재투영(t, 자세[자이름], 점))); continue
+        if t == "02_정면" or t in 추가: print("  %s 재투영 IoU %.3f (고정)" % (t, 재투영(t, 자세[자이름], 점))); continue
         자 = 자세[자이름]; p0 = np.r_[자["r"], 자["s"], 자["t"]]; 전 = 재투영(t, 자, 점)
         f = lambda p: -재투영(t, dict(r=p[:3], s=p[3], t=p[4:6], k=자.get("k", 0)), 점)
         best = minimize(f, p0, method="Nelder-Mead", options=dict(maxiter=150, xatol=1e-3, fatol=1e-4, initial_simplex=np.r_[[p0], p0 + np.diag([0.04, 0.04, 0.04, 0.15, 8, 8])]))
         자.update(r=best.x[:3].tolist(), s=float(best.x[3]), t=best.x[4:6].tolist()); print("  %s 재투영 IoU %.3f → %.3f" % (t, 전, -best.fun))
     살 = 깎기(); print("바퀴 %d · 남은 복셀 %d" % (바퀴 + 1, 살.sum()))
-json.dump(자세, open(J(D, "면패치_자세.json"), "w", encoding="utf-8"), indent=1)
+json.dump(자세, open(J(D, "면패치_자세.json"), "w", encoding="utf-8"), indent=1); np.savez_compressed(J(D, "면패치_살.npz"), 살=살, xs=xs, ys=ys, zs=zs)
 V = 살.reshape(len(xs), len(ys), len(zs))
 # ── 패치: 시점마다 보이는 표면 복셀에 라벨 ──
 idx = np.nonzero(살)[0]; 라벨 = {t: np.zeros(len(G), np.int32) for t in 시점}; 부품목록 = sorted({n for d in 이름.values() for n in d.values()}); 번호 = {n: i + 1 for i, n in enumerate(부품목록)}
 for t, 자이름 in 시점.items():
+    if t in 추가: continue
     자 = 자세[자이름]; L = np.load(J(D, t + "_영역.npz"))["라벨"]; uv, cz = 찍기(G[idx], 자); q = np.round(uv / 자["s"]).astype(np.int64)     # 1 단위 픽셀 통
     key = (q[:, 0] - q[:, 0].min()) * 100000 + (q[:, 1] - q[:, 1].min()); order = np.lexsort((cz, key)); k_sorted = key[order]; first = np.ones(len(order), bool); first[1:] = k_sorted[1:] != k_sorted[:-1]
     보임 = idx[order[first]]; uvb = np.round(uv[order[first]] * S).astype(int); H, W = L.shape; 안 = (uvb[:, 0] >= 0) & (uvb[:, 0] < W) & (uvb[:, 1] >= 0) & (uvb[:, 1] < H)
@@ -85,6 +92,7 @@ for n, i in 번호.items():
 # ── 잰 것: 시점마다 부품 라벨 복셀 투영 vs 캡처 면 마스크 ──
 결과 = {}
 for t, 자이름 in 시점.items():
+    if t in 추가: continue
     L = np.load(J(D, t + "_영역.npz"))["라벨"]; H, W = L.shape; 자 = 자세[자이름]; 결과[t] = {}
     for n, i in 번호.items():
         ids = [k for k, v in 이름[t].items() if v == n]
@@ -104,6 +112,7 @@ def 렌더(yaw, W=600, H=600, s=3.8):
     return Image.fromarray(im[:, :, ::-1])
 판 = []
 for t, 자이름 in 시점.items():
+    if t in 추가: continue
     im = 읽기(기록[t]["파일"]); x0, y0, x1, y1 = 기록[t]["상자"]; L = np.load(J(D, t + "_영역.npz"))["라벨"]; 자 = 자세[자이름]; ov = im.copy()
     uv, _ = 찍기(G[합 > 0], 자); p = np.round(uv).astype(int); lab = 합[합 > 0]; H, W = im.shape[:2]; ok = (p[:, 0] >= 0) & (p[:, 0] < W) & (p[:, 1] >= 0) & (p[:, 1] < H)
     for n, i in 번호.items():
