@@ -192,7 +192,7 @@ def 검사(이름, 몸, 관, 대칭):
         r["다리_기갑"] = round(float(J["팔꿈치L"][2] / J["견갑L"][2]), 2); assert 0.5 < r["다리_기갑"] < 0.75, (이름, r)
     return r
 
-def stl(m, f): mm = m.to_mesh(); trimesh.Trimesh(mm.vert_properties[:, :3], mm.tri_verts).export(f); return f
+def stl(m, f): mm = m.to_mesh(); trimesh.Trimesh(mm.vert_properties[:, :3], mm.tri_verts, process=False).export(f); return f   # process=False: 기본값은 넓이 0 삼각형을 지워 STL 에 구멍을 낸다(09-29 머리 5 판)
 if __name__ == "__main__":
     from PIL import Image, ImageDraw, ImageFont
     T = os.path.join(OUT, "_갤러리"); os.makedirs(T, exist_ok=True); 판들, 표 = [], {}
