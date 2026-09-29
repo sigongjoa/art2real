@@ -19,9 +19,9 @@ def 각(R):
     앞 = R @ np.array([0, 0, -1.0]); 위 = R @ np.array([0, -1.0, 0])
     return math.atan2(앞[0], -앞[2]), math.asin(max(-1, min(1, -앞[1]))), math.atan2(위[0], -위[1])
 def 실루엣(p, shape, 축소=4):
-    yaw, pitch, roll, s, tx, ty = p; R = R_of(yaw, pitch, roll); H, W = shape[0] // 축소, shape[1] // 축소; m = np.zeros((H, W), np.uint8)
+    yaw, pitch, roll, s, tx, ty = p[:6]; k = float(p[6]) if len(p) > 6 else 0.0; R = R_of(yaw, pitch, roll); H, W = shape[0] // 축소, shape[1] // 축소; m = np.zeros((H, W), np.uint8)
     for n, U in 껍질:
-        uv = (s * ((U * (1, 1, -1)) @ R.T)[:, :2] + (tx, ty)) / 축소; h = cv2.convexHull(np.round(uv).astype(np.int32)); cv2.fillPoly(m, [h], 1)
+        C = (U * (1, 1, -1)) @ R.T; uv = (s * C[:, :2] / (1 + k * C[:, 2])[:, None] + (tx, ty)) / 축소; h = cv2.convexHull(np.round(uv).astype(np.int32)); cv2.fillPoly(m, [h], 1)   # 원근 k (09-29)
     return m
 def iou(a, b): return (a & b).sum() / max(1, (a | b).sum())
 def 씨앗실루엣(im, p):
@@ -32,19 +32,19 @@ def 씨앗실루엣(im, p):
     mk = ((mask == cv2.GC_FGD) | (mask == cv2.GC_PR_FGD)).astype(np.uint8); mk = cv2.morphologyEx(mk, cv2.MORPH_CLOSE, np.ones((9, 9), np.uint8))
     n, lab, st, _ = cv2.connectedComponentsWithStats(mk); i = 1 + int(np.argmax(st[1:, cv2.CC_STAT_AREA])); return (lab == i).astype(np.uint8)
 def 초기(n):
-    자 = 자세0[n]; R = cv2.Rodrigues(np.asarray(자["r"], float))[0]; y, p, r = 각(R); return np.array([y, p, r, 자["s"], 자["t"][0], 자["t"][1]], float)
+    자 = 자세0[n]; R = cv2.Rodrigues(np.asarray(자["r"], float))[0]; y, p, r = 각(R); return np.array([y, p, r, 자["s"], 자["t"][0], 자["t"][1], 0.0], float)
 if __name__ == "__main__":
     결과 = {}
     for n in (sys.argv[1:] or ["3/4 M04"]):
         f, _ = 캡처2D[n]; im = 읽기(J(장면, f)); p0 = 초기(n); 캡 = 씨앗실루엣(im, p0); 캡4 = cv2.resize(캡, (im.shape[1] // 4, im.shape[0] // 4), interpolation=cv2.INTER_NEAREST) > 0
-        손실 = lambda p: 1 - iou(실루엣(p, im.shape[:2]) > 0, 캡4)
+        손실 = lambda p: 1 - iou(실루엣(p, im.shape[:2]) > 0, 캡4) + (0.0 if -0.002 <= p[6] <= 0.02 else 1.0)      # k: 0 ~ 0.02 (Z0 ≥ 50 단위 = 머리 반 개 거리) 밖은 벌점
         best = None
         for dy in (0, 0.35, -0.35):                                              # yaw 초기값 셋(국소해 대비)
             q = p0.copy(); q[0] += dy; r = minimize(손실, q, method="Nelder-Mead", options=dict(maxiter=600, xatol=1e-3, fatol=1e-4))
             if best is None or r.fun < best.fun: best = r
         p = best.x; R = R_of(*p[:3]); rvec = cv2.Rodrigues(R)[0].ravel()
-        결과[n] = dict(r=list(map(float, rvec)), t=[float(p[4]), float(p[5])], s=float(p[3]), iou=round(1 - best.fun, 3), iou0=round(1 - 손실(p0), 3), yaw=round(math.degrees(p[0]), 1), pitch=round(math.degrees(p[1]), 1), roll=round(math.degrees(p[2]), 1))
-        print(n, "IoU %.3f → %.3f" % (1 - 손실(p0), 1 - best.fun), "yaw %.1f pitch %.1f roll %.1f s %.2f" % (math.degrees(p[0]), math.degrees(p[1]), math.degrees(p[2]), p[3]))
+        결과[n] = dict(r=list(map(float, rvec)), t=[float(p[4]), float(p[5])], s=float(p[3]), k=float(p[6]), iou=round(1 - best.fun, 3), iou0=round(1 - 손실(p0), 3), yaw=round(math.degrees(p[0]), 1), pitch=round(math.degrees(p[1]), 1), roll=round(math.degrees(p[2]), 1))
+        print(n, "IoU %.3f → %.3f" % (1 - 손실(p0), 1 - best.fun), "yaw %.1f pitch %.1f roll %.1f s %.2f k %.4f (Z0 %s 단위)" % (math.degrees(p[0]), math.degrees(p[1]), math.degrees(p[2]), p[3], p[6], ("%.0f" % (1 / p[6])) if p[6] > 1e-6 else "∞"))
         m1 = cv2.resize(실루엣(p, im.shape[:2], 1), (im.shape[1], im.shape[0]), interpolation=cv2.INTER_NEAREST); L = im.copy(); L[캡 > 0] = (L[캡 > 0] * 0.4 + np.array((0, 0, 255)) * 0.6).astype(np.uint8)
         Rr = im.copy(); c1, _ = cv2.findContours(캡, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE); c2, _ = cv2.findContours(m1, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE); cv2.drawContours(Rr, c1, -1, (0, 0, 255), 3); cv2.drawContours(Rr, c2, -1, (0, 255, 0), 3)
         p_ = J(OUT, "자세2_%s.png" % n.replace("/", "-").replace(" ", "_")); cv2.imencode(".png", np.concatenate([L, Rr], 1))[1].tofile(p_)

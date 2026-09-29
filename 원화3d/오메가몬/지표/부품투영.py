@@ -18,7 +18,10 @@ def 단위(V):
     """모델 mm (x 오른쪽 · y 뒤 + · z 위 +) → 머리 단위 (x 오른쪽 · y 아래 · z 앞)"""
     return np.stack([(V[:, 0] - cx_mm) / 머리mm * 100, (top_mm - V[:, 2]) / 머리mm * 100, -V[:, 1] / 머리mm * 100], 1)
 def 찍기(U, 자):
-    R, _ = cv2.Rodrigues(np.asarray(자["r"], float)); C = (U * (1, 1, -1)) @ R.T; return 자["s"] * C[:, :2] + np.asarray(자["t"]), C[:, 2]
+    """약원근 + 원근: u = s · C_xy / (1 + k · C_z) + t.  k = 1/Z0(카메라 거리의 역수 · 단위⁻¹). k = 0 이면 정사영. C_z 는 멀수록 큼.
+    09-29 「회전 + 카메라 거리가 달라서 축소 · 확대」 — 가까운 부품이 더 크게 찍히는 것을 k 가 담당한다."""
+    R, _ = cv2.Rodrigues(np.asarray(자["r"], float)); C = (U * (1, 1, -1)) @ R.T; k = float(자.get("k", 0.0))
+    return 자["s"] * C[:, :2] / (1 + k * C[:, 2])[:, None] + np.asarray(자["t"]), C[:, 2]
 if __name__ == "__main__":
     D = sys.argv[1] if len(sys.argv) > 1 else J(OUT, "..", "머리", "단계4"); ft = ImageFont.truetype(r"C:\Windows\Fonts\malgunbd.ttf", 15)
     부품 = [(os.path.basename(f)[:-4], trimesh.load(f, process=False)) for f in sorted(glob.glob(J(D, "*.stl"))) if os.path.basename(f) not in ("프레임.stl",)]
