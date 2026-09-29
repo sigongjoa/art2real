@@ -45,7 +45,11 @@ if __name__ == "__main__":
     for n in ("02_정면", "02_3-4", "02_옆"):
         im = 읽기(기록[n]["파일"]); sil = 읽기(J(D, n + "_실루엣.png"), cv2.IMREAD_GRAYSCALE) > 0; 선3 = 읽기(J(D, n + ("_선닫힘.png" if os.path.exists(J(D, n + "_선닫힘.png")) else "_선.png")), cv2.IMREAD_GRAYSCALE) < 128   # 면닫기.py 결과가 있으면 그것
         sil3 = cv2.resize(sil.astype(np.uint8), (선3.shape[1], 선3.shape[0]), interpolation=cv2.INTER_NEAREST) > 0; 라벨, 선 = 면나누기(sil3, 선3)
-        im3_ = cv2.resize(im, (선3.shape[1], 선3.shape[0]), interpolation=cv2.INTER_CUBIC); 라벨, 후보 = 음영합치기(라벨, im3_); ids = [i for i in np.unique(라벨) if i > 0]; print(n, "면", len(ids), "· 합칠 후보", [c["쌍"] for c in 후보])
+        im3_ = cv2.resize(im, (선3.shape[1], 선3.shape[0]), interpolation=cv2.INTER_CUBIC); 라벨, 후보 = 음영합치기(라벨, im3_)
+        선택 = json.load(open(J(D, "자료영역_선택.json"), encoding="utf-8")) if os.path.exists(J(D, "자료영역_선택.json")) else {}
+        for a_, b_ in 선택.get(n, []): 라벨[라벨 == b_] = a_                                          # 사람이(없으면 Claude 가) 고른 쌍만 합친다 · 후보 중 나머지는 그대로
+        if 선택.get(n): 번호 = {v: k_ + 1 for k_, v in enumerate(sorted(set(라벨[라벨 > 0].tolist()), key=lambda v: (np.nonzero(라벨 == v)[0].mean(), np.nonzero(라벨 == v)[1].mean())))}; 라벨 = np.vectorize(lambda v: 번호.get(v, 0))(라벨).astype(np.int32); 후보 = []
+        ids = [i for i in np.unique(라벨) if i > 0]; print(n, "면", len(ids), "· 합침", 선택.get(n, []), "· 남은 후보", [c["쌍"] for c in 후보][:6])
         np.savez_compressed(J(D, n + "_영역.npz"), 라벨=라벨); 표[n] = {int(i): int((라벨 == i).sum()) for i in ids}
         rng = np.random.RandomState(5); im3 = cv2.resize(im, (선3.shape[1], 선3.shape[0]), interpolation=cv2.INTER_CUBIC); 면 = np.full(im3.shape, 255, np.uint8)
         for i in ids: 면[라벨 == i] = tuple(int(x) for x in rng.randint(60, 240, 3))
