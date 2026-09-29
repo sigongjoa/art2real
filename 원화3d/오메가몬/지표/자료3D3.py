@@ -52,10 +52,11 @@ def 마디(표, 각=0.75):
     K = [켜(*row, 각=각) for row in 표]; return M.Manifold.batch_boolean([M.Manifold.hull_points(a + b) for a, b in zip(K[:-1], K[1:])], M.OpType.Add)
 표들 = {}; 부품 = {}
 # 소체: 투구 면 폭(정면) · 옆 투구 면 앞뒤 → 그 안쪽(−3)
-표들["소체"] = [(y, xl + 3, xr - 3, zb + 3, zf - 3) for y, xl, xr, zb, zf in 단면표(정이름["투구"], 옆이름.get("투구"), n=9)]
+머리정 = sorted({i for k in ("투구", "뿔", "눈L", "눈R", "부리", "볼L", "볼R") for i in 정이름.get(k, [])}); 머리옆 = sorted({i for k in ("투구", "눈썹", "눈", "부리1", "부리2", "부리3", "볼") for i in 옆이름.get(k, [])})
+표들["소체"] = [(y, xl + 3, xr - 3, zb + 3, zf - 3) for y, xl, xr, zb, zf in 단면표(머리정, 머리옆, n=12) if y > 30]      # 소체 = 머리 전체(이름 붙은 면 전부) · 투구 면만으로는 이마 띠뿐(09-29)
 부품["소체"] = 마디(표들["소체"], 각=0.9)
 표들["돔"] = 단면표(정이름["투구"], 옆이름.get("투구"), n=9); 부품["돔"] = 마디(표들["돔"], 각=0.9)
-표들["뿔"] = 단면표(정이름["뿔"], 옆이름.get("뿔"), n=8, 기본z=(15.0, 5.0))   # 옆 캡처에 뿔이 잘려 없다 → 이마 앞(옆 면 1 의 z) 기본값; 부품["뿔"] = 마디(표들["뿔"], 각=0.6) if len(표들["뿔"]) > 1 else None
+표들["뿔"] = 단면표(정이름["뿔"], 옆이름.get("뿔"), n=8, 기본z=(15.0, 5.0)); 부품["뿔"] = 마디(표들["뿔"], 각=0.6) if len(표들["뿔"]) > 1 else None   # 옆 캡처에 뿔이 잘려 없다 → 이마 앞 z 기본값
 for k, ids in (("부리1", 정이름["부리"][:1]), ("부리2", 정이름["부리"][1:2]), ("부리3", 정이름["부리"][2:3])):
     표들[k] = 단면표(ids, 옆이름.get(k), n=5); 부품[k] = 마디(표들[k], 각=0.5) if len(표들[k]) > 1 else None
 for k in ("볼L", "볼R"):
@@ -65,11 +66,12 @@ for k in ("눈L", "눈R"):
     if len(표들[k]) > 1: 부품["돔"] = 부품["돔"] - 마디([(y, xl, xr, zb - 40, zf + 10) for y, xl, xr, zb, zf in 표들[k]], 각=0.6); 부품["눈구멍" + k[-1]] = 마디([(y, xl + 0.5, xr - 0.5, zb - 2, zb + 0.5) for y, xl, xr, zb, zf in 표들[k]], 각=0.6)
 부품 = {k: v for k, v in 부품.items() if v is not None}
 for k in list(부품):                                                                                 # 갑주 ∩ 소체 = 0 (옛 규칙)
-    if k != "소체": 부품[k] = 부품[k] - 부품["소체"]
+    if k != "소체" and not k.startswith("눈구멍"): 부품[k] = 부품[k] - 부품["소체"]      # 눈구멍 판은 소체 안쪽 오목이라 빼지 않는다
 out = {}
 for k, m in 부품.items():
+    if m.is_empty(): print("  빈 부품:", k); continue
     mm_ = m.to_mesh(); t = trimesh.Trimesh(np.array(mm_.vert_properties)[:, :3], np.array(mm_.tri_verts), process=False)
-    if t.is_empty: continue
+    if t.is_empty: print("  빈 메시:", k); continue
     if t.volume < 0: t.invert()
     t.export(J(D3, k + ".stl")); out[k] = t
 print("부품", list(out), "· 닫힘", all(t.is_watertight for t in out.values())); json.dump({k: [[round(v, 1) for v in r] for r in 표] for k, 표 in 표들.items()}, open(J(D, "자료3D3.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
