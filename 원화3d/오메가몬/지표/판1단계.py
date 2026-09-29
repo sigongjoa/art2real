@@ -8,7 +8,8 @@ import os, sys, json, glob
 import numpy as np, cv2, trimesh, manifold3d as M
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); from 집합 import OUT, 장면, J
 from 부품투영 import 단위, 찍기 as 찍기N, 머리mm, cx_mm, top_mm, 읽기
-F = json.load(open(J(OUT, "랜드마크3D.json"), encoding="utf-8")); 자세 = F["자세"]
+F = json.load(open(J(OUT, "랜드마크3D.json"), encoding="utf-8")); 자세 = dict(F["자세"])
+if os.path.exists(J(OUT, "자세2.json")): 자세.update(json.load(open(J(OUT, "자세2.json"), encoding="utf-8")))   # 실루엣으로 다시 잡은 자세가 있으면 그것을(자세2.py)
 정면향 = ("눈썹", "눈구멍", "코", "부리2", "부리3", "번개", "뿔", "홍채", "동공"); 두께 = 3.0; 최소 = 300
 D6 = J(OUT, "..", "머리", "단계4"); 이름표 = [os.path.basename(f)[:-4] for f in sorted(glob.glob(J(D6, "*.stl"))) if os.path.basename(f) != "프레임.stl"]
 def mm(U): return np.stack([U[:, 0] / 100 * 머리mm + cx_mm, -U[:, 2] / 100 * 머리mm, top_mm - U[:, 1] / 100 * 머리mm], 1)
