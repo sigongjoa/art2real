@@ -70,5 +70,5 @@ if __name__ == "__main__":
             if k not in P: continue
             x, y = uv; x2, y2 = 찍기(P[k], 자); d.ellipse((x - 4, y - 4, x + 4, y + 4), outline=(255, 0, 0), width=2); d.ellipse((x2 - 4, y2 - 4, x2 + 4, y2 + 4), outline=(0, 90, 255), width=2); d.line((x, y, x2, y2), fill=(255, 255, 0))
         im.save(J(OUT, "맞춤_%s.png" % n.replace("/", "-").replace(" ", "_")))
-    json.dump(dict(반쪽={k: 표[k]["맞춤"] for k in 반이름}, 가운데={k: 표[k]["맞춤"] for k in 중이름}, 표=표, λ=λ), open(J(OUT, "랜드마크3D.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    json.dump(dict(반쪽={k: 표[k]["맞춤"] for k in 반이름}, 가운데={k: 표[k]["맞춤"] for k in 중이름}, 표=표, λ=λ, 자세={n: dict(r=list(map(float, 자세[n]["r"])), t=list(map(float, 자세[n]["t"])), s=float(자세[n]["s"])) for n in 캡이름}), open(J(OUT, "랜드마크3D.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print("저장", J(OUT, "랜드마크3D.json"))
