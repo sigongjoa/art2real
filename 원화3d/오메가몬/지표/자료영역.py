@@ -21,11 +21,33 @@ def 면나누기(sil3, 선3):
     ys, xs = np.nonzero(라벨 > 0); 값 = np.zeros(idx.max() + 1, np.int32); 값[idx[ys, xs]] = 라벨[ys, xs]; 채움 = 값[idx]; 채움[~sil3] = 0
     번호 = {v: k + 1 for k, v in enumerate(sorted(set(채움[채움 > 0].tolist()), key=lambda v: (np.nonzero(채움 == v)[0].mean(), np.nonzero(채움 == v)[1].mean())))}   # 위 → 아래 순 번호
     return np.vectorize(lambda v: 번호.get(v, 0))(채움).astype(np.int32), 선
+def 음영합치기(라벨, im3, 여유=6, 색차=10, 띠=5, 최소띠=60):
+    """그늘로 갈린 면 합치기(09-29 「뿔이 그림자 때문에 같은 건데 분할되네」): 맞닿은 두 면의 경계 띠에 먹선(블랙햇)이 적고 색상(a*·b*)이 같으면 같은 재질 → 합침. 규칙/캡처는-실루엣-선-면 · 알베도."""
+    g = cv2.cvtColor(im3, cv2.COLOR_BGR2GRAY); 먹 = cv2.dilate((cv2.morphologyEx(g, cv2.MORPH_BLACKHAT, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15))) > 18).astype(np.uint8), np.ones((3, 3), np.uint8)) > 0
+    lab = cv2.cvtColor(im3, cv2.COLOR_BGR2LAB).astype(np.float32); ids = [i for i in np.unique(라벨) if i > 0]; 색 = {i: np.median(lab[라벨 == i], 0) for i in ids}; 부모 = {i: i for i in ids}
+    def 찾(a):
+        while 부모[a] != a: 부모[a] = 부모[부모[a]]; a = 부모[a]
+        return a
+    k = np.ones((띠, 띠), np.uint8); 팽 = {i: cv2.dilate((라벨 == i).astype(np.uint8), k) > 0 for i in ids}; 팽3 = {i: cv2.dilate((라벨 == i).astype(np.uint8), np.ones((3, 3), np.uint8)) > 0 for i in ids}; 합침 = []
+    for x, a in enumerate(ids):
+        for b in ids[x + 1:]:
+            band = 팽[a] & (라벨 == b); n = int(band.sum())
+            if n < 최소띠: continue
+            경계 = 팽3[a] & 팽3[b]; 경밝 = float(np.median(g[경계])) if 경계.any() else 0.0; La, Lb = float(np.median(g[라벨 == a])), float(np.median(g[라벨 == b]))
+            선있음 = 경밝 < min(La, Lb) - 여유                                                       # 경계가 양쪽 면보다 어두우면 먹선(옅은 선도 잡힌다) · 사이면 명암 경계
+            dc = float(np.hypot(*(색[a][1:] - 색[b][1:])))
+            비 = min(La, Lb) / max(La, Lb, 1)                                                      # 셀 음영 톤 비는 0.55~0.85 · 검정 대 흰은 0.2 미만
+            if not 선있음 and dc < 색차 and 비 >= 0.45 and min(La, Lb) >= 40: 부모[찾(a)] = 찾(b); 합침.append((int(a), int(b), int(경밝), int(La), int(Lb), round(dc, 1)))
+    새 = 라벨.copy()
+    for i in ids: 새[라벨 == i] = 찾(i)
+    번호 = {v: k_ + 1 for k_, v in enumerate(sorted(set(새[새 > 0].tolist()), key=lambda v: (np.nonzero(새 == v)[0].mean(), np.nonzero(새 == v)[1].mean())))}
+    return np.vectorize(lambda v: 번호.get(v, 0))(새).astype(np.int32), 합침
 if __name__ == "__main__":
     ft = ImageFont.truetype(r"C:\Windows\Fonts\malgunbd.ttf", 22); fs = ImageFont.truetype(r"C:\Windows\Fonts\malgunbd.ttf", 15); 판들 = []; 표 = {}
     for n in ("02_정면", "02_3-4", "02_옆"):
         im = 읽기(기록[n]["파일"]); sil = 읽기(J(D, n + "_실루엣.png"), cv2.IMREAD_GRAYSCALE) > 0; 선3 = 읽기(J(D, n + ("_선닫힘.png" if os.path.exists(J(D, n + "_선닫힘.png")) else "_선.png")), cv2.IMREAD_GRAYSCALE) < 128   # 면닫기.py 결과가 있으면 그것
-        sil3 = cv2.resize(sil.astype(np.uint8), (선3.shape[1], 선3.shape[0]), interpolation=cv2.INTER_NEAREST) > 0; 라벨, 선 = 면나누기(sil3, 선3); ids = [i for i in np.unique(라벨) if i > 0]
+        sil3 = cv2.resize(sil.astype(np.uint8), (선3.shape[1], 선3.shape[0]), interpolation=cv2.INTER_NEAREST) > 0; 라벨, 선 = 면나누기(sil3, 선3)
+        im3_ = cv2.resize(im, (선3.shape[1], 선3.shape[0]), interpolation=cv2.INTER_CUBIC); 전 = len([i for i in np.unique(라벨) if i > 0]); 라벨, 합침 = 음영합치기(라벨, im3_); ids = [i for i in np.unique(라벨) if i > 0]; print(n, "음영 합침", 전, "→", len(ids), 합침[:8])
         np.savez_compressed(J(D, n + "_영역.npz"), 라벨=라벨); 표[n] = {int(i): int((라벨 == i).sum()) for i in ids}
         rng = np.random.RandomState(5); im3 = cv2.resize(im, (선3.shape[1], 선3.shape[0]), interpolation=cv2.INTER_CUBIC); 면 = np.full(im3.shape, 255, np.uint8)
         for i in ids: 면[라벨 == i] = tuple(int(x) for x in rng.randint(60, 240, 3))
