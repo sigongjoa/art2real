@@ -31,7 +31,9 @@ if __name__ == "__main__":
         for r in np.unique(면):
             if r <= 0: continue
             m = 면 == r; ids = ID0[m]; ids = ids[ids > 0]
-            if ids.size >= 0.5 * m.sum(): 캡라벨[m] = np.bincount(ids).argmax()          # 그 시점의 렌더가 절반 넘게 덮는 면만 라벨
+            if ids.size == 0: continue
+            cnt = np.bincount(ids); i = int(cnt.argmax())
+            if cnt[i] >= 0.4 * m.sum(): 캡라벨[m] = i                                     # **이긴 부품 하나**가 면의 40 % 넘게 덮을 때만 라벨(샌 면은 어느 부품도 못 덮어 빠진다)
         캡 = G.캡처선(태그, im); 장[n] = dict(im=im, 자=자, 캡라벨=캡라벨, 캡=캡, 캡D=G.거리표(캡), 창=cv2.dilate(np.isin(ID0, [id표[k] for k in 판이름들]).astype(np.uint8), np.ones((41, 41), np.uint8)) > 0, 태그=태그)
     def 자세k(n, p):
         자 = dict(장[n]["자"]); 
