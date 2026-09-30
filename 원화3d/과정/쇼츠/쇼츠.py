@@ -49,9 +49,19 @@ def 판(종류, 큰, 작):
         글(d, (0, 500), 큰, 굵(70)); 글(d, (0, 1250), 작, 굵(50), 강조)
     return c
 행 = list(csv.DictReader(open(os.path.join(H_, 편), encoding="utf-8"), delimiter="\t")); 임시 = os.path.join(출, "_판"); os.makedirs(임시, exist_ok=True); [os.remove(os.path.join(임시, x)) for x in os.listdir(임시)]
-목록 = []
+목록 = []; 밈폴더 = os.path.join(H_, "밈")
+def 밈길이(f):
+    try: return float(subprocess.run(["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", f], capture_output=True, text=True).stdout.strip())
+    except Exception: return 0.0
 for i, r in enumerate(행):
-    p = os.path.join(임시, "%03d.png" % i); 판(r["그림"], r["큰글"] or "", r["작은글"] or "").save(p); 목록.append((p, float(r["초"])))
+    p = os.path.join(임시, "%03d.png" % i); 초 = float(r["초"])
+    if r["그림"].startswith("밈:"):                                                                     # 밈 클립 자리: 과정/쇼츠/밈/<파일> (사용자가 넣는다 · 없으면 자리 표시)
+        f = os.path.join(밈폴더, r["그림"][2:]); 있 = os.path.exists(f); c = Image.new("RGB", (W, H), (0, 0, 0))
+        if 있: 초 = min(초, 밈길이(f)) if 초 > 0 else 밈길이(f)
+        else: d = ImageDraw.Draw(c); 글(d, (0, 800), "밈 자리", 굵(90), 강조); 글(d, (0, 960), r["그림"][2:] + " 를 과정/쇼츠/밈/ 에 넣으면 여기서 재생", 얇(40))
+        c.save(p); r["_밈"] = f if 있 else ""
+    else: 판(r["그림"], r["큰글"] or "", r["작은글"] or "").save(p)
+    목록.append((p, 초))
 이름 = os.path.splitext(편)[0]; shutil.copy(목록[0][0], os.path.join(출, 이름 + "_0초.png")); mp4 = os.path.join(출, 이름 + ".mp4")
 if "--차분" in sys.argv:                                                                               # 옛 판: 판을 그대로 이어 붙임
     with open(os.path.join(임시, "목록.txt"), "w", encoding="utf-8") as f:
@@ -75,7 +85,17 @@ def 스티커(글자, k):
 proc = subprocess.Popen(["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "%dx%d" % (W, H), "-r", str(FPS), "-i", "-", "-i", os.path.join(임시, "소리.wav"), "-c:v", "libx264", "-crf", "20", "-pix_fmt", "yuv420p", "-c:a", "aac", "-shortest", mp4], stdin=subprocess.PIPE) if False else None
 프레임들 = []; t0 = 0.0; 몇 = 0
 for k, ((p, 초), r) in enumerate(zip(목록, 행)):
-    base = Image.open(p).convert("RGB"); 외침 = (r.get("외침") or "").strip(); st = 스티커(외침, k) if 외침 else None; n = int(round(초 * FPS)); 쉭(t0); 톡(t0 + 0.02)
+    n = int(round(초 * FPS))
+    if r.get("_밈"):                                                                                 # 밈 클립: 화면 가득(가로 맞춤) · 제 소리 그대로 · 아래에 큰 자막
+        raw = subprocess.run(["ffmpeg", "-loglevel", "error", "-i", r["_밈"], "-t", "%.2f" % 초, "-vf", "fps=%d,scale=%d:-2" % (FPS, W), "-f", "rawvideo", "-pix_fmt", "rgb24", "-"], capture_output=True).stdout
+        pr = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height", "-of", "csv=p=0", r["_밈"]], capture_output=True, text=True).stdout.strip().split(","); ch = int(round(int(pr[1]) * W / int(pr[0]) / 2) * 2)
+        aud = np.frombuffer(subprocess.run(["ffmpeg", "-loglevel", "error", "-i", r["_밈"], "-t", "%.2f" % 초, "-ac", "1", "-ar", str(SR), "-f", "f32le", "-"], capture_output=True).stdout, np.float32); a0 = int(SR * t0); 소리[a0:a0 + len(aud)] += aud[:len(소리[a0:a0 + len(aud)])] * 1.2
+        for j in range(min(n, len(raw) // (W * ch * 3))):
+            cl = Image.frombytes("RGB", (W, ch), raw[j * W * ch * 3:(j + 1) * W * ch * 3]); fr = Image.new("RGB", (W, H), (0, 0, 0)); z = 1.0 + 0.10 * np.exp(-j / 3.0); c2 = cl.resize((int(W * z), int(ch * z)), Image.BILINEAR); fr.paste(c2, ((W - c2.width) // 2, (H - c2.height) // 2 - 120))
+            d = ImageDraw.Draw(fr); 글(d, (0, (H + ch) // 2 - 60), r["큰글"] or "", 굵(84), (255, 255, 255)); d.rectangle((0, 0, W, 14), fill=(60, 60, 70)); d.rectangle((0, 0, int(W * (t0 + j / FPS) / 총), 14), fill=(255, 214, 64))
+            프레임들.append(np.asarray(fr, np.uint8).tobytes()); 몇 += 1
+        t0 += 초; continue
+    base = Image.open(p).convert("RGB"); 외침 = (r.get("외침") or "").strip(); st = 스티커(외침, k) if 외침 else None; 쉭(t0); 톡(t0 + 0.02)
     if st is not None: 쿵(t0 + 0.30)
     sx, sy = random.randint(40, 120), {"카드": 1330, "판정": 820, "훅": 1500}.get(r["그림"].split(":")[0], 1080) + random.randint(-40, 40)      # 글자와 안 겹치는 빈 띠
     for j in range(n):
