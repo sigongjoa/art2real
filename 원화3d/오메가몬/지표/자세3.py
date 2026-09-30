@@ -14,7 +14,7 @@ D = J(OUT, "..", "자료"); S = 3; 선택 = json.load(open(J(D, "면대응_선�
 F = 자세2["정면 yt_172"]; Rf = cv2.Rodrigues(np.asarray(F["r"], float))[0]
 def 무게(t, ids):
     m = np.isin(라벨[t], ids); ys, xs = np.nonzero(m); return np.array([xs.mean(), ys.mean()]) / S, float(m.sum()) / S / S
-부품 = [(n, 짝) for n, 짝 in 선택.items() if 짝.get("정면") and (짝.get("옆") or 짝.get("3-4"))]
+부품 = [(n, 짝) for n, 짝 in 선택.items() if 짝.get("정면") and (짝.get("옆") or 짝.get("3-4")) and n not in ("볼L",)]     # 볼L 은 3/4 짝(5)이 의심스러워 뺌(z 129)
 정 = {n: 무게("02_정면", 짝["정면"]) for n, 짝 in 부품}; 관측 = []                                          # (부품 번호, 장, 무게중심 px, 가중)
 for k, (n, 짝) in enumerate(부품):
     for t, key in (("02_옆", "옆"), ("02_3-4", "3-4")):
@@ -33,7 +33,18 @@ def 잔차(x):
         r += [max(0.0, ang - 15) * 0.5, np.log(p[3] / p0[t][3]) * 20]
     r += [(zk - 20) * 0.02 for zk in z]                                                              # z 는 머리 안(대략 0..50)
     return np.array(r)
-x0 = np.r_[np.full(len(부품), 20.0), p0["02_옆"], p0["02_3-4"]]; res = least_squares(잔차, x0, method="lm" if False else "trf", max_nfev=4000)
+from 자세2 import R_of, 각
+def 시작(t, 부호):                                                                                  # 약원근 무게중심 맞춤은 앞뒤가 뒤집힌 해(네커)도 잘 맞는다 → yaw 부호 둘 다에서 출발
+    r0 = p0[t]; R = cv2.Rodrigues(r0[:3])[0]
+    if 부호 < 0: D = np.diag([1.0, 1.0, -1.0]); R = D @ R @ D                                        # 앞뒤 뒤집힌 짝 해(약원근 네커 반전)
+    return np.r_[cv2.Rodrigues(R)[0].ravel(), r0[3:]]
+res = None
+for a in (-1, 1):
+    for b in (-1, 1):
+        x0 = np.r_[np.full(len(부품), 20.0), 시작("02_옆", a), 시작("02_3-4", b)]; r_ = least_squares(잔차, x0, method="trf", max_nfev=4000)
+        print("  시작 옆 yaw %s · 3/4 yaw %s → 잔차 RMS %.2f" % ("−" if a < 0 else "+", "−" if b < 0 else "+", np.sqrt(np.mean(r_.fun ** 2))))
+        if res is None or r_.cost < res.cost: res = r_; x0best = x0
+x0 = x0best
 z, P = 풀기(res.x); print("잔차 RMS %.2f → %.2f 단위" % (np.sqrt(np.mean(잔차(x0) ** 2)), np.sqrt(np.mean(res.fun ** 2))))
 자세3 = dict(자세2); 
 for t, n in 시점.items():
