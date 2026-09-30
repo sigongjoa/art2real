@@ -13,7 +13,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__))); from 집합 impo
 from 부품투영 import 찍기, 읽기
 D = J(OUT, "..", "자료"); P = J(D, "패치"); os.makedirs(P, exist_ok=True); S = 3
 기록 = json.load(open(J(D, "자료.json"), encoding="utf-8")); 선택 = json.load(open(J(D, "면대응_선택.json"), encoding="utf-8"))["짝"]
-자세 = json.load(open(J(OUT, "자세2.json"), encoding="utf-8")); 시점 = {"02_정면": "정면 yt_172", "02_3-4": "3/4 M04", "02_옆": "옆 yt_235"}
+자세 = json.load(open(J(OUT, (sys.argv[sys.argv.index("--자세") + 1] if "--자세" in sys.argv else "자세2.json")), encoding="utf-8")); 자세 = {k: v for k, v in 자세.items() if isinstance(v, dict) and "r" in v}; 시점 = {"02_정면": "정면 yt_172", "02_3-4": "3/4 M04", "02_옆": "옆 yt_235"}
 # 시점마다 면 번호 → 부품 이름 (② 에서 고른 짝 · 눈구멍R 은 정면에서만 · 거울)
 이름 = {t: {} for t in 시점}
 for 부품, 짝 in 선택.items():
