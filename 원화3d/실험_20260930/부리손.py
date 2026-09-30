@@ -31,7 +31,7 @@ if sys.argv[1:2] == ["읽기"] or not os.path.exists(파일):
     sys.exit()
 P = json.load(open(파일, encoding="utf-8")); 점 = P["줄"]
 # 쐐기: 줄마다 앞 능선점 (x중심, y, z앞) · 좌우 뒤 가장자리 (x중심 ± 반폭, y, z뒤) · 사이 중간점(능선각으로 볼록) → 5 점 단면
-V, Fs = [], []; n단 = 5
+V, Fs = [], []; n단 = 3                                                                        # 용골: 능선 + 좌우 가장자리(키트 = 날카로운 쐐기 · 서브디비전 없이 각지게)
 for p in 점:
     x0, y, zf, zb, w = p["x중심"], p["y"], p["z앞"], p["z뒤"], p["반폭"]; a = P.get("능선각", 0.6)
     ts = np.linspace(-1, 1, n단); xs = x0 + w * ts; zs = zb + (zf - zb) * (1 - np.abs(ts) ** (1 / a))          # 가운데가 앞으로 나온 볼록 단면
