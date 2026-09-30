@@ -50,12 +50,18 @@ def 판(다각B, 두께, 법선=(0, 1, 0)):
 z = np.load(J(B, "부리손.npz")); Vb_ = z["V"].copy(); Vb_[:6, 1] += 6.0; 부품["부리"] = (Vb_, z["F"]); 부리점 = json.load(open(J(B, "부리점.json"), encoding="utf-8"))["줄"]; 부리뒤 = {p["y"]: p["z뒤"] for p in 부리점}   # 위 두 줄(점 6)을 투구 속으로 6; 부리점 = json.load(open(J(B, "부리점.json"), encoding="utf-8"))["줄"]; 부리뒤 = {p["y"]: p["z뒤"] for p in 부리점}
 # ── 투구(소체 겸): 줄마다 정면 폭(측정) · 옆 앞(측정 · 부리 줄은 부리 뒤 − 2) · 옆 뒤(측정) ──
 켜들 = []; 표 = []
-for y in [2, 8, 16, 24, 32, 40, 48, 56, 64, 72, 80, 88, 95]:
-    w = 정면폭(y); ab = 옆앞뒤(y)
+얼굴 = np.isin(L정s, [9, 12, 17, 18, 19, 20, 21, 24, 25, 26, 30, 31])                                      # 볼 날개 뺀 얼굴 영역(측정)
+def 얼굴폭(y):
+    xs = np.nonzero(얼굴[정행(y)])[0]; return float(max(abs(xs.min() - F["t"][0]), abs(xs.max() - F["t"][0])) / F["s"]) if len(xs) else None
+for y in [0.5, 3, 8, 16, 24, 32, 40, 48, 56, 64, 72, 80, 88, 95]:
+    w = 정면폭(max(y, 8)); ab = 옆앞뒤(max(y, 8))
     if w is None or ab is None: continue
+    if y < 8: w = (w[0] * (0.35 if y < 1 else 0.7), w[1] * (0.35 if y < 1 else 0.7))                                # 돔 꼭대기를 닫는다(손)
     xl, xr = w; zf, zb = ab
     if y >= 56: zf = np.interp(y, list(부리뒤), list(부리뒤.values())) - 2.0                                # 부리 아래 얼굴면
-    hw = min(30.0, max(abs(xl), abs(xr))) if y >= 56 else max(abs(xl), abs(xr)); xl, xr = -hw, hw                   # 좌우 대칭(손) · 턱 쪽 ±30
+    hw = max(abs(xl), abs(xr))
+    if y >= 56 and 얼굴폭(y): hw = min(hw, 얼굴폭(y) * 0.9)                                             # 눈 아래는 얼굴 영역 폭(측정 · 볼 날개 뺌)
+    xl, xr = -hw, hw
     if False: xl, xr = max(xl, -30.0), min(xr, 30.0)                                                 # 턱 쪽은 볼 날개를 뺀 얼굴 폭(손)
     zb = max(zf - (xr - xl) * 1.0, -62.0)                                                              # 옆 실루엣 뒤끝은 안테나 · 깃이 섞여 못 쓴다 → 머리 깊이 = 폭 × 1.0(art-to-3d-maps 측정값 · 손)
     표.append((y, round(xl, 1), round(xr, 1), round(zf, 1), round(zb, 1))); 켜들.append(켜(y, xl, xr, zf, zb, 각=0.8 if y < 56 else 0.6))
