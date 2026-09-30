@@ -52,10 +52,44 @@ def 판(종류, 큰, 작):
 목록 = []
 for i, r in enumerate(행):
     p = os.path.join(임시, "%03d.png" % i); 판(r["그림"], r["큰글"] or "", r["작은글"] or "").save(p); 목록.append((p, float(r["초"])))
-이름 = os.path.splitext(편)[0]; shutil.copy(목록[0][0], os.path.join(출, 이름 + "_0초.png"))
-with open(os.path.join(임시, "목록.txt"), "w", encoding="utf-8") as f:
-    for p, s in 목록: f.write("file '%s'\nduration %.2f\n" % (p.replace("\\", "/"), s))
-    f.write("file '%s'\n" % 목록[-1][0].replace("\\", "/"))
-mp4 = os.path.join(출, 이름 + ".mp4")
-subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", os.path.join(임시, "목록.txt"), "-vf", "fps=%d,format=yuv420p" % FPS, "-c:v", "libx264", "-crf", "20", mp4], check=True)
-print(mp4, "· 길이 %.1f초 · 판 %d" % (sum(s for _, s in 목록), len(목록)))
+이름 = os.path.splitext(편)[0]; shutil.copy(목록[0][0], os.path.join(출, 이름 + "_0초.png")); mp4 = os.path.join(출, 이름 + ".mp4")
+if "--차분" in sys.argv:                                                                               # 옛 판: 판을 그대로 이어 붙임
+    with open(os.path.join(임시, "목록.txt"), "w", encoding="utf-8") as f:
+        for p, s in 목록: f.write("file '%s'\nduration %.2f\n" % (p.replace("\\", "/"), s))
+        f.write("file '%s'\n" % 목록[-1][0].replace("\\", "/"))
+    subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-f", "concat", "-safe", "0", "-i", os.path.join(임시, "목록.txt"), "-vf", "fps=%d,format=yuv420p" % FPS, "-c:v", "libx264", "-crf", "20", mp4], check=True)
+    print(mp4, "· 길이 %.1f초 · 판 %d" % (sum(s for _, s in 목록), len(목록))); sys.exit()
+# ── 정신없는 판(기본): 컷마다 펀치 줌 · 흔들림 · 번쩍 · 외침 스티커가 튀어나옴 · 진행 막대 · 효과음(합성) ──
+import wave, random
+random.seed(7); SR = 44100; 총 = sum(s for _, s in 목록); 소리 = np.zeros(int(SR * (총 + 0.5)), np.float32)
+def 톡(t, f0=900, f1=260, 길이=0.09, 크기=0.5):
+    n = int(SR * 길이); x = np.arange(n) / SR; f = f0 * (f1 / f0) ** (x / 길이); w = np.sin(2 * np.pi * np.cumsum(f) / SR) * np.exp(-x * 28) * 크기; a = int(SR * t); 소리[a:a + n] += w[:len(소리[a:a + n])]
+def 쉭(t, 길이=0.16, 크기=0.25):
+    n = int(SR * 길이); x = np.arange(n) / SR; w = np.random.RandomState(int(t * 100)).randn(n) * np.sin(np.pi * x / 길이) ** 2 * 크기; w = np.convolve(w, np.ones(6) / 6, "same"); a = int(SR * t); 소리[a:a + n] += w[:len(소리[a:a + n])]
+def 쿵(t, 크기=0.8):
+    n = int(SR * 0.22); x = np.arange(n) / SR; w = np.sin(2 * np.pi * (110 * np.exp(-x * 14) + 45) * x) * np.exp(-x * 13) * 크기; a = int(SR * t); 소리[a:a + n] += w[:len(소리[a:a + n])]
+색들 = [(255, 214, 64), (255, 90, 90), (90, 220, 255), (150, 255, 120)]
+def 스티커(글자, k):
+    f = 굵(150 if len(글자) <= 4 else 110); tmp = Image.new("RGBA", (1000, 320), (0, 0, 0, 0)); d = ImageDraw.Draw(tmp); tw = d.textlength(글자, font=f)
+    d.text(((1000 - tw) / 2, 60), 글자, font=f, fill=색들[k % 4] + (255,), stroke_width=10, stroke_fill=(0, 0, 0, 255)); return tmp.rotate(random.choice((-9, -6, 6, 9)), expand=True, resample=Image.BICUBIC)
+proc = subprocess.Popen(["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "%dx%d" % (W, H), "-r", str(FPS), "-i", "-", "-i", os.path.join(임시, "소리.wav"), "-c:v", "libx264", "-crf", "20", "-pix_fmt", "yuv420p", "-c:a", "aac", "-shortest", mp4], stdin=subprocess.PIPE) if False else None
+프레임들 = []; t0 = 0.0; 몇 = 0
+for k, ((p, 초), r) in enumerate(zip(목록, 행)):
+    base = Image.open(p).convert("RGB"); 외침 = (r.get("외침") or "").strip(); st = 스티커(외침, k) if 외침 else None; n = int(round(초 * FPS)); 쉭(t0); 톡(t0 + 0.02)
+    if st is not None: 쿵(t0 + 0.30)
+    sx, sy = random.randint(40, 120), {"카드": 1330, "판정": 820, "훅": 1500}.get(r["그림"].split(":")[0], 1080) + random.randint(-40, 40)      # 글자와 안 겹치는 빈 띠
+    for j in range(n):
+        z = 1.0 + 0.16 * np.exp(-j / 3.5) + 0.0009 * j                                               # 펀치 줌(컷 첫머리) + 천천히 다가감
+        a = 22 * np.exp(-j / 4.0); dx, dy = (random.uniform(-a, a), random.uniform(-a, a))           # 흔들림
+        w2, h2 = int(W * z), int(H * z); fr = base.resize((w2, h2), Image.BILINEAR).crop((int((w2 - W) / 2 - dx), int((h2 - H) / 2 - dy), int((w2 - W) / 2 - dx) + W, int((h2 - H) / 2 - dy) + H))
+        if j < 3: fr = Image.blend(fr, Image.new("RGB", (W, H), (255, 255, 255)), 0.55 * (1 - j / 3))   # 번쩍
+        if st is not None and j >= 9:
+            q = j - 9; sc = 1.0 + 0.9 * np.exp(-q / 2.2) * np.cos(q * 1.1)                            # 튕기며 등장
+            s2 = st.resize((max(2, int(st.width * sc)), max(2, int(st.height * sc))), Image.BILINEAR); fr.paste(s2, (sx + (st.width - s2.width) // 2, sy + (st.height - s2.height) // 2), s2)
+        d = ImageDraw.Draw(fr); d.rectangle((0, 0, W, 14), fill=(60, 60, 70)); d.rectangle((0, 0, int(W * (t0 + j / FPS) / 총), 14), fill=(255, 214, 64))   # 진행 막대
+        프레임들.append(np.asarray(fr, np.uint8).tobytes()); 몇 += 1
+    t0 += 초
+소리 = np.clip(소리, -1, 1); wv = wave.open(os.path.join(임시, "소리.wav"), "wb"); wv.setnchannels(1); wv.setsampwidth(2); wv.setframerate(SR); wv.writeframes((소리 * 32767 * 0.7).astype(np.int16).tobytes()); wv.close()
+proc = subprocess.Popen(["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "%dx%d" % (W, H), "-r", str(FPS), "-i", "-", "-i", os.path.join(임시, "소리.wav"), "-c:v", "libx264", "-crf", "20", "-pix_fmt", "yuv420p", "-c:a", "aac", "-shortest", mp4], stdin=subprocess.PIPE)
+for b in 프레임들: proc.stdin.write(b)
+proc.stdin.close(); proc.wait(); print(mp4, "· 길이 %.1f초 · 컷 %d · 프레임 %d · 효과음 있음" % (총, len(목록), 몇))
