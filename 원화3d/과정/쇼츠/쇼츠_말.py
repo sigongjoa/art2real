@@ -11,7 +11,7 @@ from PIL import Image, ImageDraw, ImageFont
 O = r"G:\art2real\원화3d\out\오메가몬2\과정"; F = os.path.join(O, 부위, "프레임"); 출 = os.path.join(O, "쇼츠"); 임시 = os.path.join(출, "_말"); os.makedirs(임시, exist_ok=True)
 기록 = json.load(open(r"G:\art2real\원화3d\out\오메가몬2\자료\자료.json", encoding="utf-8")); W, H, FPS, SR = 1080, 1920, 30, 22050
 굵 = lambda n: ImageFont.truetype("C:/Windows/Fonts/malgunbd.ttf", n); 배경 = (18, 18, 20); 노랑 = (255, 214, 64); 회 = (85, 85, 90); 흰 = (245, 245, 245)
-GX, GY, GW, GH = 40, 190, 1000, 1140; 쉼 = 0.45                                                        # 그림 구역 · 줄 사이 쉼(초)
+GX, GY, GW, GH = 0, 330, 1080, 1060; 쉼 = {",": 0.30, ".": 0.60, "줄": 0.70}                 # 그림 구역 · 쉼(초): 쉼표 뒤 · 문장 끝 · 줄 끝 — 10-01 남의 쇼츠(긱블 · 안될과학 · 코딩애플) 보고
 def 원화(t): x0, y0, x1, y1 = 기록[t]["상자"]; return Image.fromarray(cv2.imdecode(np.fromfile(기록[t]["파일"], np.uint8), cv2.IMREAD_COLOR)[y0:y1, x0:x1, ::-1])
 def 모델(n, t="02_3-4"): x0, y0, x1, y1 = 기록[t]["상자"]; return Image.open(os.path.join(F, "%02d_%s.png" % (n, t))).convert("RGB").crop((x0, y0, x1, y1))
 def 맞춤(im, w, h): s = min(w / im.width, h / im.height); return im.resize((int(im.width * s), int(im.height * s)), Image.LANCZOS)
@@ -35,7 +35,7 @@ def 그림(종류):
     elif k == "파일":
         경, _, 상 = 나.partition("@"); im = Image.open(경).convert("RGB"); 놓기(c, im.crop(tuple(int(v) for v in 상.split(","))) if 상 else im)
     elif k == "나란히":
-        for i, t in enumerate(나.split(",")): m = 맞춤(원화(t), 490, GH); c.paste(m, (GX + i * 510, GY + (GH - m.height) // 2))
+        for i, t in enumerate(나.split(",")): m = 맞춤(원화(t), 530, GH); c.paste(m, (GX + 5 + i * 545, GY + (GH - m.height) // 2))
     elif k == "글":
         d = ImageDraw.Draw(c); f = 굵(120); 줄 = 감싸(d, 나, f, W - 140); y = 760 - len(줄) * 75
         for s in 줄: d.text(((W - d.textlength(s, font=f)) / 2, y), s, font=f, fill=(245, 245, 245)); y += 150
@@ -54,28 +54,27 @@ def 자막(d, s, f, y0):                                                        
         x = (W - d.textlength(" ".join(x for x, _ in 줄), font=f)) / 2
         for w, 켬 in 줄: d.text((x, y), w, font=f, fill=노랑 if 켬 else 흰, stroke_width=4, stroke_fill=(0, 0, 0)); x += d.textlength(w + " ", font=f)
         y += int(f.size * 1.3)
-def 틀(c, k, 총, 제목, 라벨):                                                                         # 위 제목 띠 + 단계 막대 + 라벨
-    d = ImageDraw.Draw(c); d.rectangle((0, 0, W, 150), fill=(30, 30, 34)); d.text((50, 45), 제목, font=굵(50), fill=흰); 번 = "%02d/%02d" % (k + 1, 총); d.text((W - 50 - d.textlength(번, font=굵(36)), 55), 번, font=굵(36), fill=(170, 170, 176))
-    칸 = (W - 100 - (총 - 1) * 10) / 총
-    for i in range(총): x = 50 + i * (칸 + 10); d.rectangle((x, 160, x + 칸, 168), fill=노랑 if i <= k else 회)
-    if 라벨: f = 굵(36); tw = d.textlength(라벨, font=f); d.rounded_rectangle(((W - tw) / 2 - 20, GY + GH - 70, (W + tw) / 2 + 20, GY + GH - 14), 12, fill=(0, 0, 0)); d.text(((W - tw) / 2, GY + GH - 66), 라벨, font=f, fill=흰)
-    d.line((70, 1385, W - 70, 1385), fill=회, width=2)
-def 말하기(글, 파일, 속도=3):                                                                        # Windows 내장 한국어 음성(Heami) — 10-01 「말이 너무 빠르다」 → 보통 속도 · 말 사이 쉼은 자르지 않는다
+def 틀(c, 제목, 라벨):                                                                                # 위 큰 제목 두 줄(긱블 · 안될과학 식) + 그림 아래 라벨
+    d = ImageDraw.Draw(c); 자막(d, 제목, 굵(78), 90)
+    if 라벨: f = 굵(38); tw = d.textlength(라벨, font=f); d.rounded_rectangle(((W - tw) / 2 - 22, GY + GH - 76, (W + tw) / 2 + 22, GY + GH - 16), 12, fill=(0, 0, 0)); d.text(((W - tw) / 2, GY + GH - 72), 라벨, font=f, fill=흰)
+def 말하기(글, 파일, 속도=1):                                                                        # Windows 내장 한국어 음성(Heami) — 10-01 「아직도 빠르다」 → 1 · 구절마다 따로 읽고 사이를 쉰다
     ps = "Add-Type -AssemblyName System.Speech; $s=New-Object System.Speech.Synthesis.SpeechSynthesizer; $s.SelectVoice('Microsoft Heami Desktop'); $s.Rate=%d; $s.SetOutputToWaveFile('%s'); $s.Speak([Console]::In.ReadToEnd()); $s.Dispose()" % (속도, 파일)
     subprocess.run(["powershell", "-NoProfile", "-Command", ps], input=글.encode("utf-8"), check=True)
     raw = subprocess.run(["ffmpeg", "-loglevel", "error", "-i", 파일, "-af", "silenceremove=stop_periods=-1:stop_duration=0.12:stop_threshold=-38dB", "-ac", "1", "-ar", str(SR), "-f", "f32le", "-"], capture_output=True).stdout; a = np.frombuffer(raw, np.float32)
     nz = np.nonzero(np.abs(a) > 0.01)[0]; return a[max(0, nz[0] - 400):nz[-1] + 1200] if len(nz) else a      # 앞뒤 빈 소리 잘라 말끝을 빨리 끊는다
 줄글 = open(os.path.join(H_, 편), encoding="utf-8").read().splitlines(); 제목 = 줄글.pop(0)[4:].strip() if 줄글[0].startswith("#제목:") else ""
 행 = list(csv.DictReader(줄글, delimiter="	")); 소리 = []; 프레임 = []; f자 = 굵(60)
-for k, r in enumerate(행):
-    a = np.r_[말하기(r["말"].replace("*", ""), os.path.join(임시, "%02d.wav" % k)), np.zeros(int(쉼 * SR), np.float32)]
-    n = max(8, int(round(len(a) / SR * FPS))); a = np.r_[a, np.zeros(max(0, int(n / FPS * SR) - len(a)), np.float32)][:int(n / FPS * SR)]; 소리.append(a)
-    base = 그림(r["그림"])
+for k, r in enumerate(행):                                                                           # 구절마다 읽고 · 자막은 지금 구절만
+    구절들 = [x for x in re.split(r"(?<=[,.?!])\s+", r["말"].strip()) if x]; 조각 = []; 자막표 = []
+    for q, 구 in enumerate(구절들):
+        a = 말하기(구.replace("*", ""), os.path.join(임시, "%02d_%02d.wav" % (k, q))); 끝 = 구.rstrip("*")[-1:]
+        a = np.r_[a, np.zeros(int((쉼["줄"] if q == len(구절들) - 1 else 쉼.get("." if 끝 in ".?!" else ",", 0.3)) * SR), np.float32)]; 조각.append(a); 자막표 += [구] * int(round(len(a) / SR * FPS))
+    n = len(자막표); 소리.append(np.r_[np.concatenate(조각), np.zeros(SR, np.float32)][:int(n / FPS * SR)])
+    base = 그림(r["그림"]); 끝z = 1.25 if (r.get("강조") or "") == "확대" else 1.06       # 모든 컷이 천천히 다가온다 · 확대 줄은 더
+    그 = base.crop((GX, GY, GX + GW, GY + GH))
     for j in range(n):
-        if (r.get("강조") or "") == "확대":                                                           # 웃길 때만: 천천히 파고든다(무표정하게)
-            z = 1.0 + 0.25 * min(1.0, j / max(1, n * 0.7)); 그 = base.crop((GX, GY, GX + GW, GY + GH)); w2, h2 = int(GW * z), int(GH * z); fr = base.copy(); fr.paste(그.resize((w2, h2), Image.BILINEAR).crop(((w2 - GW) // 2, (h2 - GH) // 2, (w2 - GW) // 2 + GW, (h2 - GH) // 2 + GH)), (GX, GY))
-        else: fr = base.copy()
-        틀(fr, k, len(행), 제목, (r.get("라벨") or "").strip()); 자막(ImageDraw.Draw(fr), r["말"], f자, 1440)
+        z = 1.0 + (끝z - 1.0) * j / max(1, n - 1); w2, h2 = int(GW * z), int(GH * z); fr = base.copy(); fr.paste(그.resize((w2, h2), Image.BILINEAR).crop(((w2 - GW) // 2, (h2 - GH) // 2, (w2 - GW) // 2 + GW, (h2 - GH) // 2 + GH)), (GX, GY))
+        틀(fr, 제목, (r.get("라벨") or "").strip()); 자막(ImageDraw.Draw(fr), 자막표[j], 굵(68), 1480)
         if j == 0 and k == 0: fr.save(os.path.join(출, os.path.splitext(os.path.basename(편))[0] + "_0초.png"))
         프레임.append(np.asarray(fr, np.uint8).tobytes())
 전체 = np.concatenate(소리); wv = wave.open(os.path.join(임시, "말.wav"), "wb"); wv.setnchannels(1); wv.setsampwidth(2); wv.setframerate(SR); wv.writeframes((np.clip(전체, -1, 1) * 32767).astype(np.int16).tobytes()); wv.close()
