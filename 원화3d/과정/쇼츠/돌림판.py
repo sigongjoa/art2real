@@ -26,9 +26,10 @@ bpy.ops.object.parent_clear(type="CLEAR_KEEP_TRANSFORM")
 bpy.ops.object.transform_apply(location=True, rotation=True, scale=True)
 if len(a) > 3 and a[3] == "z위로":  # trimesh 가 쓴 glb 는 Z-up 그대로라 들어오면 눕는다
     m.rotation_euler = (math.radians(90), 0, 0); bpy.ops.object.transform_apply(rotation=True)
-vs = [v.co for v in m.data.vertices]
-lo = Vector([min(v[i] for v in vs) for i in range(3)]); hi = Vector([max(v[i] for v in vs) for i in range(3)])
-s = 2.0 / (hi.z - lo.z)
+import numpy as np
+co = np.array([v.co[:] for v in m.data.vertices])
+lo = Vector(np.percentile(co, 2, axis=0)); hi = Vector(np.percentile(co, 98, axis=0))  # 가는 안테나 · 창끝 한두 % 는 맞춤에서 뺀다
+s = 2.0 / max(hi.z - lo.z, (hi.x - lo.x) * 0.85, (hi.y - lo.y) * 0.85)  # 넓은 날개(Examon)도 화면 안에
 for v in m.data.vertices: v.co = Vector(((v.co.x - (lo.x + hi.x) / 2) * s, (v.co.y - (lo.y + hi.y) / 2) * s, (v.co.z - lo.z) * s))
 turn = bpy.data.objects.new("turn", None); bpy.context.scene.collection.objects.link(turn); m.parent = turn
 
@@ -43,7 +44,7 @@ sc.view_settings.view_transform = "Standard"
 w = bpy.data.worlds.new("w"); sc.world = w; w.color = (1, 1, 1)
 cam = bpy.data.objects.new("cam", bpy.data.cameras.new("cam")); sc.collection.objects.link(cam); sc.camera = cam
 cam.data.lens = 35
-cam.location = (0, -3.2, 1.0); cam.rotation_euler = (math.radians(90), 0, 0)
+cam.location = (0, -3.2, (hi.z - lo.z) * s / 2); cam.rotation_euler = (math.radians(90), 0, 0)
 
 for i in range(n):
     turn.rotation_euler = (0, 0, 2 * math.pi * i / n)
