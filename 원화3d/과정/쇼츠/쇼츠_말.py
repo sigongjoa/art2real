@@ -57,10 +57,13 @@ def 자막(d, s, f, y0):                                                        
 def 틀(c, 제목, 라벨):                                                                                # 위 큰 제목 두 줄(긱블 · 안될과학 식) + 그림 아래 라벨
     d = ImageDraw.Draw(c); 자막(d, 제목, 굵(78), 90)
     if 라벨: f = 굵(38); tw = d.textlength(라벨, font=f); d.rounded_rectangle(((W - tw) / 2 - 22, GY + GH - 76, (W + tw) / 2 + 22, GY + GH - 16), 12, fill=(0, 0, 0)); d.text(((W - tw) / 2, GY + GH - 72), 라벨, font=f, fill=흰)
-def 말하기(글, 파일, 속도=1):                                                                        # Windows 내장 한국어 음성(Heami) — 10-01 「아직도 빠르다」 → 1 · 구절마다 따로 읽고 사이를 쉰다
-    ps = "Add-Type -AssemblyName System.Speech; $s=New-Object System.Speech.Synthesis.SpeechSynthesizer; $s.SelectVoice('Microsoft Heami Desktop'); $s.Rate=%d; $s.SetOutputToWaveFile('%s'); $s.Speak([Console]::In.ReadToEnd()); $s.Dispose()" % (속도, 파일)
-    subprocess.run(["powershell", "-NoProfile", "-Command", ps], input=글.encode("utf-8"), check=True)
-    raw = subprocess.run(["ffmpeg", "-loglevel", "error", "-i", 파일, "-af", "silenceremove=stop_periods=-1:stop_duration=0.12:stop_threshold=-38dB", "-ac", "1", "-ar", str(SR), "-f", "f32le", "-"], capture_output=True).stdout; a = np.frombuffer(raw, np.float32)
+목소리 = next((a.split("=", 1)[1] for a in sys.argv if a.startswith("--목소리=")), "Heami")   # Heami(Windows 내장) 또는 edge-tts 신경망 음성 이름(ko-KR-SunHiNeural 등 · 글을 MS 서버로 보낸다)
+def 말하기(글, 파일, 속도=1):                                                                        # 10-01 「말이 너무 이상해」 → edge-tts 를 고를 수 있게 · Heami 는 속도 1
+    if 목소리 == "Heami":
+        ps = "Add-Type -AssemblyName System.Speech; $s=New-Object System.Speech.Synthesis.SpeechSynthesizer; $s.SelectVoice('Microsoft Heami Desktop'); $s.Rate=%d; $s.SetOutputToWaveFile('%s'); $s.Speak([Console]::In.ReadToEnd()); $s.Dispose()" % (속도, 파일)
+        subprocess.run(["powershell", "-NoProfile", "-Command", ps], input=글.encode("utf-8"), check=True); 거르기 = ["-af", "silenceremove=stop_periods=-1:stop_duration=0.12:stop_threshold=-38dB"]
+    else: 파일 = 파일[:-4] + ".mp3"; subprocess.run([sys.executable, "-m", "edge_tts", "--voice", 목소리, "--text", 글, "--write-media", 파일], check=True, capture_output=True); 거르기 = []
+    raw = subprocess.run(["ffmpeg", "-loglevel", "error", "-i", 파일] + 거르기 + ["-ac", "1", "-ar", str(SR), "-f", "f32le", "-"], capture_output=True).stdout; a = np.frombuffer(raw, np.float32)
     nz = np.nonzero(np.abs(a) > 0.01)[0]; return a[max(0, nz[0] - 400):nz[-1] + 1200] if len(nz) else a      # 앞뒤 빈 소리 잘라 말끝을 빨리 끊는다
 줄글 = open(os.path.join(H_, 편), encoding="utf-8").read().splitlines(); 제목 = 줄글.pop(0)[4:].strip() if 줄글[0].startswith("#제목:") else ""
 행 = list(csv.DictReader(줄글, delimiter="	")); 소리 = []; 프레임 = []; f자 = 굵(60)
