@@ -7,7 +7,7 @@ B = r"G:\art2real\원화3d\out\오메가몬2\블렌더"; P = os.path.join(B, "�
 col = bpy.data.collections.get("머리손") or bpy.data.collections.new("머리손")
 if col.name not in sc.collection.children: sc.collection.children.link(col)
 for o in list(col.objects): bpy.data.objects.remove(o)
-흰 = (0.9, 0.9, 0.93); 색 = {"눈바닥": (0.03, 0.04, 0.08), "홍채": (0.25, 0.55, 0.9), "안테나": (0.85, 0.65, 0.15), "차양": (0.8, 0.8, 0.86), "송곳니": (0.86, 0.86, 0.9), "윗부리": (0.93, 0.93, 0.96), "아랫부리": (0.84, 0.84, 0.89), "턱": (0.84, 0.84, 0.89)}
+흰 = (0.9, 0.9, 0.93); 색 = {"눈바닥": (0.03, 0.04, 0.08), "홍채": (0.25, 0.55, 0.9), "안테나": (0.85, 0.65, 0.15), "차양": (0.8, 0.8, 0.86), "윗테": (0.78, 0.78, 0.84), "송곳니": (0.86, 0.86, 0.9), "윗부리": (0.93, 0.93, 0.96), "아랫부리": (0.84, 0.84, 0.89), "턱": (0.84, 0.84, 0.89)}
 def 넣기(n):
     z = np.load(os.path.join(P, n + ".npz")); me = bpy.data.meshes.new("머리손_" + n); me.from_pydata(z["V"].tolist(), [], z["F"].tolist()); me.validate()
     for p in me.polygons: p.use_smooth = (n == "투구")
@@ -30,6 +30,7 @@ sc.render.engine = "BLENDER_WORKBENCH"; sc.render.film_transparent = True; sc.di
 for n in ("02_정면", "02_3-4", "02_옆"):
     cam = bpy.data.objects["카메라_" + n]; sc.camera = cam; sc.render.resolution_x = cam["W"]; sc.render.resolution_y = cam["H"]
     sc.render.filepath = os.path.join(B, "렌더_" + n + ".png"); bpy.ops.render.render(write_still=True)
-win = bpy.context.window_manager.windows[0]; area = next(a for a in win.screen.areas if a.type == 'VIEW_3D'); sp = area.spaces.active; r3d = sp.region_3d
-r3d.view_perspective = 'PERSP'; r3d.view_rotation = mathutils.Euler((math.radians(82), 0, math.radians(-30)), 'XYZ').to_quaternion(); r3d.view_location = mathutils.Vector((0, -10, -45)); r3d.view_distance = 230; sp.shading.type = 'SOLID'; sp.shading.light = 'STUDIO'; sp.shading.color_type = 'MATERIAL'; sp.overlay.show_overlays = False
-bpy.ops.wm.save_as_mainfile(filepath=os.path.join(B, "오메가몬_머리디테일.blend")); print("ok", sorted(o.name for o in col.objects if not o.hide_get()))
+if bpy.context.window_manager.windows:                                                                   # blender -b(헤드리스)엔 창이 없다
+    win = bpy.context.window_manager.windows[0]; area = next(a for a in win.screen.areas if a.type == 'VIEW_3D'); sp = area.spaces.active; r3d = sp.region_3d
+    r3d.view_perspective = 'PERSP'; r3d.view_rotation = mathutils.Euler((math.radians(82), 0, math.radians(-30)), 'XYZ').to_quaternion(); r3d.view_location = mathutils.Vector((0, -10, -45)); r3d.view_distance = 230; sp.shading.type = 'SOLID'; sp.shading.light = 'STUDIO'; sp.shading.color_type = 'MATERIAL'; sp.overlay.show_overlays = False
+bpy.ops.wm.save_as_mainfile(filepath=os.path.join(B, os.environ.get("HEAD_SAVE", "오메가몬_머리디테일.blend"))); print("ok", sorted(o.name for o in col.objects if not o.hide_get()))
