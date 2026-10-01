@@ -2,14 +2,14 @@ import bpy, os, sys, json, math, numpy as np, mathutils
 S=os.path.dirname(os.path.abspath(__file__)); sc=bpy.context.scene; pre=sys.argv[sys.argv.index("--")+1]
 for o in list(bpy.data.objects):
     if o.type=="MESH": bpy.data.objects.remove(o)
-bpy.ops.wm.obj_import(filepath=S+"/cut/hull_groove.obj", forward_axis="Y", up_axis="Z"); ob=[o for o in bpy.data.objects if o.type=="MESH"][0]; ob.name="hull"
+bpy.ops.wm.obj_import(filepath=S+"/cut/%s_groove.obj"%pre, forward_axis="Y", up_axis="Z"); ob=[o for o in bpy.data.objects if o.type=="MESH"][0]; ob.name="hull"
 cams=json.load(open(S+"/cut/cams.json")); ob.matrix_world=mathutils.Matrix(cams["카메라_02_정면"]["M"])      # 정면 카메라 좌표로 지은 메시
 for p in ob.data.polygons: p.use_smooth=True
 # 옆 카메라(수식): 정면 카메라 좌표에서 +x 쪽에서 -x 로 본다 · 얼굴(+z)이 왼쪽 · hull_groove.py 의 side_px 와 같은 자리
 import numpy as _np
 cF=cams["카메라_02_정면"]; W,H,sF=cF["W"],cF["H"],cF["ortho"]; MF=mathutils.Matrix(cF["M"]); fit=_np.load(S+"/cut/hull_fit.npy"); s_side,ty=float(fit[0]),float(fit[1])
-ucen=float(fit[2]); k=W/sF
-yc=ty*sF/W/s_side*(-1)*(-1); yc=ty*sF/W; zc=(ucen-W/2)/(k*s_side)
+ucen=float(fit[2]); k=W/sF; off=float(fit[3]) if len(fit)>3 else 0.0
+yc=ty*sF/W/s_side*(-1)*(-1); yc=ty*sF/W; zc=off+(ucen-W/2)/(k*s_side)
 R=mathutils.Matrix(((0,0,1),(0,1,0),(-1,0,0))).transposed()   # 열 = right(0,0,-1) · up(0,1,0) · back(1,0,0)
 R=mathutils.Matrix(((0,0,1),(0,1,0),(-1,0,0)))                 # 행렬 열벡터: col0=right=(0,0,-1)? 아래에서 직접 조립
 Rm=mathutils.Matrix.Identity(3); Rm.col[0]=(0,0,-1); Rm.col[1]=(0,1,0); Rm.col[2]=(1,0,0)
