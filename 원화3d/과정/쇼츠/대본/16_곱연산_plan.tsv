@@ -1,0 +1,11 @@
+#제목: 가로 곱하기 세로 | 멘탈이 나가버렸습니다
+#루프: 끔
+그림	말	꼬리표	도장	초점
+C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep15_media/flat_side.png	한 개발자는 완전히 멘탈이 나가버렸습니다. 52조각을 조립했더니 옆에서 판 계단이었거든요. 원화가 앞면만 주니까요.	지난 편 · 판 계단	판=판 계단	50,50 50,45
+C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep15_media/side19.png	그런데 어느 똑똑한 생각이 있었습니다. 옆 원화도 있잖아요. 옆 먹선으로 가른 열아홉 칸에도 이름을 붙이고, 정면 부품과 짝을 지었습니다. 뿔은 뿔, 눈은 눈, 턱은 턱.	옆 19칸 · 정면과 짝	짝을=짝	40,40 30,55 20,70
+C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep15_media/demo.mp4	그리고 곱했습니다. 정면 윤곽을 앞뒤로 쭉 밀고, 옆 윤곽을 좌우로 쭉 밀어, 둘이 겹치는 부분만 남깁니다. 가로 곱하기 세로. 부품마다요.	정면 기둥 × 옆 기둥 = 교집합	곱했습니다=×	
+C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep15_media/hullA_grid.mp4	열아홉 부품이 나왔습니다. 이번엔 두께가 있습니다. 눈은 눈 모양, 턱은 턱 모양으로 앞뒤가 생겼습니다.	곱연산 결과 · 19 부품	두께가=두께 ○	
+C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep15_media/A_front_bg.png>C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep15_media/hullA_swing.mp4	조립해서 정면을 보면 원화와 겹치고, 돌리면 이제 옆에도 뭔가 있습니다.	조립 · 정면 → 옆		50,45 50,50
+C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep15_media/A_side.png	하지만 진짜 골치 아픈 문제가 터졌습니다. 옆에서 보면 상자 더미입니다. 옆 그림의 투구가 한 칸이라서, 정면의 돔도 이마판도 차양도 전부 그 한 칸 깊이를 통째로 받았거든요. 곱하기는 양쪽이 똑같이 잘게 나뉘어야 됩니다.	옆 · 상자 더미	더미입니다=상자	50,40 55,55 40,60
+C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep15_media/B_34.png>C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep15_media/B_side.png	TripoSG까지 곱해 봤습니다. 마스크 쪽은 둥글어졌는데, 투구는 TripoSG가 없는 자리라 통째로 사라졌습니다. 어제 본 그대로입니다.	× TripoSG · 투구 사라짐	사라졌습니다=투구 ✕	50,45 45,50
+C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep15_media/A_34.png>C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep9_media/art_34_head.png	그래서 결론. 곱연산은 맞는 길인데, 옆 원화의 투구 안에 선이 더 있어야 합니다. 먹선이 없으면 사람이 긋는 수밖에요. 다음 편에서요.	다음 · 옆 투구에 선 긋기		50,45 50,50
