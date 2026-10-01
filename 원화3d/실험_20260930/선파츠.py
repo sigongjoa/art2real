@@ -17,6 +17,7 @@ for 장, 키 in (("02_정면", "정면"), ("02_옆", "옆")):
     im = 읽(기록[장]["파일"]); H, W = im.shape[:2]; x0, y0, x1, y1 = 기록[장]["상자"]
     S = 2; big = cv2.resize(im, None, fx=S, fy=S, interpolation=cv2.INTER_CUBIC); big = cv2.bilateralFilter(big, 7, 30, 7); g = cv2.cvtColor(big, cv2.COLOR_BGR2GRAY)
     윤곽 = np.load(J(K, "윤곽3_%s_전체.npy" % 키)) * S; 안 = np.zeros(g.shape, np.uint8); cv2.fillPoly(안, [윤곽.astype(np.int32)], 1); 안 = 안.astype(bool)
+    lo, hi = np.percentile(g[안], [2, 98]); g = np.clip((g.astype(float) - lo) * 255 / max(1, hi - lo), 0, 255).astype(np.uint8)   # 10-01 대비 보정: 옆 장은 어두워(중앙 42) 블랙햇이 문턱 18 에 다 잘렸다 — 「먹선이 없는 게 아니라 약해서」(사용자)
     # 벽 1 먹선: 블랙햇(밝은 바탕 위 가는 어두움) ∪ 적응 문턱(그늘 속 선)
     bh = cv2.morphologyEx(g, cv2.MORPH_BLACKHAT, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (11, 11))); 먹 = bh > max(18, np.percentile(bh[안], 90))
     적 = cv2.adaptiveThreshold(g, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY_INV, 25, 6) > 0
