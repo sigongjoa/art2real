@@ -29,6 +29,7 @@ def 그림(종류):
     elif k == "비교":
         for i, t in enumerate(("02_정면", "02_3-4")):
             a, b = 맞춤(원화(t), 520, 640), 맞춤(모델(int(나), t), 520, 640); y = 200 + i * 660; c.paste(a, (14, y)); c.paste(b, (W - 14 - b.width, y))
+    elif k == "파일": m = 맞춤(Image.open(나).convert("RGB"), 1040, 1200); c.paste(m, ((W - m.width) // 2, 200 + (1200 - m.height) // 2))
     elif k == "글":
         d = ImageDraw.Draw(c); f = 굵(120); 줄 = 감싸(d, 나, f, W - 140); y = 760 - len(줄) * 75
         for s in 줄: d.text(((W - d.textlength(s, font=f)) / 2, y), s, font=f, fill=(245, 245, 245)); y += 150
@@ -45,7 +46,7 @@ for k, r in enumerate(행):
     n = max(8, int(round(len(a) / SR * FPS))); a = np.r_[a, np.zeros(max(0, int(n / FPS * SR) - len(a)), np.float32)][:int(n / FPS * SR)]; 소리.append(a)
     base = 그림(r["그림"]); d0 = ImageDraw.Draw(base); 줄 = 감싸(d0, r["말"], f자, W - 100); y = 1500
     for s in 줄: d0.text(((W - d0.textlength(s, font=f자)) / 2, y), s, font=f자, fill=(255, 255, 255), stroke_width=4, stroke_fill=(0, 0, 0)); y += 76
-    if k == 0: base.save(os.path.join(출, os.path.splitext(편)[0] + "_0초.png"))
+    if k == 0: base.save(os.path.join(출, os.path.splitext(os.path.basename(편))[0] + "_0초.png"))
     for j in range(n):
         if (r.get("강조") or "") == "확대":                                                           # 웃길 때만: 천천히 파고든다(무표정하게)
             z = 1.0 + 0.45 * min(1.0, j / max(1, n * 0.6)); w2, h2 = int(W * z), int(H * z); cy = int(800 * z) - 800; fr = base.resize((w2, h2), Image.BILINEAR).crop(((w2 - W) // 2, cy, (w2 - W) // 2 + W, cy + H))
@@ -54,7 +55,7 @@ for k, r in enumerate(행):
         else: fr = base
         프레임.append(np.asarray(fr, np.uint8).tobytes())
 전체 = np.concatenate(소리); wv = wave.open(os.path.join(임시, "말.wav"), "wb"); wv.setnchannels(1); wv.setsampwidth(2); wv.setframerate(SR); wv.writeframes((np.clip(전체, -1, 1) * 32767).astype(np.int16).tobytes()); wv.close()
-mp4 = os.path.join(출, os.path.splitext(편)[0] + ".mp4")
+mp4 = os.path.join(출, os.path.splitext(os.path.basename(편))[0] + ".mp4")
 p = subprocess.Popen(["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "%dx%d" % (W, H), "-r", str(FPS), "-i", "-", "-i", os.path.join(임시, "말.wav"), "-c:v", "libx264", "-crf", "20", "-pix_fmt", "yuv420p", "-c:a", "aac", "-shortest", mp4], stdin=subprocess.PIPE)
 for b in 프레임: p.stdin.write(b)
 p.stdin.close(); p.wait(); print(mp4, "· 길이 %.1f초 · 줄 %d" % (len(프레임) / FPS, len(행)))
