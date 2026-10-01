@@ -1,0 +1,11 @@
+#제목: 머리 안을 나누다가 | 멘탈이 나가버렸습니다
+#루프: 끔
+그림	말	꼬리표	도장	초점
+C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep7_media/c3_gc2_정면.png	한 개발자는 완전히 멘탈이 나가버렸습니다. 지난 편 윤곽선에 흰 깃이 계속 따라붙었거든요. 투구도 희고 깃도 희니까요.	GrabCut 2판 · 깃이 따라붙음	따라붙었거든요=깃	45,60 40,65
+C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep7_media/c3_seed_정면.png>C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep7_media/c3_c3_정면.png	그래서 안쪽에 먼저 그어 둔 먹선 영역을 씨앗으로 심었습니다. 머리 영역은 앞, 깃 영역은 뒤. 그랬더니 깃이 떨어졌습니다.	영역 씨앗 → 윤곽3		50,50 50,45
+C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep7_media/c3_c3_옆.png	옆도 같은 방법으로 땄습니다. 바깥 윤곽은 이걸로 됐죠.	옆 · 윤곽3		45,45 50,50
+C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep7_media/parts_A_정면.png	그런데 어느 똑똑한 생각이 있었습니다. 안쪽 부위도 색으로 나눌 수 있지 않을까. 흰색, 검정, 파랑, 셋으로 군집을 묶었더니, 흰 갑주가 통째로 한 덩어리였습니다.	A · 색 군집	한=한 덩어리	50,50 50,55
+C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep7_media/parts_C_정면.png>C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep7_media/parts_C_옆.png	AI한테도 시켜 봤습니다. 정면은 조각 네 개만 잡고 나머지는 못 나눴고, 옆은 머리 전체를 눈구멍 하나라고 했습니다.	C · SAM 자동	하나라고=눈구멍?	50,50 45,50
+C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep7_media/parts_B_정면.png	하지만 진짜 골치 아픈 문제가 터졌습니다. 제일 잘 나눈 건, 이틀 전에 먹선 따라 손으로 번호 붙여 둔 영역 표였거든요.	B · 먹선 영역 → 부위 사전	손으로=손	50,50 50,55
+C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep7_media/parts_B_옆.png	흰 갑주 안은 색이 같아서 색으로는 못 나눕니다. 먹선으로만 나뉘죠. 그래서 결국, 선을 따는 게 분할이었습니다.	옆 · B		50,50 50,55
+C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep7_media/parts_B_정면.png>C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep7_media/c3_c3_정면.png	이제 부위마다 상자를 재서 도형으로 짓습니다. 다음 편에서요.	부위 마스크 → 치수		50,50 50,50
