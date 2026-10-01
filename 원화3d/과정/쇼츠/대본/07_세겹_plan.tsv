@@ -1,0 +1,12 @@
+#제목: 세 겹으로 짓다가 | 멘탈이 나가버렸습니다
+#루프: 끔
+그림	말	꼬리표	도장	초점
+C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep6_media/ref_정면.png>C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep6_media/ref_옆.png	한 개발자는 완전히 멘탈이 나가버렸습니다. 지난 편에서 딴 윤곽선으로 배경을 떼고, 세 장을 블렌더 카메라에 걸었거든요.	배경 뗀 캡처 → 카메라 배경		50,45 50,50
+C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep6_media/tripo_head.png	옆에는 TripoSG가 만든 머리를 참고로 뒀습니다. 비율은 맞는데 눈구멍도 마스크도 없는 그 머리요.	TripoSG 참고		50,45 50,50
+C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep6_media/r1_front.png	그리고 세 겹으로 짓기 시작했습니다. 검은 속머리, 그 위에 흰 마스크, 그 위에 투구. 첫 판은 이마에 구멍이 났습니다. 불리언이 투구를 뭉갰거든요.	1판 · 속머리 → 마스크 → 투구	구멍이=구멍	50,35 50,30
+C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep6_media/r2_front.png>C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep6_media/r2_34.png	둘째 판은 눈구멍 판을 붙였는데, 옆에서 보니 공중에 떠 있었습니다.	2판 · 눈구멍 판	떠=공중	50,40 55,40
+C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep6_media/r2_side_ov.png	하지만 진짜 골치 아픈 문제가 터졌습니다. 자로 쟀더니 모델이 13 단위 앞이라고 나왔는데, 고치고 나니까 오히려 뒤로 가 있었거든요. 자가 틀렸던 겁니다.	옆 겹침 · 자가 틀림	틀렸던=자 오류	50,50 45,45
+C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep6_media/r3_side_ov.png	그래서 자를 다시 만들었습니다. 카메라로 원화 윤곽을 3D 공간에 되쏘아서, 높이마다 앞 위치를 숫자로 뽑는 자요.	되투영 자		45,50 45,55
+C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep6_media/r4_side_ov.png>C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep6_media/r4_front_ov.png	그 숫자를 그대로 투구 앞면과 부리 용골에 넣었더니, 옆모습이 1에서 4 단위 안으로 들어왔습니다.	4판 · 차이 ±1~4		45,50 50,45
+C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep6_media/r4_34.png	그래도 아직 개판입니다. 투구는 달걀이고, 볼 날개도 안테나도 없고, 눈구멍은 둥글어졌습니다.	4판 · 3/4	개판입니다=개판	50,45 55,50
+C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep6_media/r4_front.png>C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/ep6_media/ref_정면.png	그래도 처음으로, 어디가 얼마나 틀렸는지 숫자로 말할 수 있게 됐습니다. 다음 편은 그 숫자로 고칩니다.	4판 ↔ 원화		50,45 50,45
