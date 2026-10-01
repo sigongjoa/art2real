@@ -6,7 +6,8 @@
   ② 더하기: 얼굴 아래 덩어리 → 붓으로 앞으로 당겨 부리(끝 = 부리점 z앞 최대 · 두 장 시차가 말한 「부리가 앞」)
   ③ 깎기: 상자 칼이 들어와 눈구멍을 판다(불리언 차 · 좌우 거울)
   ④ 더하기: 뿔이 자란다(밑 · 끝 = 정면 면 1 측정)
-  ⑤ 옆으로 돌아 부리가 앞인 걸 본다
+  ⑤ 이어 붙이기: 세 덩어리를 한 덩어리로(복셀 리메시 1.0) → 다듬기: 이음매를 문질러 매끈하게(스무스)
+  ⑥ 옆으로 돌아 부리가 앞인 걸 본다
 좌표: 머리 단위(뿔 끝 0 · 턱 100) · 블렌더 = (x, −z, −y) → 앞 = −y, 위 = +z."""
 import sys, os, math, json, numpy as np, bpy, bmesh
 from mathutils import Vector
@@ -49,7 +50,21 @@ def 카메라(각, 높이=0.18, 거리=255):
     p = 중심 + Vector((math.sin(각), -math.cos(각), 높이)) * 거리; cam.location = p; cam.rotation_euler = (중심 - p).to_track_quat("-Z", "Y").to_euler()
 
 # 시간표(총 프레임 비율)
-T = {k: int(총 * r) for k, r in dict(기본=0.0, 기본끝=0.06, 얼굴=0.07, 얼굴끝=0.10, 부리끝=0.27, 깎기=0.28, 깎기끝=0.40, 뿔=0.44, 뿔끝=0.58, 궤도=0.62, 끝=1.0).items()}
+T = {k: int(총 * r) for k, r in dict(기본=0.0, 기본끝=0.06, 얼굴=0.07, 얼굴끝=0.10, 부리끝=0.27, 깎기=0.28, 깎기끝=0.40, 뿔=0.43, 뿔끝=0.52, 합침=0.54, 다듬끝=0.70, 궤도=0.72, 끝=1.0).items()}
+# ⑤ 합친 덩어리를 미리 굽는다: 각 단계의 끝 상태로 놓고(평가된 메시 · 불리언 포함) → 합침 → 복셀 리메시
+def 끝상태():
+    투구.scale = (39.7, 28.5, 28.0); 뿔.scale = (1, 1, 1); 칼.location.y = 12.0; 얼굴.scale = (13, 13, 24)
+    co = 원.copy(); 앞 = np.clip(-co[:, 1], 0, 1); w = np.exp(-((co[:, 2] * 24) / 14.0) ** 2) * 앞
+    co[:, 1] -= w * (1 - 부리끝y) / 13; co[:, 0] *= 1 - 0.45 * w; 얼굴.data.vertices.foreach_set("co", co.ravel()); 얼굴.data.update()
+끝상태(); bpy.context.view_layer.update(); dg = bpy.context.evaluated_depsgraph_get(); bm = bmesh.new()
+for o in (투구, 얼굴, 뿔):
+    m = bpy.data.meshes.new_from_object(o.evaluated_get(dg)); m.transform(o.matrix_world); bm.from_mesh(m)
+합 = bpy.data.meshes.new("합"); bm.to_mesh(합); bm.free(); 합체 = bpy.data.objects.new("합체", 합); sc.collection.objects.link(합체); 합체.color = 점토
+rm = 합체.modifiers.new("합치기", "REMESH"); rm.mode = "VOXEL"; rm.voxel_size = 1.0
+bpy.context.view_layer.update(); 구운 = bpy.data.meshes.new_from_object(합체.evaluated_get(bpy.context.evaluated_depsgraph_get())); 합체.modifiers.remove(rm); 합체.data = 구운
+for pp in 합체.data.polygons: pp.use_smooth = True
+다듬 = 합체.modifiers.new("다듬기", "SMOOTH"); 다듬.factor = 0.6; 다듬.iterations = 0; 합체.hide_render = True
+
 for f in range(총):
     # ① 구 → 투구 비율
     s = 부드(단(f, T["기본"], T["기본끝"])); r0 = 22.0
@@ -66,6 +81,10 @@ for f in range(총):
     h = 부드(단(f, T["뿔"], T["뿔끝"])); 뿔.hide_render = h <= 0; 뿔.scale = (1, 1, max(h, 1e-3))
     # ④ 칼이 들어와 눈구멍
     c = 부드(단(f, T["깎기"], T["깎기끝"])); 칼.location.y = -30.0 + 42.0 * c                                         # 끝 y 12: 칼 뒷면 24 가 둥근 앞면(눈 자리 y≈19)을 5 쯤 판다
+    # ⑤ 이어 붙이기 → 다듬기
+    합침 = f >= T["합침"]; 합체.hide_render = not 합침
+    for o in (투구, 얼굴, 뿔): o.hide_render = o.hide_render or 합침
+    sm = 부드(단(f, T["합침"], T["다듬끝"])); 다듬.iterations = int(14 * sm)
     # 붓 위치
     붓.hide_render = False
     if f < T["기본끝"]: 붓.location = (24 * math.cos(f * 0.3), 33.5 - 30 * 1, -28 + 20 * math.sin(f * 0.3))
@@ -73,6 +92,8 @@ for f in range(총):
     elif f < T["깎기끝"]: 붓.location = ((x0 + x1) / 2, 6, -(y0 + y1) / 2)
     elif f < T["뿔"]: 붓.hide_render = True
     elif f < T["뿔끝"]: 붓.location = tuple(밑 + d * h + Vector((0, -4, 0)))
+    elif f < T["합침"]: 붓.hide_render = True
+    elif f < T["다듬끝"]: 붓.location = (14 * math.cos(f * 0.35), 3, -56 + 9 * math.sin(f * 0.35))      # 투구-얼굴 이음매를 문지른다
     else: 붓.hide_render = True
     # 카메라: 3/4 에서 살짝 흔들다 끝에 옆으로
     o = 부드(단(f, T["궤도"], T["끝"] - 1))
