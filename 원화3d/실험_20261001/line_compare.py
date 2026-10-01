@@ -8,6 +8,9 @@ for 장,키 in (("02_정면","정면"),("02_옆","옆")):
     # 벽 = 라벨이 바뀌는 자리(3x3 안에 다른 라벨) · 바깥 윤곽 포함
     mx=cv2.dilate(라벨.astype(np.float32),np.ones((3,3),np.uint8)); mn=-cv2.dilate((-라벨).astype(np.float32),np.ones((3,3),np.uint8)); 벽=(mx!=mn)&cv2.dilate(안.astype(np.uint8),np.ones((3,3),np.uint8)).astype(bool)
     r=np.array(Image.open(f"cut/{pre}_{키}.png").convert("RGBA")); 모델선=(r[:,:,3]>0)&(r[:,:,:3].mean(2)<80); 모델안=r[:,:,3]>0
+    if pre.startswith("uv"):   # 텍스처 렌더: 어두운 면이 아니라 가는 먹선만(선파츠.py 와 같은 블랙햇 ∪ 적응 문턱)
+        g=cv2.cvtColor(r[:,:,:3],cv2.COLOR_RGB2GRAY); g[~모델안]=255; bh=cv2.morphologyEx(g,cv2.MORPH_BLACKHAT,cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(11,11)))
+        모델선=((bh>18)|(cv2.adaptiveThreshold(g,255,cv2.ADAPTIVE_THRESH_GAUSSIAN_C,cv2.THRESH_BINARY_INV,25,6)>0))&cv2.erode(모델안.astype(np.uint8),np.ones((5,5),np.uint8)).astype(bool)
     # 2D 유사 맞춤(배율 · 이동): 모델 실루엣 → 윤곽3 안. 카메라가 뷰마다 따로라 세계 z 가 안 맞는다(10-01)
     def warp(m,s,tx,ty,shape): A=np.float32([[s,0,tx],[0,s,ty]]); return cv2.warpAffine(m.astype(np.uint8),A,(shape[1],shape[0]),flags=cv2.INTER_NEAREST)>0
     k=4; a4=cv2.resize(안.astype(np.uint8),(W//k,H//k),interpolation=cv2.INTER_NEAREST)>0; m4=cv2.resize(모델안.astype(np.uint8),(W//k,H//k),interpolation=cv2.INTER_NEAREST)>0
