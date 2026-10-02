@@ -129,10 +129,19 @@ def 선(fs, 정답):
     l1 = fs.linesets.new("꺾임"); l1.select_silhouette = l1.select_border = l1.select_contour = l1.select_external_contour = False; l1.select_crease = True; l1.linestyle.color = (0.1, 0.4, 1.0); l1.linestyle.thickness = 2.4
     l2 = fs.linesets.new("외곽가림"); l2.select_crease = False; l2.select_silhouette = l2.select_border = l2.select_contour = l2.select_external_contour = True; l2.linestyle.color = (0.95, 0.15, 0.15); l2.linestyle.thickness = 2.4
 
-a = sys.argv[sys.argv.index("--") + 1:]; s0, cnt = int(a[0]), int(a[1])
+a = [x for x in sys.argv[sys.argv.index("--") + 1:] if x != "내보내기"]; s0, cnt = int(a[0]), int(a[1])
 for seed in range(s0, s0 + cnt):
     sc = H.scene(res=(640, 640), transparent=False); 이브(); sc.world.use_nodes = False; sc.world.color = (1, 1, 1); sc.view_settings.view_transform = "Standard"
     P = 짓기(seed)
+    if "내보내기" in sys.argv:   # 분할 시험 정답: 부품마다 조립 자리 그대로 obj(모디파이어 적용) · 렌더 안 함
+        E = os.path.join(O, "정답", f"d{seed:03d}"); os.makedirs(E, exist_ok=True); dg = bpy.context.evaluated_depsgraph_get()
+        import bmesh as _bm
+        for i, p in enumerate(P):
+            me = bpy.data.meshes.new_from_object(p["o"].evaluated_get(dg)); me.transform(p["o"].matrix_world)
+            with open(os.path.join(E, f"{i:02d}_{p['이름']}.obj"), "w", encoding="utf-8") as f:
+                for v in me.vertices: f.write("v %.5f %.5f %.5f" % tuple(v.co) + chr(10))
+                for poly in me.polygons: f.write("f " + " ".join(str(k + 1) for k in poly.vertices) + chr(10))
+        print("내보냄", seed, len(P)); continue
     sun = bpy.data.objects.new("해", bpy.data.lights.new("해", "SUN")); sc.collection.objects.link(sun); sun.rotation_euler = (math.radians(55), math.radians(-20), math.radians(-35)); sun.data.energy = 3
     tm, wm = 재질(True), 재질(False); sc.render.use_freestyle = True; vl = sc.view_layers[0]; vl.use_freestyle = True; fs = vl.freestyle_settings; fs.crease_angle = math.radians(140)
     objs = [p["o"] for p in P]
