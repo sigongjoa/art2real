@@ -10,7 +10,7 @@
 import os, json, numpy as np, trimesh
 from scipy.optimize import least_squares
 O = r"G:\art2real\원화3d\out\오메가몬2\지표\각도데이터"; P = json.load(open(os.path.join(O, "특징점.json"), encoding="utf-8"))
-W_사전 = float(os.environ.get("W_PRIOR", 0.5)); 장 = ["1", "2", "3", "4", "5"]; 처음 = {"2": (90, -10), "3": (35, 5), "4": (40, 15), "5": (55, 0)}
+W_사전 = float(os.environ.get("W_PRIOR", 0.5)); 장 = list(os.environ.get("VIEWS", "123")); 처음 = {"2": (90, -10), "3": (35, 5), "4": (40, 15), "5": (55, 0)}
 색 = {"1": (230, 25, 75), "2": (60, 180, 75), "3": (255, 225, 25), "4": (67, 99, 216), "5": (245, 130, 49)}
 def 껍질(n):
     z = np.load(os.path.join(O, f"판_{n}_Z.npz")); m, Z = z["m"], z["Z"]; ys, xs = np.nonzero(m); return m, Z, (xs.min() + xs.max()) / 2, (ys.min() + ys.max()) / 2
@@ -49,10 +49,21 @@ for n in 장[1:]: lo += [처음[n][0] - 70, -70, -40, 0.2, -1e4, -1e4]; hi += [�
 sol = least_squares(잔차, q0, bounds=(lo, hi)); q = sol.x; pts = 점들(q)
 결과 = {"특징점 3D(정면 화소 · y = 카메라 쪽)": {k: [round(float(v), 1) for v in X] for k, X in pts.items()}, "장": {}}
 meshes = []
+# 붙임은 주인 하나에만(10-02 사용자 「뿔도 여러 개야」): 이름마다 주인 장 = 들어온 장 중 그 이름 넓이비가 가장 큰 장(주뷰.json) · 다른 장의 같은 이름은 지움
+# 이름 없는 화소는 정면 껍질만 남김 · 색은 표시색 말고 원화 색(사용자 「색상이 이상하고」)
+이름표 = json.load(open(os.path.join(O, "이름.json"), encoding="utf-8")); 넓이 = json.load(open(os.path.join(O, "주뷰.json"), encoding="utf-8"))["넓이비"]
+바탕 = lambda t: t.split("/")[0].replace("?", "").replace("(뒤)", "").replace("(뒤에서)", "").replace(" 뒤끝", "").strip()
+주인 = {b: max(((k.split()[0], v) for k, v in d.items() if k.split()[0] in 장), key=lambda t: t[1])[0] for b, d in 넓이.items() if any(k.split()[0] in 장 for k in d)}
+def 이름지도(n, m):
+    z = np.load(os.path.join(O, f"{n}.npz")); L = z["라벨"]; ys_, xs_ = np.nonzero(L > 0); y0, x0 = ys_.min(), xs_.min(); out = np.full(m.shape, "", object)
+    py, px = np.nonzero(m); lab = L[np.clip(y0 + 2 * py, 0, L.shape[0] - 1), np.clip(x0 + 2 * px, 0, L.shape[1] - 1)]
+    c2n = {c: 바탕(nm) for nm, cs in 이름표[n].items() for c in cs}; out[py, px] = [c2n.get(int(c), "") for c in lab]; return out
 def 메시(n, Mw):
-    m, Z, _, _ = 껍질(n); ys, xs = np.nonzero(m); vid = -np.ones(m.shape, int); vid[ys, xs] = np.arange(len(ys)); W = Mw(xs.astype(float), ys.astype(float), Z[ys, xs])
+    m, Z, _, _ = 껍질(n); 이 = 이름지도(n, m); keep = np.array([[(주인.get(t) == n) if t else (n == "1") for t in row] for row in 이]); m = m & keep
+    ys, xs = np.nonzero(m); vid = -np.ones(m.shape, int); vid[ys, xs] = np.arange(len(ys)); W = Mw(xs.astype(float), ys.astype(float), Z[ys, xs])
     a, b_, c, d = vid[:-1, :-1], vid[:-1, 1:], vid[1:, :-1], vid[1:, 1:]; ok = (a >= 0) & (b_ >= 0) & (c >= 0) & (d >= 0); F = np.r_[np.c_[a[ok], c[ok], b_[ok]], np.c_[b_[ok], c[ok], d[ok]]]
-    me = trimesh.Trimesh(np.c_[W[:, 0], -W[:, 1], W[:, 2]], F, process=False); me.visual.vertex_colors = np.tile(list(색[n]) + [255], (len(W), 1)).astype(np.uint8); return me   # 블렌더: 앞 = −y
+    me = trimesh.Trimesh(np.c_[W[:, 0], -W[:, 1], W[:, 2]], F, process=False); art = np.asarray(__import__('PIL.Image', fromlist=['Image']).open(os.path.join(O, f'판_{n}_원화.png')).convert('RGB')); col = (255 * (art[ys, xs] / 255.0) ** 0.7).astype(np.uint8)
+    me.visual.vertex_colors = np.c_[col, np.full(len(W), 255)].astype(np.uint8); return me   # 블렌더: 앞 = −y
 for i, n in enumerate(장):
     m, Z, _, _ = 껍질(n); ks = [k for k in P[n] if k in pts]
     if n == "1": R = np.eye(3)[[0, 2, 1]]; s, tx, ty = 1.0, cu, cv; ang = (0, 0, 0)   # 행: 오른 = x · 위 = z · 카메라 쪽 = y
@@ -64,5 +75,5 @@ for i, n in enumerate(장):
     e2 = np.sqrt(((np.array([투영(n, pts[k], None if n == "1" else q[13 + 6 * (i - 1):13 + 6 * i]) for k in ks]) - np.array([P[n][k] for k in ks])) ** 2).sum(1)).mean() / s
     결과["장"][n] = {"yaw · pitch · roll": [round(float(v), 1) for v in ang], "크기": round(float(s), 3), "깊이 배율 a": round(float(a), 2), "특징점": ks, "평균 잔차(정면 화소)": round(float(e2), 1)}
     print(n, 결과["장"][n])
-trimesh.util.concatenate(meshes).export(os.path.join(O, "특징맞춤.ply"))
+trimesh.util.concatenate(meshes).export(os.path.join(O, "특징맞춤.ply")); 결과["주인"] = 주인; print("주인", 주인)
 json.dump(결과, open(os.path.join(O, "특징맞춤.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1); print(결과["특징점 3D(정면 화소 · y = 카메라 쪽)"])
