@@ -33,6 +33,7 @@ for n in np.unique(Lf):
     if n == 0: continue
     m = Lf == n; Z[m] = 깊[n] + 0.35 * (D[m] - np.median(D[m]))
 Z = np.clip((Z - lo_) * 단위, -3, 28); Z[~head] = np.nan
+np.savez_compressed(os.path.join(O, "부조_Z.npz"), Z=Z, Lf=Lf, 자르기=np.array([x0, y0, x1, y1]), k=k)   # 10-02 부품별 스무딩이 읽음(앞 = 큼 · 머리 단위)
 뺌 = [int(x) for x in os.environ.get("RELIEF_DROP", "").split(",") if x]   # 10-02 뿔 스무딩: 이름 꼴로 바꿀 칸은 부조에서 뺀다
 if 뺌: Z[np.isin(L, 뺌)] = np.nan
 접미 = os.environ.get("RELIEF_SUFFIX", "")
