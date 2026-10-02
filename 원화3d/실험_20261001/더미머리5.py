@@ -116,6 +116,7 @@ for seed in [int(a) for a in sys.argv[sys.argv.index("--") + 1:]]:
         if p["조인트"] != "고정":
             j = 막대(b - Vector((0, 0.03, 0)), b + Vector((0, 0.03, 0)), 0.025, (1.0, 0.45, 0.1), "조인트"); extra.append(j)
     입힘(objs + extra, tm); 선(fs, False); H.look(tuple(ctr), 30, 8, 3.4, dist=12); H.shot(os.path.join(O, f"s{seed}_분해_입력.png"))
+    for nm, (yaw, pitch) in {"정면": (0, 0), "옆": (-90, 0)}.items(): H.look(tuple(ctr), yaw, pitch, 3.4, dist=12); H.shot(os.path.join(O, f"s{seed}_분해_{nm}.png"))
     json.dump([{"번호": i, "부품": p["이름"], "쪽": p["쪽"], "부모": p["부모"], "조인트": p["조인트"], "위치": [round(v, 3) for v in p["위치"]]} for i, p in enumerate(P)],
               open(os.path.join(O, f"s{seed}_연결.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=0)
     print("ok", seed, len(P), "부품 · 빈 교집합", [p["이름"] for p in P if p["o"].get("빈교집합")])
