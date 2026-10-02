@@ -1,0 +1,1 @@
+Jones, R. K. 외 (2020). ShapeAssembly: Learning to Generate Programs for 3D Shape Structure Synthesis. SIGGRAPH Asia — 상자 붙여 의자 조립(지온14 p5 그림4)

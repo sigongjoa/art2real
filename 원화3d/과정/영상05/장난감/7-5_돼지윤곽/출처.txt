@@ -1,0 +1,1 @@
+Bénard, P. & Hertzmann, A. (2019). Line drawings from 3D models: a tutorial. Foundations and Trends in Computer Graphics and Vision 11(1-2) — 그림 1.1(돼지 윤곽 = 앞/뒤 경계)

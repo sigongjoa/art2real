@@ -1,0 +1,1 @@
+Tulsiani, S., Su, H., Guibas, L. J., Efros, A. A., Malik, J. (2017). Learning Shape Abstractions by Assembling Volumetric Primitives. CVPR — 의자 · 동물 상자 추상화(지온08 p1 그림1)
