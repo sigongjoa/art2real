@@ -7,7 +7,7 @@
 import os, json, numpy as np, cv2, trimesh
 from shapely.geometry import Polygon
 import 면정보자 as M
-K = M.K; O = os.path.join(K, "부조"); S = os.path.join(O, "면스무딩"); os.makedirs(S, exist_ok=True)
+K = M.K; O = os.path.join(K, "부조"); S = os.path.join(O, os.environ.get("FACET_OUT", "면스무딩")); os.makedirs(S, exist_ok=True)
 z = np.load(os.path.join(O, "부조_Z.npz")); Z = z["Z"]; Lc = z["Lf"]; x0, y0, x1, y1 = z["자르기"]; k = float(z["k"]); W_full = M.Lf.shape[1]
 그래프 = json.load(open(os.path.join(K, "연결그래프", "그래프.json"), encoding="utf-8"))
 sv = cv2.imdecode(np.fromfile(os.path.join(M.G_, "그림자찾기.png"), np.uint8), 1); SH = (sv[:, :, 2] > 120) & (sv[:, :, 1] < 100)
@@ -28,7 +28,7 @@ def 돌림(n, 밝음):
         if (q @ L_b >= target) if d < want_lo else (q @ L_b <= target): break
     return best
 for f in os.listdir(S): os.remove(os.path.join(S, f))
-판이름 = ("차양", "이마판", "눈구멍", "눈 둘레 테", "미늘", "마스크 볼판", "볼날개", "번개", "안테나")
+판이름 = ("차양", "이마판", "눈구멍", "눈 둘레 테", "미늘", "마스크 볼판", "볼날개", "번개", "안테나") + (("투구 돔", "뿔", "눈") if os.environ.get("FACET_ALL") else ())   # 10-02 그림자만 목표: 돔 · 뿔 · 눈 칸도 면으로
 결과 = {}
 for p in 그래프["부품"]:
     nm = p["이름"]; base = nm.split("/")[0]
