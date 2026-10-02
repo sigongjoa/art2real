@@ -14,10 +14,10 @@ def 단계들():
     smp = sorted(glob.glob(os.path.join(R, "샘플", "메크머리_CC0", "지온", "자세_*.obj")))
     yield "L1_샘플따로", [trimesh.load(f, force="mesh") for f in smp], "따로", 215
     yield "L2_샘플녹임", [trimesh.load(f, force="mesh") for f in smp], "녹임", 215
-    for v, seed in ((3, 0), (3, 1), (4, 0), (4, 1)):
-        fs = sorted(glob.glob(os.path.join(R, "오메가몬2", "지표", f"더미머리{v if v == 3 else 4}", "정답", f"d{seed:03d}", "*.obj")))
-        if v == 3: fs = sorted(glob.glob(os.path.join(R, "오메가몬2", "지표", "더미머리3", "정답", f"d{seed:03d}", "*.obj")))
-        yield f"L{v}_더미{v}판_d{seed}", [trimesh.load(f, force="mesh") for f in fs], "녹임", 35
+    # 더미(내가 지은 것)는 답을 알고 있어 뺐다(10-02 사용자 지적) → 다른 사람이 만든 STEP 조립(고체 = 정답 부품 · FreeCAD 로 풂)
+    B = os.path.join(R, "샘플", "분할시험")
+    for 이름, d, yaw in (("L3_Otto", "쉬움_Otto", 35), ("L4_애니메트로닉머리", "중간_애니머리", 35), ("L5_ETP로봇_측정전용", "어려움_ETP로봇", 35)):
+        yield 이름, [trimesh.load(f, force="mesh") for f in sorted(glob.glob(os.path.join(B, d, "부품", "*.stl")))], "녹임", yaw
 
 def 정답(u, parts):
     from scipy.spatial import cKDTree   # 부품 표면 점 표본 · 면 중심에서 가장 가까운 부품 (정확 거리는 메모리 7.8 GB 라 못 씀)
@@ -35,7 +35,10 @@ for 이름, parts, 방식, yaw in 단계들():
         p.merge_vertices()
         if not p.is_watertight: trimesh.repair.fill_holes(p)
         p.fix_normals()
-        assert p.is_volume or 방식 == "따로", 이름
+    if 방식 != "따로":
+        빠짐 = [i for i, p in enumerate(parts) if not p.is_volume]
+        if 빠짐: print(이름, "부피 아닌 부품 뺌", len(빠짐), "/", len(parts))   # 닫히지 않은 STEP 면(나사산 등)
+        parts = [p for p in parts if p.is_volume]
     if 방식 == "따로":
         u = trimesh.util.concatenate(parts); gt = np.repeat(np.arange(len(parts)), [len(p.faces) for p in parts])
         lab = trimesh.graph.connected_component_labels(u.face_adjacency, node_count=len(u.faces)); cut = np.zeros(len(u.faces), bool)
