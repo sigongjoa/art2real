@@ -47,6 +47,7 @@ class 부품:
     지온: "지온 | None" = None      # 정한 지온(사람 확인 전엔 관찰에서 초안)
     주뷰: str = "정면"
     관찰들: list = field(default_factory=list)
+    부피: dict = field(default_factory=dict)    # 10-02: 앞면 깊이 · 두께 · 돌출(머리 단위) — TripoSG ∩ 칸 기둥에서
     @property
     def 키(self): return f"{self.이름}/{self.쪽}"
     def 치수(self):
