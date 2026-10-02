@@ -19,8 +19,12 @@ def rgba_on(im, bg=BG):
     im = im.convert("RGBA"); b = Image.new("RGBA", im.size, bg + (255,)); return Image.alpha_composite(b, im).convert("RGB")
 def load(p):
     p = p if os.path.isabs(p) else os.path.join(R, p); im = Image.open(p)
-    white = p.endswith(".png") and "교재그림" in p
-    return rgba_on(im, (255, 255, 255) if white else BG)
+    white = p.endswith(".png") and ("교재그림" in p or "v2그림" in p)
+    im = rgba_on(im, (255, 255, 255) if white else BG)
+    if "v2그림" in p:                       # 새로 그린 그림은 흰 여백을 잘라 화면을 채운다
+        g = np.asarray(im.convert("L")); ys, xs = np.where(g < 240)
+        if len(xs): m = 30; im = im.crop((max(0, xs.min() - m), max(0, ys.min() - m), min(im.width, xs.max() + m), min(im.height, ys.max() + m)))
+    return im
 def fit(im, w, h):
     s = min(w / im.width, h / im.height); return im.resize((max(1, int(im.width * s)), max(1, int(im.height * s))), Image.LANCZOS)
 def art(kind):
