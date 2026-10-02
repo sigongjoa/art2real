@@ -26,7 +26,8 @@ def 실루엣(meshes, n=400):
     pts = np.vstack([m.vertices for m in meshes]); y, z = pts[:, 1], pts[:, 2]; lo = np.array([y.min(), z.min()]); sc = (n - 1) / max(np.ptp(y), np.ptp(z))
     img = np.zeros((n, n), np.uint8)
     for m in meshes:
-        T = ((m.vertices[:, [1, 2]] - lo) * sc).astype(np.int32)[m.faces]; T[:, :, 1] = n - 1 - T[:, :, 1]; cv2.fillPoly(img, list(T), 1)
+        T = ((m.vertices[:, [1, 2]] - lo) * sc).astype(np.int32)[m.faces]; T[:, :, 1] = n - 1 - T[:, :, 1]
+        for t_ in T: cv2.fillConvexPoly(img, t_, 1)   # 한꺼번에 fillPoly 는 겹친 삼각형을 홀짝으로 지움(점무늬 원인)
     return cv2.morphologyEx(img, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8))   # 작은 면 칠하기 구멍 메움
 def 틀(m, 얼굴왼=True):
     ys_, xs_ = np.nonzero(m); m = m[ys_.min():ys_.max() + 1, xs_.min():xs_.max() + 1]

@@ -33,6 +33,9 @@ for n in np.unique(Lf):
     if n == 0: continue
     m = Lf == n; Z[m] = 깊[n] + 0.35 * (D[m] - np.median(D[m]))
 Z = np.clip((Z - lo_) * 단위, -3, 28); Z[~head] = np.nan
+뺌 = [int(x) for x in os.environ.get("RELIEF_DROP", "").split(",") if x]   # 10-02 뿔 스무딩: 이름 꼴로 바꿀 칸은 부조에서 뺀다
+if 뺌: Z[np.isin(L, 뺌)] = np.nan
+접미 = os.environ.get("RELIEF_SUFFIX", "")
 # 부조 고체: 화소 기둥(뒷판 = 가장 뒤 − 4 ~ 앞면) → 0.5 단위 복셀 → 행진 입방체
 px = k; nzb = float(np.nanmin(Z)) - 4; zz = np.arange(nzb, np.nanmax(Z) + 1, 0.5)
 H, W = L.shape; V = np.zeros((W, H, len(zz)), bool)
@@ -46,7 +49,7 @@ trimesh.smoothing.filter_taubin(mesh, iterations=6)
 ci = np.clip(np.round(v[:, 0]).astype(int), 0, W - 1); cj = np.clip(np.round(v[:, 1]).astype(int), 0, H - 1)
 col = (255 * (img[cj, ci][:, ::-1] / 255.0) ** 0.55).astype(np.uint8);   # 밝게(블렌더 꼭짓점색이 어둡게 보임)
 mesh.visual.vertex_colors = np.c_[col, np.full(len(col), 255)].astype(np.uint8)
-mesh.export(os.path.join(O, "부조.ply"))
+mesh.export(os.path.join(O, f"부조{접미}.ply"))
 json.dump({"색규칙으로뒤로보낸칸": 고침, "눈금": {"DA→단위": 단위, "앞뒤범위단위": 25, "근거": "옆 원화 머리 앞뒤 ≈ 49 단위의 앞 절반"}, "면": int(len(mesh.faces))},
           open(os.path.join(O, "부조.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 print("면", len(mesh.faces), "· 색 규칙으로 뒤로 보낸 칸", len(고침), 고침[:6])
