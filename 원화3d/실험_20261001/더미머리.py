@@ -16,36 +16,36 @@ def 상자(이름, 크기, 위치, 회전=(0, 0, 0)):
 def 판(이름, 폭, 높이, 두께, 위치, 회전): return 상자(이름, (폭, 두께, 높이), 위치, 회전)
 
 def 짓기(seed):
+    """2판(10-02 「시작은 나쁘지 않아」 뒤): 머리 모양 언어 — 속머리는 숨기고 돔이 위·옆·뒤를 감쌈 · 차양은 돔 앞 테 · 미늘은 아래로 갈수록 앞(부리꼴) · 볼날개는 돔 옆에서 뒤로.
+    비율은 오메가몬 정면 칸에서 읽은 범위(머리 높이 2 단위 기준)."""
     R = random.Random(seed); objs = []
-    W = R.uniform(0.75, 1.0); Hh = R.uniform(0.8, 1.0); D = R.uniform(0.85, 1.1)
-    objs.append(상자("속머리", (W * 1.2, D * 1.3, Hh * 1.3), (0, 0.1, -0.15)))
-    # 투구 돔: 팔각 반구 껍질
-    seg = R.choice([8, 8, 10, 12]); bpy.ops.mesh.primitive_uv_sphere_add(segments=seg, ring_count=R.choice([4, 5, 6]), radius=1)
-    d = bpy.context.active_object; bm = bmesh.new(); bm.from_mesh(d.data); bmesh.ops.delete(bm, geom=[v for v in bm.verts if v.co.z < -0.05], context="VERTS"); bm.to_mesh(d.data); bm.free()
-    d.scale = (W * 0.75, D * 0.85, Hh * 0.7); d.location = (0, 0.12, 0.25); sd = d.modifiers.new("두께", "SOLIDIFY"); sd.thickness = 0.06; d["부품"] = "투구 돔"; objs.append(d)
-    # 차양: V 쐐기 둘
-    va = R.uniform(10, 28); vz = R.uniform(0.18, 0.3)
-    for s in (-1, 1): objs.append(판("차양", W * 0.42, 0.14, 0.12, (s * W * 0.2, -D * 0.72, vz), (R.uniform(15, 35), 0, -s * va)))
-    # 눈구멍 판 + 눈
-    ez = vz - R.uniform(0.18, 0.26); ew = R.uniform(0.22, 0.32)
+    W = R.uniform(0.85, 1.05); Hh = R.uniform(0.95, 1.1); D = R.uniform(0.95, 1.15)
+    objs.append(상자("속머리", (W * 0.9, D * 0.9, Hh * 0.9), (0, 0.1, -0.2)))                       # 안에 숨김
+    seg = R.choice([8, 10, 12]); bpy.ops.mesh.primitive_uv_sphere_add(segments=seg, ring_count=R.choice([5, 6]), radius=1)
+    d = bpy.context.active_object; bm = bmesh.new(); bm.from_mesh(d.data)
+    cut = R.uniform(-0.35, -0.15)                                                                      # 돔이 내려오는 깊이(옆·뒤)
+    bmesh.ops.delete(bm, geom=[v for v in bm.verts if v.co.z < cut or (v.co.y < -0.55 and v.co.z < 0.25)], context="VERTS")   # 앞은 얼굴 자리 비움
+    bm.to_mesh(d.data); bm.free(); d.scale = (W * 0.62, D * 0.7, Hh * 0.62); d.location = (0, 0.1, 0.12)
+    sd = d.modifiers.new("두께", "SOLIDIFY"); sd.thickness = 0.07; d["부품"] = "투구 돔"; objs.append(d)
+    va = R.uniform(15, 32); vz = R.uniform(0.2, 0.3); vy = -D * 0.6
+    for s in (-1, 1): objs.append(판("차양", W * 0.36, 0.13, 0.16, (s * W * 0.17, vy, vz), (R.uniform(20, 40), 0, -s * va)))
+    ez = vz - R.uniform(0.15, 0.2); ew = R.uniform(0.2, 0.28)
     for s in (-1, 1):
-        objs.append(판("눈구멍 판", ew, 0.16, 0.05, (s * W * 0.25, -D * 0.62, ez), (0, 0, -s * R.uniform(5, 20))))
-        bpy.ops.mesh.primitive_uv_sphere_add(segments=12, ring_count=8, radius=0.055); e = bpy.context.active_object; e.location = (s * W * 0.25, -D * 0.66, ez); e["부품"] = "눈"; objs.append(e)
-    # 미늘: 포갠 V 판 2~4
-    n = R.randint(2, 4); z = ez - 0.14; fw = W * 0.5; ang = R.uniform(25, 40); fwd = -D * 0.66
+        objs.append(판("눈구멍 판", ew, 0.15, 0.05, (s * W * 0.2, vy + 0.12, ez), (0, 0, -s * R.uniform(10, 25))))
+        bpy.ops.mesh.primitive_uv_sphere_add(segments=12, ring_count=8, radius=0.05); e = bpy.context.active_object; e.location = (s * W * 0.2, vy + 0.08, ez); e["부품"] = "눈"; objs.append(e)
+    n = R.randint(2, 4); z = ez - 0.13; fw = W * 0.46; ang = R.uniform(28, 42); fwd = vy + 0.05; step = R.uniform(0.05, 0.1)
     for i in range(n):
-        h = R.uniform(0.12, 0.18)
-        for s in (-1, 1): objs.append(판("미늘", fw * 0.55, h, 0.07, (s * fw * 0.25, fwd - i * R.uniform(0.04, 0.09), z), (R.uniform(-10, 15), 0, -s * ang)))
-        z -= h * 0.8; fw *= R.uniform(0.7, 0.85)
-    # 볼날개
-    for s in (-1, 1): objs.append(판("볼날개", 0.12, Hh * R.uniform(0.45, 0.7), D * R.uniform(0.5, 0.8), (s * W * 0.68, -D * 0.05, ez - 0.1), (R.uniform(-15, 10), 0, s * R.uniform(5, 25))))
-    # 뿔
+        h = R.uniform(0.11, 0.16); fwd -= step                                                         # 아래로 갈수록 앞으로
+        for s in (-1, 1): objs.append(판("미늘", fw * 0.55, h, 0.07, (s * fw * 0.23, fwd, z), (R.uniform(-20, 0), 0, -s * ang)))
+        z -= h * 0.75; fw *= R.uniform(0.62, 0.8)
+    for s in (-1, 1):
+        objs.append(판("볼날개", 0.08, Hh * R.uniform(0.35, 0.5), D * R.uniform(0.45, 0.7), (s * W * 0.62, -D * 0.2, ez - 0.12), (R.uniform(-25, -5), 0, s * R.uniform(15, 35))))
     k = R.choice([1, 1, 3])
     for j in range(k):
-        x = 0 if j == 0 else (W * 0.3 if j == 1 else -W * 0.3); L = R.uniform(0.6, 1.1) * (1 if j == 0 else 0.7)
-        bpy.ops.mesh.primitive_cone_add(vertices=R.choice([4, 6, 8]), radius1=0.09, depth=L); c = bpy.context.active_object; c.location = (x, -D * 0.45, vz + L * 0.45); c.rotation_euler = (math.radians(R.uniform(-25, -5)), 0, math.radians(-x * 30)); c["부품"] = "뿔"; objs.append(c)
+        x = 0 if j == 0 else (W * 0.28 if j == 1 else -W * 0.28); L = R.uniform(0.7, 1.2) * (1 if j == 0 else 0.6)
+        bpy.ops.mesh.primitive_cone_add(vertices=R.choice([4, 6]), radius1=0.09, depth=L); c = bpy.context.active_object; c.location = (x, vy + 0.1, vz + 0.1 + L * 0.45); c.rotation_euler = (math.radians(R.uniform(-30, -10)), 0, math.radians(-x * 30)); c["부품"] = "뿔"; objs.append(c)
     if R.random() < 0.6:
-        for s in (-1, 1): bpy.ops.mesh.primitive_cylinder_add(vertices=6, radius=0.03, depth=R.uniform(0.6, 1.0)); a = bpy.context.active_object; a.location = (s * W * 0.5, 0, vz + 0.45); a.rotation_euler = (0, math.radians(s * R.uniform(25, 45)), 0); a["부품"] = "안테나"; objs.append(a)
+        for s in (-1, 1): bpy.ops.mesh.primitive_cylinder_add(vertices=6, radius=0.03, depth=R.uniform(0.6, 1.0)); a_ = bpy.context.active_object; a_.location = (s * W * 0.42, -0.1, vz + 0.4); a_.rotation_euler = (0, math.radians(s * R.uniform(25, 45)), 0); a_["부품"] = "안테나"; objs.append(a_)
     for o in objs:
         o.color = 색[o["부품"]] + (1,)
         for p in o.data.polygons: p.use_smooth = False
