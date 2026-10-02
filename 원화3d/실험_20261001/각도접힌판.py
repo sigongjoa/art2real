@@ -53,6 +53,7 @@ for 이름, info in 장.items():
     r0 = len(B_); R_ += list(range(r0, r0 + n)); C_ += list(range(n)); V_ += [0.02] * n; B_ += list(0.02 * h[m])
     sol = lsqr(sp.csr_matrix((V_, (R_, C_)), shape=(len(B_), n)), np.array(B_), atol=1e-8, btol=1e-8, iter_lim=20000)[0]
     Z = np.full((H, W), np.nan); Z[m] = sol
+    np.savez_compressed(os.path.join(O, f"판_{n_}_Z.npz"), Z=Z, m=m)   # 합치기(장합치기.py)용
     # 높이장 → 메시(앞면만 · 뒤판은 옆벽 없이 떠 보여 뺐다)
     py, px = np.nonzero(m); vid = -np.ones((H, W), int); vid[py, px] = np.arange(len(py)); k = 100.0 / H   # 머리 높이 = 100
     zb = np.nanmin(Z) - 0.08 * H; Vf = np.c_[px * k, -(Z[py, px]) * k, -py * k]; Vb = np.c_[px * k, np.full(len(py), -zb * k), -py * k]
