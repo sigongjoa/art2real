@@ -6,7 +6,7 @@ from PIL import Image
 from transformers import pipeline
 D = r"G:\art2real\원화3d\out\오메가몬2\지표\겹깊이"
 pipe = pipeline("depth-estimation", model="depth-anything/Depth-Anything-V2-Large-hf", device=-1)
-for f in sorted(glob.glob(os.path.join(D, "*_평면.png")) + glob.glob(os.path.join(D, "*_음영.png")) + glob.glob(os.path.join(D, "*_원화식.png"))):
+for f in sorted(glob.glob(os.path.join(D, "*_평면.png")) + glob.glob(os.path.join(D, "*_음영.png")) + glob.glob(os.path.join(D, "*_원화식.png")) + glob.glob(os.path.join(D, "*_강조.png"))):
     if os.path.exists(f[:-4] + "_da3.npy"): continue
     out = pipe(Image.open(f).convert("RGB")); d = out["predicted_depth"].squeeze().numpy().astype(np.float32)   # DA V2 = 역깊이(클수록 가까움)
     np.save(f[:-4] + "_da3.npy", -d); print(os.path.basename(f), d.shape, float(d.min()), float(d.max()), flush=True)
