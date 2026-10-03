@@ -1,0 +1,10 @@
+#제목: 로봇 머리를 건물로 봤더니 | 눈은 창문이었다
+#루프: 끔
+그림	말	꼬리표	도장
+C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/s23/a_안맞음.png	애니 그림은 정면과 옆이 안 맞아서, 3D로 합칠 때마다 개판이었습니다.	정면 · 옆 겹침	개판=개판
+C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/s23/b_건축.png	그래서 관점을 바꿨습니다. 이 머리가 건물이라면?	머리 = 건물	건물=건물
+C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/s23/c_기준선.png	건축 도면은 칸이 아니라, 층과 축으로 부재를 부릅니다. 층은 정면과 옆에 똑같이 그어집니다.	층(가로) × 축(세로)	층=층
+C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/s23/d_처마.png	차양을 처마로 보고, 그림자 길이로 깊이를 재려 했는데 실패. 처마 밑은 그림자가 아니라 검은 칠이었습니다.	처마 시험 · 실패	실패=실패
+C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/s23/e_옆깊이.png	다시 보니 처마가 아니라, 창문이 벽 속으로 들어간 거였습니다. 옆에서 재면 깊이 십칠.	옆 · 창 깊이 17.1	창문=창문
+C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/s23/f_34깊이.png	비스듬히 보이는 창 옆벽 폭으로 재면 십칠 점 사. 두 그림이 처음으로 같은 숫자를 냈습니다.	3/4 · 창 옆벽 → 17.4	같은=같은 숫자
+C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/s23/h_원화34.png>C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/s23/g_모듈34.png	그 숫자로만 지었더니, 창이 벽 속으로 들어간 게 보입니다. 다음은 창 모양과 꺾인 벽.	원화 3/4 → 잰 숫자로 지은 창	
