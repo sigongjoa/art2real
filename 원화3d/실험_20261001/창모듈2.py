@@ -16,7 +16,22 @@ zz = np.load(os.path.join(O, "판_1_Z.npz")); m, Z = zz["m"], zz["Z"]; H, W = m.
 cell = L[np.clip(y0 + 2 * py, 0, L.shape[0] - 1), np.clip(x0 + 2 * px, 0, L.shape[1] - 1)] * m
 칸 = lambda 표면들: [c for e in 대응 if e.get("부품") == "H03 눈 조립" and e.get("표면") in 표면들 for c in e["칸"]]
 닫기 = lambda a: cv2.morphologyEx(a.astype(np.uint8), cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8)) > 0
-안 = 닫기(np.isin(cell, 칸(("눈구멍", "눈")))); 앞 = 닫기(np.isin(cell, 칸(("눈구멍", "눈", "테")))) | 안
+# 3 판: 창 윤곽을 칸 묶음 대신 원화 먹선에서 — 검은 눈구멍(밝기 < 45 · 눈 점 가까운 덩어리) + 눈동자 = 안, 그 둘레의 밝은 테를 먹선(밝기 < 90)까지 채움 = 앞(반경 12 안) · 다각형 근사(각진 육각)
+art_ = cv2.imdecode(np.fromfile(os.path.join(O, "판_1_원화.png"), np.uint8), 1); Lum = cv2.cvtColor(art_, cv2.COLOR_BGR2LAB)[:, :, 0]
+P0 = json.load(open(os.path.join(O, "특징점.json"), encoding="utf-8"))["1"]; 안 = np.zeros((H, W), bool); 앞 = np.zeros((H, W), bool); 다각형 = {}
+for side in ("왼", "오른"):
+    ex_, ey_ = [int(v) for v in P0[f"눈/{side}"]]; n_, lab = cv2.connectedComponents((Lum < 45).astype(np.uint8))
+    ys_, xs_ = np.nonzero(lab > 0); j = np.argmin((xs_ - ex_) ** 2 + (ys_ - ey_) ** 2); blk = lab == lab[ys_[j], xs_[j]]
+    xa = 축["A 중심"]; 반 = (px < xa - 3) if ex_ < xa else (px > xa + 3); blk &= 반   # 3 판-b: 두 눈의 검은 칠이 코 그늘로 이어져 한 띠가 됨 → 중심축에서 자름
+    blk = ndimage.binary_fill_holes(cv2.morphologyEx(blk.astype(np.uint8), cv2.MORPH_CLOSE, np.ones((9, 9), np.uint8)) > 0)
+    near = (cv2.dilate(blk.astype(np.uint8), cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (13, 13))) > 0) & 반   # 테 반경 6 (25 는 얼굴로 샜음)
+    near = near > 0
+    n2, lab2 = cv2.connectedComponents(((Lum >= 90) & near & ~blk).astype(np.uint8), connectivity=4)
+    touch = set(np.unique(lab2[(cv2.dilate(blk.astype(np.uint8), np.ones((3, 3), np.uint8)) > 0) & (lab2 > 0)])) - {0}
+    rim = np.isin(lab2, list(touch)); out_ = ndimage.binary_fill_holes(cv2.morphologyEx((blk | rim).astype(np.uint8), cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8)) > 0)
+    cs, _ = cv2.findContours(out_.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE); cmax = max(cs, key=cv2.contourArea); poly = cv2.approxPolyDP(cmax, 2.5, True)
+    pm = np.zeros((H, W), np.uint8); cv2.fillPoly(pm, [poly], 1); 앞 |= pm > 0; 안 |= blk; 다각형[side] = len(poly)
+앞 |= 안
 xl, xr = sorted([축["E' 볼날개 끝 L"], 축["E 볼날개 끝 R"]]); top, bot = 층["L7 뿔 뿌리"] - 10, 층["L4 코판 끝"]
 판 = m & (py >= top) & (py <= bot) & (px >= xl) & (px <= xr)
 # ② 벽 높이: 접힌 판 상대값
@@ -47,4 +62,4 @@ for side in ("왼", "오른"):
     e.apply_translation([ex - cu, -1.0, -ey]); e.visual.vertex_colors = np.tile([70, 130, 230, 255], (len(e.vertices), 1)).astype(np.uint8); parts.append(e)
 allm = trimesh.util.concatenate(parts); allm = trimesh.Trimesh(allm.vertices, allm.faces, vertex_colors=allm.visual.vertex_colors, process=False)
 allm.export(os.path.join(B, "창모듈2.ply"), encoding="ascii")
-print({"창 깊이": round(D, 1), "안 화소": int(안.sum()), "앞 화소": int(앞.sum()), "옆벽 화소": int(reveal.sum()), "립 화소": int(위띠.sum()), "벽 상대 높이 범위": [round(float(np.percentile(rel[판], 5)), 1), round(float(np.percentile(rel[판], 95)), 1)]})
+print({"창 다각형 꼭짓점": 다각형, "창 깊이": round(D, 1), "안 화소": int(안.sum()), "앞 화소": int(앞.sum()), "옆벽 화소": int(reveal.sum()), "립 화소": int(위띠.sum()), "벽 상대 높이 범위": [round(float(np.percentile(rel[판], 5)), 1), round(float(np.percentile(rel[판], 95)), 1)]})
