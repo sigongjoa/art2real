@@ -32,7 +32,7 @@ def 껍질(n):
     z = np.load(os.path.join(O, f"판_{n}_Z.npz")); return z["m"], z["Z"]
 부품들 = sorted({v[0] for v in 대응.values()}); 팔 = ["e6194b", "3cb44b", "ffe119", "4363d8", "f58231", "911eb4", "46f0f0", "f032e6", "bcf60c", "fabebe", "008080"]
 색 = {p: [int(팔[i][k:k + 2], 16) for k in (0, 2, 4)] for i, p in enumerate(부품들)}
-점 = {}; meshes = []
+점 = {}; meshes = []; 장색 = {"1": (230, 25, 75), "2": (60, 180, 75), "3": (255, 225, 25), "4": (67, 99, 216)}; meshes2 = []
 for n in ["1", "2", "3", "4"]:
     a = J["장별"][n]; R = np.array(a["R"]); s, tx, ty, A, b0 = a["크기"], a["tx"], a["ty"], a["깊이 배율 a"], a["b0"]
     m, Z = 껍질(n); z = np.load(os.path.join(O, f"{n}.npz")); L = z["라벨"]; ys_, xs_ = np.nonzero(L > 0); y0, x0 = ys_.min(), xs_.min()
@@ -48,7 +48,8 @@ for n in ["1", "2", "3", "4"]:
     vid = -np.ones(m.shape, int); vid[py, px] = np.arange(len(py)); aa, bb, cc, dd = vid[:-1, :-1], vid[:-1, 1:], vid[1:, :-1], vid[1:, 1:]; ok = (aa >= 0) & (bb >= 0) & (cc >= 0) & (dd >= 0)
     F = np.r_[np.c_[aa[ok], cc[ok], bb[ok]], np.c_[bb[ok], cc[ok], dd[ok]]]; col = np.array([색[k.split("/")[0]] if k else [90, 90, 90] for k in 키], np.uint8)
     me = trimesh.Trimesh(np.c_[W[:, 0], -W[:, 1], W[:, 2]], F, process=False); me.visual.vertex_colors = np.c_[col, np.full(len(col), 255)].astype(np.uint8); meshes.append(me)
-trimesh.util.concatenate(meshes).export(os.path.join(O, "부품ID.ply"))
+    m2 = me.copy(); m2.visual.vertex_colors = np.tile(list(장색[n]) + [255], (len(W), 1)).astype(np.uint8); meshes2.append(m2)   # 장마다 한 색(회전 확인용)
+trimesh.util.concatenate(meshes).export(os.path.join(O, "부품ID.ply")); trimesh.util.concatenate(meshes2).export(os.path.join(O, "부품ID_장색.ply"))
 머리 = 300.0   # 정면 화소 기준 머리 높이(뿔 포함 판 높이)
 일관 = {}
 for k, d in sorted(점.items()):

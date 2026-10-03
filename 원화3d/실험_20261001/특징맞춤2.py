@@ -55,6 +55,10 @@ for n in 장[1:]:
     B = np.array(list(P[n].values()), float); q0 += [처음[n][0], 처음[n][1], 0, 1.5, B[:, 0].mean(), B[:, 1].mean()]
     lo += [처음[n][0] - 70, -70, -40, 0.3, -1e4, -1e4]; hi += [처음[n][0] + 70, 70, 40, 5, 1e4, 1e4]
 for b in 짝: lo[idx[b]] = 0                                       # dx ≥ 0 (오른이 오른쪽)
+# 사용자 「회전도 안 하고 붙인 거야?」(10-03): 3/4 가 yaw 13 · pitch 30 · roll −16 으로 끌려감 → 원화로 본 범위로 묶음(BOUND3=1)
+if os.environ.get("BOUND3") == "1" and "3" in 장:
+    k = NP + 6 * (장.index("3") - 1); lo[k:k + 3] = [30, -10, -10]; hi[k:k + 3] = [45, 15, 10]
+    q0[k:k + 3] = [37, 0, 0]
 sol = least_squares(잔차, q0, bounds=(lo, hi), loss="soft_l1", f_scale=8.0); q = sol.x; pts = 점들(q)
 결과 = {"W_사전": W_사전, "장": 장, "대칭 평면 x0(정면 화소, 가운데 기준)": round(float(q[0]), 1), "특징점 3D": {k: [round(float(v), 1) for v in X] for k, X in pts.items()}, "장별": {}}
 # 껍질 세우기 · 주인 하나 · 원화 색 (특징맞춤.py 와 같은 규칙)
