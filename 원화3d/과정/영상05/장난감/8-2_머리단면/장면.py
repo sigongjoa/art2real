@@ -56,7 +56,7 @@ cams = {"front": camera("front", (0, -3.0, 2.2), (0, 0, 2.2), 30),
         "side": camera("side", (2.3, -2.6, 2.6), (0, 0, 2.2), 30),
         "low": camera("low", (0.5, -1.6, 1.6), (0, 0, 2.3), 30),
         "top": camera("top", (0, -0.4, 3.7), (0, 0, 2.2), 35),
-        "top2": camera("top2", (1.2, -1.8, 3.6), (0, 0, 2.3), 30),
+        "top2": camera("top2", (1.0, -1.25, 3.25), (0.35, 0, 2.25), 32),
         "orbit": camera("orbit", (0, -2.0, 2.3), (0, 0, 2.2), 35)}
 cols = [(1.0, 0.55, 0.45), (1.0, 0.85, 0.35), (0.45, 0.85, 0.6)]
 
@@ -86,5 +86,5 @@ for fr in range(1, T.end + 1):
     ring.hide_render = not on or (fr // 3) % 3 == 0; ring.keyframe_insert("hide_render", frame=fr)
     oc, _ = cams["orbit"]; a = math.radians(-90 + 50 * math.sin(t * 0.5)); oc.location = (2.0 * math.cos(a), 2.0 * math.sin(a), 2.4); key(oc, fr, "location")
     tc, _ = cams["top"]; tc.location.z = 3.7 - 0.25 * T.u(5, 0, 1, fr); key(tc, fr, "location")
-    fc, _ = cams["front"]; fc.location.y = -3.0 + 0.3 * math.sin(t * 0.7); key(fc, fr, "location")
+    fc, _ = cams["front"]; fc.location.y = -3.0 + 0.3 * math.sin(t * 0.7) + 0.9 * T.u(4, 0, 0.6, fr) * (1 - T.u(6, 0, 0.3, fr)); key(fc, fr, "location")
 끝(T, cams)

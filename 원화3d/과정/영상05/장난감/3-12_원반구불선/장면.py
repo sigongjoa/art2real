@@ -29,10 +29,10 @@ seam = mat("선", (0.15, 0.12, 0.2), 0.5); seams = [bar((x0, -0.105, ZC + z0), (
 cat = 고양이("고양이", (-1.9, -0.9, 0)); cat[0].rotation_euler.z = 0.3
 
 cams = {"front": camera("front", (0, -4.0, 1.25), (0, 0, 1.15), 32),
-        "close": camera("close", (0, -3.3, 1.35), (0, 0, 1.25), 32),
-        "side": camera("side", (2.4, -2.6, 1.5), (0, 0, 1.1), 28),
-        "low": camera("low", (-0.6, -1.9, 0.3), (0, 0, 1.0), 24),
-        "wide": camera("wide", (-1.5, -4.4, 1.9), (0, 0, 0.9), 28)}
+        "close": camera("close", (0, -3.4, 1.35), (0, 0, 1.25), 28),
+        "side": camera("side", (0.6, -3.8, 1.7), (0, 0, 1.1), 28),
+        "low": camera("low", (-0.3, -2.1, 0.3), (0, 0, 1.0), 26),
+        "wide": camera("wide", (-0.6, -4.6, 1.9), (0, 0, 0.9), 28)}
 
 for fr in range(1, T.end + 1):
     on = lambda i, a=0, b=1: T.u(i, a, b, fr) if fr >= T.lines[i][0] else 0

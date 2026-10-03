@@ -17,7 +17,7 @@ def tube(rad, m, scale=1.0):
     o = bpy.data.objects.new("소라", cu); bpy.context.scene.collection.objects.link(o); o.data.materials.append(m); return o
 
 T = 시작(); 무대(ARGS[1])
-shell = tube(r, mat("껍질", (0.98, 0.66, 0.72), 0.45))
+shell = tube(r, mat("껍질", (0.95, 0.5, 0.58), 0.45))
 gm = mat("유리껍질", (0.85, 0.9, 1.0), 0.2, alpha=True); alpha_of(gm).default_value = 0.16
 gshell = tube(r, gm)
 core_m = mat("굴", (1.0, 0.45, 0.08), 0.5, emit=2.5)
@@ -31,9 +31,9 @@ put(lip, mat("입술", (1.0, 0.85, 0.6), 0.5), loc=P(0) - d0 * 0.01); lip.rotati
 cat = 고양이("고양이", (-0.55, -1.0, 0)); cat[0].rotation_euler.z = math.radians(30)
 
 o0 = P(0)
-cams = {"front": camera("front", (0.3, -5.6, 1.7), (0.1, 0, 1.6), 26),
+cams = {"front": camera("front", (0.3, -4.7, 1.7), (0.1, 0, 1.6), 26),
         "close": camera("close", (0.9, -3.0, 1.0), (0.4, 0, 1.2), 26),
-        "low": camera("low", (1.8, -1.9, 0.2), (0.2, 0, 1.4), 21),
+        "low": camera("low", (0.7, -2.5, 0.2), (0.2, 0, 1.4), 22),
         "top": camera("top", (-1.6, -2.4, 4.4), (0, 0, 1.6), 24),
         "dive": camera("dive", (o0.x, -4.0, o0.z + 0.5), (o0.x, 0.6, o0.z), 26),
         "orbit": camera("orbit", (0.3, -5.6, 1.9), (0, 0, 1.6), 26)}
@@ -55,6 +55,6 @@ for fr in range(1, T.end + 1):
     cat[1].rotation_euler = (0, 0.3 * math.sin(fr / 6) - 0.2, 0.3 * math.sin(fr / 17)); cat[1].keyframe_insert("rotation_euler", frame=fr)
     고양이_키(cat, fr, False)
     oc, _ = cams["orbit"]; v = T.u(4, 0, 1, fr) if fr >= T.lines[4][0] else 0
-    ang = math.radians(-87 + 70 * v); oc.location = (5.6 * math.cos(ang), 5.6 * math.sin(ang), 1.9 + 0.8 * v); oc.keyframe_insert("location", frame=fr)
+    ang = math.radians(-87 + 25 * v); oc.location = (5.6 * math.cos(ang), 5.6 * math.sin(ang), 1.9 + 0.8 * v); oc.keyframe_insert("location", frame=fr)
     tc, _ = cams["top"]; tc.location.x = -1.6 + 1.2 * math.sin(fr / 35); tc.keyframe_insert("location", frame=fr)
 끝(T, cams)

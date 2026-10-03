@@ -32,12 +32,14 @@ c1 = mix(vis.outputs[0], (1.0, 0.62, 0.3), (0.3, 0.85, 0.4)); c2 = mix(amodal.ou
 L(c2.outputs[0], bsdf.inputs["Base Color"])
 cyl(0.42, 2.0, cm, loc=(0, 0.3, 1.25))
 bm_ = mat("상자", (0.3, 0.45, 0.85), 0.6, alpha=True); ba = alpha_of(bm_)
+bm_.use_backface_culling = True
+if hasattr(bm_, "show_transparent_back"): bm_.show_transparent_back = False
 box((1.6, 0.8, Z1 - Z0 + 0.04), bm_, loc=(0, -0.55, (Z0 + Z1) / 2), bevel=0.04)
 box((0.3, 0.3, Z0 - 0.02), mat("받침", (0.6, 0.45, 0.3), 0.8), loc=(0, -0.55, (Z0 - 0.02) / 2))
 # 붓: 칠하는 높이를 따라 내려오는 막대
 brush = cyl(0.06, 1.2, mat("붓", (0.95, 0.95, 0.9), 0.5), loc=(0, -0.2, 3.0), rot=(0, math.pi / 2, 0))
 
-cat = 고양이("고양이", (-1.2, -1.3, 0)); cat[0].scale = (1.5, 1.5, 1.5)
+cat = 고양이("고양이", (-1.2, -1.3, 0)); cat[0].scale = (1.25, 1.25, 1.25)
 cams = {"front": camera("front", (0, -4.2, 1.3), (0, 0, 1.3), 30),
         "close": camera("close", (0.2, -3.2, 1.4), (0, 0, 1.3), 28),
         "low": camera("low", (-0.4, -3.2, 0.3), (0, 0, 1.2), 22),
@@ -48,14 +50,14 @@ base = {k: c[0].location.copy() for k, c in cams.items()}
 for fr in range(1, T.end + 1):
     lv = 2.4 - 2.3 * T.u(1, 0.05, 0.8, fr)                   # 보이는 칠: 위에서 아래로
     paint.inputs[1].default_value = lv; paint.inputs[1].keyframe_insert("default_value", frame=fr)
-    see = T.u(3, 0.05, 0.4, fr) * (1 - T.u(6, 0.3, 0.8, fr)); ba.default_value = 1 - 0.7 * see; ba.keyframe_insert("default_value", frame=fr)
+    see = T.u(3, 0.05, 0.4, fr); ba.default_value = 1 - 0.7 * see; ba.keyframe_insert("default_value", frame=fr)
     am = T.u(3, 0.4, 0.9, fr) * (0.8 + 0.2 * math.sin(fr / 2.5)); amodal.inputs[1].default_value = am
     amodal.inputs[1].keyframe_insert("default_value", frame=fr)
     bz = lv if fr < T.lines[3][0] else Z1 - (Z1 - Z0) * T.u(3, 0.4, 0.9, fr)
     show = (0 < T.u(1, 0.05, 0.8, fr) < 1) or (0 < T.u(3, 0.4, 0.9, fr) < 1)
     brush.location = (0.25 * math.sin(fr / 2), -1.05, bz); brush.hide_render = not show
     brush.keyframe_insert("location", frame=fr); brush.keyframe_insert("hide_render", frame=fr)
-    x = -1.2 + 2.4 * (0.5 - 0.5 * math.cos(fr / 45))
+    x = -1.5 + 3.0 * (0.5 - 0.5 * math.cos(fr / 45))
     cat[0].location.x = x; cat[0].rotation_euler.z = 0 if math.sin(fr / 45) >= 0 else math.pi
     cat[0].keyframe_insert("location", frame=fr); cat[0].keyframe_insert("rotation_euler", frame=fr)
     cat[1].rotation_euler = (0, -0.5, 0.3 * math.sin(fr / 9)); cat[1].keyframe_insert("rotation_euler", frame=fr)

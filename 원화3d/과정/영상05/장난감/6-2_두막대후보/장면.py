@@ -21,7 +21,7 @@ for k in range(3):
 hinge = empty("경첩", loc=(0, -0.15, 2.1))
 box((1.2, 0.05, 1.2), mat("판", (0.18, 0.24, 0.5), 0.7), hinge, (0, 0, -0.6), bevel=0.02)
 
-cat = 고양이("고양이", (0.9, -0.9, 0)); cat[0].scale = (1.5, 1.5, 1.5); cat[0].rotation_euler.z = math.pi * 0.85
+cat = 고양이("고양이", (0.75, -0.9, 0)); cat[0].scale = (1.5, 1.5, 1.5); cat[0].rotation_euler.z = math.pi * 0.85
 cams = {"front": camera("front", (-0.2, -4.1, 1.3), (-0.2, 0, 1.3), 28),
         "close": camera("close", (-0.1, -2.9, 1.5), (-0.1, 0, 1.4), 26),
         "low": camera("low", (0.4, -3.0, 0.3), (-0.2, 0, 1.3), 22),
@@ -32,6 +32,7 @@ def opened(fr):                                  # 0 닫힘 · 1 열림
     o = T.u(2, 0.2, 0.5, fr)
     for ln in (3, 4):
         o *= 1 - T.u(ln, 0, 0.2, fr); o += T.u(ln, 0.35, 0.6, fr) * (1 - o) if fr >= T.lines[ln][0] else 0
+    o *= 1 - T.u(5, 0, 0.3, fr)                 # 보이는 부분은 같다 — 다시 닫음
     return min(o, 1)
 for fr in range(1, T.end + 1):
     o = opened(fr)

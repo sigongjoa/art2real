@@ -12,19 +12,19 @@ def 기둥판(name, pts, m):
     return o
 A_, B_ = mat("조각1", (0.98, 0.7, 0.45), 0.6), mat("조각2", (0.55, 0.78, 0.95), 0.6)
 cuts = [  # (조각1, 조각2, 조각2 이동 방향)
-    ([(-0.9, 0), (0.9, 0), (0.9, 0.5), (-0.9, 0.5)], [(-0.9, 0.5), (-0.4, 0.5), (-0.4, 1.7), (-0.9, 1.7)], (0, 0, 0.35)),
-    ([(-0.9, 0), (-0.4, 0), (-0.4, 1.7), (-0.9, 1.7)], [(-0.4, 0), (0.9, 0), (0.9, 0.5), (-0.4, 0.5)], (0.35, 0, 0)),
-    ([(-0.9, 0), (-0.4, 0.5), (-0.4, 1.7), (-0.9, 1.7)], [(-0.9, 0), (0.9, 0), (0.9, 0.5), (-0.4, 0.5)], (0.3, 0, -0.0))]
+    ([(-0.9, 0), (0.9, 0), (0.9, 0.5), (-0.9, 0.5)], [(-0.9, 0.5), (-0.4, 0.5), (-0.4, 1.7), (-0.9, 1.7)], (0, 0, 0.6)),
+    ([(-0.9, 0), (-0.4, 0), (-0.4, 1.7), (-0.9, 1.7)], [(-0.4, 0), (0.9, 0), (0.9, 0.5), (-0.4, 0.5)], (0.6, 0, 0)),
+    ([(-0.9, 0), (-0.4, 0.5), (-0.4, 1.7), (-0.9, 1.7)], [(-0.9, 0), (0.9, 0), (0.9, 0.5), (-0.4, 0.5)], (0.55, 0, 0))]
 sets = [(기둥판("가", a, A_), 기둥판("나", b, B_), Vector(v)) for a, b, v in cuts]
 glow = mat("칼선", (1, 0.75, 0.2), 0.4, emit=1.6)
 lines = [bar((-0.9, -0.32, 0.5), (-0.4, -0.32, 0.5), 0.02, glow), bar((-0.4, -0.32, 0.0), (-0.4, -0.32, 0.5), 0.02, glow), bar((-0.9, -0.32, 0.0), (-0.4, -0.32, 0.5), 0.02, glow)]
 dot = ball(0.06, mat("빨강", (1, 0.15, 0.12), 0.4, emit=1.5), loc=(-0.4, -0.31, 0.5))
 cat = 고양이("고양이", (1.25, -0.75, 0)); cat[0].rotation_euler.z = math.pi
 
-cams = {"front": camera("front", (0, -4.0, 1.0), (0, 0, 0.85), 32),
-        "close": camera("close", (-0.4, -2.4, 1.0), (-0.3, 0, 0.7), 30),
-        "side": camera("side", (2.2, -2.6, 1.6), (0, 0, 0.7), 28),
-        "low": camera("low", (0.4, -1.8, 0.2), (-0.4, 0, 0.6), 24),
+cams = {"front": camera("front", (0, -3.5, 0.9), (0, 0, 0.75), 30),
+        "close": camera("close", (-0.4, -2.9, 1.0), (-0.3, 0, 0.85), 30),
+        "side": camera("side", (0.9, -3.6, 1.9), (0, 0, 0.7), 28),
+        "low": camera("low", (0.1, -2.1, 0.25), (-0.3, 0, 0.7), 26),
         "orbit": camera("orbit", (0, -4.0, 1.4), (0, 0, 0.8), 30)}
 
 for fr in range(1, T.end + 1):
@@ -42,8 +42,8 @@ for fr in range(1, T.end + 1):
         else: v = 0.6 + 0.4 * math.sin(fr / 4 + 2.1 * k) if fr < T.lines[6][0] else 1 - on(6, 0, 0.3)
         l.scale = (max(v, 1e-3), max(v, 1e-3), 1); l.keyframe_insert("scale", frame=fr)
     dv = on(4, 0.0, 0.2) * (1 + 0.3 * math.sin(fr / 2.2)) * (1 - on(6, 0, 0.3)); dot.scale = [max(dv, 1e-3)] * 3; dot.keyframe_insert("scale", frame=fr)
-    oc = cams["orbit"][0]; u = on(5, 0, 1); a_ = math.radians(-90 + 60 * u)
-    oc.location = (4.0 * math.cos(a_), 4.0 * math.sin(a_), 1.4 + 0.6 * u); oc.keyframe_insert("location", frame=fr)
+    oc = cams["orbit"][0]; u = on(5, 0, 1); a_ = math.radians(-90 + 35 * u)
+    oc.location = (4.0 * math.cos(a_), 4.0 * math.sin(a_), 1.4 + 1.0 * u); oc.keyframe_insert("location", frame=fr)
     j = on(6, 0.2, 0.8); hop = math.sin(math.pi * j)
     cat[0].location = (1.25 - 0.75 * j, -0.75 + 0.75 * j, 0.5 * j + 0.4 * hop); cat[0].keyframe_insert("location", frame=fr)
     cat[1].rotation_euler = (0, -0.4, 0.3 * math.sin(fr / 9)); cat[1].keyframe_insert("rotation_euler", frame=fr)

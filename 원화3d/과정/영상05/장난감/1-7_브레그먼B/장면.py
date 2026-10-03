@@ -18,10 +18,10 @@ for x, z, a, s in [(-0.95, 2.35, 0.25, 0.95), (0.75, 2.45, -0.35, 0.9), (-0.1, 1
 # 덩굴: 평평한 띠(판과 같은 흰색 발광 → 검정으로)
 random.seed(5)
 me = bpy.data.meshes.new("덩굴"); bm = bmesh.new()
-for k in range(5):
-    z0, ph, amp = 0.45 + 0.55 * k, random.uniform(0, 6), random.uniform(0.22, 0.32)
-    pts = [Vector((x, 0, z0 + amp * math.sin(3.1 * x + ph) + 0.12 * math.sin(7 * x))) for x in [-1.75 + 3.5 * i / 60 for i in range(61)]]
-    w = 0.15 + 0.03 * (k % 2); prev = None
+for z0, w in [(0.72, 0.14), (1.15, 0.06), (1.58, 0.14), (2.0, 0.06), (2.42, 0.14)]:   # 굵은 띠가 글자 가운데를 지운다
+    ph, amp = random.uniform(0, 6), 0.09
+    pts = [Vector((x, 0, z0 + amp * math.sin(3.1 * x + ph) + 0.05 * math.sin(7 * x))) for x in [-1.75 + 3.5 * i / 60 for i in range(61)]]
+    prev = None
     for i, p in enumerate(pts):
         d = (pts[min(i + 1, 60)] - pts[max(i - 1, 0)]).normalized(); n = Vector((-d.z, 0, d.x)) * w
         pair = (bm.verts.new(p + n), bm.verts.new(p - n))

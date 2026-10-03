@@ -26,16 +26,16 @@ cat = 고양이("고양이", (2.2, 1.0, 0)); cat[0].rotation_euler.z = math.pi
 
 cams = {"front": camera("front", (0, -5.6, 1.6), (0, 0, 1.3), 25),
         "close": camera("close", (0.3, -3.6, 1.5), (0, 0, 1.4), 26),
-        "low": camera("low", (1.6, -2.4, 0.3), (0, 0, 1.3), 21),
+        "low": camera("low", (0.5, -2.7, 0.3), (0, 0, 1.3), 22),
         "top": camera("top", (-1.8, -3.0, 4.4), (0, 0.4, 0.8), 24),
         "orbit": camera("orbit", (0, -5.6, 1.6), (0, 0.4, 1.0), 25),
         "catcam": camera("catcam", (2.6, -1.0, 0.8), (0.9, 0.6, 0.6), 24)}
 
 for fr in range(1, T.end + 1):
     lift = T.u(3, 0, 0.35, fr) if fr >= T.lines[3][0] else 0
-    wall.location.z = 0.575 + 3.8 * lift; wall.keyframe_insert("location", frame=fr)
+    wall.location.z = 0.575 - 1.3 * lift; wall.keyframe_insert("location", frame=fr)
     oc, _ = cams["orbit"]; u = T.u(3, 0, 1, fr) if fr >= T.lines[3][0] else 0
-    ang = math.radians(-90 + 60 * u); oc.location = (5.6 * math.cos(ang), 5.6 * math.sin(ang), 1.6 + 1.0 * u); oc.keyframe_insert("location", frame=fr)
+    ang = math.radians(-90 + 60 * u); oc.location = (5.6 * math.cos(ang), 5.6 * math.sin(ang), 1.6 + 2.6 * u); oc.keyframe_insert("location", frame=fr)
     # 고양이: 처음엔 뒤에서 어슬렁 · 4줄 앞부분 버팀대 쪽으로 걸어가 툭 → 판이 앞으로 넘어감
     w = T.u(4, 0, 0.35, fr) if fr >= T.lines[4][0] else 0
     cat[0].location = (2.2 - 1.05 * w, 1.0 - 0.2 * w, 0); cat[0].keyframe_insert("location", frame=fr)
