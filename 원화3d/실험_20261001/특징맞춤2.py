@@ -83,7 +83,7 @@ for n in 장:
     if a <= 0 or a > 8: a, b0 = 1.0, float(np.median(want - have))
     meshes.append(메시(n, lambda x, y, Zv, R=R, s=s, tx=tx, ty=ty, a=a, b0=b0: np.c_[(x - tx) / s, -(y - ty) / s, a * Zv / s + b0] @ R))
     e = np.sqrt(((np.array([투영(n, pts[k], q) for k in ks]) - np.array([P[n][k] for k in ks])) ** 2).sum(1))
-    결과["장별"][n] = {"yaw · pitch · roll": [round(float(v), 1) for v in ang], "크기": round(float(s), 3), "깊이 배율 a": round(float(a), 2), "점": len(ks), "잔차 중앙(그 장 화소)": round(float(np.median(e)), 1), "잔차 최대": round(float(e.max()), 1)}
+    결과["장별"][n] = {"yaw · pitch · roll": [round(float(v), 1) for v in ang], "R": np.round(R, 6).tolist(), "tx": float(tx), "ty": float(ty), "b0": float(b0), "크기": round(float(s), 3), "깊이 배율 a": float(a), "점": len(ks), "잔차 중앙(그 장 화소)": round(float(np.median(e)), 1), "잔차 최대": round(float(e.max()), 1)}
     print(n, 결과["장별"][n])
 trimesh.util.concatenate(meshes).export(os.path.join(O, "특징맞춤2.ply")); 결과["주인"] = 주인
 json.dump(결과, open(os.path.join(O, "특징맞춤2.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
