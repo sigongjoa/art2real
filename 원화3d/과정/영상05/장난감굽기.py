@@ -76,6 +76,22 @@ aud = np.concatenate([np.pad(v, (0, n * SR // FPS - len(v))) for v, n in zip(voi
 t = np.arange(int(0.14 * SR)) / SR; pop = (np.sin(2 * np.pi * (500 + 2600 * t) * t) * np.exp(-t * 30) * 9000).astype(np.float32)
 for (_, _, big), (f0, _) in zip(rows, lines):
     if big: s = (f0 - 1) * SR // FPS; aud[s:s + len(pop)] += pop[:len(aud) - s]
+# 효과음(있으면): 편 폴더 효과음.tsv — 줄 · 줄 안 비율 · 종류(발 · 퍽 · 찡 · 휙 · 짹). 줄 기준이라 TTS 길이가 바뀌어도 따라간다. 전부 합성(내려받기 없음)
+def sfx(kind):
+    t = np.arange(int({"발": 0.07, "퍽": 0.3, "찡": 1.0, "휙": 0.45, "짹": 0.14}[kind] * SR)) / SR; rng = np.random.default_rng(len(t))
+    lp = lambda x, k: np.convolve(x, np.ones(k) / k, "same")
+    if kind == "발": y = np.sin(2 * np.pi * 150 * t) * np.exp(-t * 60) + 0.3 * lp(rng.standard_normal(len(t)), 8) * np.exp(-t * 80); a = 3500
+    if kind == "퍽": y = np.sin(2 * np.pi * (90 - 40 * t) * t) * np.exp(-t * 14) + 0.8 * lp(rng.standard_normal(len(t)), 20) * np.exp(-t * 25); a = 14000
+    if kind == "찡": y = sum(np.sin(2 * np.pi * f * t) / (k + 1) for k, f in enumerate((1320, 1980, 2640, 3960))) * np.exp(-t * 4) * np.minimum(1, t * 200); a = 4000
+    if kind == "휙": n = rng.standard_normal(len(t)); y = (n - lp(n, 6)) * np.sin(np.pi * t / t[-1]) ** 2; a = 4000
+    if kind == "짹": y = np.sin(2 * np.pi * (2800 + 9000 * t) * t) * np.sin(np.pi * t / t[-1]) * (0.6 + 0.4 * np.sin(2 * np.pi * 45 * t)); a = 2200
+    return (y / np.abs(y).max() * a).astype(np.float32)
+fx_path = os.path.join(SRC, "효과음.tsv")
+if os.path.exists(fx_path):
+    for r in csv.reader(open(fx_path, encoding="utf-8"), delimiter="\t"):
+        if not r or r[0].startswith("#") or not r[0].strip().isdigit(): continue
+        f0, f1 = lines[int(r[0])]; s = int((f0 - 1 + float(r[1]) * (f1 - f0)) * SR / FPS); y = sfx(r[2].strip())
+        aud[s:s + len(y)] += y[:max(0, len(aud) - s)]
 with wave.open(D + "/_소리.wav", "wb") as w:
     w.setnchannels(1); w.setsampwidth(2); w.setframerate(SR); w.writeframes(np.clip(aud, -32767, 32767).astype(np.int16).tobytes())
 
