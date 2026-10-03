@@ -62,13 +62,13 @@ def 대조부피(p, 층=6):
         ins = np.all(np.c_[X, np.full(len(X), dd), Z] @ Aq.T + bq <= 1.0, axis=1); D[ins] = dd
     D = np.where(np.isnan(D), np.nanmedian(D) if np.isfinite(D).any() else 0, D); return np.concatenate([np.c_[X, D + 4 * l / (층 - 1), Z] for l in range(층)])
 결과 = {"3/4 카메라(yaw · pitch · roll · 크기 · tx · ty)": np.round(cam3, 2).tolist(), "판": {}}; 곡선 = {}
-최종 = {}
+최종 = {}; 경로 = {}
 for p in 판들:
     if S2[p] is None or S2[p].sum() < 20: 결과["판"][p] = "옆 칸 없음"; continue
     sh2 = S2[p].shape; hist = []
     def loss(prm):
         sx, sy = 옆(부피(p, prm)); return 1 - iou(찍기(sx, sy, sh2), S2[p])
-    def cb(xk, convergence=None): hist.append(loss(xk))
+    def cb(xk, convergence=None): hist.append(loss(xk)); 경로.setdefault(p, []).append(np.array(xk))
     r = differential_evolution(loss, [(-170, 40), (-3, 3), (-1.5, 1.5), (2, 80)], maxiter=60, popsize=14, seed=1, callback=cb, tol=1e-6, polish=False)
     최종[p] = r.x; 곡선[p] = hist
     Pc = 대조부피(p); sxc, syc = 옆(Pc); P_ = 부피(p, r.x)
@@ -98,3 +98,41 @@ def 겹(n, proj, targets, art_path, bright):
 g2 = 겹("2", 옆, S2, os.path.join(O, "판_2_원화.png"), 2.0); g3 = 겹("3", lambda P_: 셋(P_, cam3), S3, os.path.join(O, "판_3_원화.png"), 1.0)
 Hh = max(g2.shape[0], g3.shape[0]); g2 = cv2.copyMakeBorder(g2, 0, Hh - g2.shape[0], 0, 10, cv2.BORDER_CONSTANT, value=(255, 255, 255)); g3 = cv2.copyMakeBorder(g3, 0, Hh - g3.shape[0], 0, 0, cv2.BORDER_CONSTANT, value=(255, 255, 255))
 cv2.imencode(".png", np.hstack([g2, g3]))[1].tofile(os.path.join(B, "부리학습_겹침.png"))
+
+# ── 단계마다 보이기(사용자 「각 step 마다 보여 줘야지」) ──
+from PIL import Image, ImageDraw, ImageFont
+Fn = ImageFont.truetype("C:/Windows/Fonts/malgunbd.ttf", 22)
+def 그림(path, br): a = cv2.imdecode(np.fromfile(path, np.uint8), 1); return cv2.convertScaleAbs(a, alpha=br, beta=10)
+색 = {"코판": (60, 60, 230), "미늘2": (60, 200, 60), "턱판": (230, 120, 40)}
+def 윤곽(a, m, col, w=1):
+    cs, _ = cv2.findContours(m.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE); cv2.drawContours(a, cs, -1, col, w)
+타일 = []
+a = 그림(os.path.join(O, "판_1_원화.png"), 1.0)
+for p in 판들: 윤곽(a, F1[p], 색[p], 2)
+타일.append((a, "1 판 모양 = 정면 칸(빨강 코판 · 초록 미늘2 · 주황 턱판)"))
+a = 그림(os.path.join(O, "판_2_원화.png"), 2.0)
+for p in 판들:
+    if S2[p] is not None: 윤곽(a, S2[p], 색[p], 2)
+타일.append((a, "2 학습 정답 = 옆 칸(같은 색)"))
+a = 그림(os.path.join(O, "판_3_원화.png"), 1.0)
+for p in 판들:
+    if S3[p] is not None: 윤곽(a, S3[p], 색[p], 2)
+u, v = 셋(A3, cam3)
+for (x_, y_), (bx, by) in zip(zip(u, v), B3): cv2.circle(a, (int(bx), int(by)), 4, (255, 255, 255), 2); cv2.line(a, (int(bx), int(by)), (int(x_), int(y_)), (0, 255, 255), 1); cv2.circle(a, (int(x_), int(y_)), 3, (0, 255, 255), -1)
+타일.append((a, "3 검증 정답 = 3/4 칸 · 카메라 점(흰 = 찍은 점 · 노랑 = 카메라로 옮긴 점)"))
+for p in 판들:
+    if p not in 경로: continue
+    ws = 경로[p]; pick = sorted(set([0, len(ws) // 8, len(ws) // 4, len(ws) // 2, len(ws) - 1]))
+    for i in pick:
+        a = 그림(os.path.join(O, "판_2_원화.png"), 2.0); 윤곽(a, S2[p], (255, 255, 255), 2)
+        uu, vv = 옆(부피(p, ws[i])); 윤곽(a, 찍기(uu, vv, a.shape[:2]), 색[p], 2)
+        sc = 1 - 곡선[p][i]; 타일.append((a, f"4 학습 {p} · {i + 1} 바퀴 · 옆 IoU {sc:.2f}"))
+    a = 그림(os.path.join(O, "판_3_원화.png"), 1.0)
+    if S3[p] is not None: 윤곽(a, S3[p], (255, 255, 255), 2)
+    uu, vv = 셋(부피(p, 최종[p]), cam3); 윤곽(a, 찍기(uu, vv, a.shape[:2]), 색[p], 2); 타일.append((a, f"5 검증 {p} · 3/4 (흰 정답 · 색 = 배운 판)"))
+T_ = 360; ims = []
+for a, t in 타일:
+    im = Image.fromarray(a[:, :, ::-1]); im.thumbnail((T_ * 1.6, T_)); c = Image.new("RGB", (int(T_ * 1.6), T_ + 34), (20, 20, 24)); c.paste(im, ((c.width - im.width) // 2, 34)); ImageDraw.Draw(c).text((6, 6), t, font=Fn, fill=(255, 232, 58)); ims.append(c)
+cols = 3; rows = (len(ims) + cols - 1) // cols; W_, H_ = ims[0].size; sheet = Image.new("RGB", (W_ * cols, H_ * rows), (20, 20, 24))
+for i, im in enumerate(ims): sheet.paste(im, ((i % cols) * W_, (i // cols) * H_))
+sheet.save(os.path.join(B, "부리학습_단계.png")); print("단계 그림", len(ims))
