@@ -19,6 +19,7 @@ T = 시작(); 무대(ARGS[1])
 skin, hair, dark = mat("살", (0.96, 0.76, 0.6), 0.6), mat("머리칼", (0.42, 0.28, 0.2), 0.7), mat("눈", (0.05, 0.05, 0.06), 0.2)
 postm, plate = mat("기둥", (0.9, 0.85, 0.75), 0.7), mat("판", (0.55, 0.75, 0.95), 0.6)
 heads = []
+bpy.ops.mesh.primitive_plane_add(size=1, rotation=(math.pi / 2, 0, 0)); put(bpy.context.object, mat("벽", (0.97, 0.95, 0.9), 1.0, emit=1.35), loc=(0.2, 1.6, 1.3)).scale = (5.5, 2.6, 1)
 for x, d in ((-0.95, 0.45), (0, 1.0), (1.35, 1.8)):
     cyl(0.08, 1.0, postm, loc=(x, 0, 0.5)); t = cyl(0.3, 0.08, plate, loc=(x, 0, 1.04), bevel=0.02)
     hd = 머리((x, 0, 1.45), d, skin, hair, dark); hd.parent = None; heads.append((hd, t))

@@ -39,8 +39,8 @@ toy = mat("팽이", (0.4, 0.7, 0.95), 0.5); bot = mat("병", (0.55, 0.85, 0.5), 
 TP = [(0.01, 0.0), (0.3, 0.25), (0.33, 0.33), (0.1, 0.42), (0.14, 0.52), (0.06, 0.62), (0.01, 0.64)]
 BP = [(0.25, 0.0), (0.28, 0.35), (0.12, 0.6), (0.09, 0.72), (0.13, 0.78), (0.01, 0.8)]
 extras = []
-for x, prof, m, ringz in ((-1.25, TP, toy, (0.42,)), (1.25, BP, bot, (0.72,))):
-    root = empty("물건", loc=(x, -0.3, 0)); o = lathe("돌린것", 매끈(prof), m); o.parent = root
+for x, prof, m, ringz in ((-1.0, TP, toy, (0.42,)), (1.0, BP, bot, (0.72,))):
+    root = empty("물건", loc=(x, -0.5, 0)); o = lathe("돌린것", 매끈(prof), m); o.parent = root
     for (r, z) in [p for p in prof if p[1] in ringz]:
         bpy.ops.mesh.primitive_torus_add(major_radius=r + 0.012, minor_radius=0.018, major_segments=48, minor_segments=8, location=(0, 0, z))
         t = bpy.context.object; t.data.materials.append(red); t.parent = root
@@ -52,7 +52,7 @@ cams = {"front": camera("front", (0, -3.6, 1.0), (0, 0, 0.95), 35),
         "top": camera("top", (0.4, -1.6, 3.0), (0, 0, 0.9), 28),
         "side": camera("side", (2.2, -2.2, 1.4), (0, 0, 0.95), 30),
         "low": camera("low", (-0.7, -1.7, 0.3), (0, 0, 1.0), 26),
-        "wide": camera("wide", (0, -4.4, 1.3), (0, 0, 0.7), 30)}
+        "wide": camera("wide", (0, -4.2, 1.2), (0, 0, 0.75), 28)}
 
 for fr in range(1, T.end + 1):
     on = lambda i, a=0, b=1: T.u(i, a, b, fr) if fr >= T.lines[i][0] else 0

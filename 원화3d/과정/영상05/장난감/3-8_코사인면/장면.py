@@ -18,9 +18,9 @@ tilt = empty("기울임", loc=(0, 0, 1.25)); tilt.rotation_euler.x = 0.75
 flip = empty("뒤집개", tilt)
 sheet = bpy.data.objects.new("물결", me); bpy.context.scene.collection.objects.link(sheet); sheet.parent = flip
 sheet.data.materials.append(mat("판", (0.98, 0.86, 0.55), 0.55)); s = sheet.modifiers.new("두께", "SOLIDIFY"); s.thickness = TH; s.offset = 0
-red, blue = mat("빨강", (1, 0.22, 0.15), 0.4, emit=2.5), mat("파랑", (0.25, 0.55, 1), 0.4, emit=2.5)
+red, blue = mat("빨강", (1, 0.22, 0.15), 0.4, emit=1.0), mat("파랑", (0.25, 0.55, 1), 0.4, emit=1.0)
 def 고리(p, z, m):
-    bpy.ops.mesh.primitive_torus_add(major_radius=p, minor_radius=0.022, major_segments=96, minor_segments=10); o = bpy.context.object
+    bpy.ops.mesh.primitive_torus_add(major_radius=p, minor_radius=0.03, major_segments=96, minor_segments=10); o = bpy.context.object
     bpy.ops.object.shade_smooth(); o.data.materials.append(m); o.parent = flip; o.location = (0, 0, z); return o
 reds = [고리(p, hgt(p) + TH / 2 + 0.005, red) for p in (0.2, 0.6)]
 blues = [고리(p, hgt(p) - TH / 2 - 0.005, blue) for p in (0.4, 0.8)]

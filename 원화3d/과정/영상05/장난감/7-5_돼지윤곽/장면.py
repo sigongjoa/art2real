@@ -32,8 +32,8 @@ for k in range(4): ball(0.035, pink, loc=(-0.66 - 0.05 * k, 0.03 * math.sin(k * 
 NB, NH = 110, 60
 body = [점(ink) for _ in range(NB)]; head = [점(ink) for _ in range(NH)]
 cat = 고양이("고양이", (0.0, -1.8, 0)); cat[0].rotation_euler.z = math.pi / 2
-cams = {"front": camera("front", (0.15, -9.5, 0.85), (0.15, 0, 0.8), 62),
-        "close": camera("close", (0.3, -7.0, 0.9), (0.3, 0, 0.85), 80),
+cams = {"front": camera("front", (0.15, -9.5, 0.75), (0.15, 0, 0.75), 85),
+        "close": camera("close", (0.3, -7.0, 0.85), (0.3, 0, 0.85), 95),
         "orbit": camera("orbit", (0.15, -3.2, 0.85), (0.15, 0, 0.8), 30),
         "top": camera("top", (0.4, -1.9, 3.3), (0.1, 0, 0.6), 26),
         "side2": camera("side2", (2.0, -1.5, 1.6), (0.1, 0, 0.8), 28),
@@ -53,5 +53,5 @@ for fr in range(1, T.end + 1):
     a = math.radians(-90 + 60 * T.u(2, 0, 1, fr)); oc = cams["orbit"][0]
     oc.location = (0.15 + 3.2 * math.cos(a), 3.2 * math.sin(a), 0.85 + 1.5 * T.u(2, 0, 1, fr)); 키(oc, fr, "location")
     c = cams["top"][0]; c.location.x = 0.4 - 0.5 * math.sin(fr / 45); 키(c, fr, "location")
-    c = cams["catcam"][0]; c.location = cp * 1.45 + Vector((0, 0, 0.5)); 키(c, fr, "location")
+    c = cams["catcam"][0]; c.location = cp * 1.7 + Vector((0.3, 0, 1.1)); 키(c, fr, "location")
 끝(T, cams)

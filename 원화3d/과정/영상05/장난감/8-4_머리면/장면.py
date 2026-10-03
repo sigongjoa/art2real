@@ -28,7 +28,7 @@ for f in bm.faces:
     me = bpy.data.meshes.new("조각"); me.from_pydata([(p - c) * 0.97 for p in pts], [], [list(range(len(pts)))]); me.update()
     o = bpy.data.objects.new("조각", me); bpy.context.scene.collection.objects.link(o); put(o, skin, H, c)
     s = o.modifiers.new("두께", "SOLIDIFY"); s.thickness = 0.02
-    n = c.normalized(); o["home"] = list(c); o["fly"] = list(n * random.uniform(0.6, 1.2) + Vector((random.uniform(-.3, .3), -0.2, random.uniform(-.2, .3))))
+    n = c.normalized(); o["home"] = list(c); o["fly"] = list(n * random.uniform(0.3, 0.55) + Vector((random.uniform(-.1, .1), -0.15, random.uniform(-.1, .15))))
     o["spin"] = [random.uniform(-2, 2) for _ in range(3)]; pieces.append(o)
 bm.free()
 # 코 쐐기 · 눈썹 판 · 눈 — 조각과 같이 날아온다

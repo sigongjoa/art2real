@@ -21,15 +21,16 @@ red, blue = mat("빨강", (1, 0.15, 0.12), 0.4, emit=1.5), mat("파랑", (0.15, 
 o = 0.04
 reds = [bar((X0 + TR * (k + 1) - o, -HW, Z0 + RI * k + o), (X0 + TR * (k + 1) - o, HW, Z0 + RI * k + o), 0.02, red) for k in range(N - 1)]
 blues = [bar((X0 + TR * (k + 1) + o, -HW, Z0 + RI * (k + 1) - o), (X0 + TR * (k + 1) + o, HW, Z0 + RI * (k + 1) - o), 0.02, blue) for k in range(N - 1)]
+bpy.ops.object.light_add(type="SUN", rotation=(math.radians(160), 0, math.radians(20))); bpy.context.object.data.energy = 1.2   # 밑면이 회색으로 죽지 않게
 cat = 고양이("고양이", (X0 - 0.6, -0.1, 0)); cat[0].scale = (0.75, 0.75, 0.75)
 
-cams = {"front": camera("front", (0.2, -4.2, 2.6), (0.0, 0, 1.25), 30),
+cams = {"front": camera("front", (0.2, -3.4, 2.4), (0.0, 0, 1.3), 30),
         "close": camera("close", (-0.1, -2.6, 2.4), (-0.1, 0, 1.3), 30),
         "top": camera("top", (-1.6, -2.4, 3.4), (0.0, 0, 1.3), 28),
         "cat": camera("cat", (-0.9, -1.9, 1.9), (-0.3, 0, 1.3), 28),
         "side": camera("side", (2.6, -2.2, 1.1), (0, 0, 1.1), 28),
         "under": camera("under", (1.1, -1.7, 0.2), (-0.1, 0, 1.4), 22),
-        "under2": camera("under2", (-1.2, -1.4, 0.15), (0.2, 0, 1.45), 22)}
+        "under2": camera("under2", (-0.3, -2.1, 0.2), (0.2, 0, 1.5), 24)}
 
 def 위치(fr):                                         # 고양이: 땅 → 첫 칸 → 한 칸씩
     if fr < T.lines[1][0]: u = T.u(0, 0.1, 0.9, fr); return X0 - 0.6 + 0.2 * u, 0.0, 0 < u < 1
@@ -48,7 +49,7 @@ for fr in range(1, T.end + 1):
         v = on(1, 0.3 + 0.12 * k, 0.45 + 0.12 * k) * (1 + 0.2 * math.sin(fr / 2.5)); b.scale = (max(v, 1e-3), max(v, 1e-3), 1); b.keyframe_insert("scale", frame=fr)
     for k, b in enumerate(blues):
         v = on(5, 0.1 + 0.12 * k, 0.25 + 0.12 * k) * (1 + 0.2 * math.sin(fr / 2.5)); b.scale = (max(v, 1e-3), max(v, 1e-3), 1); b.keyframe_insert("scale", frame=fr)
-    for n, base in (("under", (1.1, -1.7, 0.2)), ("under2", (-1.2, -1.4, 0.15))):
+    for n, base in (("under", (1.1, -1.7, 0.2)), ("under2", (-0.3, -2.1, 0.2))):
         c = cams[n][0]; c.location.x = base[0] + 0.3 * math.sin(fr / 30); c.keyframe_insert("location", frame=fr)
     c = cams["side"][0]; u = on(3, 0, 1); c.location = (2.6 - 1.0 * u, -2.2 + 0.3 * u, 1.1 - 0.8 * u); c.keyframe_insert("location", frame=fr)
 끝(T, cams)

@@ -29,7 +29,7 @@ seam = mat("선", (0.15, 0.12, 0.2), 0.5); seams = [bar((x0, -0.105, ZC + z0), (
 cat = 고양이("고양이", (-1.9, -0.9, 0)); cat[0].rotation_euler.z = 0.3
 
 cams = {"front": camera("front", (0, -4.0, 1.25), (0, 0, 1.15), 32),
-        "close": camera("close", (0, -2.7, 1.35), (0, 0, 1.25), 32),
+        "close": camera("close", (0, -3.3, 1.35), (0, 0, 1.25), 32),
         "side": camera("side", (2.4, -2.6, 1.5), (0, 0, 1.1), 28),
         "low": camera("low", (-0.6, -1.9, 0.3), (0, 0, 1.0), 24),
         "wide": camera("wide", (-1.5, -4.4, 1.9), (0, 0, 0.9), 28)}
@@ -37,7 +37,7 @@ cams = {"front": camera("front", (0, -4.0, 1.25), (0, 0, 1.15), 32),
 for fr in range(1, T.end + 1):
     on = lambda i, a=0, b=1: T.u(i, a, b, fr) if fr >= T.lines[i][0] else 0
     sep = on(1, 0.1, 0.8) * (1 - 0.5 * on(6, 0.1, 0.6))
-    left.location.x = -0.55 * sep; right.location.x = 0.55 * sep
+    left.location.x = -0.4 * sep; right.location.x = 0.4 * sep
     left.rotation_euler.z = 0.25 * on(4, 0, 0.6) * (1 - on(6, 0.1, 0.6)); right.rotation_euler.z = -left.rotation_euler.z
     for o in (left, right): o.keyframe_insert("location", frame=fr); o.keyframe_insert("rotation_euler", frame=fr)
     for b in seams: b.hide_render = fr >= T.lines[1][0] + 3; b.keyframe_insert("hide_render", frame=fr)

@@ -9,6 +9,7 @@ def 키(o, fr, *props):
 T = 시작(); 무대(ARGS[1])
 boxm, rodm, postm = mat("상자", (0.98, 0.7, 0.42), 0.7), mat("막대", (0.35, 0.55, 0.95), 0.45), mat("기둥", (0.85, 0.85, 0.85), 0.6)
 H = 0.5
+bpy.ops.mesh.primitive_plane_add(size=1, rotation=(math.pi / 2, 0, 0)); put(bpy.context.object, mat("벽", (0.97, 0.95, 0.9), 1.0, emit=1.35), loc=(0, 1.6, 1.0)).scale = (5.0, 2.0, 1)
 for x, dy in ((-0.8, 0.42), (0.8, 0.0)):
     box((0.62, 0.5, 0.8), boxm, loc=(x, 0, 0.4), bevel=0.04)
     cyl(0.06, 1.45, rodm, loc=(x, dy, H), rot=(0, math.pi / 2, 0))
@@ -16,7 +17,7 @@ for x, dy in ((-0.8, 0.42), (0.8, 0.0)):
 cat = 고양이("고양이", (-2.2, -0.9, 0))
 cams = {"front": camera("front", (0, -14, 0.5), (0, 0, 0.5), 85),
         "close": camera("close", (-0.8, -12, 0.5), (-0.8, 0, 0.5), 110),
-        "top": camera("top", (0, -0.6, 5.6), (0, 0.1, 0.4), 30),
+        "top": camera("top", (0, -0.25, 5.6), (0, 0.15, 0.4), 30),
         "low": camera("low", (1.4, -2.0, 0.25), (0, 0, 0.6), 22),
         "sideA": camera("sideA", (-2.4, -1.2, 1.6), (-0.8, 0.2, 0.45), 28),
         "sideB": camera("sideB", (2.4, -1.4, 1.5), (0.8, 0, 0.45), 28),

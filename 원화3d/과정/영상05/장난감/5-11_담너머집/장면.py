@@ -20,7 +20,8 @@ for x in (-0.28, 0.28): box((0.26, 0.04, 0.26), win_m, A, (x, -0.01, 1.32))
 B = empty("집B", loc=(0.9, 0, 0))
 box((1.2, 0.04, 1.6), cream, B, (0, 0.02, 0.8)); prism(1.45, 0.06, 0.75, roof_m, B, (0, 0.03, 1.6))
 for x in (-0.28, 0.28): box((0.26, 0.04, 0.26), win_m, B, (x, -0.01, 1.32))
-strut = bar((0, 0.04, 1.1), (0, 0.75, 0.0), 0.03, mat("버팀", (0.6, 0.45, 0.3), 0.8)); strut.parent = B; strut.location.x += 0.0
+SP = empty("버팀축", loc=(0.9, 0.75, 0))
+strut = bar((0.9, 0.04, 1.1), (0.9, 0.75, 0.0), 0.03, mat("버팀", (0.6, 0.45, 0.3), 0.8)); strut.parent = SP; strut.location -= SP.location
 cat = 고양이("고양이", (2.2, 1.0, 0)); cat[0].rotation_euler.z = math.pi
 
 cams = {"front": camera("front", (0, -5.6, 1.6), (0, 0, 1.3), 25),
@@ -43,6 +44,7 @@ for fr in range(1, T.end + 1):
     t = T.u(4, 0.35, 0.7, fr) if fr >= T.lines[4][0] else 0
     B.rotation_euler.x = (math.pi / 2) * t * t + 0.04 * math.sin(math.pi * T.u(4, 0.7, 0.8, fr)) * (t >= 1)
     B.keyframe_insert("rotation_euler", frame=fr)
+    SP.rotation_euler.x = 0.98 * min(1, t * 1.3); SP.keyframe_insert("rotation_euler", frame=fr)
     tc, _ = cams["top"]; tc.location.x = -1.8 + 1.4 * math.sin(fr / 40); tc.keyframe_insert("location", frame=fr)
     fc, _ = cams["front"]; fc.location.x = 0.4 * math.sin(fr / 45); fc.keyframe_insert("location", frame=fr)
 끝(T, cams)

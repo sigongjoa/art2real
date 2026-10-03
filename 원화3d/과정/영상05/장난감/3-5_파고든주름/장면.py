@@ -9,8 +9,8 @@ cyl(0.45, 0.3, mat("받침대", (0.85, 0.82, 0.78), 0.8), loc=(-0.3, 0, 0.15), b
 A, rA, rB = Vector((-0.3, 0, 0.8)), 0.55, 0.42
 ball(rA, lav, loc=A)
 bpy.ops.mesh.primitive_uv_sphere_add(radius=rB, segments=48, ring_count=24); B = bpy.context.object; bpy.ops.object.shade_smooth(); B.data.materials.append(lav)
-glow = mat("골", (1.0, 0.5, 0.1), 0.4, emit=3.0)
-bpy.ops.mesh.primitive_torus_add(major_radius=1, minor_radius=0.06, major_segments=64, minor_segments=12); ring = bpy.context.object
+glow = mat("골", (1.0, 0.45, 0.1), 0.4, emit=1.4)
+bpy.ops.mesh.primitive_torus_add(major_radius=1, minor_radius=0.09, major_segments=64, minor_segments=12); ring = bpy.context.object
 bpy.ops.object.shade_smooth(); ring.data.materials.append(glow); ring.rotation_mode = "QUATERNION"
 big = 고양이("큰고양이", (4.2, -0.2, 0)); big[0].scale = (2.6, 2.6, 2.6); big[0].rotation_euler.z = math.pi
 cat = 고양이("고양이", (-1.6, -0.9, 0)); cat[0].rotation_euler.z = 0.3

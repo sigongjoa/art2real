@@ -29,11 +29,11 @@ L = empty("왼어깨", B, (-0.29, 0, 1.52)); ball(0.06, joint, L); cyl(0.045, 0.
 cols = [(1.0, 0.55, 0.45), (1.0, 0.82, 0.35), (0.45, 0.8, 0.6), (0.5, 0.65, 1.0)]
 S = empty("어깨", B, (0.25, 0, 1.5))
 blocks = [taper("어깨블록", 0.2, (0.2, 0.22), (0.16, 0.18), mat("b0", cols[0], 0.55), S, (0.06, 0, 0.0), slant=0.35)]
-blocks.append(taper("위팔", 0.32, (0.13, 0.15), (0.11, 0.12), mat("b1", cols[1], 0.55), S, (0.06, 0, -0.22), slant=-0.3))
+blocks.append(taper("위팔", 0.32, (0.13, 0.15), (0.11, 0.12), mat("b1", cols[1], 0.55), S, (0.06, 0, -0.22), slant=0.3))
 E = empty("팔꿈치", S, (0.06, 0, -0.39))
 blocks.append(taper("아래팔", 0.3, (0.13, 0.12), (0.08, 0.07), mat("b2", cols[2], 0.55), E, (0, 0, -0.15), slant=0.3))
-W = empty("손목", E, (0, 0, -0.31))
-blocks.append(taper("손", 0.17, (0.09, 0.05), (0.1, 0.04), mat("b3", cols[3], 0.55), W, (0, 0, -0.09), slant=-0.2))
+W = empty("손목", E, (0, 0, -0.3))
+blocks.append(taper("손", 0.17, (0.09, 0.05), (0.1, 0.04), mat("b3", cols[3], 0.55), W, (0, 0, -0.09), slant=0.3))
 for b in blocks: b["home"] = list(b.location)
 flys = [Vector((0.9, -0.3, 0.8)), Vector((1.0, -0.4, 0.3)), Vector((1.1, -0.2, -0.3)), Vector((0.8, -0.5, -0.6))]
 
@@ -53,7 +53,7 @@ for fr in range(1, T.end + 1):
         b.hide_render = k <= 0.0; key(b, fr, "location", "rotation_euler", "hide_render")
     # 3 줄: 물림 강조 — 블록이 살짝 벌어졌다 다시 물린다
     gap = 0.06 * math.sin(math.pi * T.u(3, 0.1, 0.9, fr))
-    E.location.z = -0.39 - gap; W.location.z = -0.31 - gap; S.location.x = 0.25 + gap
+    E.location.z = -0.39 - gap; W.location.z = -0.3 - gap; S.location.x = 0.25 + gap
     raise_ = T.u(4, 0.1, 0.8, fr) * (1 - T.u(6, 0.3, 0.9, fr)); bend = T.u(4, 0.3, 1.0, fr) * (1 - T.u(6, 0.3, 0.9, fr))
     S.rotation_euler = (-0.6 * raise_, 0.5 * raise_ + 0.05 * math.sin(t * 2), 0); E.rotation_euler = (-1.4 * bend, 0, 0); W.rotation_euler = (0.3 * bend, 0, 0)
     key(S, fr, "location", "rotation_euler"); key(E, fr, "location", "rotation_euler"); key(W, fr, "location", "rotation_euler")

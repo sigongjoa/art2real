@@ -22,7 +22,7 @@ for zf in (-0.6, -0.35, -0.1, 0.15, 0.4, 0.62):
 # 견갑골: 등에 얹힌 세모 판(조금 휜) — 어깨 쪽 empty 에 매단다
 def blade(sx):
     P = empty("견갑", E, (sx * 0.12, B * 0.88, 0.12))
-    me = bpy.data.meshes.new("판"); me.from_pydata([(sx * -0.04, 0, 0.12), (sx * 0.13, 0.0, 0.1), (sx * 0.02, 0.0, -0.16)], [], [(0, 1, 2)]); me.update()
+    me = bpy.data.meshes.new("판"); me.from_pydata([(sx * -0.06, 0, 0.16), (sx * 0.18, 0.0, 0.14), (sx * 0.02, 0.0, -0.22)], [], [(0, 1, 2)]); me.update()
     o = bpy.data.objects.new("판", me); bpy.context.scene.collection.objects.link(o); put(o, blade_m, P)
     o.modifiers.new("t", "SOLIDIFY").thickness = 0.025; P.rotation_euler = (-0.25, 0, 0); return P
 blades = [blade(-1), blade(1)]

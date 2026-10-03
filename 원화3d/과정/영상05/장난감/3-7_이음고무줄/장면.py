@@ -42,7 +42,7 @@ for fr in range(1, T.end + 1):
         u = on(4, 0, 0.25); z = zA + 0.12; rr = surf(z) + 0.02 + 0.3 * (1 - u)
         v = on(4, 0.3, 0.95); z = z + (zc - 0.015 - z) * v; rr = rr if v == 0 else surf(z) + 0.02
         놓기(b2, z, rr, fr)
-    g = 2.5 * on(5, 0.1, 0.4) * (1 + 0.3 * math.sin(fr / 3))
+    g = 1.0 * on(5, 0.1, 0.4) * (1 + 0.3 * math.sin(fr / 3))
     for p in (p1, p2): p.inputs["Emission Strength"].default_value = g; p.inputs["Emission Strength"].keyframe_insert("default_value", frame=fr)
     look = (b1.location.z if fr < T.lines[4][0] else b2.location.z)
     cat[1].rotation_euler = (0, -0.3 - 0.25 * (look - 0.8), 0.15 * math.sin(fr / 10)); cat[1].keyframe_insert("rotation_euler", frame=fr)

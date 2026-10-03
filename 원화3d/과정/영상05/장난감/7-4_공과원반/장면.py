@@ -30,7 +30,7 @@ cams = {"front": camera("front", (0, -9.5, 1.45), (0, 0, 1.4), 72),
         "wide": camera("wide", (2.2, -4.4, 0.6), (0, 0, 1.2), 24)}
 L = T.lines
 for fr in range(1, T.end + 1):
-    lit = T.u(2, 0.45, 0.6, fr); flick = 1 if lit >= 1 or lit <= 0 else (1 if (fr // 2) % 2 else 0) * lit
+    lit = T.u(2, 0.45, 0.6, fr); flick = 1.0 if lit >= 1 else 0.0 if lit <= 0 else float((fr // 2) % 2)
     f.default_value = flick; f.keyframe_insert("default_value", frame=fr)
     sp = T.u(5, 0.1, 1, fr) + T.u(6, 0, 1, fr)
     disk.rotation_euler = (math.pi / 2, 0, 2 * math.pi * 2.5 * sp); 키(disk, fr, "rotation_euler")

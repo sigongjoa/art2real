@@ -18,7 +18,7 @@ for x in (-0.2, 0, 0.2): chair.append(cyl(0.03, 1.0, wood, loc=(x, 0.43, SZ + 0.
 croot = empty("의자")
 for o in chair: o.parent = croot
 
-boxm = mat("상자", (1.0, 0.55, 0.15), 0.4, alpha=True); alpha_of(boxm).default_value = 0.55
+boxm = mat("상자", (0.4, 0.42, 0.98), 0.4, alpha=True); alpha_of(boxm).default_value = 0.6
 if hasattr(boxm, "show_transparent_back"): boxm.show_transparent_back = False
 BOX = [((1.04, 1.04, 0.32), (0, 0, SZ + 0.08))] + [((0.16, 0.16, SZ - 0.05), (x, y, (SZ - 0.05) / 2)) for x in (-0.4, 0.4) for y in (-0.4, 0.4)] + [((1.0, 0.16, 1.2), (0, 0.43, SZ + 0.65))]
 boxes = [(box(s, boxm, loc=l), Vector(s), Vector(l)) for s, l in BOX]

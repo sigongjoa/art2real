@@ -77,7 +77,7 @@ for fr in range(1, T.end + 1):
         size = SIZE0 + (SIZE[nm] - SIZE0) * grow
         tt = max(0.0, (fr - T.lines[4][0]) / 24 - 0.2)
         p = OFF[nm] * grow + Vector((sg.x * size.x, sg.y * size.y, sg.z * size.z)) * 0.46 + v * tt * 1.2 + Vector((0, 0, -2.5 * tt * tt))
-        c.location = p; c.scale = (max(0.001, 1 - T.u(4, 0.5, 0.9, fr)) * 0.16,) * 3; c.rotation_euler = (0.6 + 4 * tt, 0.6 + 3 * tt, 0.6)
+        c.location = p; c.scale = (max(0.001, 1 - T.u(4, 0.5, 0.9, fr)) * 0.13,) * 3; c.hide_render = fr < T.lines[4][0] + 3 or T.u(4, 0.5, 0.9, fr) > 0.97; c.keyframe_insert("hide_render", frame=fr); c.rotation_euler = (0.6 + 4 * tt, 0.6 + 3 * tt, 0.6)
         key(c, fr, "location", "scale", "rotation_euler")
     oc, _ = cams["orbit"]; a = math.radians(-90 + 40 * math.sin(t * 0.6)); oc.location = (3.0 * math.cos(a), 3.0 * math.sin(a), 1.5); key(oc, fr, "location")
     fc, _ = cams["front"]; fc.location.x = 0.2 * math.sin(t * 0.5); key(fc, fr, "location")
