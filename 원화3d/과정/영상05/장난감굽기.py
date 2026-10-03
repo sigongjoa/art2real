@@ -57,8 +57,9 @@ try:
                    stdout=open(D + "/_블렌더.log", "w", encoding="utf-8"), stderr=subprocess.STDOUT, env=env)
 finally:
     if slot: os.remove(slot)
-log = open(D + "/_블렌더.log", encoding="utf-8", errors="replace").read()
-if not BAKE_ONLY and ("Traceback" in log or r.returncode): print(log[log.find("Traceback"):][:3000]); sys.exit(1)
+if not BAKE_ONLY:
+    log = open(D + "/_블렌더.log", encoding="utf-8", errors="replace").read()
+    if "Traceback" in log or r.returncode: print(log[log.find("Traceback"):][:3000]); sys.exit(1)
 
 F = lambda s: ImageFont.truetype("C:/Windows/Fonts/malgunbd.ttf", s)
 def text(d, xy, s, size, stroke):
