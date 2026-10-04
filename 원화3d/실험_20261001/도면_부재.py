@@ -65,7 +65,9 @@ for c in sorted(cs, key=cv2.contourArea, reverse=True)[:2]:
     기록["H01 차양"] = {"꼭짓점(한쪽)": n, "앞면 깊이 범위": [round(float(yfront.min()), 1), round(float(yfront.max()), 1)], "두께(옆 칸 폭 · 상한 6)": round(min(두께, 6), 1)}
 돔.vertices[:, 0] += 0
 부재 = [("H01 돔", 돔, (40, 110, 230)), ("H01 차양", trimesh.util.concatenate(판들) if 판들 else None, (230, 120, 0))]
-all_ = trimesh.util.concatenate([m for _, m, _ in 부재 if m is not None]); all_.export(os.path.join(B, "부재_v4.ply"))
+for _, m, col in 부재:
+    if m is not None: m.visual.vertex_colors = np.tile(list(col) + [255], (len(m.vertices), 1)).astype(np.uint8)
+all_ = trimesh.util.concatenate([m for _, m, _ in 부재 if m is not None]); all_.export(os.path.join(B, "부재_v4.ply"), encoding="ascii")
 # ── 그리기 ──
 F = lambda n: ImageFont.truetype("C:/Windows/Fonts/malgunbd.ttf", n)
 sheet = Image.new("RGB", (2400, 1600), "white"); d = ImageDraw.Draw(sheet)
