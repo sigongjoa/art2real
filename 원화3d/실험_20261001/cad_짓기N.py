@@ -23,6 +23,30 @@ def 면YZ(pts, x): return Part.Face(Part.makePolygon([Vector(x, y, z) for y, z i
 def 오프(pts, d):
     w = 면XZ(pts, 0).OuterWire.makeOffset2D(d, 0, False, False, False); return [[v.X, v.Z] for v in w.OrderedVertexes]
 F0 = V4["정면 몸"] if VER >= 4 else V["정면 몸"]; S0 = V4["옆 몸"] if VER >= 4 else V["옆 몸"]
+if VER == 47:   # (v47 만 · 뒷걸음이라 되돌림) v47: 처마 아래 정면 윤곽의 꺾임마다 옆머리에 긴 면 · 턱(v46 폭 제한은 효과 없음) → 처마 아래는 처마 양 끝 → 턱 끝 사다리꼴 · 위 돔은 그대로
+    _z6 = V4["층 z"]["L6 처마"]; _up = [p for p in F0 if p[1] >= _z6]
+    _zb = min(p[1] for p in F0); _low = [p for p in F0 if p[1] <= _zb + 12]; _hc = max(6.0, (max(p[0] for p in _low) - min(p[0] for p in _low)) / 2)
+    _xs = [p[0] for p in F0 if abs(p[1] - _z6) < 6] or [p[0] for p in _up]
+    _xl, _xr = min(_xs), max(_xs)
+    _upr = sorted([p for p in _up], key=lambda p: (-(p[0] > 0), p[1]))
+    import math as _mm
+    _c = (sum(p[0] for p in _up) / len(_up), sum(p[1] for p in _up) / len(_up))
+    F0 = sorted(_up + [[_xl, _z6], [_xr, _z6], [_hc, _zb], [-_hc, _zb]], key=lambda p: _mm.atan2(p[1] - _c[1], p[0] - _c[0]))
+if VER == 42:   # (v42 만 · 뒷걸음이라 되돌림) v42: 정면 몸 윤곽의 오목한 홈(볼 · 가시 자리)이 앞뒤로 밀려 옆머리를 가로지르는 긴 턱이 됐다 → 몸은 볼록 껍질(볼 · 가시 · 차양은 이제 따로 짓는 부품)
+    import numpy as _np
+    _P = _np.array(F0); _h = Part.makePolygon([Vector(x, 0, z) for x, z in F0] + [Vector(F0[0][0], 0, F0[0][1])])
+    def _hull(pts):
+        pts = sorted(set(map(tuple, pts)))
+        def cr(o, a, b): return (a[0]-o[0])*(b[1]-o[1]) - (a[1]-o[1])*(b[0]-o[0])
+        lo, up = [], []
+        for p in pts:
+            while len(lo) >= 2 and cr(lo[-2], lo[-1], p) <= 0: lo.pop()
+            lo.append(p)
+        for p in reversed(pts):
+            while len(up) >= 2 and cr(up[-2], up[-1], p) <= 0: up.pop()
+            up.append(p)
+        return [list(p) for p in lo[:-1] + up[:-1]]
+    F0 = _hull(F0)
 def 몸(d=0.0):
     F = 오프(F0, d) if d else F0; S = 오프(S0, d) if d else S0
     body = 면XZ(F, -400).extrude(Vector(0, 800, 0)).common(면YZ(S, -400).extrude(Vector(800, 0, 0)))
@@ -36,6 +60,8 @@ def 몸(d=0.0):
             cx, cy, hx, hy = (bb.XMin + bb.XMax) / 2, (bb.YMin + bb.YMax) / 2, bb.XLength / 2, bb.YLength / 2
             oc = [(cx - hx, cy - hy * (1 - k)), (cx - hx * (1 - k), cy - hy), (cx + hx * (1 - k), cy - hy), (cx + hx, cy - hy * (1 - k)), (cx + hx, cy + hy * (1 - k)), (cx + hx * (1 - k), cy + hy), (cx - hx * (1 - k), cy + hy), (cx - hx, cy + hy * (1 - k))]
         body = body.cut(Part.makeBox(800, 800, 400, Vector(-400, -400, z6)))
+        if VER >= 46:   # v46: 처마 아래 몸이 볼 날개 자리만큼 옆으로 불룩해 옆머리에 긴 턱 → 처마 아래 폭을 처마 폭(+d)으로 제한(볼 · 가시는 따로 짓는 부품)
+            body = body.common(Part.makeBox(2 * hx, 800, 400, Vector(cx - hx, -400, z6 - 400)))
         secs = []
         for s_, f_ in ((0.0, 1.0), (0.45, 0.88), (0.8, 0.6), (1.0, 0.25)):
             z = z6 + (zt - z6) * s_; pts = [Vector(cx + (x - cx) * f_, cy + (y - cy) * f_, z) for x, y in oc]; secs.append(Part.makePolygon(pts + [pts[0]]))
@@ -46,7 +72,16 @@ def 층(d): return 몸(d).cut(겉)
 겉 = 몸(0); 속 = 몸(-V["껍질"]); 투구 = 겉.cut(속)
 for P in V["얼굴 구멍"]: 투구 = 투구.cut(프리즘(P, E["y0"], -400))
 부품 = {}
-L6 = 층(8.0 if VER >= 20 else V["차양 두께"]); 차양 = None
+def VL(t):   # v44: V 얼굴을 따르는 t 두께 층 = (몸(t) ∩ V(yk − t/cosθ)) − (겉 ∩ V(yk))
+    import os as _os, math as _m
+    th = _m.radians(float(open(D + "theta.txt").read()) if _os.path.exists(D + "theta.txt") else 45.0); k = _m.tan(th)
+    def vp(yk): return Part.Face(Part.makePolygon([Vector(0, yk, -600), Vector(300, yk + 300 * k, -600), Vector(300, 600, -600), Vector(-300, 600, -600), Vector(-300, yk + 300 * k, -600), Vector(0, yk, -600)])).extrude(Vector(0, 0, 800))
+    fp = None
+    for FP in V["얼굴 구멍"]:
+        q = 겉.common(프리즘(FP, E["y0"], -400)); fp = q if fp is None else fp.fuse(q)
+    yk = fp.BoundBox.YMin
+    return 몸(t).common(vp(yk - t / _m.cos(th))).cut(겉.common(vp(yk)))
+L6 = (VL(8.0) if VER >= 44 else 층(8.0 if VER >= 20 else V["차양 두께"])); 차양 = None
 for P in ([] if VER >= 36 else V["차양 오른쪽"]):   # v36: 옛 가로 차양 판(원화와 달리 눈 창 위를 가로로 덮음) 뺌 — v33 눈썹 날개만
     for sgn in (1, -1):
         Q = [[sgn * x, z] for x, z in P]; Q = Q[::-1] if sgn < 0 else Q
@@ -97,6 +132,16 @@ if VER >= 6:
         base = [Vector(0, yf_, z0), Vector(w, (yf_ + yb_) / 2, z0), Vector(0, yb_, z0), Vector(-w, (yf_ + yb_) / 2, z0)]
         tip = [Vector(top[0] + dx, ty + dy, z1) for dx, dy in ((0, -0.8), (0.8, 0), (0, 0.8), (-0.8, 0))]
         뿔 = Part.makeLoft([Part.makePolygon(base + [base[0]]), Part.makePolygon(tip + [tip[0]])], True, True)
+    if VER >= 45:   # v45: 원화 3/4 의 뿔은 얼굴 앞에 붙은 넓은 지느러미 판(앞 밑동 = 눈 사이 능선 · 뒤 밑동 = 정수리 · 끝은 앞으로 기욺) — 모델은 앞뒤 17 짜리 가시였다
+        zb6 = V4["층 z"]["L6 처마"]; fp_ = V4["특징점"]; zbrow = fp_["차양 V"][1]
+        hit = Part.LineSegment(Vector(0, -400, zbrow + 8), Vector(0, 400, zbrow + 8)).toShape().common(겉); yF = min(v.Y for v in hit.Vertexes) + 2
+        hitB = Part.LineSegment(Vector(0, -400, zb6 + 25), Vector(0, 400, zb6 + 25)).toShape().common(겉); yB = (min(v.Y for v in hitB.Vertexes) + max(v.Y for v in hitB.Vertexes)) / 2
+        Fp = Vector(0, yF, zbrow + 8); Bp = Vector(0, yB, zb6 + 25); Lp = Vector(-w, (yF + yB) / 2, (Fp.z + Bp.z) / 2 + 6); Rp = Vector(w, Lp.y, Lp.z)
+        Tp = Vector(top[0] * 0, ty, z1)
+        tri = lambda a, b, c: Part.Face(Part.makePolygon([a, b, c, a]))
+        뿔 = Part.Solid(Part.Shell([tri(Tp, Fp, Lp), tri(Tp, Lp, Bp), tri(Tp, Bp, Rp), tri(Tp, Rp, Fp), tri(Fp, Bp, Lp), tri(Fp, Rp, Bp)]))
+        if 뿔.Volume < 0: 뿔.reverse()
+        print("horn45", round(yF), round(yB), round(ty), round(z1), round(w))
     부품["horn"] = 뿔
 if VER >= 7:
     eyes = None; walls = None
@@ -110,6 +155,13 @@ if VER >= 7:
         if VER >= 24:   # v24: 눈이 창 안 깊이 0(겉에서 약 80 뒤)이라 가려 안 보임 → 창 입구 = 그 자리 몸 겉(광선) · 눈 = 입구 + 17.2(잰 창 깊이)
             hit = Part.LineSegment(Vector(cx, -400, cz), Vector(cx, 400, cz)).toShape().common(겉)
             s0 = min(v.Y for v in hit.Vertexes) if hit.Vertexes else -40.0
+            if VER >= 43:   # v43: 눈이 V 로 물러난 얼굴판보다 30 가까이 앞에 있었다(깊이를 V 전 몸에서 잼) → 입구 = V 판 앞면 yk + |x|·tanθ
+                import os as _os, math as _m
+                _th = _m.radians(float(open(D + "theta.txt").read()) if _os.path.exists(D + "theta.txt") else 45.0)
+                _fp = None
+                for FP in V["얼굴 구멍"]:
+                    q = 겉.common(프리즘(FP, E["y0"], -400)); _fp = q if _fp is None else _fp.fuse(q)
+                s0 = max(s0, _fp.BoundBox.YMin + abs(cx) * _m.tan(_th))
         else:
             s0 = -17.2
         if VER >= 25:   # v25: 눈알이 창을 꽉 채움 → 원화처럼 검은 창 안 둥근 눈: 반지름 = 창 높이의 0.32 · 납작 원판 대신 앞으로 볼록한 반구(깊이 반지름 × 0.6)
@@ -129,7 +181,7 @@ if VER >= 8:
         c = Part.makeCone(2.4, 0.8, (b - a).Length, a, b - a); ants = c if ants is None else ants.fuse(c)
     부품["antenna"] = ants
 if VER >= 9:
-    L4 = 층(6.0 if VER >= 22 else 4.0); 볼 = None
+    L4 = VL(6.0) if VER >= 44 else 층(6.0 if VER >= 22 else 4.0); 볼 = None
     for P in V4["볼날개"]:
         p = 프리즘(P, (-10.0 if VER >= 27 else E["y0"]), -400).common(L4); 볼 = p if 볼 is None else 볼.fuse(p)   # v27: 볼날개 프리즘이 머리 뒤까지 가 옆을 띠로 휘감음 → 눈 깊이 앞(−10)까지만
     if VER >= 29:   # v29: 볼날개가 얼굴 구멍(눈 · 마스크 자리) 앞을 덮음 → 얼굴 구멍 프리즘을 빼 옆 날개만
@@ -163,7 +215,19 @@ if VER >= 34:   # v34: 원화 얼굴은 밝은 장갑판 + 검은 눈 창 둘 �
         q = 겉.cut(몸(-3.0)).common(프리즘(FP, E["y0"], -400)); 판 = q if 판 is None else 판.fuse(q)
     판.translate(Vector(0, 3.0, 0))
     for EP in V4["눈"]: 판 = 판.cut(프리즘(오프(EP, 1.5), 60, -400))
-    if VER >= 38:   # v38: 얼굴판을 위에서 본 V 로 — 가운데가 가장 앞, 옆으로 |x| × 0.7 물러남(원화: 가운데 능선 · 왼 밝고 오른 어둠)
+    if VER >= 39:   # v39: 조사(research_메카얼굴단면) 레시피 A — V 를 판보다 먼저: 판 = (겉 ∩ 얼굴 구멍 ∩ V(yk, θ)) − V(yk + t/cosθ, θ) · 앞 · 뒷면이 같이 V → 두께 유지
+        import os as _os, math as _m
+        th = _m.radians(float(open(D + "theta.txt").read()) if _os.path.exists(D + "theta.txt") else 45.0)
+        def vprism(yk):
+            k = _m.tan(th); return Part.Face(Part.makePolygon([Vector(0, yk, -600), Vector(300, yk + 300 * k, -600), Vector(300, 600, -600), Vector(-300, 600, -600), Vector(-300, yk + 300 * k, -600), Vector(0, yk, -600)])).extrude(Vector(0, 0, 800))
+        판 = None
+        for FP in V["얼굴 구멍"]:
+            q = 겉.common(프리즘(FP, E["y0"], -400)); 판 = q if 판 is None else 판.fuse(q)
+        yk = 판.BoundBox.YMin
+        _vback = vprism(yk + 3.0 / _m.cos(th)); 판 = 판.common(vprism(yk)).cut(_vback)
+        if VER >= 40: 부품["core"] = 부품["core"].common(_vback)   # v40: 속이 V 로 물러난 판보다 앞으로 나와 눈 옆이 검었다 → 속도 판 뒷면 V 로(갑주 ∩ 소체 = 0)
+        for EP in V4["눈"]: 판 = 판.cut(프리즘(오프(EP, 1.5), 60, -400))
+    elif VER >= 38:   # v38: 얼굴판을 위에서 본 V 로 — 가운데가 가장 앞, 옆으로 |x| × 0.7 물러남(원화: 가운데 능선 · 왼 밝고 오른 어둠)
         yf = 판.BoundBox.YMin
         판 = 판.common(Part.Face(Part.makePolygon([Vector(0, yf - 1, -600), Vector(200, yf - 1 + 140, -600), Vector(200, 400, -600), Vector(-200, 400, -600), Vector(-200, yf - 1 + 140, -600), Vector(0, yf - 1, -600)])).extrude(Vector(0, 0, 800)))
     부품["faceplate"] = 판
@@ -174,6 +238,14 @@ if 37 <= VER < 38:   # v37: 원화의 V 코판(눈 사이 → 아래 꼭짓점 �
     topV = Part.Face(Part.makePolygon([Vector(0, -95, -600), Vector(hw_, -12, -600), Vector(hw_, 20, -600), Vector(-hw_, 20, -600), Vector(-hw_, -12, -600), Vector(0, -95, -600)])).extrude(Vector(0, 0, 800))
     side = 면YZ([[-30, zt_ + 6], [-30, zt_], [-95, zb_], [-95, zb_ - 20], [20, zb_ - 20], [20, zt_ + 6]], -400).extrude(Vector(800, 0, 0))
     부품["nose"] = a.common(topV).common(side)
+if VER >= 41:   # v41: 원화 정면 볼 가시(옆판 아래 귀퉁이가 바깥-아래로 뾰족) — 삼각 (−98,−217)(−68,−190)(−58,−230) · 뿌리는 얼굴 앞(y −40~+10), 끝은 뒤(y +10~+40)로 뻗는 ruled 로프트 · 좌우 거울
+    T = [(-98, -217), (-68, -190), (-58, -230)]; sp = None
+    for sg in (1, -1):
+        root = [Vector(sg * T[1][0], -40, T[1][1]), Vector(sg * T[2][0], -40, T[2][1]), Vector(sg * T[2][0], 10, T[2][1]), Vector(sg * T[1][0], 10, T[1][1])]
+        tipw = [Vector(sg * T[0][0], 10, T[0][1] + 1), Vector(sg * T[0][0], 10, T[0][1] - 1), Vector(sg * T[0][0], 40, T[0][1] - 1), Vector(sg * T[0][0], 40, T[0][1] + 1)]
+        w = Part.makeLoft([Part.makePolygon(root + [root[0]]), Part.makePolygon(tipw + [tipw[0]])], True, True)
+        sp = w if sp is None else sp.fuse(w)
+    부품["spike"] = sp
 부품["helmet"] = 투구
 for nm, sh in 부품.items():
     if sh is None: continue

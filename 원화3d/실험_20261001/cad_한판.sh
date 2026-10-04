@@ -8,7 +8,7 @@ cp "$(dirname "$0")/cad_짓기N.py" "$S/buildN.py"; echo $V > "$S/ver.txt"
 cd "/g/art2real/원화3d/out/오메가몬2/블렌더" && python - "$V" <<'PY'
 import trimesh, numpy as np, os, sys
 v=int(sys.argv[1]); S="C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/cad/"
-col={"helmet":(232,234,244),"visor":(222,226,240),"visor2":(240,242,250),"mask":(214,218,232),"core":(30,30,36),"horn":(236,238,248),"eye":(140,215,250),"socket":(20,20,26),"antenna":(210,175,60),"cheek":(220,224,238),"bolt":(40,110,235),"ridge":(238,240,250),"faceplate":(228,232,244),"nose":(232,236,248)}
+col={"helmet":(232,234,244),"visor":(222,226,240),"visor2":(240,242,250),"mask":(214,218,232),"core":(30,30,36),"horn":(236,238,248),"eye":(140,215,250),"socket":(20,20,26),"antenna":(210,175,60),"cheek":(220,224,238),"bolt":(40,110,235),"ridge":(238,240,250),"faceplate":(228,232,244),"nose":(232,236,248),"spike":(226,230,244)}
 ms=[]
 for nm,c in col.items():
     f=S+f"{nm}_v{v}.stl"
