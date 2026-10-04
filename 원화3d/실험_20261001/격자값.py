@@ -3,6 +3,7 @@
 행마다가 아니라 **높이 4 층**마다 하나씩: 그 층 띠의 원화 몸통 반폭 / 엑시아 몸통 반폭(중앙값 · 0.85~1.2) · 가운데 옮김 · 뒤 끝 비(뒤쪽만).
 출력 out/오메가몬2/블렌더/격자값.json → 격자변형_bl.py 가 블렌더 래티스(3×3×4) 점을 옮긴다."""
 import os, json, numpy as np, cv2, trimesh, contextlib, io
+REF = os.environ.get("REF", "엑시아")   # 10-04: 레퍼런스 이름(엑시아 · 스트라이크 …)
 A = r"G:\art2real\원화3d\out\오메가몬2\지표\각도데이터"; B = r"G:\art2real\원화3d\out\오메가몬2\블렌더"
 K = {"__file__": os.path.join(os.path.dirname(os.path.abspath(__file__)), "기준선.py")}
 with contextlib.redirect_stdout(io.StringIO()): exec(open(K["__file__"], encoding="utf-8").read(), K)
@@ -10,7 +11,7 @@ m1 = np.load(os.path.join(A, "판_1_Z.npz"))["m"]; H, W = m1.shape; cu = (np.non
 m2 = np.load(os.path.join(A, "판_2_Z.npz"))["m"]; D0, ND = -200, 400; k_, t_ = K["k"], K["t"]; ct, st_ = np.cos(t_), np.sin(t_)
 Ma = np.array([[k_ * ct, -k_ * st_, -k_ * K["ex"] * ct + k_ * K["ey"] * st_ - D0], [k_ * st_, k_ * ct, K["c"] - k_ * K["xm"] * st_]], np.float32)
 S2 = cv2.warpAffine(m2.astype(np.uint8), Ma, (ND, H), flags=cv2.INTER_NEAREST)
-me = trimesh.load(os.path.join(B, "엑시아_정렬.ply"), process=False); v = me.vertices; f = me.faces
+me = trimesh.load(os.path.join(B, REF + "_정렬.ply"), process=False); v = me.vertices; f = me.faces
 def 실루엣(u, shape):
     img = np.zeros(shape, np.uint8); r = -v[:, 2]
     cv2.fillPoly(img, [np.round(np.c_[u[t], r[t]]).astype(np.int32) for t in f], 1); return img

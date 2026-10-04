@@ -6,8 +6,9 @@
   배율 = 원화 (뿔 뿌리 → 턱 끝) 높이 / 엑시아 (이마 → 턱) 높이 · 가로는 두 눈 가운데를 축 A 에 · 깊이는 엑시아 눈 겉 = 원화 눈 깊이 0
 출력 out/오메가몬2/블렌더/엑시아_정렬.ply · 정렬 숫자 출력"""
 import os, json, numpy as np, trimesh
+REF = os.environ.get("REF", "엑시아")   # 10-04: 레퍼런스 이름(엑시아 · 스트라이크 …)
 A = r"G:\art2real\원화3d\out\오메가몬2\지표\각도데이터"; B = r"G:\art2real\원화3d\out\오메가몬2\블렌더"
-m = trimesh.load(os.path.join(B, "엑시아원본.ply"), process=False)
+m = trimesh.load(os.path.join(B, REF + "원본.ply"), process=False)
 f1 = json.load(open(os.path.join(A, "특징점.json"), encoding="utf-8"))["1"]
 m1 = np.load(os.path.join(A, "판_1_Z.npz"))["m"]; cu = (np.nonzero(m1)[1].min() + np.nonzero(m1)[1].max()) / 2
 def 앞겉(x, z):
@@ -35,9 +36,9 @@ def iou(s_, tx, tz):
     img = cv2.warpAffine(base, M_, (W_, H_), flags=cv2.INTER_NEAREST); img[아래:] = 0
     return (img & F).sum() / max(1, (img | F).sum())
 best = (0, s, 눈x, 0)
-for s_ in np.arange(0.8, 1.8, 0.04):
-    for tx in np.arange(-20, 21, 4):
-        for tz in np.arange(-260, -150, 4):
+for s_ in np.arange(0.8, 2.8, 0.04):   # 10-04 스트라이크(V 핀이 높음)에 범위 끝 1.68 이 걸려 넓힘
+    for tx in np.arange(-40, 41, 4):
+        for tz in np.arange(-260, -60, 4):
             q = iou(s_, tx, tz)
             if q > best[0]: best = (q, s_, tx, tz)
 q0, s, tx, tz = best
@@ -49,5 +50,5 @@ for s_ in np.arange(s - 0.03, s + 0.031, 0.01):
 q0, s, tx, tz = best
 v = m.vertices * s; v[:, 0] += tx; v[:, 2] += tz; v[:, 1] += 0 - 눈y * s
 print({"정면 IoU": round(q0, 3), "배율": round(s, 3), "x": tx, "z": tz})
-out = trimesh.Trimesh(v, m.faces, vertex_colors=m.visual.vertex_colors, process=False); out.export(os.path.join(B, "엑시아_정렬.ply"))
+out = trimesh.Trimesh(v, m.faces, vertex_colors=m.visual.vertex_colors, process=False); out.export(os.path.join(B, REF + "_정렬.ply"))
 print({"배율": round(s, 3), "엑시아 눈 깊이": round(눈y, 1), "원화 눈 x · z": (round(눈x, 1), round(눈z, 1)), "뿔 뿌리 z": 뿔z, "턱 z": 턱z, "정렬 뒤 범위": [v.min(0).round(1).tolist(), v.max(0).round(1).tolist()]})
