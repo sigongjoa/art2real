@@ -11,7 +11,7 @@ from scipy.optimize import least_squares
 from PIL import Image, ImageDraw, ImageFont, ImageEnhance
 O = r"G:\art2real\원화3d\out\오메가몬2\지표\각도데이터"
 P = json.load(open(os.path.join(O, "특징점.json"), encoding="utf-8")); f, s = P["1"], P["2"]; avg = lambda a, b: (f[a][1] + f[b][1]) / 2
-쌍 = [(avg("눈/왼", "눈/오른"), s["눈/오른"]), (f["뿔 뿌리"][1], s["뿔 뿌리"]), (f["턱 끝"][1], s["부리 앞끝"]), (avg("번개/왼", "번개/오른"), s["번개/오른"]), (avg("안테나 뿌리/왼", "안테나 뿌리/오른"), s["안테나 뿌리/오른"])]
+쌍 = [(avg("눈/왼", "눈/오른"), s["눈/오른"]), (f["뿔 뿌리"][1], s["뿔 뿌리"]), (f["턱 끝"][1], s["턱 끝" if os.environ.get("PAIR") == "A" else "부리 앞끝"]), (avg("번개/왼", "번개/오른"), s["번개/오른"]), (avg("안테나 뿌리/왼", "안테나 뿌리/오른"), s["안테나 뿌리/오른"])]   # PAIR=A: 정면 턱 끝 ↔ 옆 아래턱 끝 (10-04 「둘 다 보여줘」)
 yf = np.array([a for a, _ in 쌍]); xs = np.array([b[0] for _, b in 쌍], float); ys = np.array([b[1] for _, b in 쌍], float); xm = xs.mean()
 r = lambda q: q[0] * (ys * np.cos(q[1]) + (xs - xm) * np.sin(q[1])) + q[2] - yf
 k, t, c = least_squares(r, [0.8, 0, 0], bounds=([0.3, -0.6, -500], [2, 0.6, 500])).x; ex, ey = s["눈/오른"]; ct, st = np.cos(t), np.sin(t)
@@ -51,8 +51,8 @@ for nm, (yf_, p_) in zip(["눈", "뿔 뿌리", "턱 끝(=부리 앞)", "번개",
 d.text((8, 12), "기준선 — 층(가로 · 정면 · 옆 공통) × 축(세로) · 흰 점 = 옆 특징점(층선에서 벗어난 만큼 = 옆 컷 원근 휨)", font=Fb, fill="black")
 leg = "정면 축: " + " · ".join(정면축) + "\n옆 축: " + " · ".join(옆축) + f"\n옆 맞춤 B: 배율 {k:.3f} · 기울기 {np.degrees(t):.1f}° · 휨(정면 화소) " + " · ".join(f"{a_} {b_:+}" for a_, b_ in 휨.items())
 d.multiline_text((8, top + H + 60), leg, font=F, fill="black", spacing=8)
-cv.save(os.path.join(O, "기준선.png"))
+cv.save(os.path.join(O, "기준선" + ("_A" if os.environ.get("PAIR") == "A" else "") + ".png"))
 json.dump({"층(정면 판 화소 행)": {a_: round(float(b_), 1) for a_, b_ in 층.items()}, "정면 축(판 화소 열)": {a_: round(float(b_), 1) for a_, b_ in 정면축.items()},
            "옆 축(눈 = 0 · 정면 화소 · 앞 −)": {a_: round(float(b_), 1) for a_, b_ in 옆축.items()}, "옆 휨": 휨, "옆 맞춤": [round(float(k), 3), round(float(np.degrees(t)), 1)]},
-          open(os.path.join(O, "기준선.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+          open(os.path.join(O, "기준선" + ("_A" if os.environ.get("PAIR") == "A" else "") + ".json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 print(휨, {a_: round(float(b_), 1) for a_, b_ in 옆축.items()})

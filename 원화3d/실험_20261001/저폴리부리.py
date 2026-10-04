@@ -60,7 +60,7 @@ for 이름, (fc, sc_, col) in 판정의.items():
 # v8 옆판: 판은 앞만 보는 면이라 옆에서 종이 — 옆 원화 칸(턱 옆 20 · 미늘 옆 14~16)의 다각형을 그대로 옆벽으로.
 #   꼭짓점 (깊이, 행) = 옆 칸 먹선 모서리를 T 로 · x = 그 행의 정면 부리 판 묶음 반폭(± · 좌우 대칭) — 둘 다 잰 값
 반폭 = {r: (np.nonzero(합[r])[0].max() - np.nonzero(합[r])[0].min()) / 2 for r in range(H) if 합[r].any()}
-for 이름, sc_, col in (("턱 옆", [20], (200, 206, 224)), ("미늘 옆", [14, 15, 16], (214, 218, 232))):
+for 이름, sc_, col in (("미늘 옆", [14, 15, 16], (214, 218, 232)),):   # v9: 턱 옆(칸 20)은 맞춤 A · B 둘 다 정면 턱 아래로 떨어져 뺌 — 옆 컷이 아래서 올려본 원근
     mk2 = cv2.dilate(np.isin(C2, sc_).astype(np.uint8), np.ones((3, 3), np.uint8), iterations=2)
     cs, _ = cv2.findContours(mk2, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE); pp = cv2.approxPolyDP(max(cs, key=cv2.contourArea), 2.0, True).reshape(-1, 2).astype(float)
     dd, rr = T(pp[:, 0], pp[:, 1]); Q = np.c_[dd, rr]
@@ -72,8 +72,8 @@ for 이름, sc_, col in (("턱 옆", [20], (200, 206, 224)), ("미늘 옆", [14,
         me.visual.vertex_colors = np.tile(list(col) + [255], (len(Q), 1)).astype(np.uint8); meshes.append(me)
     목록[이름] = {"꼭짓점": len(Q), "면": len(inside), "깊이 범위": [round(float(dd.min()), 1), round(float(dd.max()), 1)], "반폭 범위": [round(float(w.min()), 1), round(float(w.max()), 1)]}
 창 = trimesh.load(os.path.join(B, "창모듈2.ply"), process=False); allm = trimesh.util.concatenate([창] + meshes)
-trimesh.Trimesh(allm.vertices, allm.faces, vertex_colors=allm.visual.vertex_colors, process=False).export(os.path.join(B, "저폴리부리8.ply"), encoding="ascii")
-json.dump(목록, open(os.path.join(B, "저폴리부리8.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1); print(목록)
+trimesh.Trimesh(allm.vertices, allm.faces, vertex_colors=allm.visual.vertex_colors, process=False).export(os.path.join(B, "저폴리부리9" + ("A" if os.environ.get("PAIR") == "A" else "") + ".ply"), encoding="ascii")
+json.dump(목록, open(os.path.join(B, "저폴리부리9" + ("A" if os.environ.get("PAIR") == "A" else "") + ".json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1); print(목록)
 # 꼭짓점 목록 그림(정면 · 옆)
 from PIL import Image, ImageDraw, ImageFont
 F = ImageFont.truetype("C:/Windows/Fonts/malgunbd.ttf", 16); Kz = 4; 색표 = [(255, 200, 0), (255, 80, 80), (80, 220, 120), (90, 160, 255)]
@@ -87,4 +87,4 @@ for (V2, 깊이, ns, _), c_ in zip(점그림, 색표):
 b = b.crop((0, 120, 720, 600))
 out = Image.new("RGB", (a.width + b.width + 20, max(a.height, b.height) + 50), "white"); out.paste(a, (0, 0)); out.paste(b, (a.width + 20, 0))
 ImageDraw.Draw(out).text((8, max(a.height, b.height) + 10), "빨강 코판 · 초록 미늘2 · 파랑 턱판 — 큰 점 = 능선(옆 단면) · 작은 점 = 윤곽(코판 = 창 입구 · 아래 둘 = 옆 칸 뒤 끝) · 오른쪽 = 같은 점을 옆 원화 위에", font=F, fill="black")
-out.save(os.path.join(B, "저폴리부리8_목록.png"))
+out.save(os.path.join(B, "저폴리부리9" + ("A" if os.environ.get("PAIR") == "A" else "") + "_목록.png"))
