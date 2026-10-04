@@ -73,14 +73,21 @@ for P_ in 창들: cv2.fillPoly(창판, [P_.round().astype(np.int32)], 1)
 부재 = []
 투구영역 = 칸([3, 4, 6, 8, 9, 14, 16, 5, 11, 13, 19]) & 몸정 & (1 - 창판) if VER >= 7 else 칸([3, 4, 6, 8, 9, 14, 16, 5, 11, 13, 19]) & 몸정
 if VER < 6: 투구영역 = 투구영역 | (칸(list(range(17, 43))) & 몸정)    # v5: 얼굴 아래도 일단 속 표면(마스크 전)
+if VER >= 11:   # v11: 칸 사이 틈(먹선 · 빠진 칸)으로 검은 속이 얼룩 → 투구 = 몸 실루엣에서 마스크 · 창 · 뿔만 뺀 나머지 전부
+    투구영역 = 몸정 & (1 - 칸([29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42])) & (1 - 창판) & (1 - np.isin(C1, [1, 2]).astype(np.uint8))
 투구 = 조각(투구영역, 앞E); 뒤반 = 조각((np.abs(np.arange(W)[None, :] - xa) <= a) & (np.arange(H)[:, None] >= zc - c) & (np.arange(H)[:, None] <= 턱) & (q_(np.arange(W)[None, :], np.arange(H)[:, None]) > 0), 뒤E, step=4)
 if 뒤반 is not None: 뒤반.invert()
 부재 += [("H01 투구", trimesh.util.concatenate([m for m in (투구, 뒤반) if m is not None]), (232, 234, 244))]
 if VER >= 6:
     마스크칸 = 칸([29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42]) & 몸정
+    if VER >= 12: 마스크칸 = cv2.morphologyEx(마스크칸, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8))   # 미늘 사이 먹선 틈 메움
     if VER >= 7: 마스크칸 &= (1 - 창판)
     옆마 = cv2.dilate(np.isin(C2, [5, 12, 14, 15, 16, 19, 20]).astype(np.uint8), np.ones((3, 3), np.uint8))
     부앞 = {r: np.nonzero(옆마[r])[0].min() + D0 for r in range(H) if 옆마[r].any()}; ks = np.array(sorted(부앞))
+    if VER >= 12:   # v12: 행마다 깊이라 계단 → 행 방향 가우시안 σ 4 · 빈 행은 보간
+        from scipy import ndimage as _nd
+        rr_ = np.arange(ks.min(), ks.max() + 1); vv_ = np.interp(rr_, ks, [부앞[k] for k in ks]); vv_ = _nd.gaussian_filter1d(vv_, 4)
+        부앞 = dict(zip(rr_.tolist(), vv_.tolist())); ks = np.array(sorted(부앞))
     xs_ = {r: (np.nonzero(마스크칸[r])[0].min(), np.nonzero(마스크칸[r])[0].max()) for r in range(H) if 마스크칸[r].any()}
     def 마스크깊이(x, r):
         out = []
@@ -113,13 +120,18 @@ if VER >= 8:
 if VER >= 9:
     # 뿔: 정면 폭(칸 1 · 2) + 옆 뿔 칸(2) 앞 · 뒤 → 행마다 마름모
     뿔정 = np.isin(C1, [1, 2]); 뿔옆 = cv2.dilate((C2 == 2).astype(np.uint8), np.ones((3, 3), np.uint8))
-    rs = [r for r in range(H) if 뿔정[r].any() and 뿔옆[r].any()][::2]; V = []; Fc = []
+    정행 = [r for r in range(H) if 뿔정[r].any()]; 옆행 = [r for r in range(H) if 뿔옆[r].any()]
+    대응행 = (lambda r: int(round(옆행[0] + (r - 정행[0]) * (옆행[-1] - 옆행[0]) / max(1, 정행[-1] - 정행[0])))) if (VER >= 13 and 정행 and 옆행) else (lambda r: r)   # v13: 두 장의 뿔 행 범위가 안 겹쳐 뿔이 안 나옴 → 끝끼리 맞춤
+    rs = [r for r in 정행 if 뿔옆[min(H - 1, max(0, 대응행(r)))].any()][::2] if VER >= 13 else [r for r in range(H) if 뿔정[r].any() and 뿔옆[r].any()][::2]; V = []; Fc = []
     for i, r in enumerate(rs):
-        xs = np.nonzero(뿔정[r])[0]; ys = np.nonzero(뿔옆[r])[0] + D0; cx_ = (xs.min() + xs.max()) / 2 - xa; hw_ = (xs.max() - xs.min()) / 2; ym = (ys.min() + ys.max()) / 2
+        xs = np.nonzero(뿔정[r])[0]; ys = np.nonzero(뿔옆[min(H - 1, max(0, 대응행(r)))])[0] + D0; cx_ = (xs.min() + xs.max()) / 2 - xa; hw_ = (xs.max() - xs.min()) / 2; ym = (ys.min() + ys.max()) / 2
         V += [(cx_, ys.min(), -r), (cx_ + hw_, ym, -r), (cx_, ys.max(), -r), (cx_ - hw_, ym, -r)]
         if i:
             o = 4 * (i - 1)
             for k in range(4): Fc += [[o + k, o + (k + 1) % 4, o + 4 + (k + 1) % 4], [o + k, o + 4 + (k + 1) % 4, o + 4 + k]]
+    if VER >= 15 and len(V) >= 8:   # v15: 행마다 단면이라 계단 → 마름모 네 꼭짓점 궤적을 행 방향 σ 3 으로 고르게
+        from scipy import ndimage as _nd
+        VV = np.array(V).reshape(-1, 4, 3); VV[:, :, :2] = _nd.gaussian_filter1d(VV[:, :, :2], 3, axis=0, mode="nearest"); V = VV.reshape(-1, 3).tolist()
     if len(rs) > 1: 뿔 = trimesh.Trimesh(np.array(V), np.array(Fc), process=False); 뿔.fix_normals(); 부재.append(("H09 뿔", 뿔, (236, 238, 248)))
     # 안테나: 정면 노랑 가지(채도 · 색상) 뿌리 → 끝 · 깊이 = 옆 안테나 칸 9 의 앞 → 뒤
     art = cv2.imdecode(np.fromfile(os.path.join(A, "판_1_원화.png"), np.uint8), 1); hsv = cv2.cvtColor(art, cv2.COLOR_BGR2HSV)
@@ -131,6 +143,8 @@ if VER >= 9:
         pts = np.c_[xx, yy].astype(float); cc = pts.mean(0); u = np.linalg.svd(pts - cc)[2][0]; t = (pts - cc) @ u; p0, p1 = cc + u * t.min(), cc + u * t.max()
         if np.hypot(*(p0 - [xa, 150])) > np.hypot(*(p1 - [xa, 150])): p0, p1 = p1, p0
         a3 = np.array([p0[0] - xa, float(np.ravel(표면(p0[0], p0[1]))[0]), -p0[1]]); b3 = np.array([p1[0] - xa, 뒤9, -p1[1]])
+        if VER >= 14:   # v14: 옆 칸 9 깊이가 엉뚱해 3 배 길이 → 3D 길이 = 정면 길이 / cos(30°) (뒤로 30° 젖힘 · 원화 옆 안테나 기울기 가정)
+            L2 = np.hypot(*(p1 - p0)); b3[1] = a3[1] + L2 * np.tan(np.radians(30))
         cyl = trimesh.creation.cylinder(radius=2.0, segment=[a3, b3], sections=6); 부재.append(("H04 안테나", cyl, (210, 175, 60)))
 if VER >= 10:
     부재.append(("H06 볼날개", 판(칸([7, 10, 25, 26, 28]) & 몸정 & (1 - 창판), lambda x, r: 표면(x, r) - 3.0, 3.0), (226, 230, 242)))
