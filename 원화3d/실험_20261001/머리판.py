@@ -46,6 +46,14 @@ s6 = np.sqrt(max(0.05, 1 - ((r6 - zc) / c) ** 2)); y0 = (yf6 + yb6) / 2; f = b =
 기록["속 E"] = {"a": round(a, 1), "c": round(float(c), 1), "zc 행": round(float(zc), 1), "y0": round(float(y0), 1), "f=b": round(float(f), 1)}
 def q_(x, r): return np.clip(1 - ((x - xa) / a) ** 2 - ((r - zc) / c) ** 2, 0, None)
 앞E = lambda x, r: y0 - f * np.sqrt(q_(x, r)); 뒤E = lambda x, r: y0 + b * np.sqrt(q_(x, r))
+if VER >= 16:   # v16: 뒤통수 공(지어낸 모양) → 행마다 옆 원화 몸 뒤 끝(σ 4) · 좌우는 정면 반폭 타원으로 줄임
+    from scipy import ndimage as _nd16
+    _rb = np.array([np.nonzero(Sa[r])[0].max() + D0 if Sa[r].any() else np.nan for r in range(H)]); _ok = np.isfinite(_rb)
+    _rb = _nd16.gaussian_filter1d(np.interp(np.arange(H), np.nonzero(_ok)[0], _rb[_ok]), 4)
+    _hw = np.array([(np.nonzero(Fa[r])[0].max() - np.nonzero(Fa[r])[0].min()) / 2 if Fa[r].any() else 0 for r in range(H)]); _hw = _nd16.gaussian_filter1d(_hw, 3)
+    def 뒤E(x, r):
+        ri = np.clip(np.round(r).astype(int), 0, H - 1); u = np.clip(np.abs(x - xa) / np.maximum(_hw[ri], 1), 0, 1)
+        return y0 + (_rb[ri] - y0) * np.sqrt(1 - u ** 2)
 # ── 영역 → 조각(정면 투영 다각형 + 격자 · 깊이 함수) ──
 def 조각(mask, 깊이, step=3, eps=1.0):
     mask = mask.astype(np.uint8); cs, _ = cv2.findContours(mask, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
@@ -75,7 +83,7 @@ for P_ in 창들: cv2.fillPoly(창판, [P_.round().astype(np.int32)], 1)
 if VER < 6: 투구영역 = 투구영역 | (칸(list(range(17, 43))) & 몸정)    # v5: 얼굴 아래도 일단 속 표면(마스크 전)
 if VER >= 11:   # v11: 칸 사이 틈(먹선 · 빠진 칸)으로 검은 속이 얼룩 → 투구 = 몸 실루엣에서 마스크 · 창 · 뿔만 뺀 나머지 전부
     투구영역 = 몸정 & (1 - 칸([29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42])) & (1 - 창판) & (1 - np.isin(C1, [1, 2]).astype(np.uint8))
-투구 = 조각(투구영역, 앞E); 뒤반 = 조각((np.abs(np.arange(W)[None, :] - xa) <= a) & (np.arange(H)[:, None] >= zc - c) & (np.arange(H)[:, None] <= 턱) & (q_(np.arange(W)[None, :], np.arange(H)[:, None]) > 0), 뒤E, step=4)
+투구 = 조각(투구영역, 앞E); 뒤반 = 조각(((Fa > 0) & (np.arange(H)[:, None] <= 턱)) if VER >= 16 else ((np.abs(np.arange(W)[None, :] - xa) <= a) & (np.arange(H)[:, None] >= zc - c) & (np.arange(H)[:, None] <= 턱) & (q_(np.arange(W)[None, :], np.arange(H)[:, None]) > 0)), 뒤E, step=4)
 if 뒤반 is not None: 뒤반.invert()
 부재 += [("H01 투구", trimesh.util.concatenate([m for m in (투구, 뒤반) if m is not None]), (232, 234, 244))]
 if VER >= 6:
@@ -89,6 +97,10 @@ if VER >= 6:
         rr_ = np.arange(ks.min(), ks.max() + 1); vv_ = np.interp(rr_, ks, [부앞[k] for k in ks]); vv_ = _nd.gaussian_filter1d(vv_, 4)
         부앞 = dict(zip(rr_.tolist(), vv_.tolist())); ks = np.array(sorted(부앞))
     xs_ = {r: (np.nonzero(마스크칸[r])[0].min(), np.nonzero(마스크칸[r])[0].max()) for r in range(H) if 마스크칸[r].any()}
+    if VER >= 17 and xs_:   # v17: 행마다 마스크 폭이 들쭉날쭉해 옆면 계단 → 반폭을 행 방향 σ 3
+        from scipy import ndimage as _nd17
+        _kr = np.array(sorted(xs_)); _hwv = _nd17.gaussian_filter1d(np.array([max(xa - xs_[k][0], xs_[k][1] - xa) for k in _kr], float), 3)
+        xs_ = {int(k): (xa - h_, xa + h_) for k, h_ in zip(_kr, _hwv)}
     def 마스크깊이(x, r):
         out = []
         for xx, rr in zip(np.atleast_1d(x), np.atleast_1d(r)):
@@ -108,6 +120,9 @@ if VER >= 7:
         V = np.r_[입, 바]; Fs = []
         for i in range(n): j = (i + 1) % n; Fs += [[i, j, j + n], [i, j + n, i + n]]
         tri = Delaunay(속P); Fs += [list(np.array(t_) + n) for t_ in tri.simplices if cv2.pointPolygonTest(속P.astype(np.float32), tuple(속P[t_].mean(0)), False) >= 0]
+        if VER >= 19:   # v19: 검은 실루엣에 눈 자리 구멍 — 바닥 뒤에 입구 크기 막판(검정)을 바닥 깊이 +1 에 하나 더
+            막 = np.c_[P_[:, 0] - xa, np.full(n, 바[:, 1].mean() + 1), -P_[:, 1]]; o_ = len(V); V = np.r_[V, 막]
+            tri2 = Delaunay(P_); Fs += [list(np.array(t_) + o_) for t_ in tri2.simplices if cv2.pointPolygonTest(P_.astype(np.float32), tuple(P_[t_].mean(0)), False) >= 0]
         socks.append(trimesh.Trimesh(V, np.array(Fs), process=False))
         eye = trimesh.creation.icosphere(2, radius=9.0); eye.vertices[:, 1] *= 0.5; eye.apply_translation([cen[0] - xa, 바[:, 1].mean() - 2, -cen[1]]); 부재.append(("H03 눈", eye, (90, 150, 230)))
     부재.append(("H03 창", trimesh.util.concatenate(socks), (25, 25, 32)))
@@ -148,8 +163,27 @@ if VER >= 9:
         cyl = trimesh.creation.cylinder(radius=2.0, segment=[a3, b3], sections=6); 부재.append(("H04 안테나", cyl, (210, 175, 60)))
 if VER >= 10:
     부재.append(("H06 볼날개", 판(칸([7, 10, 25, 26, 28]) & 몸정 & (1 - 창판), lambda x, r: 표면(x, r) - 3.0, 3.0), (226, 230, 242)))
-core = trimesh.creation.icosphere(3); core.vertices *= [a * 0.97, f * 0.97, c * 0.97]; core.apply_translation([0, y0, -zc]); 부재.append(("속(검정)", core, (30, 30, 36)))   # v5 2 판: 속을 처음부터 — 판 사이로 보이는 곳은 원화의 검은 속머리(겹 순서)
+if VER >= 16:   # 속 = 앞면(E) 뒤 2 · 뒷면(옆 윤곽) 앞 2 사이를 닫은 껍질(공 아님)
+    발 = (Fa > 0) & (np.arange(H)[:, None] <= 턱)
+    c1_ = 조각(발, lambda x, r: np.minimum(앞E(x, r), 뒤E(x, r) - 4) + 2, step=4); c2_ = 조각(발, lambda x, r: 뒤E(x, r) - 2, step=4)
+    if c2_ is not None: c2_.invert()
+    core = trimesh.util.concatenate([m for m in (c1_, c2_) if m is not None])
+else:
+    core = trimesh.creation.icosphere(3); core.vertices *= [a * 0.97, f * 0.97, c * 0.97]; core.apply_translation([0, y0, -zc])
+부재.append(("속(검정)", core, (30, 30, 36)))   # v5 2 판: 속을 처음부터 — 판 사이로 보이는 곳은 원화의 검은 속머리(겹 순서)
+if VER >= 18:   # v18: 관자놀이 파란 번개 — 정면 원화 파랑 덩어리 중 번개 특징점 15 화소 안 · 표면 1 앞
+    _art = cv2.imdecode(np.fromfile(os.path.join(A, "판_1_원화.png"), np.uint8), 1); _hsv = cv2.cvtColor(_art, cv2.COLOR_BGR2HSV)
+    _bl = ((_hsv[:, :, 0] >= 95) & (_hsv[:, :, 0] <= 130) & (_hsv[:, :, 1] > 90) & (m1 > 0)).astype(np.uint8)
+    _fp = [np.array(v, float) for k_2, v in json.load(open(os.path.join(A, "특징점.json"), encoding="utf-8"))["1"].items() if k_2.startswith("번개")]
+    _n, _lab = cv2.connectedComponents(_bl); _keep = np.zeros_like(_bl)
+    for _k in range(1, _n):
+        _yy, _xx = np.nonzero(_lab == _k)
+        if len(_xx) >= 6 and min(np.hypot(_xx - p_[0], _yy - p_[1]).min() for p_ in _fp) < 15: _keep[_lab == _k] = 1
+    _dc = 조각(cv2.dilate(_keep, np.ones((2, 2), np.uint8)), lambda x, r: np.ravel(표면(x, r)) - 1.0, step=2, eps=0.8)
+    if _dc is not None: 부재.append(("F01 번개", _dc, (50, 100, 215)))
 부재 = [(n_, m, col) for n_, m, col in 부재 if m is not None]
+if VER >= 20:   # v20: 색 정리 — 갑주 흰색 하나(원화 흰 갑주) · 눈 하늘색 · 속 검정
+    부재 = [(n_, m, (232, 234, 244) if n_.startswith(("H01", "H02", "H06", "H09")) else ((140, 200, 235) if n_ == "H03 눈" else col)) for n_, m, col in 부재]
 for _, m, col in 부재: m.visual.vertex_colors = np.tile(list(col) + [255], (len(m.vertices), 1)).astype(np.uint8)
 allm = trimesh.util.concatenate([m for _, m, _ in 부재]); allm = trimesh.Trimesh(allm.vertices, allm.faces, vertex_colors=allm.visual.vertex_colors, process=False)
 allm.export(os.path.join(B, f"머리판_v{VER}.ply"), encoding="ascii")
