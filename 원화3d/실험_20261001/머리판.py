@@ -54,6 +54,15 @@ if VER >= 16:   # v16: 뒤통수 공(지어낸 모양) → 행마다 옆 원화 
     def 뒤E(x, r):
         ri = np.clip(np.round(r).astype(int), 0, H - 1); u = np.clip(np.abs(x - xa) / np.maximum(_hw[ri], 1), 0, 1)
         return y0 + (_rb[ri] - y0) * np.sqrt(1 - u ** 2)
+if VER >= 21:   # v21: 앞(타원체 폭 a)과 뒤(실루엣 반폭)의 테두리가 안 만나 옆으로 속이 보임 → 앞도 같은 실루엣 반폭 · 같은 테두리 깊이(가운데 = 타원체 앞 깊이)
+    _yc = np.array([앞E(xa, r) if q_(xa, r) > 0.02 else np.nan for r in range(H)]); _ok2 = np.isfinite(_yc)
+    _yc = np.interp(np.arange(H), np.nonzero(_ok2)[0], _yc[_ok2]); _ym = (_yc + _rb) / 2
+    def 앞E(x, r):
+        ri = np.clip(np.round(r).astype(int), 0, H - 1); u = np.clip(np.abs(x - xa) / np.maximum(_hw[ri], 1), 0, 1)
+        return _ym[ri] - (_ym[ri] - _yc[ri]) * np.sqrt(1 - u ** 2)
+    def 뒤E(x, r):
+        ri = np.clip(np.round(r).astype(int), 0, H - 1); u = np.clip(np.abs(x - xa) / np.maximum(_hw[ri], 1), 0, 1)
+        return _ym[ri] + (_rb[ri] - _ym[ri]) * np.sqrt(1 - u ** 2)
 # ── 영역 → 조각(정면 투영 다각형 + 격자 · 깊이 함수) ──
 def 조각(mask, 깊이, step=3, eps=1.0):
     mask = mask.astype(np.uint8); cs, _ = cv2.findContours(mask, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_NONE)
@@ -85,7 +94,7 @@ if VER >= 11:   # v11: 칸 사이 틈(먹선 · 빠진 칸)으로 검은 속이 
     투구영역 = 몸정 & (1 - 칸([29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42])) & (1 - 창판) & (1 - np.isin(C1, [1, 2]).astype(np.uint8))
 투구 = 조각(투구영역, 앞E); 뒤반 = 조각(((Fa > 0) & (np.arange(H)[:, None] <= 턱)) if VER >= 16 else ((np.abs(np.arange(W)[None, :] - xa) <= a) & (np.arange(H)[:, None] >= zc - c) & (np.arange(H)[:, None] <= 턱) & (q_(np.arange(W)[None, :], np.arange(H)[:, None]) > 0)), 뒤E, step=4)
 if 뒤반 is not None: 뒤반.invert()
-부재 += [("H01 투구", trimesh.util.concatenate([m for m in (투구, 뒤반) if m is not None]), (232, 234, 244))]
+부재 += ([("H01 투구", 투구, (232, 234, 244)), ("H01 투구 뒤", 뒤반, (232, 234, 245))] if os.environ.get("DIAG") else [("H01 투구", trimesh.util.concatenate([m for m in (투구, 뒤반) if m is not None]), (232, 234, 244))])
 if VER >= 6:
     마스크칸 = 칸([29, 30, 31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42]) & 몸정
     if VER >= 12: 마스크칸 = cv2.morphologyEx(마스크칸, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8))   # 미늘 사이 먹선 틈 메움
@@ -101,13 +110,21 @@ if VER >= 6:
         from scipy import ndimage as _nd17
         _kr = np.array(sorted(xs_)); _hwv = _nd17.gaussian_filter1d(np.array([max(xa - xs_[k][0], xs_[k][1] - xa) for k in _kr], float), 3)
         xs_ = {int(k): (xa - h_, xa + h_) for k, h_ in zip(_kr, _hwv)}
+    미늘띠 = []
+    for 묶 in ([30, 33, 34, 37], [36, 38, 39, 41], [40, 42]):
+        _ys = np.nonzero(np.isin(C1, 묶))[0]
+        if len(_ys): 미늘띠.append((int(_ys.min()), int(_ys.max())))
     def 마스크깊이(x, r):
         out = []
         for xx, rr in zip(np.atleast_1d(x), np.atleast_1d(r)):
             ri = int(round(rr)); e = 앞E(xx, rr); 끝 = 부앞[int(ks[np.argmin(np.abs(ks - ri))])]
             if ri in xs_: hwm = max(1.0, max(xa - xs_[ri][0], xs_[ri][1] - xa))
             else: hwm = 30.0
-            테 = 앞E(xa + hwm, rr); s = (테 - 끝) / hwm; out.append(min(e, 끝 + s * abs(xx - xa)))
+            테 = 앞E(xa + hwm, rr); s = (테 - 끝) / hwm; 값 = min(e, 끝 + s * abs(xx - xa))
+            if VER >= 23:   # v23: 미늘 셋(코판 · 미늘2 · 턱판)이 한 면 → 판마다 위끝은 뒤로 3 · 아래끝은 그대로(위 판 밑으로 들어가 계단처럼 포갬)
+                for b0, b1 in 미늘띠:
+                    if b0 <= rr <= b1: 값 += 3.0 * (b1 - rr) / max(1, b1 - b0)
+            out.append(값)
         return np.array(out)
     부재 += [("H02 마스크", 조각(마스크칸, 마스크깊이, step=3), (222, 226, 238))]
     기록["H02 마스크"] = {"부리 앞 최소": round(float(min(부앞.values())), 1)}
@@ -165,6 +182,7 @@ if VER >= 10:
     부재.append(("H06 볼날개", 판(칸([7, 10, 25, 26, 28]) & 몸정 & (1 - 창판), lambda x, r: 표면(x, r) - 3.0, 3.0), (226, 230, 242)))
 if VER >= 16:   # 속 = 앞면(E) 뒤 2 · 뒷면(옆 윤곽) 앞 2 사이를 닫은 껍질(공 아님)
     발 = (Fa > 0) & (np.arange(H)[:, None] <= 턱)
+    if VER >= 22: 발 = 발 & (np.arange(H)[:, None] >= top + 4)   # v22: 뿔 행까지 들어가 꼭대기에 검은 혹 → 돔 꼭대기 아래만
     c1_ = 조각(발, lambda x, r: np.minimum(앞E(x, r), 뒤E(x, r) - 4) + 2, step=4); c2_ = 조각(발, lambda x, r: 뒤E(x, r) - 2, step=4)
     if c2_ is not None: c2_.invert()
     core = trimesh.util.concatenate([m for m in (c1_, c2_) if m is not None])
@@ -187,6 +205,12 @@ if VER >= 20:   # v20: 색 정리 — 갑주 흰색 하나(원화 흰 갑주) ·
 for _, m, col in 부재: m.visual.vertex_colors = np.tile(list(col) + [255], (len(m.vertices), 1)).astype(np.uint8)
 allm = trimesh.util.concatenate([m for _, m, _ in 부재]); allm = trimesh.Trimesh(allm.vertices, allm.faces, vertex_colors=allm.visual.vertex_colors, process=False)
 allm.export(os.path.join(B, f"머리판_v{VER}.ply"), encoding="ascii")
+if os.environ.get("DIAG"):
+    pal = [(240, 240, 240), (60, 200, 90), (220, 50, 50), (40, 40, 40), (60, 90, 230), (220, 190, 40), (0, 170, 220), (200, 60, 200), (250, 140, 0), (120, 120, 255), (150, 90, 40)]
+    ms = []
+    for i, (n_, m, _) in enumerate(부재):
+        mm = m.copy(); mm.visual.vertex_colors = np.tile(list(pal[i % len(pal)]) + [255], (len(mm.vertices), 1)).astype(np.uint8); ms.append(mm); print("색", n_, pal[i % len(pal)])
+    dm = trimesh.util.concatenate(ms); trimesh.Trimesh(dm.vertices, dm.faces, vertex_colors=dm.visual.vertex_colors, process=False).export(os.path.join(B, f"진단_v{VER}.ply"), encoding="ascii")
 # ── 도면 ──
 F = lambda n: ImageFont.truetype("C:/Windows/Fonts/malgunbd.ttf", n)
 sheet = Image.new("RGB", (2400, 1600), "white"); d = ImageDraw.Draw(sheet)
