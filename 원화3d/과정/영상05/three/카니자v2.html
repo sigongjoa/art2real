@@ -245,29 +245,31 @@ function pill(x, y, text, size, k, fill = 'rgba(255,255,255,0.93)', color = INK)
   g.shadowColor = 'transparent'; g.fillStyle = color; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(text, 0, size * 0.04); g.restore();
 }
 function label(anchor, text, k, dx, dy) {               // 점 → 꺾인 지시선 → 이름표. k 0..1 진행
-  if (k <= 0) return; const [x, y, ok] = scr(anchor); if (!ok) return; const lx = Math.min(W - 260, Math.max(260, x + dx)), ly = Math.max(160, y + dy), d = clamp01(k * 1.6);
+  if (k <= 0) return; const [x, y, ok] = scr(anchor); if (!ok) return; const lx = Math.min(W - 330, Math.max(330, x + dx)), ly = Math.max(260, y + dy), d = clamp01(k * 1.6);
   g.save(); g.lineCap = 'round';
-  for (const [w, c] of [[9, 'rgba(20,20,30,0.45)'], [4, '#fff']]) { g.lineWidth = w; g.strokeStyle = c; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (lx - x) * d, y + (ly - y) * d); g.stroke(); }
-  g.fillStyle = '#fff'; g.strokeStyle = INK; g.lineWidth = 4; g.beginPath(); g.arc(x, y, 11 * Math.min(1, k * 3), 0, 7); g.fill(); g.stroke(); g.restore();
-  if (k > 0.45) pill(lx, ly, text, 46, (k - 0.45) / 0.55);
+  for (const [w, c] of [[18, 'rgba(20,20,30,0.45)'], [9, '#fff']]) { g.lineWidth = w; g.strokeStyle = c; g.beginPath(); g.moveTo(x, y); g.lineTo(x + (lx - x) * d, y + (ly - y) * d); g.stroke(); }
+  g.fillStyle = '#fff'; g.strokeStyle = INK; g.lineWidth = 7; g.beginPath(); g.arc(x, y, 20 * Math.min(1, k * 3), 0, 7); g.fill(); g.stroke(); g.restore();
+  if (k > 0.45) pill(lx, ly, text, 92, (k - 0.45) / 0.55);
 }
 function arc60(i, k) {                                   // 연못 홈에 60° 호가 그려지고 숫자가 오른다
   if (k <= 0) return; const v = verts[i], ang = Math.atan2(v.z, -v.x), rr = RP * 0.62, pts = [];
   for (let t = 0; t <= 1.0001; t += 0.05) { const th = ang - Math.PI / 6 + Math.PI / 3 * t * clamp01(k * 1.4); pts.push(scr(V(v.x + rr * Math.cos(th), 0.25, v.z - rr * Math.sin(th)))); }
-  g.save(); g.lineCap = 'round'; for (const [w, c] of [[16, 'rgba(20,20,30,0.5)'], [9, GOLD]]) { g.lineWidth = w; g.strokeStyle = c; g.beginPath(); pts.forEach(([x, y], j) => j ? g.lineTo(x, y) : g.moveTo(x, y)); g.stroke(); }
+  g.save(); g.lineCap = 'round'; for (const [w, c] of [[34, 'rgba(20,20,30,0.5)'], [20, GOLD]]) { g.lineWidth = w; g.strokeStyle = c; g.beginPath(); pts.forEach(([x, y], j) => j ? g.lineTo(x, y) : g.moveTo(x, y)); g.stroke(); }
   for (const s of [-1, 1]) { const th = ang + s * Math.PI / 6, [x0, y0] = scr(v.clone().setY(0.25)), [x1, y1] = scr(V(v.x + rr * 1.15 * Math.cos(th), 0.25, v.z - rr * 1.7 * Math.sin(th)));
-    g.setLineDash([14, 12]); g.lineWidth = 5; g.strokeStyle = 'rgba(255,255,255,0.9)'; g.globalAlpha = clamp01(k * 2); g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke(); }
+    g.setLineDash([26, 20]); g.lineWidth = 10; g.strokeStyle = 'rgba(255,255,255,0.9)'; g.globalAlpha = clamp01(k * 2); g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.stroke(); }
   g.restore(); const [mx, my] = scr(V(v.x + rr * 2.3 * Math.cos(ang), 0.25, v.z - rr * 2.3 * Math.sin(ang)));
-  if (k > 0.5) pill(mx, my, `${Math.round(60 * ease((k - 0.5) / 0.4))}°`, 54, (k - 0.5) / 0.5, 'rgba(31,36,48,0.92)', GOLD);
+  if (k > 0.5) pill(mx, my, `${Math.round(60 * ease((k - 0.5) / 0.4))}°`, 120, (k - 0.5) / 0.5, 'rgba(31,36,48,0.92)', GOLD);
 }
 let lastN = -1, popAt = 0;
-function counter(f, n, show) {                           // 「그려진 선 0개 · 뇌가 그은 선 N개」
+function big(text, y, size, k, color = '#fff') {           // 큰 글씨(굵은 테두리) — 굽기의 큰 낱말과 같은 문법
+  if (k <= 0) return; g.save(); g.translate(W / 2, y); const sc = 0.6 + 0.4 * back(k); g.scale(sc, sc); g.globalAlpha = clamp01(k * 2);
+  g.font = `bold ${size}px ${FONT}`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.lineJoin = 'round';
+  g.lineWidth = size * 0.16; g.strokeStyle = 'rgba(20,20,30,0.95)'; g.strokeText(text, 0, 0); g.fillStyle = color; g.fillText(text, 0, 0); g.restore();
+}
+function counter(f, n, show, y0) {                        // 「그려진 선 0개」 · 「뇌가 그은 선 N개」 — N 이 바뀔 때마다 튄다
   if (show <= 0) return; if (n !== lastN) { lastN = n; popAt = f; }
-  const x = 70, y = 1420, a = clamp01(show * 2); g.save(); g.globalAlpha = a;
-  g.fillStyle = 'rgba(31,36,48,0.86)'; g.beginPath(); g.roundRect(x, y, 560, 190, 30); g.fill();
-  g.font = `bold 44px ${FONT}`; g.textBaseline = 'middle'; g.fillStyle = '#d7dbe6'; g.fillText('그려진 선', x + 40, y + 55); g.fillText('뇌가 그은 선', x + 40, y + 135);
-  g.textAlign = 'right'; g.fillStyle = '#fff'; g.fillText('0개', x + 520, y + 55);
-  const pk = clamp01((f - popAt) / 8), sc = n > 0 ? 1 + 0.35 * (1 - pk) : 1; g.translate(x + 520, y + 135); g.scale(sc, sc); g.fillStyle = n > 0 ? GOLD : '#fff'; g.fillText(`${n}개`, 0, 0); g.restore();
+  big('그려진 선  0개', y0, 84, show);
+  if (n > 0 || y0 < 600) { const pk = clamp01((f - popAt) / 10); big(`뇌가 그은 선  ${n}개`, y0 + 130, 104, n > 0 ? 0.55 + 0.45 * pk : show, n > 0 ? GOLD : '#fff'); }
 }
 function motion(f) {
   g.clearRect(0, 0, W, H); g.drawImage(renderer.domElement, 0, 0);
@@ -275,20 +277,20 @@ function motion(f) {
   // 이름표: 걷는 고양이 · 연못 셋
   if (cut.cam === 'walk') label(hp.clone().add(V(0, 0.2, 0)), '관찰자 고양이', U(1, 0.05, 0.35, f), -230, -260);
   ['pac1', 'pac2', 'pac3'].forEach((c, i) => { if (cut.cam === c) { const [, cu] = cutAt(f);
-    label(verts[i].clone().add(V(0, 0.3, 0)), `${'①②③'[i]} 이 빠진 원`, clamp01(cu * 2.2), i === 1 ? 220 : -220, -520); arc60(i, clamp01(cu * 1.6 - 0.25)); } });
+    label(verts[i].clone().add(V(0, 0.3, 0)), `${'①②③'[i]} 이 빠진 원`, clamp01(cu * 2.2), 0, 690); arc60(i, clamp01(cu * 1.6 - 0.25)); } });
   // 선 카운터: 첫 줄 위에서 볼 때 · 뇌가 긋는 줄
   const gu = after(6, f) ? U(6, 0.05, 0.75, f) : 0;
-  if (cut.cam === 'top' && !after(6, f)) counter(f, 0, U(0, 0.55, 0.7, f));
-  if (cut.cam === 'trace' || (cut.cam === 'top' && after(6, f))) counter(f, Math.min(3, Math.floor(gu * 3 + 0.02)), 1);
+  if (cut.cam === 'top' && !after(6, f)) counter(f, 0, U(0, 0.55, 0.7, f), 620);
+  if (cut.cam === 'trace' || (cut.cam === 'top' && after(6, f))) counter(f, Math.min(3, Math.floor(gu * 3 + 0.02)), 1, 330);
   // 놀람 파동
-  const sp = after(3, f) ? clamp01((f - T.lines[3][0] - 0.12 * (T.lines[3][1] - T.lines[3][0])) / 18) : 0;
-  if (sp > 0 && sp < 1) { const [x, y, ok] = scr(hp); if (ok) for (const d of [0, 0.25]) { const q = clamp01(sp - d); if (q <= 0) continue;
-    g.save(); g.globalAlpha = 1 - q; g.lineWidth = 10 * (1 - q) + 2; g.strokeStyle = GOLD; g.beginPath(); g.arc(x, y, 60 + 320 * q, 0, 7); g.stroke(); g.restore(); } }
+  const sp = after(3, f) ? clamp01((f - T.lines[3][0] - 0.12 * (T.lines[3][1] - T.lines[3][0])) / 34) : 0;
+  if (sp > 0 && sp < 1) { const [x, y, ok] = scr(hp); if (ok) for (const d of [0, 0.2, 0.4]) { const q = clamp01(sp - d); if (q <= 0) continue;
+    g.save(); g.globalAlpha = 1 - q; g.lineWidth = 34 * (1 - q) + 4; g.strokeStyle = GOLD; g.beginPath(); g.arc(x, y, 90 + 850 * q, 0, 7); g.stroke(); g.restore(); } }
   // 정답: 화면 테두리가 금빛으로 숨 쉰다
-  if (after(8, f)) { const k = U(8, 0.35, 0.55, f); if (k > 0) { g.save(); g.globalAlpha = k * (0.55 + 0.35 * Math.sin(f / 5)); g.lineWidth = 26; g.strokeStyle = GOLD;
+  if (after(8, f)) { const k = U(8, 0.35, 0.55, f); if (k > 0) { g.save(); g.globalAlpha = k * (0.55 + 0.35 * Math.sin(f / 5)); g.lineWidth = 44; g.strokeStyle = GOLD;
     g.shadowColor = GOLD; g.shadowBlur = 40; g.strokeRect(13, 13, W - 26, H - 26); g.restore(); } }
   // 출처 꼬리표
-  if (after(7, f)) pill(W - 230, H - 110, 'Kanizsa, 1955', 34, U(7, 0, 0.15, f), 'rgba(31,36,48,0.75)', '#fff');
+  if (after(7, f)) pill(W - 270, H - 130, 'Kanizsa, 1955', 48, U(7, 0, 0.15, f), 'rgba(31,36,48,0.75)', '#fff');
 }
 window.ready = true;
 </script></body></html>
