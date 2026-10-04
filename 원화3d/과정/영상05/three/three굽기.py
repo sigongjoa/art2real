@@ -2,7 +2,7 @@
     python three굽기.py <편> <장면.html> [still]
 still: 컷마다 3/4 지점 한 장 → out/.../three_스틸.jpg (내가 먼저 본다). 아니면 전 프레임을 frames/ 에 그리고
 `장난감굽기.py <편> 자막만` 을 불러 <편>.mp4 를 만든다(블렌더 판은 <편>_블렌더.mp4 로 비켜 둔다)."""
-import sys, os, json, glob, base64, shutil, subprocess, pathlib
+import sys, os, json, glob, base64, shutil, subprocess, urllib.parse
 from playwright.sync_api import sync_playwright
 from PIL import Image
 
@@ -23,7 +23,10 @@ with sync_playwright() as pw:
     pg.on("console", lambda m: m.type == "error" and print("console:", m.text))
     pg.on("pageerror", lambda e: print("pageerror:", e))
     pg.add_init_script("window.__T = %s;" % json.dumps(T))
-    pg.goto(pathlib.Path(HTML).as_uri()); pg.wait_for_function("window.ready === true", timeout=60000)
+    # file:// 에서는 크롬이 모듈 import(공용.js)를 막는다 → 가짜 주소 scene.local 요청을 로컬 파일로 대신 채운다(서버 없음)
+    base = os.path.dirname(HTML)
+    pg.route("http://scene.local/**", lambda r: r.fulfill(path=os.path.join(base, urllib.parse.unquote(urllib.parse.urlparse(r.request.url).path.lstrip("/")))))
+    pg.goto("http://scene.local/" + urllib.parse.quote(os.path.basename(HTML))); pg.wait_for_function("window.ready === true", timeout=60000)
     ims = []
     for f in fs:
         url = pg.evaluate("f => { draw(f); return (window.OUT || document.querySelector('canvas')).toDataURL('image/png'); }", f)

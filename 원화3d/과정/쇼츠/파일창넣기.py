@@ -21,11 +21,18 @@ def fill(path):
     return True
 
 path = sys.argv[1]
+if path == "restore":                                   # python 파일창넣기.py restore <창제목> — 최소화된 창을 되살린다(그 뒤 좌표를 다시 잰다)
+    w = u.FindWindowW("Chrome_WidgetWin_1", sys.argv[2] + " - Chrome")
+    if not w: sys.exit("창 없음: " + sys.argv[2])
+    u.ShowWindow(w, 9); u.SetForegroundWindow(w); print("restored"); sys.exit()
 if len(sys.argv) > 4:
     title, x, y = sys.argv[2], int(sys.argv[3]), int(sys.argv[4])
     w = u.FindWindowW("Chrome_WidgetWin_1", title + " - Chrome")
     if not w: sys.exit("창 없음: " + title)
     u.SetForegroundWindow(w); time.sleep(0.7)
+    # 그 좌표 맨 앞 창이 이 크롬인지 먼저 본다 — 10-04 앞으로 못 가져온 채 눌러 위에 있던 블렌더를 클릭했다
+    u.WindowFromPoint.restype = wintypes.HWND; u.WindowFromPoint.argtypes = [wintypes.POINT]; u.GetAncestor.restype = wintypes.HWND
+    if u.GetAncestor(u.WindowFromPoint(wintypes.POINT(x, y)), 2) != w: sys.exit("맨 앞이 크롬이 아니다 — 클릭 안 함")
     u.SetCursorPos(x, y); time.sleep(0.2)
     u.mouse_event(2, 0, 0, 0, 0); u.mouse_event(4, 0, 0, 0, 0)   # 왼쪽 누름 · 뗌
 for _ in range(40):                                     # 20 초 안에 열기 창
