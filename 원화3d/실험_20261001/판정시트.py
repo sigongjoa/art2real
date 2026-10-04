@@ -23,7 +23,8 @@ def ren(n, k):
     g = Image.open(B + f"{n}_{k}.png").convert("RGB"); a = np.array(g.convert("L")); ys, xs = np.nonzero(np.abs(a.astype(int) - int(a[2, 2])) > 6)
     return fit(g.crop((xs.min() - 8, ys.min() - 8, xs.max() + 8, ys.max() + 8)))
 def black(n, k):
-    g = np.array(Image.open(B + f"{n}_검_{k}.png").convert("L")); m = g < 60; ys, xs = np.nonzero(m); m = m[ys.min():ys.max() + 1, xs.min():xs.max() + 1]; f = ndimage.binary_fill_holes(m)
+    g = np.array(Image.open(B + f"{n}_검_{k}.png").convert("L")); m = np.abs(g.astype(int) - int(g[2, 2])) > 25;   # 10-05: 검은 렌더의 반사광(>60)을 구멍으로 셌다 → 배경과 다르면 물체
+    ys, xs = np.nonzero(m); m = m[ys.min():ys.max() + 1, xs.min():xs.max() + 1]; f = ndimage.binary_fill_holes(m)
     return fit(Image.fromarray(np.where(m, 0, 255).astype(np.uint8)).convert("RGB")), round(float((f & ~m).sum() / f.sum()), 3)
 def art(i):
     box = [(20, 0, 240, 301), (0, 0, 499, 301), (0, 0, 330, 301)][i]
