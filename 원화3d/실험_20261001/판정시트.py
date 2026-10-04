@@ -9,10 +9,11 @@ from scipy import ndimage
 A = "G:/art2real/원화3d/out/오메가몬2/지표/각도데이터/"; B = "G:/art2real/원화3d/out/오메가몬2/블렌더/"
 BL = "C:/Program Files/Blender Foundation/Blender 4.0/blender.exe"; W3 = "C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/win3.py"
 F = ImageFont.truetype("C:/Windows/Fonts/malgunbd.ttf", 24); S = 330; 칸 = ("정면", "옆", "34")
-def 렌더(n):
-    if not os.path.exists(B + f"{n}_34.png"): subprocess.run([BL, "-b", "-P", W3, "--", n], capture_output=True)
+def 새것(png, ply): return os.path.exists(png) and os.path.getmtime(png) >= os.path.getmtime(ply)
+def 렌더(n):   # 렌더가 ply 보다 오래되면 다시(10-04: 옛 실험의 같은 이름 렌더 「디테일1_*.png」를 그대로 써서 엉뚱한 판정)
+    if not 새것(B + f"{n}_34.png", B + n + ".ply"): subprocess.run([BL, "-b", "-P", W3, "--", n], capture_output=True)
 def 검(n):
-    if not os.path.exists(B + f"{n}_검.ply"):
+    if not 새것(B + f"{n}_검.ply", B + n + ".ply"):
         m = trimesh.load(B + n + ".ply", process=False)
         trimesh.Trimesh(m.vertices, m.faces, vertex_colors=np.tile([0, 0, 0, 255], (len(m.vertices), 1)).astype(np.uint8), process=False).export(B + f"{n}_검.ply", encoding="ascii")
     렌더(n + "_검")
