@@ -16,6 +16,8 @@ from FreeCAD import Vector
 D = "C:/Users/zesky/AppData/Local/Temp/claude/G--art2real/7cb277a7-139e-42d2-8434-a71e5084b8ad/scratchpad/cad/"
 VER = int(open(D + "ver.txt").read().strip())
 V = json.load(open(D + "v3.json", encoding="utf-8")); E = V["E"]; V4 = V["v4"]
+if VER >= 35:   # v35: 눈 창 = 원화 정면에서 잰 왼 창(장갑 아닌 곳 중 눈 점과 이어진 것) + 좌우 거울 — 오른 창은 그늘 장갑과 섞여 못 잼
+    _L = json.load(open(D + "eyewin.json", encoding="utf-8"))["왼"]; V4["눈"] = [_L, [[-x, z] for x, z in _L][::-1]]
 def 면XZ(pts, y): return Part.Face(Part.makePolygon([Vector(x, y, z) for x, z in pts] + [Vector(pts[0][0], y, pts[0][1])]))
 def 면YZ(pts, x): return Part.Face(Part.makePolygon([Vector(x, y, z) for y, z in pts] + [Vector(x, pts[0][0], pts[0][1])]))
 def 오프(pts, d):
@@ -45,7 +47,7 @@ def 층(d): return 몸(d).cut(겉)
 for P in V["얼굴 구멍"]: 투구 = 투구.cut(프리즘(P, E["y0"], -400))
 부품 = {}
 L6 = 층(8.0 if VER >= 20 else V["차양 두께"]); 차양 = None
-for P in V["차양 오른쪽"]:
+for P in ([] if VER >= 36 else V["차양 오른쪽"]):   # v36: 옛 가로 차양 판(원화와 달리 눈 창 위를 가로로 덮음) 뺌 — v33 눈썹 날개만
     for sgn in (1, -1):
         Q = [[sgn * x, z] for x, z in P]; Q = Q[::-1] if sgn < 0 else Q
         p = 프리즘(Q, E["y0"], -400).common(L6); 차양 = p if 차양 is None else 차양.fuse(p)
@@ -146,7 +148,7 @@ if VER >= 11:
 if VER >= 12:
     zb = min(p[1] for p in F0); neck = Part.makeCylinder(0.38 * (max(p[0] for p in F0) - min(p[0] for p in F0)), 30, Vector(0, E["y0"] + 20, zb - 1), Vector(0, 0, 1))
     투구 = 투구.cut(neck); 부품["core"] = 부품["core"].cut(neck)
-if VER >= 13:
+if 13 <= VER < 36:
     위판 = None
     for P in V["차양 오른쪽"]:
         for sgn in (1, -1):
@@ -155,6 +157,23 @@ if VER >= 13:
     부품["visor2"] = 위판
 if VER >= 21:   # v21: 돔 가운데 능선(뿔로 이어지는 띠) — 폭 8 프리즘 ∩ 바깥 2 층
     zz6 = V4["층 z"]["L6 처마"]; 띠 = Part.makeBox(8, 800, 200, Vector(-4, -400, zz6)).common(층(2.0)); 부품["ridge"] = 띠
+if VER >= 34:   # v34: 원화 얼굴은 밝은 장갑판 + 검은 눈 창 둘 — 모델은 얼굴 전체가 검은 구멍 → 얼굴 구멍 자리 겉 껍질을 3 들여 다시 막고 눈 창만 뚫음
+    판 = None
+    for FP in V["얼굴 구멍"]:
+        q = 겉.cut(몸(-3.0)).common(프리즘(FP, E["y0"], -400)); 판 = q if 판 is None else 판.fuse(q)
+    판.translate(Vector(0, 3.0, 0))
+    for EP in V4["눈"]: 판 = 판.cut(프리즘(오프(EP, 1.5), 60, -400))
+    if VER >= 38:   # v38: 얼굴판을 위에서 본 V 로 — 가운데가 가장 앞, 옆으로 |x| × 0.7 물러남(원화: 가운데 능선 · 왼 밝고 오른 어둠)
+        yf = 판.BoundBox.YMin
+        판 = 판.common(Part.Face(Part.makePolygon([Vector(0, yf - 1, -600), Vector(200, yf - 1 + 140, -600), Vector(200, 400, -600), Vector(-200, 400, -600), Vector(-200, yf - 1 + 140, -600), Vector(0, yf - 1, -600)])).extrude(Vector(0, 0, 800)))
+    부품["faceplate"] = 판
+if 37 <= VER < 38:   # v37: 원화의 V 코판(눈 사이 → 아래 꼭짓점 · 가운데 능선) — 윤곽(자료/cad_코판.json) 기둥 ∩ 위에서 본 V(가운데 앞) ∩ 옆 사선(눈 사이 −30 → 아래 −92, 옆 축 코 −92)
+    NP = json.load(open(D + "nosepoly.json"))
+    zt_, zb_ = max(p[1] for p in NP), min(p[1] for p in NP); hw_ = max(abs(p[0]) for p in NP) + 2
+    a = 프리즘(NP, 10, -120)
+    topV = Part.Face(Part.makePolygon([Vector(0, -95, -600), Vector(hw_, -12, -600), Vector(hw_, 20, -600), Vector(-hw_, 20, -600), Vector(-hw_, -12, -600), Vector(0, -95, -600)])).extrude(Vector(0, 0, 800))
+    side = 면YZ([[-30, zt_ + 6], [-30, zt_], [-95, zb_], [-95, zb_ - 20], [20, zb_ - 20], [20, zt_ + 6]], -400).extrude(Vector(800, 0, 0))
+    부품["nose"] = a.common(topV).common(side)
 부품["helmet"] = 투구
 for nm, sh in 부품.items():
     if sh is None: continue
