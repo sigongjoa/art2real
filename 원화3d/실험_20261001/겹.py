@@ -19,7 +19,12 @@ S2 = (cv2.warpAffine(m2.astype(np.uint8) * 255, M, (ND, H), flags=cv2.INTER_LINE
 F1 = m1.astype(bool)
 판 = trimesh.load(os.path.join(B, "저폴리머리6B.ply"), process=False)
 vc = 판.visual.vertex_colors[판.faces][:, 0, :3].astype(int); 노랑 = (vc[:, 0] > 150) & (vc[:, 2] < 120)
-앞면 = (판.face_normals[:, 1] < -0.3) | 노랑; sub = 판.submesh([np.nonzero(앞면)[0]], append=True)
+앞윤곽 = {k: np.array(v, np.float32) for k, v in json.load(open(os.path.join(B, "저폴리눈_앞윤곽.json"), encoding="utf-8")).items()}
+눈판 = np.zeros((H, W), np.uint8)
+for P_ in 앞윤곽.values(): cv2.fillPoly(눈판, [np.round(P_).astype(np.int32)], 1)
+_c = 판.triangles_center; _px = np.clip(np.round(_c[:, 0] + cu).astype(int), 0, W - 1); _pr = np.clip(np.round(-_c[:, 2]).astype(int), 0, H - 1)
+눈면 = (눈판[_pr, _px] > 0) & (_c[:, 1] > -30) if os.environ.get("EYE") == "1" else np.zeros(len(판.faces), bool)   # 디테일 모양 1: 눈구멍 옆벽 · 바닥 · 눈알은 방향 상관없이 남김(앞면 거르기로 옆벽이 빠져 눈구멍이 묻혔다)
+앞면 = (판.face_normals[:, 1] < -0.3) | 노랑 | 눈면; sub = 판.submesh([np.nonzero(앞면)[0]], append=True)
 # 판 z-버퍼 (x, 행) → 가장 앞 깊이
 zb = np.full((H, W), np.inf); P2 = np.c_[sub.vertices[:, 0] + cu, -sub.vertices[:, 2]]; dz = sub.vertices[:, 1]
 for f in np.argsort(-dz[sub.faces].mean(1)):   # 먼 면 먼저 → 가까운 면이 덮음
@@ -44,6 +49,8 @@ for k, r in enumerate(rg):
     v &= (u + w) <= 2 - c
     v &= dg[None, :] >= (zb[r, xg] + t)[:, None]   # 판 뒤만(판 없는 열은 inf → 아래 줄에서 풀어 줌)
     V[:, :, k] = v
+if os.environ.get("EYE") == "1":   # 소체를 눈 윤곽 안 · 바닥(+4) 앞쪽까지 파냄 — 창 깊이 17 은 잰 값
+    ex_ = 눈판[np.ix_(rg, xg)].T.astype(bool); V[ex_[:, None, :] & (dg[None, :, None] < 4)] = False
 vol = ndimage.gaussian_filter(V.astype(float), (1.0, 1.0, 2.0))
 verts, faces, _, _ = measure.marching_cubes(vol, 0.5)
 hull = trimesh.Trimesh(np.c_[verts[:, 0] * st - cu, verts[:, 1] * st + D0, -verts[:, 2] * st], faces, process=False); hull.fix_normals()
