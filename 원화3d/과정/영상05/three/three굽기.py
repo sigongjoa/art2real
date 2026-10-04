@@ -26,7 +26,7 @@ with sync_playwright() as pw:
     pg.goto(pathlib.Path(HTML).as_uri()); pg.wait_for_function("window.ready === true", timeout=60000)
     ims = []
     for f in fs:
-        url = pg.evaluate("f => { draw(f); return document.querySelector('canvas').toDataURL('image/png'); }", f)
+        url = pg.evaluate("f => { draw(f); return (window.OUT || document.querySelector('canvas')).toDataURL('image/png'); }", f)
         png = base64.b64decode(url.split(",", 1)[1])
         if STILL: p = D + "/_three_still_%04d.png" % f; open(p, "wb").write(png); ims.append(p)
         else: open(FR + "/%04d.png" % f, "wb").write(png)
