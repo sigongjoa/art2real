@@ -91,6 +91,44 @@ for sc_, col in (([1, 3, 4, 6, 7, 8, 10, 11, 13, 18], (226, 228, 240)), ([17], (
     tri = Delaunay(Q); fc = [t for t in tri.simplices if 안쪽(Q, Q[t].mean(0))]; w = np.array([찾기(반폭, r) for r in rr])
     중 = {r: (np.nonzero(몸[r])[0].max() + np.nonzero(몸[r])[0].min()) / 2 for r in 반폭}; xr_ = np.array([찾기(중, r) for r in rr])   # 루프 3: 행마다 몸통 가운데(전체 마스크 가운데는 볼날개 탓에 왼쪽으로 쏠려 왼쪽만 지느러미)
     for sgn in (1, -1): parts.append(면(np.c_[xr_ + sgn * w - cu, dd, -rr], fc, col, (sgn, 0, 0)))
+OPT = os.environ.get("OPT", "")   # 10-04 「둘 다 비교해보자고」: A = 정면 판 ↔ 옆벽 잇기 · B = 안테나 · 코판 옆 채우기
+if OPT == "A":   # 행마다 정면 몸통 가장자리(x · 깊이 = 그 자리 벽)와 옆벽 앞 모서리(같은 x · 깊이 = 옆 투구 칸 앞 끝)를 띠로 이음
+    투앞 = 행표(np.isin(C2, [1, 3, 4, 6, 7, 8, 10, 11, 13, 18]), True); rs = [r for r in range(0, H, 6) if r in 반폭 and r in 중 and min(투앞) <= r <= max(투앞)]
+    for sgn in (1, -1):
+        V3 = []; F = []
+        for r in rs:
+            x = 중[r] + sgn * 반폭[r]; V3 += [(x - cu, 벽(x, r), -r), (x - cu, 찾기(투앞, r), -r)]
+        for i in range(len(rs) - 1):
+            a = 2 * i; F += [(a, a + 1, a + 3), (a, a + 3, a + 2)]
+        if F: parts.append(면(np.array(V3), F, (220, 223, 236), (sgn, 0, 0)))
+if OPT == "B":
+    xa = json.load(open(os.path.join(A, "기준선.json"), encoding="utf-8"))["정면 축(판 화소 열)"]["A 중심"]
+    # 안테나 = 가는 막대: 정면 노랑 가지(먹 판 밖) 의 (x, 행) + 옆 노랑 칸 9 의 깊이 — 뿌리 → 끝 길이 비율 t 로 짝(행은 컷마다 원근이 달라 정면 행을 씀)
+    노 = ((hsv[:, :, 0] > 15) & (hsv[:, :, 0] < 40) & (hsv[:, :, 1] > 60)).astype(np.uint8); n_, lab = cv2.connectedComponents(노)
+    ys9, xs9 = np.nonzero(C2 == 9); d9, r9 = T(xs9.astype(float), ys9.astype(float)); 옆선 = np.c_[d9, r9]
+    def 끝점(pts, 뿌리쪽):   # 첫 주성분 양끝, 뿌리 = 뿌리쪽 점에 가까운 끝
+        c = pts.mean(0); u = np.linalg.svd(pts - c)[2][0]; t_ = (pts - c) @ u; a, b = c + u * t_.min(), c + u * t_.max()
+        return (a, b) if np.hypot(*(a - 뿌리쪽)) < np.hypot(*(b - 뿌리쪽)) else (b, a)
+    s0, s1 = 끝점(옆선, np.array([0.0, 옆선[:, 1].mean()]))
+    for k in range(1, n_):
+        yy_, xx_ = np.nonzero(lab == k)
+        if len(xx_) < 40: continue
+        f0, f1 = 끝점(np.c_[xx_, yy_].astype(float), np.array([xa, 150.0])); 반경 = max(1.5, len(xx_) / np.hypot(*(f1 - f0)) / 2)
+        V3 = []; F = []
+        for i, t_ in enumerate(np.linspace(0, 1, 6)):
+            x, r = f0 + (f1 - f0) * t_; d = (s0 + (s1 - s0) * t_)[0]; rad = 반경 * (1 - 0.8 * t_)
+            for a in range(3): V3.append((x - cu + rad * np.cos(a * 2.094), d + rad * np.sin(a * 2.094), -r))
+        for i in range(5):
+            for a in range(3):
+                b = (a + 1) % 3; F += [(3 * i + a, 3 * i + b, 3 * i + 3 + b), (3 * i + a, 3 * i + 3 + b, 3 * i + 3 + a)]
+        me = trimesh.Trimesh(np.array(V3), np.array(F), process=False); me.fix_normals(); me.visual.vertex_colors = np.tile([200, 180, 60, 255], (len(V3), 1)).astype(np.uint8); parts.append(me)
+    # 코판 옆: 옆 원화 칸 5 · 6 · 12 → 부리 옆판과 같은 V 단면 폭(저폴리부리 v10 규칙)
+    부리합 = cv2.dilate(np.isin(C1, list(부리칸)).astype(np.uint8), np.ones((3, 3), np.uint8), iterations=2)
+    부반 = {r: (np.nonzero(부리합[r])[0].max() - np.nonzero(부리합[r])[0].min()) / 2 for r in range(H) if 부리합[r].any()}; 단면 = 행표(m2, True); D = 17.2
+    Pp = 다각(cv2.dilate(np.isin(C2, [5, 6, 12]).astype(np.uint8), np.ones((3, 3), np.uint8), iterations=2)); dd, rr = T(Pp[:, 0], Pp[:, 1]); Q = np.c_[dd, rr]
+    tri = Delaunay(Q); fc = [t for t in tri.simplices if 안쪽(Q, Q[t].mean(0))]
+    dr = np.array([찾기(단면, r) for r in rr]); w = np.array([찾기(부반, r) for r in rr]) * np.clip((dd - dr) / (-D - dr), 0.15, 1)
+    for sgn in (1, -1): parts.append(면(np.c_[xa + sgn * w - cu, dd, -rr], fc, (230, 232, 244), (sgn, 0, 0)))
 allm = trimesh.util.concatenate(parts)
 trimesh.Trimesh(allm.vertices, allm.faces, vertex_colors=allm.visual.vertex_colors, process=False).export(os.path.join(B, "저폴리머리" + os.environ.get("PAN", "") + ".ply"), encoding="ascii")
 print({"칸": len(기록), "꼭짓점 합": sum(r[1] for r in 기록)}, 기록[:12])
