@@ -86,7 +86,7 @@ for k in range(1, nb):
         cn = max(cv2.findContours((lb == k).astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[0], key=len)
         번개.append([[float(p[0] - xa), float(-p[1])] for p in cv2.approxPolyDP(cn, 0.8, True).reshape(-1, 2)])
 v4 = {"정면 몸": 윤곽2(정4, xa, 4.0), "옆 몸": 옆윤곽(옆4, 6.0), "뿔 정면": 윤곽2(정뿔, xa, 1.5), "뿔 옆": 옆윤곽(옆뿔, 1.5), "눈": 눈,
-      "안테나": 안테나, "안테나 끝 y": 뒤9, "볼날개": 윤곽(칸([7, 10, 25, 26, 28]) & m1.astype(np.uint8), 2.0), "번개": 번개, "꼭대기 z": float(-꼭대기)}
+      "안테나": 안테나, "안테나 끝 y": 뒤9, "볼날개": 윤곽(칸([7, 10, 25, 26, 28]) & m1.astype(np.uint8), 2.0), "번개": 번개, "꼭대기 z": float(-꼭대기), "층 z": {k: float(-v) for k, v in 층.items()}}
 값 = {"v4": v4, "마스크 판": 판들, "정면 몸": 윤곽2(정몸, xa, 4.0), "옆 몸": 윤곽2(옆몸, -D0 * 0 + 0) if False else [[float(p[0] + D0), float(-p[1])] for p in cv2.approxPolyDP(max(cv2.findContours(옆몸, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[0], key=cv2.contourArea), 4.0, True).reshape(-1, 2)],
       "E": {"a": float(a), "c": float(c), "zc": float(-zc), "y0": float(y0), "f": float(f)}, "껍질": 1.8, "턱 z": float(-턱),
      "얼굴 구멍": 윤곽(얼굴, 2.0), "차양 오른쪽": 윤곽(칸([14, 16]) & m1.astype(np.uint8), 1.5, True), "차양 두께": 6.0}
