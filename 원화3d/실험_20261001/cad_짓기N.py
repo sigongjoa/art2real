@@ -69,7 +69,7 @@ def 몸(d=0.0):
     return body
 def 프리즘(pts, y_from, y_to): return 면XZ(pts, y_from).extrude(Vector(0, y_to - y_from, 0))
 def 층(d): return 몸(d).cut(겉)
-겉 = 몸(0); 속 = 몸(-V["껍질"]); 투구 = 겉.cut(속)
+겉 = 몸(0); 속 = 몸(-(4.7 if VER >= 48 else V["껍질"])); 투구 = 겉.cut(속)   # v48: 출력 두께(머리 60 mm · 1.6 mm)
 for P in V["얼굴 구멍"]: 투구 = 투구.cut(프리즘(P, E["y0"], -400))
 부품 = {}
 def VL(t):   # v44: V 얼굴을 따르는 t 두께 층 = (몸(t) ∩ V(yk − t/cosθ)) − (겉 ∩ V(yk))
@@ -171,14 +171,14 @@ if VER >= 7:
         else:
             e = Part.makeCylinder(r, 2, Vector(cx, s0 + 17.2, cz), Vector(0, -1, 0))
         eyes = e if eyes is None else eyes.fuse(e)
-        ring = 프리즘(P, s0 + 18.2, s0).cut(프리즘(오프(P, -1.2), s0 + 18.2, s0)); walls = ring if walls is None else walls.fuse(ring)
+        ring = 프리즘(P, s0 + 18.2, s0).cut(프리즘(오프(P, -(3.5 if VER >= 48 else 1.2)), s0 + 18.2, s0)); walls = ring if walls is None else walls.fuse(ring)
         back = 프리즘(P, s0 + 20.2, s0 + 18.2); walls = walls.fuse(back)
     부품["eye"] = eyes; 부품["socket"] = walls
 if VER >= 8:
     ants = None
     for p0, p1 in V4["안테나"]:
         L = math.hypot(p1[0] - p0[0], p1[1] - p0[1]); y_root = -20.0; a = Vector(p0[0], y_root, p0[1]); b = Vector(p1[0], y_root + L * math.tan(math.radians(30)), p1[1])
-        c = Part.makeCone(2.4, 0.8, (b - a).Length, a, b - a); ants = c if ants is None else ants.fuse(c)
+        c = Part.makeCylinder(2.92, (b - a).Length, a, b - a) if VER >= 48 else Part.makeCone(2.4, 0.8, (b - a).Length, a, b - a); ants = c if ants is None else ants.fuse(c)   # v48: Ø2 mm 막대
     부품["antenna"] = ants
 if VER >= 9:
     L4 = VL(6.0) if VER >= 44 else 층(6.0 if VER >= 22 else 4.0); 볼 = None
@@ -187,7 +187,7 @@ if VER >= 9:
     if VER >= 29:   # v29: 볼날개가 얼굴 구멍(눈 · 마스크 자리) 앞을 덮음 → 얼굴 구멍 프리즘을 빼 옆 날개만
         for FP in V["얼굴 구멍"]: 볼 = 볼.cut(프리즘(오프(FP, -3.0), 40, -400))
     부품["cheek"] = 볼
-if VER >= 10:
+if 10 <= VER < 48:   # v48: 번개(0.3 mm)는 도색
     L08 = 층(0.8); 번 = None
     for P in V4["번개"]:
         if len(P) < 3: continue
@@ -207,7 +207,7 @@ if 13 <= VER < 36:
             Q = [[sgn * x, z + 2.0] for x, z in P]; Q = Q[::-1] if sgn < 0 else Q
             p = 프리즘(Q, E["y0"], -400).common(층(V["차양 두께"] + 3).cut(몸(V["차양 두께"]))); 위판 = p if 위판 is None else 위판.fuse(p)
     부품["visor2"] = 위판
-if VER >= 21:   # v21: 돔 가운데 능선(뿔로 이어지는 띠) — 폭 8 프리즘 ∩ 바깥 2 층
+if 21 <= VER < 48:   # v48: 능선(0.7 mm)은 도색 · v21: 돔 가운데 능선(뿔로 이어지는 띠) — 폭 8 프리즘 ∩ 바깥 2 층
     zz6 = V4["층 z"]["L6 처마"]; 띠 = Part.makeBox(8, 800, 200, Vector(-4, -400, zz6)).common(층(2.0)); 부품["ridge"] = 띠
 if VER >= 34:   # v34: 원화 얼굴은 밝은 장갑판 + 검은 눈 창 둘 — 모델은 얼굴 전체가 검은 구멍 → 얼굴 구멍 자리 겉 껍질을 3 들여 다시 막고 눈 창만 뚫음
     판 = None
@@ -224,7 +224,7 @@ if VER >= 34:   # v34: 원화 얼굴은 밝은 장갑판 + 검은 눈 창 둘 �
         for FP in V["얼굴 구멍"]:
             q = 겉.common(프리즘(FP, E["y0"], -400)); 판 = q if 판 is None else 판.fuse(q)
         yk = 판.BoundBox.YMin
-        _vback = vprism(yk + 3.0 / _m.cos(th)); 판 = 판.common(vprism(yk)).cut(_vback)
+        _vback = vprism(yk + (4.7 if VER >= 48 else 3.0) / _m.cos(th)); 판 = 판.common(vprism(yk)).cut(_vback)
         if VER >= 40: 부품["core"] = 부품["core"].common(_vback)   # v40: 속이 V 로 물러난 판보다 앞으로 나와 눈 옆이 검었다 → 속도 판 뒷면 V 로(갑주 ∩ 소체 = 0)
         for EP in V4["눈"]: 판 = 판.cut(프리즘(오프(EP, 1.5), 60, -400))
     elif VER >= 38:   # v38: 얼굴판을 위에서 본 V 로 — 가운데가 가장 앞, 옆으로 |x| × 0.7 물러남(원화: 가운데 능선 · 왼 밝고 오른 어둠)
@@ -250,6 +250,14 @@ if VER >= 41:   # v41: 원화 정면 볼 가시(옆판 아래 귀퉁이가 바�
 for nm, sh in 부품.items():
     if sh is None: continue
     m = Mesh.Mesh(); m.addFacets(sh.tessellate(0.3)); m.write(D + f"{nm}_v{VER}.stl")
+m_ = Mesh.Mesh(); m_.addFacets(겉.tessellate(0.3)); m_.write(D + f"body_v{VER}.stl")   # 10-05: 속 찬 몸(머리 솔리드 바탕용)
+if VER >= 48:   # v48: 출력용 한 솔리드(부품 전부 합침 · 눈알 포함 — 색은 도색)
+    sol = None
+    for nm_, sh_ in 부품.items():
+        if sh_ is None: continue
+        sol = sh_ if sol is None else sol.fuse(sh_)
+    sol = sol.removeSplitter(); print("solid", sol.isValid(), len(sol.Solids), round(sol.Volume))
+    m_ = Mesh.Mesh(); m_.addFacets(sol.tessellate(0.2)); m_.write(D + f"solid_v{VER}.stl")
 doc = App.newDocument(f"omega_v{VER}")
 for nm, sh in 부품.items():
     if sh is not None: doc.addObject("Part::Feature", nm).Shape = sh
