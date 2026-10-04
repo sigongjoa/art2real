@@ -207,7 +207,7 @@ if VER >= 9:
         p = 프리즘(P, (-10.0 if VER >= 27 else E["y0"]), -400).common(L4); 볼 = p if 볼 is None else 볼.fuse(p)   # v27: 볼날개 프리즘이 머리 뒤까지 가 옆을 띠로 휘감음 → 눈 깊이 앞(−10)까지만
     if VER >= 29:   # v29: 볼날개가 얼굴 구멍(눈 · 마스크 자리) 앞을 덮음 → 얼굴 구멍 프리즘을 빼 옆 날개만
         for FP in V["얼굴 구멍"]: 볼 = 볼.cut(프리즘(오프(FP, -3.0), 40, -400))
-    부품["cheek"] = 볼
+    부품["cheek"] = None if VER >= 53 else 볼   # v53: 옆에서 눈높이 긴 판 — 원화 옆엔 없음 · 정면 볼 끝은 가시가 맡음
 if 10 <= VER < 48:   # v48: 번개(0.3 mm)는 도색
     L08 = 층(0.8); 번 = None
     for P in V4["번개"]:
@@ -246,6 +246,12 @@ if VER >= 34:   # v34: 원화 얼굴은 밝은 장갑판 + 검은 눈 창 둘 �
             q = 겉.common(프리즘(FP, E["y0"], -400)); 판 = q if 판 is None else 판.fuse(q)
         yk = 판.BoundBox.YMin
         _vback = vprism(yk + (4.7 if VER >= 48 else 3.0) / _m.cos(th)); 판 = 판.common(vprism(yk)).cut(_vback)
+        if VER >= 52:   # v52: 얼굴 구멍이 옆벽을 y 7.5 까지 통째로 잘라 V 판 뒤가 비고 옆에 긴 턱 → V 판 뒤쪽의 투구 벽(겉 − 속)을 되살림 · 눈 창은 다시 뚫음
+            re_ = None
+            for FP in V["얼굴 구멍"]:
+                q = 겉.cut(속).common(프리즘(FP, E["y0"], -400)).common(_vback); re_ = q if re_ is None else re_.fuse(q)
+            for EP in V4["눈"]: re_ = re_.cut(프리즘(오프(EP, 1.5), 60, -400))
+            투구 = 투구.fuse(re_)
         if VER >= 40: 부품["core"] = 부품["core"].common(_vback)   # v40: 속이 V 로 물러난 판보다 앞으로 나와 눈 옆이 검었다 → 속도 판 뒷면 V 로(갑주 ∩ 소체 = 0)
         for EP in V4["눈"]: 판 = 판.cut(프리즘(오프(EP, 1.5), 60, -400))
     elif VER >= 38:   # v38: 얼굴판을 위에서 본 V 로 — 가운데가 가장 앞, 옆으로 |x| × 0.7 물러남(원화: 가운데 능선 · 왼 밝고 오른 어둠)
