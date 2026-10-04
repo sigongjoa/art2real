@@ -50,6 +50,20 @@ if VER == 42:   # (v42 만 · 뒷걸음이라 되돌림) v42: 정면 몸 윤곽�
 def 몸(d=0.0):
     F = 오프(F0, d) if d else F0; S = 오프(S0, d) if d else S0
     body = 면XZ(F, -400).extrude(Vector(0, 800, 0)).common(면YZ(S, -400).extrude(Vector(800, 0, 0)))
+    if VER == 49:   # (v49 만 · 효과 없음 · 되돌림) v49: 정면 윤곽 꺾임이 앞뒤로 밀려 옆머리에 가로 띠 → 정면 윤곽은 얼굴 앞(y < −30)만, 뒤는 볼록 껍질 윤곽
+        def _hl(pts):
+            pts = sorted(set(map(tuple, pts)))
+            def cr(o, a, b): return (a[0]-o[0])*(b[1]-o[1]) - (a[1]-o[1])*(b[0]-o[0])
+            lo_, up_ = [], []
+            for q in pts:
+                while len(lo_) >= 2 and cr(lo_[-2], lo_[-1], q) <= 0: lo_.pop()
+                lo_.append(q)
+            for q in reversed(pts):
+                while len(up_) >= 2 and cr(up_[-2], up_[-1], q) <= 0: up_.pop()
+                up_.append(q)
+            return [list(q) for q in lo_[:-1] + up_[:-1]]
+        앞 = 면XZ(F, -400).extrude(Vector(0, 370, 0)); 뒤 = 면XZ(_hl(F), -30).extrude(Vector(0, 430, 0))
+        body = 앞.fuse(뒤).common(면YZ(S, -400).extrude(Vector(800, 0, 0)))
     xs = [p[0] for p in F]; ys = [p[0] for p in S]; x0, x1, y0, y1 = min(xs), max(xs), min(ys), max(ys); cx, cy = (x0 + x1) / 2, (y0 + y1) / 2; hx, hy = (x1 - x0) / 2, (y1 - y0) / 2; k = 0.3
     oc = [(cx - hx, cy - hy * (1 - k)), (cx - hx * (1 - k), cy - hy), (cx + hx * (1 - k), cy - hy), (cx + hx, cy - hy * (1 - k)), (cx + hx, cy + hy * (1 - k)), (cx + hx * (1 - k), cy + hy), (cx - hx * (1 - k), cy + hy), (cx - hx, cy + hy * (1 - k))]
     body = body.common(Part.Face(Part.makePolygon([Vector(x, y, -600) for x, y in oc] + [Vector(oc[0][0], oc[0][1], -600)])).extrude(Vector(0, 0, 800)))
@@ -63,9 +77,16 @@ def 몸(d=0.0):
         if VER >= 46:   # v46: 처마 아래 몸이 볼 날개 자리만큼 옆으로 불룩해 옆머리에 긴 턱 → 처마 아래 폭을 처마 폭(+d)으로 제한(볼 · 가시는 따로 짓는 부품)
             body = body.common(Part.makeBox(2 * hx, 800, 400, Vector(cx - hx, -400, z6 - 400)))
         secs = []
-        for s_, f_ in ((0.0, 1.0), (0.45, 0.88), (0.8, 0.6), (1.0, 0.25)):
-            z = z6 + (zt - z6) * s_; pts = [Vector(cx + (x - cx) * f_, cy + (y - cy) * f_, z) for x, y in oc]; secs.append(Part.makePolygon(pts + [pts[0]]))
-        body = body.fuse(Part.makeLoft(secs, True, True)).removeSplitter()
+        if VER >= 50:   # v50: 돔 밑 팔각이 처마 높이 실제 몸 단면과 달라 머리를 두른 턱(옆 띠) → 그 단면 자체를 24 점으로 줄여 쌓음
+            sec_ = body.slice(Vector(0, 0, 1), z6 - 0.01); w_ = max(sec_, key=lambda w: w.Length)
+            P24 = w_.discretize(24); gx = sum(p.x for p in P24) / 24; gy = sum(p.y for p in P24) / 24
+            for s_, f_ in ((0.0, 1.0), (0.45, 0.88), (0.8, 0.6), (1.0, 0.25)):
+                z = z6 - 0.01 + (zt - z6) * s_; pts = [Vector(gx + (p.x - gx) * f_, gy + (p.y - gy) * f_, z) for p in P24]; secs.append(Part.makePolygon(pts + [pts[0]]))
+            body = body.cut(Part.makeBox(800, 800, 400, Vector(-400, -400, z6 - 0.01))).fuse(Part.makeLoft(secs, True, True)).removeSplitter()
+        else:
+            for s_, f_ in ((0.0, 1.0), (0.45, 0.88), (0.8, 0.6), (1.0, 0.25)):
+                z = z6 + (zt - z6) * s_; pts = [Vector(cx + (x - cx) * f_, cy + (y - cy) * f_, z) for x, y in oc]; secs.append(Part.makePolygon(pts + [pts[0]]))
+            body = body.fuse(Part.makeLoft(secs, True, True)).removeSplitter()
     return body
 def 프리즘(pts, y_from, y_to): return 면XZ(pts, y_from).extrude(Vector(0, y_to - y_from, 0))
 def 층(d): return 몸(d).cut(겉)
@@ -241,8 +262,9 @@ if 37 <= VER < 38:   # v37: 원화의 V 코판(눈 사이 → 아래 꼭짓점 �
 if VER >= 41:   # v41: 원화 정면 볼 가시(옆판 아래 귀퉁이가 바깥-아래로 뾰족) — 삼각 (−98,−217)(−68,−190)(−58,−230) · 뿌리는 얼굴 앞(y −40~+10), 끝은 뒤(y +10~+40)로 뻗는 ruled 로프트 · 좌우 거울
     T = [(-98, -217), (-68, -190), (-58, -230)]; sp = None
     for sg in (1, -1):
-        root = [Vector(sg * T[1][0], -40, T[1][1]), Vector(sg * T[2][0], -40, T[2][1]), Vector(sg * T[2][0], 10, T[2][1]), Vector(sg * T[1][0], 10, T[1][1])]
-        tipw = [Vector(sg * T[0][0], 10, T[0][1] + 1), Vector(sg * T[0][0], 10, T[0][1] - 1), Vector(sg * T[0][0], 40, T[0][1] - 1), Vector(sg * T[0][0], 40, T[0][1] + 1)]
+        yb0, yb1, yt0, yt1 = (-45, -20, -32, -22) if VER >= 51 else (-40, 10, 10, 40)   # v51: 옆에서 긴 판으로 보여 깊이를 얼굴 옆으로 짧게
+        root = [Vector(sg * T[1][0], yb0, T[1][1]), Vector(sg * T[2][0], yb0, T[2][1]), Vector(sg * T[2][0], yb1, T[2][1]), Vector(sg * T[1][0], yb1, T[1][1])]
+        tipw = [Vector(sg * T[0][0], yt0, T[0][1] + 3), Vector(sg * T[0][0], yt0, T[0][1] - 3), Vector(sg * T[0][0], yt1, T[0][1] - 3), Vector(sg * T[0][0], yt1, T[0][1] + 3)]
         w = Part.makeLoft([Part.makePolygon(root + [root[0]]), Part.makePolygon(tipw + [tipw[0]])], True, True)
         sp = w if sp is None else sp.fuse(w)
     부품["spike"] = sp
