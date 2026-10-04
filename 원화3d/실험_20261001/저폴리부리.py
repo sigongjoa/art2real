@@ -60,20 +60,24 @@ for 이름, (fc, sc_, col) in 판정의.items():
 # v8 옆판: 판은 앞만 보는 면이라 옆에서 종이 — 옆 원화 칸(턱 옆 20 · 미늘 옆 14~16)의 다각형을 그대로 옆벽으로.
 #   꼭짓점 (깊이, 행) = 옆 칸 먹선 모서리를 T 로 · x = 그 행의 정면 부리 판 묶음 반폭(± · 좌우 대칭) — 둘 다 잰 값
 반폭 = {r: (np.nonzero(합[r])[0].max() - np.nonzero(합[r])[0].min()) / 2 for r in range(H) if 합[r].any()}
-for 이름, sc_, col in (("미늘 옆", [14, 15, 16], (214, 218, 232)),):   # v9: 턱 옆(칸 20)은 맞춤 A · B 둘 다 정면 턱 아래로 떨어져 뺌 — 옆 컷이 아래서 올려본 원근
+for 이름, sc_, col in (("턱 옆", [20], (200, 206, 224)), ("미늘 옆", [14, 15, 16], (214, 218, 232))):   # v10(사용자 「그나마 B 가 비슷해」): 턱 옆 되살림 · 행을 정면 턱판 행 범위로 옮김
     mk2 = cv2.dilate(np.isin(C2, sc_).astype(np.uint8), np.ones((3, 3), np.uint8), iterations=2)
     cs, _ = cv2.findContours(mk2, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE); pp = cv2.approxPolyDP(max(cs, key=cv2.contourArea), 2.0, True).reshape(-1, 2).astype(float)
     dd, rr = T(pp[:, 0], pp[:, 1]); Q = np.c_[dd, rr]
+    if 이름 == "턱 옆":   # 옆 컷은 올려본 원근이라 아래턱이 길고 낮다 — 칸 20 의 위 · 아래 끝을 정면 턱판 위 · 아래 끝(턱 끝)에 맞춰 행만 선형으로 옮김(두 끝 = 잰 선)
+        tr = [v for (V_, _, ns_, c_) in 점그림 if c_ == 판정의["턱판"][2] for v in (V_[:ns_, 1].min(), V_[:ns_, 1].max())]
+        rr = tr[0] + (rr - rr.min()) / (rr.max() - rr.min()) * (tr[1] - tr[0]); Q = np.c_[dd, rr]
     tri = Delaunay(Q); inside = [t for t in tri.simplices if cv2.pointPolygonTest(Q.astype(np.float32), tuple(Q[t].mean(0)), False) >= 0]
-    w = np.array([찾기(반폭, r) for r in rr])
+    dr = np.array([찾기(단면, r) for r in rr]); f_ = np.clip((dd - dr) / (-D - dr), 0.15, 1)   # v10: 판이 V 단면이라 깊이 d 에서의 폭 = 반폭 × (d − 능선)/(테 − 능선) — v9 는 앞쪽까지 전체 폭이라 볼처럼 튀어나옴
+    w = np.array([찾기(반폭, r) for r in rr]) * f_
     for sgn in (1, -1):
         me = trimesh.Trimesh(np.c_[xa + sgn * w - cu, dd, -rr], np.array(inside), process=False)
         bad = me.face_normals[:, 0] * sgn < 0; me.faces[bad] = me.faces[bad][:, ::-1]   # 바깥(±x)을 보게
         me.visual.vertex_colors = np.tile(list(col) + [255], (len(Q), 1)).astype(np.uint8); meshes.append(me)
     목록[이름] = {"꼭짓점": len(Q), "면": len(inside), "깊이 범위": [round(float(dd.min()), 1), round(float(dd.max()), 1)], "반폭 범위": [round(float(w.min()), 1), round(float(w.max()), 1)]}
 창 = trimesh.load(os.path.join(B, "창모듈2.ply"), process=False); allm = trimesh.util.concatenate([창] + meshes)
-trimesh.Trimesh(allm.vertices, allm.faces, vertex_colors=allm.visual.vertex_colors, process=False).export(os.path.join(B, "저폴리부리9" + ("A" if os.environ.get("PAIR") == "A" else "") + ".ply"), encoding="ascii")
-json.dump(목록, open(os.path.join(B, "저폴리부리9" + ("A" if os.environ.get("PAIR") == "A" else "") + ".json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1); print(목록)
+trimesh.Trimesh(allm.vertices, allm.faces, vertex_colors=allm.visual.vertex_colors, process=False).export(os.path.join(B, "저폴리부리10" + ("A" if os.environ.get("PAIR") == "A" else "") + ".ply"), encoding="ascii")
+json.dump(목록, open(os.path.join(B, "저폴리부리10" + ("A" if os.environ.get("PAIR") == "A" else "") + ".json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1); print(목록)
 # 꼭짓점 목록 그림(정면 · 옆)
 from PIL import Image, ImageDraw, ImageFont
 F = ImageFont.truetype("C:/Windows/Fonts/malgunbd.ttf", 16); Kz = 4; 색표 = [(255, 200, 0), (255, 80, 80), (80, 220, 120), (90, 160, 255)]
@@ -87,4 +91,4 @@ for (V2, 깊이, ns, _), c_ in zip(점그림, 색표):
 b = b.crop((0, 120, 720, 600))
 out = Image.new("RGB", (a.width + b.width + 20, max(a.height, b.height) + 50), "white"); out.paste(a, (0, 0)); out.paste(b, (a.width + 20, 0))
 ImageDraw.Draw(out).text((8, max(a.height, b.height) + 10), "빨강 코판 · 초록 미늘2 · 파랑 턱판 — 큰 점 = 능선(옆 단면) · 작은 점 = 윤곽(코판 = 창 입구 · 아래 둘 = 옆 칸 뒤 끝) · 오른쪽 = 같은 점을 옆 원화 위에", font=F, fill="black")
-out.save(os.path.join(B, "저폴리부리9" + ("A" if os.environ.get("PAIR") == "A" else "") + "_목록.png"))
+out.save(os.path.join(B, "저폴리부리10" + ("A" if os.environ.get("PAIR") == "A" else "") + "_목록.png"))
