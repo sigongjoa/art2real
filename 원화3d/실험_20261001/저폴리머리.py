@@ -23,7 +23,7 @@ pool = np.c_[base.vertices[:, 0] + cu, -base.vertices[:, 2]]; pool_d = base.vert
 parts = [base]; 기록 = []
 ids, cnt = np.unique(C1[C1 > 0], return_counts=True)
 for c in [int(i) for i, n in sorted(zip(ids, cnt), key=lambda t: -t[1]) if n >= 20]:
-    if c in 부리칸: continue
+    if c in 부리칸 or c in (1, 2): continue   # 루프 1: 뿔(1 · 2)은 아래에서 따로
     mk = cv2.dilate((C1 == c).astype(np.uint8), np.ones((3, 3), np.uint8), iterations=2)
     yy_, xx_ = np.nonzero(C1 == c); cen = (xx_.mean(), yy_.mean())
     if any(안쪽(P, cen) for P in 앞윤곽.values()): continue          # 눈구멍 안 칸(눈동자 · 검은 칠)은 눈 모듈 몫
@@ -40,6 +40,57 @@ for c in [int(i) for i, n in sorted(zip(ids, cnt), key=lambda t: -t[1]) if n >= 
     hs = hsv[yy_, xx_].mean(0); col = rgb[yy_, xx_].mean(0) if hs[1] > 70 else np.array([232, 234, 244])
     me.visual.vertex_colors = np.tile(list(col.astype(int)) + [255], (len(poly), 1)).astype(np.uint8); parts.append(me)
     pool = np.r_[pool, poly]; pool_d = np.r_[pool_d, d]; 기록.append((c, len(poly), round(float(d.min()), 1), round(float(d.max()), 1)))
+# ── 피드백 루프 1 (채점: 정면 0.864 · 옆 0.275 — 옆 빨강 = 투구 뒤 · 볼 · 뿔이 종이) ──
+import contextlib, io
+K = {"__file__": os.path.join(os.path.dirname(os.path.abspath(__file__)), "기준선.py")}
+with contextlib.redirect_stdout(io.StringIO()): exec(open(K["__file__"], encoding="utf-8").read(), K)
+T = K["T"]; z2 = np.load(os.path.join(A, "2.npz")); L2 = z2["라벨"]; yy2, xx2 = np.nonzero(L2 > 0)
+m2 = np.load(os.path.join(A, "판_2_Z.npz"))["m"]; H2, W2 = m2.shape; py2, px2 = np.mgrid[0:H2, 0:W2]
+C2 = L2[np.clip(yy2.min() + 2 * py2, 0, L2.shape[0] - 1), np.clip(xx2.min() + 2 * px2, 0, L2.shape[1] - 1)] * m2
+def 행표(mask2, 앞=True):
+    ys, xs = np.nonzero(mask2); dd, rr = T(xs.astype(float), ys.astype(float)); o = {}
+    for r_ in np.unique(np.round(rr).astype(int)):
+        q = np.round(rr).astype(int) == r_; o[int(r_)] = float(dd[q].min() if 앞 else dd[q].max())
+    return o
+def 찾기(표, r):
+    ks = np.array(sorted(표)); return 표[int(ks[np.argmin(np.abs(ks - r))])]
+def 다각(mask, eps=2.0):
+    cs, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE); return cv2.approxPolyDP(max(cs, key=cv2.contourArea), eps, True).reshape(-1, 2).astype(float)
+def 면(V3, F, col, 바깥):
+    me = trimesh.Trimesh(V3, np.array(F), process=False); n = me.face_normals @ np.array(바깥, float); me.faces[n < 0] = me.faces[n < 0][:, ::-1]
+    me.visual.vertex_colors = np.tile(list(col) + [255], (len(V3), 1)).astype(np.uint8); return me
+# 1-a 뿔: 정면 칸 1(밝은 면) · 2(그늘 면) = 능선에서 만나는 두 면. 옆 원화 뿔 칸 2 의 앞 모서리 = 능선 깊이 · 뒤 모서리 = 뒷등 깊이(잰 값) · 바깥 모서리 = 둘의 가운데(가정)
+뿔앞, 뿔뒤 = 행표(C2 == 2, True), 행표(C2 == 2, False); 뿔합 = np.zeros((H, W), np.uint8)
+for c in (1, 2):
+    mk = cv2.dilate((C1 == c).astype(np.uint8), np.ones((3, 3), np.uint8), iterations=2); 뿔합 |= mk
+뿔P = {c: 다각(cv2.dilate((C1 == c).astype(np.uint8), np.ones((3, 3), np.uint8), iterations=2)) for c in (1, 2)}
+cs2, _ = cv2.findContours(cv2.dilate((C1 == 2).astype(np.uint8), np.ones((3, 3), np.uint8), iterations=2), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE); 둘2 = max(cs2, key=cv2.contourArea)
+cs1, _ = cv2.findContours(cv2.dilate((C1 == 1).astype(np.uint8), np.ones((3, 3), np.uint8), iterations=2), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE); 둘1 = max(cs1, key=cv2.contourArea)
+for c, other in ((1, 둘2), (2, 둘1)):
+    P = 뿔P[c]; 능 = np.array([abs(cv2.pointPolygonTest(other, (float(x), float(y)), True)) <= 3 for x, y in P])
+    d = np.array([찾기(뿔앞, y) if f else (찾기(뿔앞, y) + 찾기(뿔뒤, y)) / 2 for (x, y), f in zip(P, 능)])
+    for i in range(len(P)):
+        dist = np.hypot(*(pool - P[i]).T); j = int(np.argmin(dist))
+        if dist[j] < 4.0: P[i] = pool[j]; d[i] = pool_d[j]
+    tri = Delaunay(P); fc = [t for t in tri.simplices if 안쪽(P, P[t].mean(0))]
+    parts.append(면(np.c_[P[:, 0] - cu, d, -P[:, 1]], fc, (230, 232, 242) if c == 1 else (200, 204, 222), (0, -1, 0)))
+    pool = np.r_[pool, P]; pool_d = np.r_[pool_d, d]
+Pu = 다각(뿔합); 행 = np.unique(np.round(Pu[:, 1]).astype(int)); 등 = []
+for r_ in np.linspace(Pu[:, 1].min(), Pu[:, 1].max(), 6):
+    xs_ = np.nonzero(뿔합[int(np.clip(round(r_), 0, H - 1))])[0]
+    if len(xs_): 등.append(((xs_.min() + xs_.max()) / 2, r_))
+Q = np.r_[Pu, np.array(등)]; dq = np.r_[[(찾기(뿔앞, y) + 찾기(뿔뒤, y)) / 2 for y in Pu[:, 1]], [찾기(뿔뒤, y) for _, y in 등]]
+tri = Delaunay(Q); fc = [t for t in tri.simplices if 안쪽(Pu, Q[t].mean(0))]
+parts.append(면(np.c_[Q[:, 0] - cu, dq, -Q[:, 1]], fc, (190, 194, 212), (0, 1, 0)))   # 뿔 뒷면(뒷등)
+# 1-b 투구 · 볼 옆벽: 옆 원화 칸(투구 1 · 볼 17) 다각형 → (깊이, 행) · x = 그 행 정면 머리 반폭(곧은 옆벽 · 둥근 단면은 다음 루프)
+# 루프 2: 반폭을 정면 마스크 그대로 재면 볼날개 · 안테나 가시가 든 행에서 옆벽이 지느러미로 튐(정면 IoU 0.864 → 0.771) → 지름 25 원으로 열어 가시를 뗀 몸통 폭
+몸 = cv2.morphologyEx(m1.astype(np.uint8), cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (25, 25)))
+반폭 = {r: (np.nonzero(몸[r])[0].max() - np.nonzero(몸[r])[0].min()) / 2 for r in range(H) if 몸[r].any()}; xc = (np.nonzero(m1)[1].min() + np.nonzero(m1)[1].max()) / 2
+for sc_, col in (([1, 3, 4, 6, 7, 8, 10, 11, 13, 18], (226, 228, 240)), ([17], (214, 218, 232))):   # 루프 4: 투구 옆벽에 옆 원화 눈 둘레 칸(3 · 4 · 6 · 7 · 8 · 10 · 11 · 13 · 18)을 합쳐 옆 · 3/4 의 눈자리 구멍을 막음
+    Pp = 다각(cv2.dilate(np.isin(C2, sc_).astype(np.uint8), np.ones((3, 3), np.uint8), iterations=2)); dd, rr = T(Pp[:, 0], Pp[:, 1]); Q = np.c_[dd, rr]
+    tri = Delaunay(Q); fc = [t for t in tri.simplices if 안쪽(Q, Q[t].mean(0))]; w = np.array([찾기(반폭, r) for r in rr])
+    중 = {r: (np.nonzero(몸[r])[0].max() + np.nonzero(몸[r])[0].min()) / 2 for r in 반폭}; xr_ = np.array([찾기(중, r) for r in rr])   # 루프 3: 행마다 몸통 가운데(전체 마스크 가운데는 볼날개 탓에 왼쪽으로 쏠려 왼쪽만 지느러미)
+    for sgn in (1, -1): parts.append(면(np.c_[xr_ + sgn * w - cu, dd, -rr], fc, col, (sgn, 0, 0)))
 allm = trimesh.util.concatenate(parts)
-trimesh.Trimesh(allm.vertices, allm.faces, vertex_colors=allm.visual.vertex_colors, process=False).export(os.path.join(B, "저폴리머리.ply"), encoding="ascii")
+trimesh.Trimesh(allm.vertices, allm.faces, vertex_colors=allm.visual.vertex_colors, process=False).export(os.path.join(B, "저폴리머리" + os.environ.get("PAN", "") + ".ply"), encoding="ascii")
 print({"칸": len(기록), "꼭짓점 합": sum(r[1] for r in 기록)}, 기록[:12])
