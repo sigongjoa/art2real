@@ -41,7 +41,15 @@ def 윤곽(mask, eps=1.5, 오른쪽=False):
 칸 = lambda cs: cv2.dilate(np.isin(C1, cs).astype(np.uint8), np.ones((3, 3), np.uint8), iterations=2)
 얼굴 = 칸([11, 12, 13, 15, 17, 18, 19, 20, 21, 22, 23, 24, 27] + list(range(29, 43)) + [7, 10, 25, 26, 28]) & m1.astype(np.uint8)
 얼굴 = cv2.morphologyEx(얼굴, cv2.MORPH_CLOSE, np.ones((7, 7), np.uint8))
-값 = {"E": {"a": float(a), "c": float(c), "zc": float(-zc), "y0": float(y0), "f": float(f)}, "껍질": 1.8, "턱 z": float(-턱),
+# v2: 머리 몸통 = 정면 윤곽 밀기 ∩ 옆 윤곽 밀기 ∩ 위 윤곽(돔 바닥 타원) 밀기 — 조사 패턴 2(두 방향 밀기의 교집합)
+정몸 = cv2.morphologyEx(m1.astype(np.uint8), cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (25, 25))); 정몸[int(턱) + 1:] = 0
+옆몸 = cv2.morphologyEx(S2.astype(np.uint8), cv2.MORPH_OPEN, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (25, 25))); 옆몸[int(턱) + 1:] = 0
+def 윤곽2(m, u0, eps=2.0):
+    cs, _ = cv2.findContours(m, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE); cn = max(cs, key=cv2.contourArea)
+    return [[float(p[0] - u0), float(-p[1])] for p in cv2.approxPolyDP(cn, eps, True).reshape(-1, 2)]
+# 돔 단면: 위 반은 돔 — 앞뒤 축 5 단면(y), 각 단면 = 그 깊이에서 정면 윤곽 위쪽을 높이 비율로 줄인 다각형(꼭짓점 9 개 고정)
+값 = {"정면 몸": 윤곽2(정몸, xa), "옆 몸": 윤곽2(옆몸, -D0 * 0 + 0) if False else [[float(p[0] + D0), float(-p[1])] for p in cv2.approxPolyDP(max(cv2.findContours(옆몸, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[0], key=cv2.contourArea), 2.0, True).reshape(-1, 2)],
+      "E": {"a": float(a), "c": float(c), "zc": float(-zc), "y0": float(y0), "f": float(f)}, "껍질": 1.8, "턱 z": float(-턱),
      "얼굴 구멍": 윤곽(얼굴, 2.0), "차양 오른쪽": 윤곽(칸([14, 16]) & m1.astype(np.uint8), 1.5, True), "차양 두께": 6.0}
 json.dump(값, open(os.path.join(O, "값_v1.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 print({k: (v if not isinstance(v, list) else f"{len(v)} 윤곽 · {[len(p) for p in v]} 점") for k, v in 값.items()})
