@@ -15,9 +15,10 @@ T = K["T"]
 m1 = np.load(os.path.join(A, "판_1_Z.npz"))["m"]; H, W = m1.shape; cu = (np.nonzero(m1)[1].min() + np.nonzero(m1)[1].max()) / 2
 m2 = np.load(os.path.join(A, "판_2_Z.npz"))["m"]; ys, xs = np.nonzero(m2); dd, rr = T(xs.astype(float), ys.astype(float))
 D0, D1 = -200, 200; ND = D1 - D0
-S2 = np.zeros((H, ND), np.uint8); ok = (rr >= 0) & (rr < H) & (dd >= D0) & (dd < D1)
-S2[np.round(rr[ok]).astype(int).clip(0, H - 1), np.round(dd[ok] - D0).astype(int).clip(0, ND - 1)] = 1
-S2 = cv2.morphologyEx(S2, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8))
+# 2 바퀴(사용자 「후 B 가 좋은 것 같은데」 · O11 = 가로 줄무늬 없애기): 옆 마스크를 점으로 찍던 것을 어파인 변환 한 번으로(행마다 빈 점 → 계단의 한 원인)
+k_, t_ = K["k"], K["t"]; ct, st_ = np.cos(t_), np.sin(t_)
+M = np.array([[k_ * ct, -k_ * st_, -k_ * K["ex"] * ct + k_ * K["ey"] * st_ - D0], [k_ * st_, k_ * ct, K["c"] - k_ * K["xm"] * st_]], np.float32)
+S2 = (cv2.warpAffine(m2.astype(np.uint8) * 255, M, (ND, H), flags=cv2.INTER_LINEAR) > 127).astype(np.uint8)
 F1 = m1.astype(bool)
 앞윤곽 = {k: np.array(v) for k, v in json.load(open(os.path.join(B, "저폴리눈_앞윤곽.json"), encoding="utf-8")).items()}
 눈 = np.zeros((H, W), np.uint8)
@@ -25,27 +26,33 @@ for P in 앞윤곽.values(): cv2.fillPoly(눈, [P.round().astype(np.int32)], 1)
 판 = trimesh.load(os.path.join(B, "저폴리머리6B.ply"), process=False)
 st = 2   # 격자 2 화소
 xg, dg, rg = np.arange(0, W, st), np.arange(D0, D1, st), np.arange(0, H, st)
-for c in (0.0, 0.5):
+# 2 바퀴: 모서리 깎기의 행마다 범위(x0 · x1 · d0 · d1)를 위아래로 고르게(σ 3 행) — 행마다 범위가 튀는 것이 줄무늬의 다른 원인
+범위 = np.full((len(rg), 4), np.nan)
+for k, r in enumerate(rg):
+    fx = F1[r, xg]; sd = S2[r, dg - D0].astype(bool)
+    if fx.any() and sd.any(): xi = np.nonzero(fx)[0]; di = np.nonzero(sd)[0]; 범위[k] = (xi.min(), xi.max(), di.min(), di.max())
+ok_ = ~np.isnan(범위[:, 0]); 범위[ok_] = ndimage.gaussian_filter1d(범위[ok_], 3, axis=0, mode="nearest")
+for c in (0.5,):
     V = np.zeros((len(xg), len(dg), len(rg)), bool)
     for k, r in enumerate(rg):
         fx = F1[r, xg]; sd = S2[r, dg - D0].astype(bool)
         if not fx.any() or not sd.any(): continue
         X, Dd = np.meshgrid(fx, sd, indexing="ij"); v = X & Dd
         if c > 0:
-            xi = np.nonzero(fx)[0]; di = np.nonzero(sd)[0]; x0, x1, d0, d1 = xi.min(), xi.max(), di.min(), di.max()
+            x0, x1, d0, d1 = 범위[k]
             u = np.abs((np.arange(len(xg))[:, None] - (x0 + x1) / 2) / max(1, (x1 - x0) / 2)); w = np.abs((np.arange(len(dg))[None, :] - (d0 + d1) / 2) / max(1, (d1 - d0) / 2))
             v &= (u + w) <= 2 - c
         V[:, :, k] = v
     # 눈구멍 파기: 정면 눈 윤곽 안 · 깊이 +4 앞쪽 전부
     ex = 눈[np.ix_(rg, xg)].T.astype(bool)   # (x, r)
     V[ex[:, None, :] & (dg[None, :, None] < 4)] = False
-    vol = ndimage.gaussian_filter(V.astype(float), 1.0)
+    vol = ndimage.gaussian_filter(V.astype(float), (1.0, 1.0, 2.0))   # 2 바퀴: 높이(행) 쪽만 더 부드럽게
     verts, faces, _, _ = measure.marching_cubes(vol, 0.5)
     vx = verts[:, 0] * st - cu; vd = verts[:, 1] * st + D0; vr = verts[:, 2] * st
     hull = trimesh.Trimesh(np.c_[vx, vd, -vr], faces, process=False); hull.fix_normals()
     hull = hull.simplify_quadric_decimation(face_count=6000) if hasattr(hull, "simplify_quadric_decimation") else hull
     hull.visual.vertex_colors = np.tile([226, 228, 240, 255], (len(hull.vertices), 1)).astype(np.uint8)
-    tag = "0" if c == 0 else "05"
+    tag = "05_2"
     hull.export(os.path.join(B, f"덩어리_c{tag}.ply"), encoding="ascii")
     # ② 얹기
     앞면 = 판.face_normals[:, 1] < -0.3; sub = 판.submesh([np.nonzero(앞면)[0]], append=True)
