@@ -22,6 +22,8 @@ best = trimesh.load(os.path.join(B, "겹9.ply"), process=False); hull = trimesh.
 zb = np.full((H, W), np.inf); P2 = np.c_[best.vertices[:, 0] + cu, -best.vertices[:, 2]]; dz = best.vertices[:, 1]
 for f in np.argsort(-dz[best.faces].mean(1)):
     mk = np.zeros((H, W), np.uint8); cv2.fillPoly(mk, [np.round(P2[best.faces[f]]).astype(np.int32)], 1); zb[mk > 0] = dz[best.faces[f]].mean()
+from scipy import ndimage
+_e = ~np.isfinite(zb); _, (_iy, _ix) = ndimage.distance_transform_edt(_e, return_indices=True); zb = zb[_iy, _ix]   # 모양 8: 머리 가장자리 밖 꼭짓점도 가장 가까운 겉 깊이(빈 칸 10 · 28 · 36 의 원인)
 def 깊이(x, r):
     r0, x0_ = int(round(r)), int(round(x)); w = zb[max(0, r0 - 1):r0 + 2, max(0, x0_ - 1):x0_ + 2]; w = w[np.isfinite(w)]
     return float(np.median(w)) if len(w) else np.nan
@@ -64,13 +66,13 @@ VV, CC = [], []; k = 0; 빈 = 0
 for c, poly in 칸들:
     ids_ = 번호[k:k + len(poly)]; k += len(poly)
     ids_ = list(dict.fromkeys(ids_.tolist()))
-    if len(ids_) < 3 or np.isnan(깊[ids_]).any(): 빈 += 1; continue
+    if len(ids_) < 3 or np.isnan(깊[ids_]).any(): 빈 += 1; print('빈 칸', c, len(ids_), int(np.isnan(깊[ids_]).sum()) if len(ids_) else -1); continue
     Q = 대표[ids_]
     try: tri = Delaunay(Q)
     except Exception: 빈 += 1; continue
     for t in tri.simplices:
         if cv2.pointPolygonTest(Q.astype(np.float32), tuple(Q[t].mean(0)), False) < 0: continue
-        v3 = np.c_[Q[t, 0] - cu, 깊[np.array(ids_)[t]], -Q[t, 1]]
+        v3 = np.c_[Q[t, 0] - cu, 깊[np.array(ids_)[t]] - float(os.environ.get('OFF', '0')), -Q[t, 1]]   # 모양 8: 갑주는 소체 앞(OFF)
         n = np.cross(v3[1] - v3[0], v3[2] - v3[0])
         if n[1] > 0: v3 = v3[::-1]
         VV.append(v3); CC.append([232, 234, 244, 255])
@@ -82,8 +84,10 @@ bpx = np.clip(np.round(cen[:, 0] + cu).astype(int), 0, W - 1); bpr = np.clip(np.
 소체 = (c0[:, 0] == 226) & (c0[:, 1] == 228) & (c0[:, 2] == 240); 눈 = (눈판[bpr, bpx] > 0) & (cen[:, 1] > -30) & ~소체
 # 왼쪽 반 거울: 새 판만
 pc = 판.mean(1); 왼 = pc[:, 0] <= xa + 1.5; Lf = 판[왼]; LC = 판C[왼]; R = Lf.copy(); R[:, :, 0] = 2 * xa - R[:, :, 0]; R = R[:, ::-1]
-HV = hull.vertices[hull.faces]; HM = HV.copy(); HM[:, :, 0] = 2 * xa - HM[:, :, 0]; HM = HM[:, ::-1]; HC = hull.visual.vertex_colors[hull.faces]
+HV = hull.vertices[hull.faces]; HV = HV[HV.mean(1)[:, 0] <= xa + 1.5]   # 모양 9: 소체도 왼쪽 반만 거울(오른쪽이 판 따라 다르게 깎인 소체의 거울 사본이 왼쪽 판을 가렸다)
+HM = HV.copy(); HM[:, :, 0] = 2 * xa - HM[:, :, 0]; HM = HM[:, ::-1]; HC = hull.visual.vertex_colors[hull.faces][hull.triangles_center[:, 0] <= xa + 1.5]
 parts_v = [Lf, R, HV, HM, bv[눈 | 뿔 | 노랑]]; parts_c = [LC, LC[:, ::-1], HC, HC[:, ::-1], bc[눈 | 뿔 | 노랑]]
 V = np.concatenate(parts_v).reshape(-1, 3); C = np.concatenate(parts_c).reshape(-1, 4)
-trimesh.Trimesh(V, np.arange(len(V)).reshape(-1, 3), vertex_colors=C, process=False).export(os.path.join(B, "판재건" + os.environ.get("SMOOTH", "") + ("V" if os.environ.get("GROUP") == "1" else "") + ".ply"), encoding="ascii")
+_np = np.concatenate([Lf, R]).reshape(-1, 3); trimesh.Trimesh(_np, np.arange(len(_np)).reshape(-1, 3), vertex_colors=np.concatenate([LC, LC[:, ::-1]]).reshape(-1, 4), process=False).export(os.path.join(B, "판재건_판.ply"), encoding="ascii")   # 모양 10: 새 판만(겹.py PLATES 용)
+trimesh.Trimesh(V, np.arange(len(V)).reshape(-1, 3), vertex_colors=C, process=False).export(os.path.join(B, "판재건" + os.environ.get("SMOOTH", "") + ("V" if os.environ.get("GROUP") == "1" else "") + os.environ.get("TAGP", "") + ".ply"), encoding="ascii")
 print({"칸": len(칸들), "공유 꼭짓점": len(대표), "판 삼각형": len(판), "빈 칸": 빈, "눈 모듈 면": int(눈.sum()), "뿔": int(뿔.sum()), "안테나": int(노랑.sum())})

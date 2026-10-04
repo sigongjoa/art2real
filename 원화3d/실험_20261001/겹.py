@@ -17,7 +17,7 @@ k_, t_ = K["k"], K["t"]; ct, st_ = np.cos(t_), np.sin(t_)
 M = np.array([[k_ * ct, -k_ * st_, -k_ * K["ex"] * ct + k_ * K["ey"] * st_ - D0], [k_ * st_, k_ * ct, K["c"] - k_ * K["xm"] * st_]], np.float32)
 S2 = (cv2.warpAffine(m2.astype(np.uint8) * 255, M, (ND, H), flags=cv2.INTER_LINEAR) > 127)
 F1 = m1.astype(bool)
-판 = trimesh.load(os.path.join(B, "저폴리머리6B.ply"), process=False)
+판 = trimesh.load(os.path.join(B, os.environ.get("PLATES", "저폴리머리6B.ply")), process=False)   # 모양 10: 새 판(판재건_판)으로 소체를 다시 깎을 수 있게
 vc = 판.visual.vertex_colors[판.faces][:, 0, :3].astype(int); 노랑 = (vc[:, 0] > 150) & (vc[:, 2] < 120)
 앞윤곽 = {k: np.array(v, np.float32) for k, v in json.load(open(os.path.join(B, "저폴리눈_앞윤곽.json"), encoding="utf-8")).items()}
 눈판 = np.zeros((H, W), np.uint8)
