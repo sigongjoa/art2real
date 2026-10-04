@@ -169,6 +169,8 @@ export function 모션(renderer, camera) {
       g.lineWidth = size * 0.16; g.strokeStyle = 'rgba(20,20,30,0.95)'; g.strokeText(text, 0, 0); g.fillStyle = color; g.fillText(text, 0, 0); g.restore(); },
     // 3D 두 점 사이 점선(뇌가 이은 부분 같은 「상상한 선」) — k 만큼 그려진다
     ghost(p, q, k, w = 14) { if (k <= 0) return; const [x0, y0] = scr(p), [x1, y1] = scr(q); stroke2([[x0, y0], [x0 + (x1 - x0) * clamp01(k), y0 + (y1 - y0) * clamp01(k)]], w, GOLD, [w * 2.2, w * 1.6]); },
+    // 3D 두 점 사이 실선(띠 강조 · 윤곽)
+    line(p, q, k, w = 14, color = GOLD) { if (k <= 0) return; const [x0, y0] = scr(p), [x1, y1] = scr(q); stroke2([[x0, y0], [x0 + (x1 - x0) * clamp01(k), y0 + (y1 - y0) * clamp01(k)]], w, color); },
     // 화면 위 양쪽 화살표(움직임 방향) — 3D 점 p 에서 좌우로
     arrow2(p, k, len = 150) { if (k <= 0) return; const [x, y, ok] = scr(p); if (!ok) return; const L = len * clamp01(k * 1.5);
       for (const s of [-1, 1]) { const tip = x + s * L; stroke2([[x, y], [tip, y]], 14, GOLD); stroke2([[tip - s * 40, y - 30], [tip, y], [tip - s * 40, y + 30]], 14, GOLD); } },
