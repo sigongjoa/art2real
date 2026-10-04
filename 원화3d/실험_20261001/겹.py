@@ -25,6 +25,10 @@ zb = np.full((H, W), np.inf); P2 = np.c_[sub.vertices[:, 0] + cu, -sub.vertices[
 for f in np.argsort(-dz[sub.faces].mean(1)):   # 먼 면 먼저 → 가까운 면이 덮음
     if 노랑[np.nonzero(앞면)[0][f]]: continue   # 안테나는 가는 막대라 덩어리를 깎지 않음
     m_ = np.zeros((H, W), np.uint8); cv2.fillPoly(m_, [np.round(P2[sub.faces[f]]).astype(np.int32)], 1); zb[m_ > 0] = dz[sub.faces[f]].mean()
+# 자가개선 1 바퀴: 판이 안 덮은 열(70 %)에서 덩어리가 옆 실루엣 맨 앞(부리 끝)까지 나와 입 높이에 상자가 튐
+#   → 정면 마스크 안의 빈 열은 가장 가까운 판 열의 깊이를 물려받음(거리변환 최근접) — 덩어리가 이웃 판보다 앞에 못 나옴
+_빈 = ~np.isfinite(zb); _, (iy, ix) = ndimage.distance_transform_edt(_빈, return_indices=True)
+zb_막 = np.where(F1, zb[iy, ix], np.inf); zb_판 = zb.copy(); zb = zb_막
 t = 3.0; st = 2; xg, dg, rg = np.arange(0, W, st), np.arange(D0, D1, st), np.arange(0, H, st)
 범위 = np.full((len(rg), 4), np.nan)
 for k, r in enumerate(rg):
@@ -39,16 +43,16 @@ for k, r in enumerate(rg):
     u = np.abs((np.arange(len(xg))[:, None] - (x0 + x1) / 2) / max(1, (x1 - x0) / 2)); w = np.abs((np.arange(len(dg))[None, :] - (d0 + d1) / 2) / max(1, (d1 - d0) / 2))
     v &= (u + w) <= 2 - c
     v &= dg[None, :] >= (zb[r, xg] + t)[:, None]   # 판 뒤만(판 없는 열은 inf → 아래 줄에서 풀어 줌)
-    v |= (fx[:, None] & sd[None, :] & ((u + w) <= 2 - c) & ~np.isfinite(zb[r, xg])[:, None])
     V[:, :, k] = v
 vol = ndimage.gaussian_filter(V.astype(float), (1.0, 1.0, 2.0))
 verts, faces, _, _ = measure.marching_cubes(vol, 0.5)
 hull = trimesh.Trimesh(np.c_[verts[:, 0] * st - cu, verts[:, 1] * st + D0, -verts[:, 2] * st], faces, process=False); hull.fix_normals()
-hull = hull.simplify_quadric_decimation(face_count=6000)
-hull.visual.vertex_colors = np.tile([150, 154, 168, 255], (len(hull.vertices), 1)).astype(np.uint8)   # 소체는 회색(갑주와 구분)
-hull.export(os.path.join(B, "겹_소체.ply"), encoding="ascii")
+hull = hull.simplify_quadric_decimation(face_count=int(os.environ.get("NF", "6000")))   # 자가개선 3 바퀴: NF 로 면 수(저폴리 모양 언어)
+소체색 = [150, 154, 168, 255] if os.environ.get("HULLCOL", "gray") == "gray" else [226, 228, 240, 255]   # 자가개선 2 바퀴: 원화 갑주는 한 흰색
+hull.visual.vertex_colors = np.tile(소체색, (len(hull.vertices), 1)).astype(np.uint8)   # 소체는 회색(갑주와 구분)
+hull.export(os.path.join(B, "겹" + os.environ.get("TAG", "2") + "_소체.ply"), encoding="ascii")
 allm = trimesh.util.concatenate([hull, sub])
-trimesh.Trimesh(allm.vertices, allm.faces, vertex_colors=allm.visual.vertex_colors, process=False).export(os.path.join(B, "겹.ply"), encoding="ascii")
+trimesh.Trimesh(allm.vertices, allm.faces, vertex_colors=allm.visual.vertex_colors, process=False).export(os.path.join(B, "겹" + os.environ.get("TAG", "2") + ".ply"), encoding="ascii")
 # 갑주 ∩ 소체 검사: 판 꼭짓점이 소체 안에 든 비율
 inside = hull.contains(sub.vertices) if hull.is_watertight else None
-print({"판 면": len(sub.faces), "소체 면": len(hull.faces), "판 덮은 열 비율": round(float(np.isfinite(zb).mean()), 3), "판 꼭짓점 중 소체 안": None if inside is None else round(float(inside.mean()), 3)})
+print({"판 면": len(sub.faces), "소체 면": len(hull.faces), "판 덮은 열 비율": round(float(np.isfinite(zb_판).mean()), 3), "판 꼭짓점 중 소체 안": None if inside is None else round(float(inside.mean()), 3)})
