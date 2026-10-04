@@ -62,7 +62,32 @@ for nm, fc, sc in 판정의:
     sm = cv2.dilate(np.isin(C2, sc).astype(np.uint8), np.ones((3, 3), np.uint8)); rr = [r for r in range(r0, r1 + 1) if sm[r].any()]
     tip = float(min(np.nonzero(sm[r])[0].min() for r in rr) + D0) if rr else -60.0
     판들.append({"이름": nm, "윤곽": 윤곽(mk, 2.0)[0] if 윤곽(mk, 2.0) else [], "위": float(-r0), "아래": float(-r1), "반폭": hw_, "앞 끝": tip})
-값 = {"마스크 판": 판들, "정면 몸": 윤곽2(정몸, xa, 4.0), "옆 몸": 윤곽2(옆몸, -D0 * 0 + 0) if False else [[float(p[0] + D0), float(-p[1])] for p in cv2.approxPolyDP(max(cv2.findContours(옆몸, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[0], key=cv2.contourArea), 4.0, True).reshape(-1, 2)],
+# v4~: 뿔 돌기 — 정면 몸 행 반폭이 최대의 35 % 아래인 맨 위 행들 = 뿔 · 안테나 뿌리 → 그 위를 자름(정면 · 옆 같이)
+_hw = np.array([(np.nonzero(정몸[r])[0].max() - np.nonzero(정몸[r])[0].min()) / 2 if 정몸[r].any() else 0 for r in range(H)])
+꼭대기 = int(np.nonzero(_hw >= 0.35 * _hw.max())[0].min()); 정4 = 정몸.copy(); 옆4 = 옆몸.copy(); 정4[:꼭대기] = 0; 옆4[:꼭대기] = 0
+def 옆윤곽(m, eps): return [[float(p[0] + D0), float(-p[1])] for p in cv2.approxPolyDP(max(cv2.findContours(m, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[0], key=cv2.contourArea), eps, True).reshape(-1, 2)]
+옆뿔 = cv2.dilate((C2 == 2).astype(np.uint8), np.ones((3, 3), np.uint8)); 정뿔 = cv2.dilate(np.isin(C1, [1, 2]).astype(np.uint8), np.ones((3, 3), np.uint8))
+눈 = [[[float(p[0] - xa), float(-p[1])] for p in P] for P in json.load(open(os.path.join(os.path.dirname(A.rstrip("/\\")).replace("지표", "블렌더"), "저폴리눈_앞윤곽.json"), encoding="utf-8")).values()]
+art = cv2.imdecode(np.fromfile(os.path.join(A, "판_1_원화.png"), np.uint8), 1); hsv = cv2.cvtColor(art, cv2.COLOR_BGR2HSV)
+노 = ((hsv[:, :, 0] > 15) & (hsv[:, :, 0] < 40) & (hsv[:, :, 1] > 60)).astype(np.uint8); n_, lab = cv2.connectedComponents(노); 안테나 = []
+ys9, xs9 = np.nonzero(C2 == 9); 뒤9 = float(xs9.max() + D0) if len(xs9) else 60.0
+for k in range(1, n_):
+    yy, xx = np.nonzero(lab == k)
+    if len(xx) < 40: continue
+    pts = np.c_[xx, yy].astype(float); cc = pts.mean(0); u = np.linalg.svd(pts - cc)[2][0]; t = (pts - cc) @ u; p0, p1 = cc + u * t.min(), cc + u * t.max()
+    if np.hypot(*(p0 - [xa, 150])) > np.hypot(*(p1 - [xa, 150])): p0, p1 = p1, p0
+    안테나.append([[float(p0[0] - xa), float(-p0[1])], [float(p1[0] - xa), float(-p1[1])]])
+blue = ((hsv[:, :, 0] >= 95) & (hsv[:, :, 0] <= 130) & (hsv[:, :, 1] > 90) & (m1 > 0)).astype(np.uint8)
+fp = [np.array(v, float) for k2, v in json.load(open(os.path.join(A, "특징점.json"), encoding="utf-8"))["1"].items() if k2.startswith("번개")]
+nb, lb = cv2.connectedComponents(blue); 번개 = []
+for k in range(1, nb):
+    yy, xx = np.nonzero(lb == k)
+    if len(xx) >= 6 and min(np.hypot(xx - q[0], yy - q[1]).min() for q in fp) < 15:
+        cn = max(cv2.findContours((lb == k).astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[0], key=len)
+        번개.append([[float(p[0] - xa), float(-p[1])] for p in cv2.approxPolyDP(cn, 0.8, True).reshape(-1, 2)])
+v4 = {"정면 몸": 윤곽2(정4, xa, 4.0), "옆 몸": 옆윤곽(옆4, 6.0), "뿔 정면": 윤곽2(정뿔, xa, 1.5), "뿔 옆": 옆윤곽(옆뿔, 1.5), "눈": 눈,
+      "안테나": 안테나, "안테나 끝 y": 뒤9, "볼날개": 윤곽(칸([7, 10, 25, 26, 28]) & m1.astype(np.uint8), 2.0), "번개": 번개, "꼭대기 z": float(-꼭대기)}
+값 = {"v4": v4, "마스크 판": 판들, "정면 몸": 윤곽2(정몸, xa, 4.0), "옆 몸": 윤곽2(옆몸, -D0 * 0 + 0) if False else [[float(p[0] + D0), float(-p[1])] for p in cv2.approxPolyDP(max(cv2.findContours(옆몸, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[0], key=cv2.contourArea), 4.0, True).reshape(-1, 2)],
       "E": {"a": float(a), "c": float(c), "zc": float(-zc), "y0": float(y0), "f": float(f)}, "껍질": 1.8, "턱 z": float(-턱),
      "얼굴 구멍": 윤곽(얼굴, 2.0), "차양 오른쪽": 윤곽(칸([14, 16]) & m1.astype(np.uint8), 1.5, True), "차양 두께": 6.0}
 json.dump(값, open(os.path.join(O, "값_v3.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
