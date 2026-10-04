@@ -29,6 +29,10 @@ def 몸(d=0.0):
     body = body.common(Part.Face(Part.makePolygon([Vector(x, y, -600) for x, y in oc] + [Vector(oc[0][0], oc[0][1], -600)])).extrude(Vector(0, 0, 800)))
     if VER >= 15:   # v15: 정수리 = 처마(L6) 위를 팔각 단면 4 장 ruled 로프트 돔으로(평평한 상자 위 대신)
         z6 = V4["층 z"]["L6 처마"]; zt = V4["꼭대기 z"] + 4 - d * 0
+        if VER >= 26:   # v26: 돔 밑 팔각이 처마 높이 몸 단면보다 넓어 모자 챙 → 밑 팔각 = 처마 높이 몸 단면의 상자(얇은 판과 교집합)
+            bb = body.common(Part.makeBox(800, 800, 2, Vector(-400, -400, z6 - 1))).BoundBox
+            cx, cy, hx, hy = (bb.XMin + bb.XMax) / 2, (bb.YMin + bb.YMax) / 2, bb.XLength / 2, bb.YLength / 2
+            oc = [(cx - hx, cy - hy * (1 - k)), (cx - hx * (1 - k), cy - hy), (cx + hx * (1 - k), cy - hy), (cx + hx, cy - hy * (1 - k)), (cx + hx, cy + hy * (1 - k)), (cx + hx * (1 - k), cy + hy), (cx - hx * (1 - k), cy + hy), (cx - hx, cy + hy * (1 - k))]
         body = body.cut(Part.makeBox(800, 800, 400, Vector(-400, -400, z6)))
         secs = []
         for s_, f_ in ((0.0, 1.0), (0.45, 0.88), (0.8, 0.6), (1.0, 0.25)):
@@ -45,6 +49,14 @@ for P in V["차양 오른쪽"]:
     for sgn in (1, -1):
         Q = [[sgn * x, z] for x, z in P]; Q = Q[::-1] if sgn < 0 else Q
         p = 프리즘(Q, E["y0"], -400).common(L6); 차양 = p if 차양 is None else 차양.fuse(p)
+if VER >= 33:   # v33: 차양 = 화난 눈썹 날개 둘 — 특징점 차양 V(가운데 아래) · 차양 날개 끝(바깥 위) · 눈구멍 바깥 · 눈구멍 안 으로 사각 판 ∩ 바깥 8 층
+    fp = V4["특징점"]
+    for sd in ("왼", "오른"):
+        if f"차양 날개/{sd}" not in fp: continue
+        Vv, Wt, Eo, Ei = fp["차양 V"], fp[f"차양 날개/{sd}"], fp[f"눈구멍 바깥/{sd}"], fp[f"눈구멍 안/{sd}"]
+        quad = [Vv, Wt, [Eo[0], Eo[1] + 6], [Ei[0], Ei[1] + 6]]
+        if (Wt[0] - Vv[0]) * ((quad[2][1] - Vv[1])) - (quad[2][0] - Vv[0]) * (Wt[1] - Vv[1]) < 0: quad = quad[::-1]
+        p = 프리즘(quad, E["y0"], -400).common(L6); 차양 = p if 차양 is None else 차양.fuse(p)
 부품["visor"] = 차양
 # 마스크
 판들 = []
@@ -52,10 +64,20 @@ for i, P in enumerate(V["마스크 판"]):
     if len(P["윤곽"]) < 3: continue
     tip = P["앞 끝"] - ((6.0 if VER >= 18 else 3.0) * i if VER >= 5 else 0); hw = P["반폭"] * 1.05   # v18: 계단 6
     a = 프리즘(오프(P["윤곽"], -1.0) if VER >= 19 else P["윤곽"], 5, tip - 2)   # v19: 판 사이 틈 1
-    W_ = Part.Face(Part.makePolygon([Vector(0, tip, -600), Vector(hw, 5, -600), Vector(-hw, 5, -600), Vector(0, tip, -600)])).extrude(Vector(0, 0, 800))
+    yb = tip + 25.0 if VER >= 31 else 5   # v31: 쐐기 밑을 앞 끝 + 25 로 — 판 앞면이 정면을 보게(뾰족해 옆을 봐 어두웠다)
+    W_ = Part.Face(Part.makePolygon([Vector(0, tip, -600), Vector(hw, yb, -600), Vector(-hw, yb, -600), Vector(0, tip, -600)])).extrude(Vector(0, 0, 800))
+    if VER >= 31: W_ = W_.fuse(Part.makeBox(2 * hw, 400, 800, Vector(-hw, yb, -600)))
+    if VER >= 28:   # v28: 판 정면 모양 = 얼굴 구멍 ∩ 그 판 높이 띠(칸 묶음은 좁아 구멍을 못 채움) − 눈 윤곽
+        위 = (V4["층 z"]["L5 눈"] if (VER >= 30 and i == 0) else P["위"])   # v30: 코판은 눈 높이(L5)부터 — 눈 사이가 비어 검은 속이 보였다
+        띠 = Part.makeBox(800, 800, 위 - P["아래"] + 3, Vector(-400, -400, P["아래"] - 1.5))
+        a = None
+        for FP in V["얼굴 구멍"]:
+            q = 프리즘(FP, 5, tip - 2).common(띠); a = q if a is None else a.fuse(q)
+        for EP in V4["눈"]: a = a.cut(프리즘(EP, 40, -400))
     pl = a.common(W_)
     if VER >= 5:   # 앞면에서 8 두께만 남김 = 판(속이 꽉 찬 쐐기 아님)
-        W2 = Part.Face(Part.makePolygon([Vector(0, tip + 8, -600), Vector(hw, 5 + 8, -600), Vector(-hw, 5 + 8, -600), Vector(0, tip + 8, -600)])).extrude(Vector(0, 0, 800))
+        W2 = Part.Face(Part.makePolygon([Vector(0, tip + 8, -600), Vector(hw, yb + 8, -600), Vector(-hw, yb + 8, -600), Vector(0, tip + 8, -600)])).extrude(Vector(0, 0, 800))
+        if VER >= 31: W2 = W2.fuse(Part.makeBox(2 * hw, 400, 800, Vector(-hw, yb + 8, -600)))
         pl = pl.cut(W2)
     판들.append(pl)
 부품["mask"] = 판들[0].fuse(판들[1:]) if len(판들) > 1 else 판들[0]
@@ -65,6 +87,14 @@ if VER >= 6:
         fz = [p[1] for p in V4["뿔 정면"]]; sz = [p[1] for p in SH]; a0, a1, b0, b1 = min(fz), max(fz), min(sz), max(sz)
         SH = [[y, a0 + (z - b0) * (a1 - a0) / max(1e-6, b1 - b0)] for y, z in SH]
     뿔 = 면XZ(V4["뿔 정면"], -400).extrude(Vector(0, 800, 0)).common(면YZ(SH, -400).extrude(Vector(800, 0, 0)))
+    if VER >= 32:   # v32: 뿔이 가는 기둥 → 마름모 밑(정면 밑 폭 · 옆 밑 앞뒤) → 꼭짓점(정면 · 옆 뿔 꼭대기 점)으로 ruled 로프트 = 밑 넓은 삼각 · 앞으로 기욺
+        fz = [p[1] for p in V4["뿔 정면"]]; z0, z1 = min(fz), max(fz); zb_ = z0 + 0.15 * (z1 - z0)
+        bx = [p[0] for p in V4["뿔 정면"] if p[1] <= zb_]; w = max(6.0, (max(bx) - min(bx)) / 2) * 1.3
+        by = [p[0] for p in SH if p[1] <= zb_ + 0.2 * (z1 - z0)]; yf_, yb_ = min(by), max(by)
+        top = max(V4["뿔 정면"], key=lambda p: p[1]); ty = min(SH, key=lambda p: -p[1])[0]
+        base = [Vector(0, yf_, z0), Vector(w, (yf_ + yb_) / 2, z0), Vector(0, yb_, z0), Vector(-w, (yf_ + yb_) / 2, z0)]
+        tip = [Vector(top[0] + dx, ty + dy, z1) for dx, dy in ((0, -0.8), (0.8, 0), (0, 0.8), (-0.8, 0))]
+        뿔 = Part.makeLoft([Part.makePolygon(base + [base[0]]), Part.makePolygon(tip + [tip[0]])], True, True)
     부품["horn"] = 뿔
 if VER >= 7:
     eyes = None; walls = None
@@ -75,9 +105,20 @@ if VER >= 7:
         투구 = 투구.cut(프리즘(P, 40, -400))
         cx = sum(p[0] for p in P) / len(P); cz = sum(p[1] for p in P) / len(P)
         r = max(4.0, (0.42 if VER >= 16 else 0.33) * (max(p[0] for p in P) - min(p[0] for p in P)))   # v16: 눈 크게
-        e = Part.makeCylinder(r, 2, Vector(cx, 0, cz), Vector(0, -1, 0)); eyes = e if eyes is None else eyes.fuse(e)
-        ring = 프리즘(P, 1, -17.2).cut(프리즘(오프(P, -1.2), 1, -17.2)); walls = ring if walls is None else walls.fuse(ring)
-        back = 프리즘(P, 3, 1); walls = walls.fuse(back)
+        if VER >= 24:   # v24: 눈이 창 안 깊이 0(겉에서 약 80 뒤)이라 가려 안 보임 → 창 입구 = 그 자리 몸 겉(광선) · 눈 = 입구 + 17.2(잰 창 깊이)
+            hit = Part.LineSegment(Vector(cx, -400, cz), Vector(cx, 400, cz)).toShape().common(겉)
+            s0 = min(v.Y for v in hit.Vertexes) if hit.Vertexes else -40.0
+        else:
+            s0 = -17.2
+        if VER >= 25:   # v25: 눈알이 창을 꽉 채움 → 원화처럼 검은 창 안 둥근 눈: 반지름 = 창 높이의 0.32 · 납작 원판 대신 앞으로 볼록한 반구(깊이 반지름 × 0.6)
+            r = max(3.0, 0.32 * (max(p[1] for p in P) - min(p[1] for p in P)))
+            e = Part.makeSphere(r, Vector(cx, s0 + 17.2, cz)); m_ = App.Matrix(); m_.scale(1, 0.6, 1); e = e.transformGeometry(m_) if False else e
+            e = e.common(Part.makeBox(4 * r, 2 * r, 4 * r, Vector(cx - 2 * r, s0 + 17.2 - 2 * r, cz - 2 * r)))
+        else:
+            e = Part.makeCylinder(r, 2, Vector(cx, s0 + 17.2, cz), Vector(0, -1, 0))
+        eyes = e if eyes is None else eyes.fuse(e)
+        ring = 프리즘(P, s0 + 18.2, s0).cut(프리즘(오프(P, -1.2), s0 + 18.2, s0)); walls = ring if walls is None else walls.fuse(ring)
+        back = 프리즘(P, s0 + 20.2, s0 + 18.2); walls = walls.fuse(back)
     부품["eye"] = eyes; 부품["socket"] = walls
 if VER >= 8:
     ants = None
@@ -88,7 +129,9 @@ if VER >= 8:
 if VER >= 9:
     L4 = 층(6.0 if VER >= 22 else 4.0); 볼 = None
     for P in V4["볼날개"]:
-        p = 프리즘(P, E["y0"], -400).common(L4); 볼 = p if 볼 is None else 볼.fuse(p)
+        p = 프리즘(P, (-10.0 if VER >= 27 else E["y0"]), -400).common(L4); 볼 = p if 볼 is None else 볼.fuse(p)   # v27: 볼날개 프리즘이 머리 뒤까지 가 옆을 띠로 휘감음 → 눈 깊이 앞(−10)까지만
+    if VER >= 29:   # v29: 볼날개가 얼굴 구멍(눈 · 마스크 자리) 앞을 덮음 → 얼굴 구멍 프리즘을 빼 옆 날개만
+        for FP in V["얼굴 구멍"]: 볼 = 볼.cut(프리즘(오프(FP, -3.0), 40, -400))
     부품["cheek"] = 볼
 if VER >= 10:
     L08 = 층(0.8); 번 = None
