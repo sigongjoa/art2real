@@ -48,8 +48,22 @@ def 윤곽2(m, u0, eps=2.0):
     cs, _ = cv2.findContours(m, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE); cn = max(cs, key=cv2.contourArea)
     return [[float(p[0] - u0), float(-p[1])] for p in cv2.approxPolyDP(cn, eps, True).reshape(-1, 2)]
 # 돔 단면: 위 반은 돔 — 앞뒤 축 5 단면(y), 각 단면 = 그 깊이에서 정면 윤곽 위쪽을 높이 비율로 줄인 다각형(꼭짓점 9 개 고정)
-값 = {"정면 몸": 윤곽2(정몸, xa), "옆 몸": 윤곽2(옆몸, -D0 * 0 + 0) if False else [[float(p[0] + D0), float(-p[1])] for p in cv2.approxPolyDP(max(cv2.findContours(옆몸, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[0], key=cv2.contourArea), 2.0, True).reshape(-1, 2)],
+# v3: ① 몸 윤곽 eps 2 → 4(짧은 계단 변 없앰) · 꼭대기 = 옆 돔 칸 맨 위(뿔 · 안테나 뿌리 돌기 자름)
+돔위 = min(r for r in range(H) if 돔칸[r].any()); 정몸[:돔위] = 0; 옆몸[:돔위] = 0
+# ② 마스크 판 셋: 정면 칸 묶음 윤곽(대칭 평균) · 앞 끝 = 옆 마스크 칸 그 판 행 범위 가장 앞 · 판 행 범위
+판정의 = [("코판", [30, 33, 34, 37], [5, 12]), ("미늘2", [36, 38, 39, 41], [14, 15, 16, 19]), ("턱판", [40, 42], [20])]
+판들 = []
+for nm, fc, sc in 판정의:
+    mk = cv2.morphologyEx(칸(fc) & m1.astype(np.uint8), cv2.MORPH_CLOSE, np.ones((7, 7), np.uint8))
+    mk = mk | mk[:, ::-1][:, :] if False else mk
+    ys_, xs_ = np.nonzero(mk)
+    if not len(ys_): continue
+    r0, r1 = int(ys_.min()), int(ys_.max()); hw_ = float(max(xa - xs_.min(), xs_.max() - xa))
+    sm = cv2.dilate(np.isin(C2, sc).astype(np.uint8), np.ones((3, 3), np.uint8)); rr = [r for r in range(r0, r1 + 1) if sm[r].any()]
+    tip = float(min(np.nonzero(sm[r])[0].min() for r in rr) + D0) if rr else -60.0
+    판들.append({"이름": nm, "윤곽": 윤곽(mk, 2.0)[0] if 윤곽(mk, 2.0) else [], "위": float(-r0), "아래": float(-r1), "반폭": hw_, "앞 끝": tip})
+값 = {"마스크 판": 판들, "정면 몸": 윤곽2(정몸, xa, 4.0), "옆 몸": 윤곽2(옆몸, -D0 * 0 + 0) if False else [[float(p[0] + D0), float(-p[1])] for p in cv2.approxPolyDP(max(cv2.findContours(옆몸, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)[0], key=cv2.contourArea), 4.0, True).reshape(-1, 2)],
       "E": {"a": float(a), "c": float(c), "zc": float(-zc), "y0": float(y0), "f": float(f)}, "껍질": 1.8, "턱 z": float(-턱),
      "얼굴 구멍": 윤곽(얼굴, 2.0), "차양 오른쪽": 윤곽(칸([14, 16]) & m1.astype(np.uint8), 1.5, True), "차양 두께": 6.0}
-json.dump(값, open(os.path.join(O, "값_v1.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+json.dump(값, open(os.path.join(O, "값_v3.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 print({k: (v if not isinstance(v, list) else f"{len(v)} 윤곽 · {[len(p) for p in v]} 점") for k, v in 값.items()})
