@@ -40,7 +40,7 @@ for 이름, (fc, sc_, col) in 판정의.items():
     앞칸 = 행표(np.isin(C2, sc_), True); 능깊 = [찾기(앞칸, r) for r in 능선[:, 1]]
     V2 = np.r_[sym, 능선]; 깊이 = np.r_[윤곽깊이, 능깊]
     for (Vp, dp, _, _) in 점그림:   # 이음: 위 판 꼭짓점 2.5 화소 안이면 그 자리 · 깊이로
-        for i in range(len(V2)):
+        for i in range(len(sym)):   # v4: 능선 점은 이음에서 뺀다(v3 턱판 능선이 미늘2 윤곽 −21 로 끌려 주름)
             dist = np.hypot(*(Vp - V2[i]).T); j = int(np.argmin(dist))
             if dist[j] < 5.0: V2[i] = Vp[j]; 깊이[i] = dp[j]
     tri = Delaunay(V2); inside = [t for t in tri.simplices if cv2.pointPolygonTest(sym.astype(np.float32), tuple(V2[t].mean(0)), False) >= 0 or mk[int(V2[t].mean(0)[1]), int(V2[t].mean(0)[0])]]
@@ -50,8 +50,8 @@ for 이름, (fc, sc_, col) in 판정의.items():
     목록[이름] = {"꼭짓점": len(V2), "면": len(inside), "윤곽 깊이 범위": [round(float(윤곽깊이.min()), 1), round(float(윤곽깊이.max()), 1)], "능선 깊이": [round(float(x), 1) for x in 깊이[len(sym):]]}
     점그림.append((V2, 깊이, len(sym), col))
 창 = trimesh.load(os.path.join(B, "창모듈2.ply"), process=False); allm = trimesh.util.concatenate([창] + meshes)
-trimesh.Trimesh(allm.vertices, allm.faces, vertex_colors=allm.visual.vertex_colors, process=False).export(os.path.join(B, "저폴리부리3.ply"), encoding="ascii")
-json.dump(목록, open(os.path.join(B, "저폴리부리3.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1); print(목록)
+trimesh.Trimesh(allm.vertices, allm.faces, vertex_colors=allm.visual.vertex_colors, process=False).export(os.path.join(B, "저폴리부리4.ply"), encoding="ascii")
+json.dump(목록, open(os.path.join(B, "저폴리부리4.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1); print(목록)
 # 꼭짓점 목록 그림(정면 · 옆)
 from PIL import Image, ImageDraw, ImageFont
 F = ImageFont.truetype("C:/Windows/Fonts/malgunbd.ttf", 16); Kz = 4; 색표 = [(255, 80, 80), (80, 220, 120), (90, 160, 255)]
@@ -65,4 +65,4 @@ for (V2, 깊이, ns, _), c_ in zip(점그림, 색표):
 b = b.crop((0, 120, 720, 600))
 out = Image.new("RGB", (a.width + b.width + 20, max(a.height, b.height) + 50), "white"); out.paste(a, (0, 0)); out.paste(b, (a.width + 20, 0))
 ImageDraw.Draw(out).text((8, max(a.height, b.height) + 10), "빨강 코판 · 초록 미늘2 · 파랑 턱판 — 큰 점 = 능선(옆 단면) · 작은 점 = 윤곽(코판 = 창 입구 · 아래 둘 = 옆 칸 뒤 끝) · 오른쪽 = 같은 점을 옆 원화 위에", font=F, fill="black")
-out.save(os.path.join(B, "저폴리부리3_목록.png"))
+out.save(os.path.join(B, "저폴리부리4_목록.png"))
