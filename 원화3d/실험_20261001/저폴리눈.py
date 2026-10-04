@@ -20,7 +20,7 @@ wall_v = 창.vertices; 벽깊이 = lambda x, y: float(wall_v[np.argmin((wall_v[:
 def 다각(mask, eps):
     cs, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE); return cv2.approxPolyDP(max(cs, key=cv2.contourArea), eps, True).reshape(-1, 2).astype(float)
 def 안쪽(poly, pts): return np.array([cv2.pointPolygonTest(poly.astype(np.float32), (float(p[0]), float(p[1])), False) >= 0 for p in pts])
-지울 = np.zeros(len(base.faces), bool); parts = []; 기록 = {}
+지울 = np.zeros(len(base.faces), bool); parts = []; 기록 = {}; 앞윤곽 = {}
 for side in ("왼", "오른"):
     ex, ey = [int(v) for v in P0[f"눈/{side}"]]; 반 = (px < xa - 3) if ex < xa else (px > xa + 3)
     n_, lab = cv2.connectedComponents((Lum < 45).astype(np.uint8)); ys_, xs_ = np.nonzero(lab > 0); j = np.argmin((xs_ - ex) ** 2 + (ys_ - ey) ** 2)
@@ -57,8 +57,12 @@ for side in ("왼", "오른"):
     bad = e_.face_normals[:, 1] > 0; e_.faces[bad] = e_.faces[bad][:, ::-1]
     cc = rgb[np.clip(V[:, 1].round().astype(int), 0, H - 1), np.clip(V[:, 0].round().astype(int), 0, W - 1)]
     e_.visual.vertex_colors = np.c_[cc, np.full(len(V), 255)].astype(np.uint8); parts.append(e_)
-    기록[side] = {"앞 윤곽 꼭짓점": len(Po), "안 윤곽 꼭짓점": len(Pi), "앞 윤곽 깊이": [round(float(do.min()), 1), round(float(do.max()), 1)], "눈알 반지름": round(R, 1)}
+    앞윤곽[side] = Po.tolist(); 기록[side] = {"앞 윤곽 꼭짓점": len(Po), "안 윤곽 꼭짓점": len(Pi), "앞 윤곽 깊이": [round(float(do.min()), 1), round(float(do.max()), 1)], "눈알 반지름": round(R, 1)}
 keep = base.copy(); keep.update_faces(~지울); keep.remove_unreferenced_vertices()
 allm = trimesh.util.concatenate([keep] + parts)
 trimesh.Trimesh(allm.vertices, allm.faces, vertex_colors=allm.visual.vertex_colors, process=False).export(os.path.join(B, "저폴리눈.ply"), encoding="ascii")
 print(기록, {"지운 면": int(지울.sum())})
+# 저폴리머리.py 용: 창 모듈 벽을 통째로 뺀 판(부리 + 눈) · 앞 윤곽
+지울[:f0] = True; k2 = base.copy(); k2.update_faces(~지울); k2.remove_unreferenced_vertices(); a2 = trimesh.util.concatenate([k2] + parts)
+trimesh.Trimesh(a2.vertices, a2.faces, vertex_colors=a2.visual.vertex_colors, process=False).export(os.path.join(B, "저폴리눈_벽없음.ply"), encoding="ascii")
+json.dump(앞윤곽, open(os.path.join(B, "저폴리눈_앞윤곽.json"), "w", encoding="utf-8"))
