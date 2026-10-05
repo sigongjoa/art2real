@@ -5,7 +5,7 @@ python 눈창파기.py <입력 판> <출력 판> <배율> <깊이>
   눈 창 윤곽 = 원화 정면에서 잰 왼 창(자료/cad_눈창.json · 축 A 틀) → TripoSG 틀은 x + 22(정렬 틀 원점 = 마스크 가운데 열 121, 축 A = 143)
   오른 창 = 축 A(TripoSG 틀 x = 22) 거울 · 창 가운데 기준 배율 · 앞 겉(창 가운데 광선)에서 깊이만큼 파냄
   창 안 면 = 검정(도색 자리) · 창 바닥에 파란 눈알(반지름 = 창 높이 × 0.32)"""
-import sys, json, numpy as np, trimesh
+import sys, os, json, numpy as np, trimesh
 from shapely.geometry import Polygon
 from matplotlib.path import Path
 B = "G:/art2real/원화3d/out/오메가몬2/블렌더/"
@@ -30,7 +30,7 @@ for P in wins:
     pr.apply_transform(trimesh.transformations.rotation_matrix(np.pi / 2, [1, 0, 0])); pr.apply_translation([0, -800 - 0 + (800 + yf + DP), 0])
     pr.vertices[:, 1] = np.where(pr.vertices[:, 1] > yf + DP - 1e-6, yf + DP, -800.0)   # 앞(−800) ~ 바닥(yf + 깊이)
     prisms.append((Path(P), yf, DP))
-    h = P[:, 1].max() - P[:, 1].min(); r_ = 0.24 * h; e = trimesh.creation.icosphere(3, radius=r_); e.apply_translation([c[0], yf + DP - 0.5 * r_, c[1]]); eyes.append(e)   # 눈알 앞이 겉보다 뒤(창 안)
+    h = P[:, 1].max() - P[:, 1].min(); r_ = min(float(os.environ.get("EYE_R", "0.24")) * h, 0.45 * DP); e = trimesh.creation.icosphere(3, radius=r_); e.apply_translation([c[0], yf + DP - 0.2 * r_, c[1]])   # 눈알이 창 밖으로 튀어나오지 않게(D · E 실패): 반지름 ≤ 깊이 0.45 · 바닥에 붙임; eyes.append(e)   # 눈알 앞이 겉보다 뒤(창 안)
     m = trimesh.boolean.difference([m, pr], engine="manifold")
 print("파낸 뒤 닫힘", m.is_watertight, len(m.faces))
 fc = np.tile([228, 232, 240, 255], (len(m.faces), 1)); cen = m.triangles_center
