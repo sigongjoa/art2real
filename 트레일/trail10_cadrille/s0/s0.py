@@ -25,8 +25,11 @@ def item_pc(m):
     v, _ = trimesh.sample.sample_surface(m, 8192); return {"point_cloud": ((fps(v, 256) - 0.5) * 2).astype(np.float32), "description": "Generate cadquery code"}
 
 def item_img(m):
-    from render import render   # open3d 창 렌더는 이 PC 에서 세그폴트
-    ims = [ImageOps.expand(render(np.asarray(m.vertices), np.asarray(m.faces), f), border=3, fill="black") for f in [[1, 1, 1], [-1, -1, -1], [-1, 1, -1], [1, -1, 1]]]
+    import open3d   # 0.18 은 이 PC 에서 세그폴트 · 0.19 는 됨 → 학습 때와 같은 open3d 렌더
+    from dataset import mesh_to_image
+    o = open3d.geometry.TriangleMesh(); o.vertices = open3d.utility.Vector3dVector(np.asarray(m.vertices)); o.triangles = open3d.utility.Vector3iVector(np.asarray(m.faces))
+    o.paint_uniform_color(np.array([255, 255, 136]) / 255.0); o.compute_vertex_normals()
+    ims = [ImageOps.expand(mesh_to_image(o, camera_distance=-0.9, front=f, img_size=128), border=3, fill="black") for f in [[1, 1, 1], [-1, -1, -1], [-1, 1, -1], [1, -1, 1]]]
     a = [np.array(i) for i in ims]; g = Image.fromarray(np.vstack((np.hstack((a[0], a[1])), np.hstack((a[2], a[3])))))
     return {"video": [g], "description": "Generate cadquery code"}, g
 
