@@ -139,6 +139,16 @@ for i, P in enumerate(V["마스크 판"]):
         pl = pl.cut(W2)
     판들.append(pl)
 부품["mask"] = 판들[0].fuse(판들[1:]) if len(판들) > 1 else 판들[0]
+if VER >= 55:   # v55: 미늘 판 층층(옆에서 가로 줄) 대신 원화 옆처럼 코판 → 부리 끝 비스듬한 큰 판 한 장 = 얼굴 구멍 아래 ∩ 옆 쐐기 ∩ 위 V(45°)
+    import math as _m2
+    zE = V4["층 z"]["L5 눈"]; 띠_ = Part.makeBox(800, 800, zE - 300 + 600, Vector(-400, -400, -300 - 2))
+    a_ = None
+    for FP in V["얼굴 구멍"]:
+        q = 프리즘(FP, 30, -200).common(띠_); a_ = q if a_ is None else a_.fuse(q)
+    for EP in V4["눈"]: a_ = a_.cut(프리즘(오프(EP, 1.5), 60, -400))
+    wedge = 면YZ([[-40, zE + 2], [-108, -282], [-100, -302], [10, -302], [10, zE + 2]], -400).extrude(Vector(800, 0, 0))
+    k_ = 1.0; vV = Part.Face(Part.makePolygon([Vector(0, -120, -600), Vector(300, -120 + 300 * k_, -600), Vector(300, 400, -600), Vector(-300, 400, -600), Vector(-300, -120 + 300 * k_, -600), Vector(0, -120, -600)])).extrude(Vector(0, 0, 800))
+    부품["mask"] = a_.common(wedge).common(vV)
 if VER >= 6:
     SH = V4["뿔 옆"]
     if VER >= 14:   # v14: 옆 뿔 높이 범위를 정면 뿔 높이 범위에 끝끼리 맞춤(두 장 원근이 달라 겹침이 작았다)
