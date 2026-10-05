@@ -120,7 +120,7 @@ if VER >= 33:   # v33: 차양 = 화난 눈썹 날개 둘 — 특징점 차양 V(
 판들 = []
 for i, P in enumerate(V["마스크 판"]):
     if len(P["윤곽"]) < 3: continue
-    tip = P["앞 끝"] - ((6.0 if VER >= 18 else 3.0) * i if VER >= 5 else 0); hw = P["반폭"] * 1.05   # v18: 계단 6
+    tip = P["앞 끝"] - (((14.0 if VER >= 54 else 6.0) if VER >= 18 else 3.0) * i if VER >= 5 else 0); hw = P["반폭"] * 1.05   # v18: 계단 6
     a = 프리즘(오프(P["윤곽"], -1.0) if VER >= 19 else P["윤곽"], 5, tip - 2)   # v19: 판 사이 틈 1
     yb = tip + 25.0 if VER >= 31 else 5   # v31: 쐐기 밑을 앞 끝 + 25 로 — 판 앞면이 정면을 보게(뾰족해 옆을 봐 어두웠다)
     W_ = Part.Face(Part.makePolygon([Vector(0, tip, -600), Vector(hw, yb, -600), Vector(-hw, yb, -600), Vector(0, tip, -600)])).extrude(Vector(0, 0, 800))
