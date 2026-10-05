@@ -149,6 +149,13 @@ if VER >= 55:   # v55: 미늘 판 층층(옆에서 가로 줄) 대신 원화 옆
     wedge = 면YZ([[-40, zE + 2], [-108, -282], [-100, -302], [10, -302], [10, zE + 2]], -400).extrude(Vector(800, 0, 0))
     k_ = 1.0; vV = Part.Face(Part.makePolygon([Vector(0, -120, -600), Vector(300, -120 + 300 * k_, -600), Vector(300, 400, -600), Vector(-300, 400, -600), Vector(-300, -120 + 300 * k_, -600), Vector(0, -120, -600)])).extrude(Vector(0, 0, 800))
     부품["mask"] = a_.common(wedge).common(vV)
+    if VER >= 56:   # v56: 원화 정면의 포갠 미늘 줄 → 큰 판 앞면에 V 홈 셋(폭 1.8 · 깊이 1.5 단위 = 0.6 · 0.5 mm) · 높이 = 옛 판 윗변
+        d_ = 1.5; sh_ = lambda f: f.translated(Vector(0, d_, 0))
+        겉층 = 부품["mask"].cut(a_.common(sh_(wedge)).common(sh_(vV)))
+        for zc_ in (-236.0, -248.0, -262.0):
+            hw_ = 60.0; dip = 10.0; w_ = 0.9
+            pg = [[-hw_, zc_ + w_], [0, zc_ - dip + w_], [hw_, zc_ + w_], [hw_, zc_ - w_], [0, zc_ - dip - w_], [-hw_, zc_ - w_]]
+            부품["mask"] = 부품["mask"].cut(프리즘(pg[::-1], 60, -400).common(겉층))
 if VER >= 6:
     SH = V4["뿔 옆"]
     if VER >= 14:   # v14: 옆 뿔 높이 범위를 정면 뿔 높이 범위에 끝끼리 맞춤(두 장 원근이 달라 겹침이 작았다)
