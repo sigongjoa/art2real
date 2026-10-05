@@ -4,3 +4,5 @@ s0/deepcad/
 s0/out/*.stl
 s0/out/_*
 .git/
+runs/*/lora/
+data/*/*.png
