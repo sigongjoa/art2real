@@ -7,6 +7,7 @@ import os, sys, numpy as np
 S=r"C:\Users\zesky\AppData\Local\Temp\claude\G--art2real\7cb277a7-139e-42d2-8434-a71e5084b8ad\scratchpad"
 O=r"G:\art2real\원화3d\out\오메가몬2\지표\트리포분할"; os.makedirs(O,exist_ok=True)
 PF=r"G:\art2real\트레일\trail9_partfield"
+IN=os.environ.get("IN",""); TAG=os.environ.get("TAG","")   # 10-05: 입력 ply · 출력 이름 앞붙이
 def 특징():
     import types, torch, trimesh
     sys.path[:0]=[os.path.join(PF,"shim"),os.path.join(PF,"PartField")]
@@ -18,11 +19,14 @@ def 특징():
     from partfield.model.PVCNN.encoder_pc import sample_triplane_feat
     cfg=setup(types.SimpleNamespace(config_file=os.path.join(PF,"PartField","configs","final","demo.yaml"),opts=[]),freeze=False); net=Model(cfg)
     sd=torch.load(os.path.join(PF,"model","model_objaverse.ckpt"),map_location="cpu",weights_only=False)["state_dict"]; print("가중치",net.load_state_dict(sd,strict=False)); net=net.cuda().eval()
-    m=trimesh.load(os.path.join(S,"cut","h_units.obj"),process=True)
-    try: m=m.simplify_quadric_decimation(face_count=120000)
-    except Exception as e: print("줄임 실패",e)
-    m.export(os.path.join(O,"머리_줄임.obj")); print("면",len(m.faces))
-    V=np.asarray(m.vertices,np.float64); V=np.c_[V[:,0],-V[:,1],V[:,2]]          # (x, y아래, z앞) → y 위
+    if IN:   # 10-05: 우리 틀(z 위 · 앞 −y) ply 를 그대로 — PartField 는 y 위 · z 앞
+        m=trimesh.load(IN,process=True); V=np.asarray(m.vertices,np.float64); V=np.c_[V[:,0],V[:,2],-V[:,1]]
+    else:
+        m=trimesh.load(os.path.join(S,"cut","h_units.obj"),process=True)
+        try: m=m.simplify_quadric_decimation(face_count=120000)
+        except Exception as e: print("줄임 실패",e)
+        m.export(os.path.join(O,"머리_줄임.obj")); V=np.asarray(m.vertices,np.float64); V=np.c_[V[:,0],-V[:,1],V[:,2]]          # (x, y아래, z앞) → y 위
+    print("면",len(m.faces))
     c=(V.min(0)+V.max(0))/2; V=(V-c)*(2*0.9/(V.max(0)-V.min(0)).max())
     torch.manual_seed(0); np.random.seed(0); m2=trimesh.Trimesh(V,m.faces,process=False)
     pc,_=trimesh.sample.sample_surface(m2,100000,seed=0); pc=torch.tensor(pc,dtype=torch.float32,device="cuda")[None]
@@ -32,7 +36,7 @@ def 특징():
             f=Ft[s:s+4000]; u=torch.rand(len(f),k,1,device="cuda").sqrt(); v=torch.rand(len(f),k,1,device="cuda")
             p=(1-u)*Vt[f[:,0]][:,None]+u*(1-v)*Vt[f[:,1]][:,None]+u*v*Vt[f[:,2]][:,None]
             out.append(sample_triplane_feat(part,p.reshape(1,-1,3)).reshape(len(f),k,-1).mean(1).float().cpu())
-    F=torch.cat(out).numpy(); np.save(os.path.join(O,"면특징.npy"),F.astype(np.float32)); print("면 특징",F.shape)
+    F=torch.cat(out).numpy(); np.save(os.path.join(O,TAG+"면특징.npy"),F.astype(np.float32)); print("면 특징",F.shape)
 def 가르기(ns):
     """147만 면 → (특징 + 위치) MiniBatchKMeans 400 조각 → 조각 인접 그래프 위 ward 군집 n 부품."""
     import trimesh, scipy.sparse as sp, json
