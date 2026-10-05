@@ -61,8 +61,12 @@ def 비용(x, 자세=False):
     sm = (((th[nbl[:, 0]] - th[nbl[:, 1]]) ** 2).sum(1) * nbw).mean()
     pr = (th[:, :3] ** 2).sum() * 100 + (th[:, 3:6] ** 2).sum() * 0.05 + (th[:, 6] ** 2).sum() * (400 if VW else 100)   # F2: 부위 배율은 더 아낌(전체가 맡음)
     sv = sum(옆비용(pts, w) for w in VW) if VW else 0.0
-    tot = out + cov + WE * eg + WS * sm + WP * pr + WV * sv
-    return (tot, dict(밖=out, 덮음=cov, 경계=eg, 매끈=sm, 적게=pr, 옆34=sv)) if 자세 else tot
+    rl = 0.0
+    if 앞면 is not None:   # F3 부조 항: 앞을 보는 표본의 깊이가 정면 껍질 깊이(+ 어긋남)에 붙게
+        Q = np.vstack([변환(th, i, V[앞면[i]]) for i in range(K) if len(앞면[i])]); dd = 깊이(Q[:, 0], Q[:, 2]); k_ = ~np.isnan(dd)
+        rl = (np.minimum(np.abs(Q[k_, 1] - dd[k_] - OFF), 25) ** 2).mean()
+    tot = out + cov + WE * eg + WS * sm + WP * pr + WV * sv + WR * rl
+    return (tot, dict(밖=out, 덮음=cov, 경계=eg, 매끈=sm, 적게=pr, 옆34=sv, 부조=rl)) if 자세 else tot
 # F2: 옆 · 3/4 — 렌더와 같은 yaw(옆 80 · 3/4 35, 피치 10) 투영 → 원화 마스크 높이 · 위치에 맞춰(모양만) 밖 · 덮음
 VW = []
 for k, yaw, pit in ((2, 80, 0), (3, 35, 10)):
@@ -97,6 +101,20 @@ import os
 g = np.zeros(7) if os.environ.get("NOGLOBAL") else minimize(정면만, np.zeros(7), method="Powell", options=dict(maxiter=4000)).x   # F2b: 전체 정렬이 정면 밖으로 넘치게 키워(밖 53 → 82) 끄고 비교
 print("전체", np.degrees(np.linalg.norm(g[:3])).round(1), g[3:6].round(1), round(float(np.exp(g[6])), 3))
 V = 전체(g, V); cen = np.array([V[np.unique(m.faces[L == i])].mean(0) for i in range(K)])
+# F3: 정면 껍질(원화 한 장의 부조) → 앞에서 본 깊이 지도 · 우리 x = 3.009·껍질 x − 121 · z = 3.009·껍질 z · y = 3.009·껍질 y + 어긋남(중앙값)
+WR = float(os.environ.get("WR", "0")); 앞면 = None
+if WR > 0:
+    sh = trimesh.load(A + "판_1.ply", process=False); sv_ = sh.vertices * 3.009; sv_[:, 0] -= 121.0
+    sh = trimesh.Trimesh(sv_, sh.faces, process=False)
+    gx, gz = np.meshgrid(np.arange(-121, 123), -np.arange(0, 301)); og = np.c_[gx.ravel(), np.full(gx.size, -800.0), gz.ravel()]
+    loc, ri, _ = sh.ray.intersects_location(og, np.tile([0, 1.0, 0], (len(og), 1)), multiple_hits=False)
+    DM = np.full(gx.size, np.nan); DM[ri] = loc[:, 1]; DM = DM.reshape(gx.shape)
+    def 깊이(x, z):
+        c = np.clip(np.round(x + 121).astype(int), 0, DM.shape[1] - 1); r = np.clip(np.round(-z).astype(int), 0, DM.shape[0] - 1); return DM[r, c]
+    vn = trimesh.Trimesh(V, m.faces, process=False).vertex_normals
+    앞면 = [S[i][vn[S[i], 1] < -0.3] for i in range(K)]
+    P0 = np.vstack([V[a] for a in 앞면]); d0 = 깊이(P0[:, 0], P0[:, 2]); ok = ~np.isnan(d0)
+    OFF = np.median(P0[ok, 1] - d0[ok]); print("부조 표본", ok.sum(), "어긋남", round(OFF, 1), "처음 부조 차 중앙", round(np.median(np.abs(P0[ok, 1] - d0[ok] - OFF)), 1))
 x0 = np.zeros(K * 7); print("시작", {k: round(v, 2) for k, v in 비용(x0, True)[1].items()})
 res = minimize(비용, x0, method="L-BFGS-B", options=dict(maxiter=300, maxfun=60000, eps=1e-3, ftol=1e-12, gtol=1e-8))   # F2: 화소 반올림이라 기본 간격(1e-8)이면 기울기 0
 th = res.x.reshape(K, 7); print("끝", res.nit, {k: round(v, 2) for k, v in 비용(res.x, True)[1].items()})
