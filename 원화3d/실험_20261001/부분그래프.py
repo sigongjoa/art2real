@@ -36,6 +36,7 @@ def 이름(d):
     return "옆 · 뒤"
 for d in nodes: d["이름"] = 이름(d)
 G = {"판": nm, "n": n, "노드": nodes, "간선": [{"a": a, "b": b, "경계": round(l, 1)} for (a, b), l in sorted(E.items())]}
+np.save(O + f"{nm}_라벨{n}.npy", lab.astype(np.int16))   # 10-05: 부위 맞춤이 쓴다
 json.dump(G, open(O + f"{nm}_그래프{n}.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 import colorsys
 pal = (np.array([colorsys.hsv_to_rgb(i / n, 0.65, 0.95) for i in range(n)]) * 255).astype(np.uint8)
