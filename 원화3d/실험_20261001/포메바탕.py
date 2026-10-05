@@ -29,7 +29,7 @@ if ST >= 2:
     W = np.array(json.load(open("G:/art2real/원화3d/실험_20261001/자료/cad_눈창.json", encoding="utf-8"))["왼"])
     DP = float(os.environ.get("DEPTH", "18")); prisms = []
     for Q in (W, np.c_[-W[:, 0], W[:, 1]][::-1]):
-        c = Q.mean(0)
+        c = Q.mean(0); Q = (Q - c) * float(os.environ.get("EYESC", "1.0")) + c   # P5: 원화 정면은 눈 창 하나가 머리 폭의 약 1/4
         hit = m.ray.intersects_location([[c[0], -800, c[1]]], [[0, 1, 0]], multiple_hits=False)[0]
         yf = hit[0, 1] if len(hit) else -80.0
         pr = trimesh.creation.extrude_polygon(Polygon(Q).buffer(0), 1.0); pr.apply_transform(trimesh.transformations.rotation_matrix(np.pi / 2, [1, 0, 0]))
@@ -37,11 +37,23 @@ if ST >= 2:
         m = trimesh.boolean.difference([m, pr], engine="manifold"); prisms.append((Path(Q), yf))
         h = np.ptp(Q[:, 1]); r = min(0.3 * h, 0.45 * DP); e = trimesh.creation.icosphere(3, radius=r); e.apply_translation([c[0], yf + DP - 0.3 * r, c[1]]); extra.append(e)
     fc = np.tile([228, 232, 240, 255], (len(m.faces), 1)); cen = m.triangles_center
-    for pth, yf in prisms: fc[pth.contains_points(cen[:, [0, 2]], radius=0.5) & (cen[:, 1] > yf - 1)] = [20, 20, 26, 255]
+    for pth, yf in prisms: fc[pth.contains_points(cen[:, [0, 2]], radius=0.5) & (cen[:, 1] > yf - 1) & (cen[:, 1] < yf + DP + 1)] = [20, 20, 26, 255]
     print("P2 눈 창 깊이", DP, "닫힘", m.is_watertight)
+if ST >= 4:   # P4: 뿔 → 코판 — 원화는 뿔 밑동이 눈 사이로 내려와 V 능선(코판)이 된다 · P3 는 뿔이 돔 위 막대로 끝남
+    hb = m.vertices[(m.vertices[:, 2] > -125) & (m.vertices[:, 2] < -105) & (np.abs(m.vertices[:, 0]) < 40)]
+    w = np.ptp(hb[:, 0]) / 2 if len(hb) else 18.0; zt, zb = -112.0, float(os.environ.get("KEELZ", "-212"))
+    def fy(x, z):
+        h = m.ray.intersects_location([[x, -800, z]], [[0, 1, 0]], multiple_hits=False)[0]; return h[0, 1] if len(h) else -80.0
+    yt, yb = fy(0, zt), fy(0, zb); ridge = float(os.environ.get("RIDGE", "10"))
+    pts = [[-w, yt + 2, zt], [w, yt + 2, zt], [0, yt - ridge, zt], [0, yb - ridge * 0.6, zb], [-3, yb + 2, zb + 4], [3, yb + 2, zb + 4],
+           [-w, yt + 30, zt], [w, yt + 30, zt], [0, yb + 25, zb]]
+    keel = trimesh.convex.convex_hull(np.array(pts)); m = trimesh.boolean.union([m, keel], engine="manifold"); print("P4 코판 폭", round(2 * w, 1), "위 y", round(yt, 1), "아래 y", round(yb, 1), "닫힘", m.is_watertight)
+    fc = np.tile([228, 232, 240, 255], (len(m.faces), 1)); cen = m.triangles_center
+    if ST >= 2:
+        for pth, yf in prisms: fc[pth.contains_points(cen[:, [0, 2]], radius=0.5) & (cen[:, 1] > yf - 1) & (cen[:, 1] < yf + DP + 1)] = [20, 20, 26, 255]
 mm = trimesh.Trimesh(m.vertices, m.faces, face_colors=fc, process=False)
 parts = [mm] + [trimesh.Trimesh(e.vertices, e.faces, face_colors=np.tile([140, 215, 250, 255], (len(e.faces), 1)), process=False) for e in extra]
-out = trimesh.util.concatenate(parts); vc = np.zeros((len(out.vertices), 4), np.uint8)
+out = trimesh.util.concatenate(parts); out.unmerge_vertices(); vc = np.zeros((len(out.vertices), 4), np.uint8)
 for f, c_ in zip(out.faces, out.visual.face_colors): vc[f] = c_
 trimesh.Trimesh(out.vertices, out.faces, vertex_colors=vc, process=False).export(B + nm + ".ply", encoding="ascii")
 m.export(B + nm + "_몸.stl")
