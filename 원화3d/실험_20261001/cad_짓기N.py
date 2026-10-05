@@ -66,7 +66,14 @@ def 몸(d=0.0):
         body = 앞.fuse(뒤).common(면YZ(S, -400).extrude(Vector(800, 0, 0)))
     xs = [p[0] for p in F]; ys = [p[0] for p in S]; x0, x1, y0, y1 = min(xs), max(xs), min(ys), max(ys); cx, cy = (x0 + x1) / 2, (y0 + y1) / 2; hx, hy = (x1 - x0) / 2, (y1 - y0) / 2; k = 0.3
     oc = [(cx - hx, cy - hy * (1 - k)), (cx - hx * (1 - k), cy - hy), (cx + hx * (1 - k), cy - hy), (cx + hx, cy - hy * (1 - k)), (cx + hx, cy + hy * (1 - k)), (cx + hx * (1 - k), cy + hy), (cx - hx * (1 - k), cy + hy), (cx - hx, cy + hy * (1 - k))]
-    body = body.common(Part.Face(Part.makePolygon([Vector(x, y, -600) for x, y in oc] + [Vector(oc[0][0], oc[0][1], -600)])).extrude(Vector(0, 0, 800)))
+    if VER >= 61:   # v61: TripoSG 대조 — 돔 단면은 둥글고 폭 ≈ 깊이 · 우리는 둥근 사각 · 깊이 약 1.35 배 → 위에서 본 타원(앞 그대로 · 깊이 75 %)
+        hy2 = hy * (1.0 if VER >= 62 else 0.75); cy2 = (cy - hy) + hy2   # v62: 깊이는 원화 옆 실루엣이 근거 — TripoSG 깊이(정면 한 장 추측)로 줄이니 뒤통수가 잘렸다
+        el = Part.Ellipse(Vector(cx + hx, cy2, -600), Vector(cx, cy2 + hy2, -600), Vector(cx, cy2, -600)) if hx >= hy2 else Part.Ellipse(Vector(cx, cy2 + hy2, -600), Vector(cx + hx, cy2, -600), Vector(cx, cy2, -600))
+        body = body.common(Part.Face(Part.Wire(el.toShape())).extrude(Vector(0, 0, 800)))
+        oc = [(cx + hx * math.cos(t_), cy2 + hy2 * math.sin(t_)) for t_ in [i_ * math.pi / 4 + math.pi / 8 for i_ in range(8)]]
+        hy = hy2; cy = cy2
+    else:
+        body = body.common(Part.Face(Part.makePolygon([Vector(x, y, -600) for x, y in oc] + [Vector(oc[0][0], oc[0][1], -600)])).extrude(Vector(0, 0, 800)))
     if VER >= 15:   # v15: 정수리 = 처마(L6) 위를 팔각 단면 4 장 ruled 로프트 돔으로(평평한 상자 위 대신)
         z6 = V4["층 z"]["L6 처마"]; zt = V4["꼭대기 z"] + 4 - d * 0
         if VER >= 26:   # v26: 돔 밑 팔각이 처마 높이 몸 단면보다 넓어 모자 챙 → 밑 팔각 = 처마 높이 몸 단면의 상자(얇은 판과 교집합)
