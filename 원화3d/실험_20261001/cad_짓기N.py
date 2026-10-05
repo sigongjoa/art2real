@@ -180,6 +180,18 @@ if VER >= 6:
         뿔 = Part.Solid(Part.Shell([tri(Tp, Fp, Lp), tri(Tp, Lp, Bp), tri(Tp, Bp, Rp), tri(Tp, Rp, Fp), tri(Fp, Bp, Lp), tri(Fp, Rp, Bp)]))
         if 뿔.Volume < 0: 뿔.reverse()
         print("horn45", round(yF), round(yB), round(ty), round(z1), round(w))
+        if VER >= 58:   # v58 · v59(두 판): 패널 「뿔 · 차양 · 코판이 이어진 앞 판」 — 뿔 앞 밑동에서 코판 끝까지 V 능선 판(아래 꼭짓점 피라미드) · v59 는 밑동 1.4 배 · 더 아래로
+            SC_ = 2.2 if VER >= 60 else (1.4 if VER == 59 else 1.0)   # v60: 원화 뿔 밑동 = 이마 머리 폭의 약 35 % (우리 14 %)
+            wk = w * SC_; zbk = -245.0 if VER >= 59 else -230.0
+            def 앞y(z):
+                h_ = Part.LineSegment(Vector(0, -400, z), Vector(0, 400, z)).toShape().common(겉); return min(v.Y for v in h_.Vertexes)
+            pr_ = 8.0 if VER >= 60 else 2.0
+            zt_ = Fp.z; yt_ = min(Fp.y, 앞y(zt_)) - pr_; yb_ = 앞y(zbk) - pr_ - 1
+            top = [Vector(-wk, yt_ + wk, zt_), Vector(0, yt_, zt_), Vector(wk, yt_ + wk, zt_), Vector(0, yt_ + wk + 30, zt_)]
+            keel = Part.makeLoft([Part.makePolygon(top + [top[0]]), Part.Vertex(Vector(0, yb_, zbk))], True, True)
+            if VER >= 59:
+                뿔 = 뿔.copy(); m9 = App.Matrix(); m9.scale(SC_, 1, 1); 뿔 = 뿔.transformGeometry(m9)   # 밑동 넓게(x 만)
+            뿔 = 뿔.fuse(keel).removeSplitter(); print("keel", keel.isValid(), round(keel.Volume))
     부품["horn"] = 뿔
 if VER >= 7:
     eyes = None; walls = None
