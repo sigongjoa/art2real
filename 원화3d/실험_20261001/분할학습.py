@@ -11,9 +11,9 @@ python 분할학습.py <학습 개수 | all> <에폭>"""
 import os, sys, glob, json, time, subprocess, numpy as np, torch, torch.nn as nn, torch.nn.functional as Fn
 from scipy.spatial import cKDTree
 from PIL import Image, ImageDraw, ImageFont
-D = "G:/art2real/원화3d/out/레퍼런스/사람분할/_학습/"; NTR = sys.argv[1]; EP = int(sys.argv[2]) if len(sys.argv) > 2 else 30
-O = D + f"run_{NTR}/"; os.makedirs(O + "프레임", exist_ok=True)
-fs = sorted(glob.glob(D + "*.npz")); rng = np.random.default_rng(7); perm = rng.permutation(len(fs))
+D = "G:/art2real/원화3d/out/레퍼런스/사람분할/_학습2/"; NTR = sys.argv[1]; EP = int(sys.argv[2]) if len(sys.argv) > 2 else 30   # 2판: 보이는 겉면 · 이음선 경계 · 경계 비율 30 % 넘는 모델(겹친 변형 부품) 뺌
+O = D + f"run2_{NTR}/"; os.makedirs(O + "프레임", exist_ok=True)
+fs = sorted(f for f in glob.glob(D + "*.npz") if np.load(f)["경계"].mean() <= 0.3); rng = np.random.default_rng(7); perm = rng.permutation(len(fs))
 te = [fs[i] for i in perm[:4]]; trall = [fs[i] for i in perm[4:]]; tr = trall if NTR == "all" else trall[:int(NTR)]
 L = lambda f: dict(np.load(f)); TR = [L(f) for f in tr]; TE = [L(f) for f in te]
 print("학습", [os.path.basename(f) for f in tr]); print("시험", [os.path.basename(f) for f in te])
@@ -51,6 +51,8 @@ def F1(d, pred, tol=2.0):
     gt = d["경계"].astype(bool); P_, G_ = d["xyz"][pred], d["xyz"][gt]
     if len(P_) == 0 or len(G_) == 0: return 0.0
     pr = np.mean(cKDTree(G_).query(P_)[0] < tol); rc = np.mean(cKDTree(P_).query(G_)[0] < tol); return 0 if pr + rc == 0 else 2 * pr * rc / (pr + rc)
+def AP(d, score):
+    y = d["경계"].astype(bool)[np.argsort(-score)]; tp = np.cumsum(y); return float((tp[y] / (np.where(y)[0] + 1)).mean()) if y.any() else 0.0
 def 규칙점수(d, r=2.0):
     t = cKDTree(d["xyz"]); nb = t.query_ball_point(d["xyz"], r); n = d["n"]
     return np.array([1 - np.abs(n[i] @ n[j].T).mean() if len(j) > 1 else 0 for i, j in enumerate(nb)])
@@ -67,8 +69,10 @@ def 그림(d, pred, w=360):
 rs_tr = [규칙점수(d) for d in TR]; ths = np.quantile(np.concatenate(rs_tr), np.linspace(0.5, 0.99, 25))
 best_th = max(ths, key=lambda th: np.mean([F1(d, r > th) for d, r in zip(TR, rs_tr)]))
 규칙F1 = [F1(d, 규칙점수(d) > best_th) for d in TE]; 무작위F1 = [F1(d, np.random.default_rng(1).random(len(d["xyz"])) < pos) for d in TE]
+규칙AP = [AP(d, 규칙점수(d)) for d in TE]; 전부AP = [float(d["경계"].mean()) for d in TE]
+print("대조 AP 규칙", np.round(규칙AP, 3), "전부/무작위", np.round(전부AP, 3))
 print("대조 규칙", np.round(규칙F1, 3), "무작위", np.round(무작위F1, 3))
-기록 = {"학습": [os.path.basename(f) for f in tr], "시험": [os.path.basename(f) for f in te], "규칙F1": 규칙F1, "무작위F1": 무작위F1, "에폭": []}
+기록 = {"학습": [os.path.basename(f) for f in tr], "시험": [os.path.basename(f) for f in te], "규칙F1": 규칙F1, "무작위F1": 무작위F1, "규칙AP": 규칙AP, "전부AP": 전부AP, "에폭": []}
 STEPS = 120
 for ep in range(EP + 1):
     if ep > 0:
@@ -79,13 +83,13 @@ for ep in range(EP + 1):
             loss = Fn.binary_cross_entropy_with_logits(net(x), y, pos_weight=pw); opt.zero_grad(); loss.backward(); opt.step(); tl += float(loss)
     # 문턱은 학습 모델에서
     ptr = [예측(d) for d in TR[:6]]; th = max(np.linspace(0.2, 0.9, 15), key=lambda t: np.mean([F1(d, p > t) for d, p in zip(TR[:6], ptr)]))
-    pte = [예측(d) for d in TE]; f1 = [F1(d, p > th) for d, p in zip(TE, pte)]
-    기록["에폭"].append({"에폭": ep, "손실": tl / STEPS if ep else None, "문턱": float(th), "시험F1": f1, "평균": float(np.mean(f1))})
-    print("에폭", ep, "손실", round(tl / STEPS, 3) if ep else "-", "시험F1", np.round(f1, 3), "평균", round(float(np.mean(f1)), 3), "규칙", round(float(np.mean(규칙F1)), 3), flush=True)
+    pte = [예측(d) for d in TE]; f1 = [F1(d, p > th) for d, p in zip(TE, pte)]; ap = [AP(d, p) for d, p in zip(TE, pte)]
+    기록["에폭"].append({"에폭": ep, "손실": tl / STEPS if ep else None, "문턱": float(th), "시험F1": f1, "평균": float(np.mean(f1)), "시험AP": ap, "AP평균": float(np.mean(ap))})
+    print("에폭", ep, "손실", round(tl / STEPS, 3) if ep else "-", "시험F1", np.round(f1, 3), "평균", round(float(np.mean(f1)), 3), "| AP", np.round(ap, 3), "평균", round(float(np.mean(ap)), 3), "규칙AP", round(float(np.mean(규칙AP)), 3), "전부", round(float(np.mean(전부AP)), 3), flush=True)
     c = Image.new("RGB", (4 * 370 + 10, 470), "white"); dr = ImageDraw.Draw(c)
-    dr.text((10, 8), f"분할 학습 {NTR} 개 · 에폭 {ep}/{EP} · 시험 F1 평균 {np.mean(f1):.2f} (규칙 {np.mean(규칙F1):.2f})", font=F(26), fill=(20, 40, 90))
+    dr.text((10, 8), f"분할 학습 2판 {NTR} 개 · 에폭 {ep}/{EP} · 시험 AP 평균 {np.mean(ap):.2f} (규칙 {np.mean(규칙AP):.2f} · 다 찍기 {np.mean(전부AP):.2f})", font=F(26), fill=(20, 40, 90))
     for i, (d, p) in enumerate(zip(TE, pte)):
-        c.paste(그림(d, p > th), (10 + i * 370, 50)); dr.text((14 + i * 370, 414), f"{기록['시험'][i][:18]}  F1 {f1[i]:.2f}", font=F(18), fill=(40, 40, 40))
+        c.paste(그림(d, p >= np.sort(p)[-max(1, int(d["경계"].sum()))]), (10 + i * 370, 50)); dr.text((14 + i * 370, 414), f"{기록['시험'][i][:16]}  AP {ap[i]:.2f} (규칙 {규칙AP[i]:.2f})", font=F(18), fill=(40, 40, 40))
     dr.text((10, 440), "빨강 = 맞힌 경계 · 주황 = 틀리게 찍음 · 초록 = 놓친 경계(사람이 자른 곳)", font=F(18), fill=(90, 90, 100))
     c.save(O + "프레임/%03d.png" % ep)
 json.dump(기록, open(O + "기록.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
