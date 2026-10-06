@@ -1,0 +1,35 @@
+# -*- coding: utf-8 -*-
+"""채점(trail10 venv · CadQuery 있음): 출력 jsonl 의 코드 실행 → 원본 STL 과 IoU(둘 다 중심 · 긴 변 1 로 맞춤 · 64³). python s/score.py <입력.jsonl> <출력.jsonl> <채점.jsonl>"""
+import sys, json, os, numpy as np, trimesh, tempfile
+from concurrent.futures import ProcessPoolExecutor
+def norm(m):
+    lo, hi = m.bounds; m = m.copy(); m.apply_translation(-(lo + hi) / 2); m.apply_scale(1.0 / (hi - lo).max()); return m
+def one(args):
+    code, stl = args
+    try:
+        import cadquery as cq
+        ns = {"cq": cq, "__name__": "__main__"}; exec(code, ns)
+        obj = ns.get("result") or ns.get("r") or next((v for v in ns.values() if isinstance(v, (cq.Workplane, cq.Shape))), None)
+        p = os.path.join(tempfile.gettempdir(), "z_%d.stl" % os.getpid()); cq.exporters.export(obj, p)
+        a, b = norm(trimesh.load(stl, force="mesh")), norm(trimesh.load(p)); n = 64
+        g = (np.indices((n, n, n)).reshape(3, -1).T + 0.5) / n - 0.5
+        ia = a.contains(g) if a.is_watertight else np.zeros(len(g), bool); ib = b.contains(g) if b.is_watertight else np.zeros(len(g), bool)
+        u = (ia | ib).sum(); return float((ia & ib).sum() / u) if u else 0.0
+    except Exception:
+        return -1.0
+if __name__ == "__main__":
+    IN = {json.loads(l)["이름"]: json.loads(l) for l in open(sys.argv[1], encoding="utf-8")}
+    OUT = [json.loads(l) for l in open(sys.argv[2], encoding="utf-8")]; S = sys.argv[3]
+    done = {json.loads(l)["이름"] for l in open(S, encoding="utf-8")} if os.path.exists(S) else set()
+    pool = ProcessPoolExecutor(1)
+    for o in OUT:
+        if o["이름"] in done: continue
+        ious = []
+        for c in o["코드"]:
+            fu = pool.submit(one, (c, IN[o["이름"]]["stl"]))
+            try: ious.append(round(fu.result(timeout=25), 3))
+            except Exception:
+                ious.append(-2.0)
+                for p in list(pool._processes.values()): p.kill()
+                pool.shutdown(wait=False, cancel_futures=True); pool = ProcessPoolExecutor(1)
+        open(S, "a", encoding="utf-8").write(json.dumps({"이름": o["이름"], "IoU": ious, "최고": max(ious)}, ensure_ascii=False) + "\n"); print(o["이름"][:50], ious, flush=True)
