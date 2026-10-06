@@ -24,6 +24,7 @@ def 읽기(d):
     out = []
     for p in sorted(glob.glob(os.path.join(d, "*.py"))):
         g = p[:-3] + ".png"; code = open(p, encoding="utf-8").read()
+        g = p[:-3] + ("_%s.png" % os.environ.get("IMGSZ", "128")) if os.environ.get("IMGSZ") else g
         if not os.path.exists(g): 그림4(code).save(g)
         out.append({"code": code, "img": Image.open(g).convert("RGB"), "name": os.path.basename(p)[:-3]})
     return out
@@ -37,7 +38,7 @@ if __name__ == "__main__":
     model = Cadrille.from_pretrained(os.path.join(W, "cadrille"), torch_dtype=torch.bfloat16, attn_implementation="sdpa", device_map="cuda")
     proc = AutoProcessor.from_pretrained(os.path.join(W, "qwen2vl2b"), min_pixels=256 * 28 * 28, max_pixels=1280 * 28 * 28, padding_side="left")
     model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False}); model.enable_input_require_grads()
-    model = get_peft_model(model, LoraConfig(r=RANK, lora_alpha=2 * RANK, lora_dropout=0.05, target_modules=["q_proj", "k_proj", "v_proj", "o_proj"]))
+    model = get_peft_model(model, LoraConfig(r=RANK, lora_alpha=2 * RANK, lora_dropout=0.05, target_modules=["q_proj", "k_proj", "v_proj", "o_proj"] + (["qkv", "attn.proj"] if os.environ.get("VISLORA") == "1" else [])))   # run2: 비전 인코더 어텐션에도 LoRA(작은 디테일은 비전 쪽이 바뀌어야 — 조사 10-06)
     n_tr = sum(p.numel() for p in model.parameters() if p.requires_grad); print("학습 매개변수", n_tr)
     opt = torch.optim.AdamW([p for p in model.parameters() if p.requires_grad], lr=1e-4, weight_decay=0.0)
     sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda s: min(1.0, (s + 1) / 20) * 0.5 * (1 + math.cos(math.pi * min(s, STEPS) / STEPS)))
@@ -75,8 +76,12 @@ if __name__ == "__main__":
             d.line(pts, fill=(31, 78, 140), width=3)
         d.text((x0 + 8, y0 + 4), "손실(정답 레시피와 다른 정도)", font=F(20), fill=(31, 78, 140))
         c.save(os.path.join(O, "프레임", "%05d.png" % step)); 기록["시험"].append({"스텝": step, **요약})
+        try: trackio.log({"시험_실행": 요약["ok"], "시험_모따기홈": 요약["새연산"]}, step=step)
+        except Exception: pass
         print("그림", step, 요약, flush=True)
 
+    import trackio   # 스킬 huggingface-trackio — 로컬 대시보드(trackio show)
+    trackio.init(project="art2real-cadrille", name=os.path.basename(O.rstrip("/\\")), config={"IMGSZ": os.environ.get("IMGSZ", "128"), "VISLORA": os.environ.get("VISLORA", "0"), "RANK": RANK, "STEPS": STEPS})
     model.train(); t0 = time.time(); 프레임(0)
     for step in range(1, STEPS + 1):
         t = random.choice(tr)
@@ -84,9 +89,9 @@ if __name__ == "__main__":
         b = {k: (v.cuda() if torch.is_tensor(v) else v) for k, v in b.items()}
         loss = model(**b).loss; loss.backward()
         if step % 4 == 0 or step == STEPS: torch.nn.utils.clip_grad_norm_([p for p in model.parameters() if p.requires_grad], 1.0); opt.step(); sched.step(); opt.zero_grad()
-        기록["스텝"].append(step); 기록["손실"].append(float(loss)); 기록["최대GPU"] = round(torch.cuda.max_memory_allocated() / 1e9, 2)
+        trackio.log({"손실": float(loss)}, step=step); 기록["스텝"].append(step); 기록["손실"].append(float(loss)); 기록["최대GPU"] = round(torch.cuda.max_memory_allocated() / 1e9, 2)
         if step % 10 == 0: print("스텝", step, "손실", round(float(loss), 4), "GPU", 기록["최대GPU"], "초/스텝", round((time.time() - t0) / step, 2), flush=True)
         if step % EVERY == 0 or step == STEPS: 프레임(step)
-    기록["초당스텝"] = round((time.time() - t0) / STEPS, 2)
+    기록["초당스텝"] = round((time.time() - t0) / STEPS, 2); trackio.finish()
     model.save_pretrained(os.path.join(O, "lora")); json.dump(기록, open(os.path.join(O, "기록.json"), "w", encoding="utf-8"), ensure_ascii=False)
     subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-framerate", "2", "-pattern_type", "sequence", "-i", os.path.join(O, "프레임", "%05d.png"), "-vf", "scale=1500:820", "-pix_fmt", "yuv420p", os.path.join(O, "학습과정.mp4")])

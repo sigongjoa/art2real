@@ -29,7 +29,7 @@ def item_img(m):
     from dataset import mesh_to_image
     o = open3d.geometry.TriangleMesh(); o.vertices = open3d.utility.Vector3dVector(np.asarray(m.vertices)); o.triangles = open3d.utility.Vector3iVector(np.asarray(m.faces))
     o.paint_uniform_color(np.array([255, 255, 136]) / 255.0); o.compute_vertex_normals()
-    ims = [ImageOps.expand(mesh_to_image(o, camera_distance=-0.9, front=f, img_size=128), border=3, fill="black") for f in [[1, 1, 1], [-1, -1, -1], [-1, 1, -1], [1, -1, 1]]]
+    ims = [ImageOps.expand(mesh_to_image(o, camera_distance=-0.9, front=f, img_size=int(os.environ.get("IMGSZ", "128"))), border=3, fill="black") for f in [[1, 1, 1], [-1, -1, -1], [-1, 1, -1], [1, -1, 1]]]
     a = [np.array(i) for i in ims]; g = Image.fromarray(np.vstack((np.hstack((a[0], a[1])), np.hstack((a[2], a[3])))))
     return {"video": [g], "description": "Generate cadquery code"}, g
 
