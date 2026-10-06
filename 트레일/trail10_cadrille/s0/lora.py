@@ -24,7 +24,7 @@ def 읽기(d):
     out = []
     for p in sorted(glob.glob(os.path.join(d, "*.py"))):
         g = p[:-3] + ".png"; code = open(p, encoding="utf-8").read()
-        g = p[:-3] + ("_%s.png" % os.environ.get("IMGSZ", "128")) if os.environ.get("IMGSZ") else g
+        g = p[:-3] + ("_%s%s.png" % (os.environ.get("IMGSZ", "128"), "s" if os.environ.get("SHADE") == "1" else "")) if (os.environ.get("IMGSZ") or os.environ.get("SHADE")) else g
         if not os.path.exists(g): 그림4(code).save(g)
         out.append({"code": code, "img": Image.open(g).convert("RGB"), "name": os.path.basename(p)[:-3]})
     return out

@@ -1,0 +1,179 @@
+{
+ "시험": [
+  {
+   "이름": "0000",
+   "실행": false,
+   "모따기": false,
+   "홈": true,
+   "IoU": null,
+   "코드": "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-14))\nr=w0.sketch().segment((-97,-3),(-10,-66)).segment((10,-66)).segment((97,-3)).segment((78,35)).segment((0,-29)).segment((-77,35)).close().assemble().finalize().extrude(20).cut(cq.Workplane('XY').cut(cq.Workplane('XY').box(200,20,20).translate((0,0,14)).cut(cq.Workplane('XY').box(10,200,20).translate((0,0,14).cut(cq.Workplane('XY').box(16,200,20).translate((0,0,14)))"
+  },
+  {
+   "이름": "0001",
+   "실행": false,
+   "모따기": false,
+   "홈": true,
+   "IoU": null,
+   "코드": "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-16))\nr=w0.sketch().segment((-94,17),(-10,-47)).segment((10,-47)).segment((94,17)).segment((78,47)).segment((0,-17)).segment((-78,47)).close().assemble().finalize().extrude(21).cut(cq.Workplane('XY').cut(cq.Workplane('XY').box(10,200,20).translatetranslatetranslatecut(cq.Workplane('XY').box(10,200,21).translate((0,0,16)))"
+  },
+  {
+   "이름": "0002",
+   "실행": true,
+   "모따기": true,
+   "홈": true,
+   "IoU": 0.7510612077228537,
+   "코드": "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-17))\nr=w0.sketch().segment((-98,1),(-15,-61)).segment((15,-61)).segment((98,1)).segment((84,29)).segment((15,-29)).segment((-84,29)).close().assemble().finalize().extrude(30).edges('>Z').chamfer(10).cut(cq.Workplane('XY').box(10,200,17).translate((0,0,17)))"
+  },
+  {
+   "이름": "0003",
+   "실행": true,
+   "모따기": true,
+   "홈": true,
+   "IoU": 0.8421837152971865,
+   "코드": "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-22))\nr=w0.sketch().segment((-96,18),(-7,-73)).segment((7,-73)).segment((96,18)).segment((79,53)).segment((0,-40)).segment((-79,53)).close().assemble().finalize().extrude(38).edges('>Z').chamfer(10).cut(cq.Workplane('XY').box(10,200,22).translate((0,0,18)))"
+  },
+  {
+   "이름": "0004",
+   "실행": false,
+   "모따기": false,
+   "홈": true,
+   "IoU": null,
+   "코드": "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-13))\nr=w0.sketch().segment((-97,3),(-10,-73)).segment((10,-73)).segment((97,3)).segment((77,42)).segment((0,-30)).segment((-76,42)).close().assemble().finalize().extrude(17).cut(cq.Workplane('XY').box(10,200,13).translate((0,0,13)).cut(cq.Workplane('XY').box(10,200,13).translate((0,0).cut(cq.Workplane('XY').cut(cq.Workplane('XY').box(10,200,13).cut(cq.Workplane('XY').translate((0,-200),(10,0)).cutcut((10,13)).cut((16,0)).cut((0,-13)).cut((0,-200)).close().assemble()).translate((10,0),(16,0)).cutcutcutcutcut(cq.Workplane('XY').cut(cq.Workplane('XY').cut(cq.Workplane('XY').translate((0,0,13)).cutcut(cq.Workplane('XY').cut(cq.Workplane('XY').translate((0,0,-13).cut(cq.Workplane('XY').cut(cq.Workplane('XY').translate((0,0)))"
+  },
+  {
+   "이름": "0005",
+   "실행": true,
+   "모따기": false,
+   "홈": true,
+   "IoU": 0.7946496815286624,
+   "코드": "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-12))\nr=w0.sketch().segment((-88,19),(-10,-48)).segment((10,-48)).segment((88,20)).segment((76,44)).segment((0,-26)).segment((-76,44)).close().assemble().finalize().extrude(17).cut(cq.Workplane('XY').box(10,200,12).translate((0,0,12)))"
+  },
+  {
+   "이름": "0006",
+   "실행": true,
+   "모따기": false,
+   "홈": true,
+   "IoU": 0.6889010388190268,
+   "코드": "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-13))\nr=w0.sketch().segment((-87,-4),(-10,-70)).segment((10,-70)).segment((87,-4)).segment((68,32)).segment((0,-34)).segment((-68,32)).close().assemble().finalize().extrude(17).cut(cq.Workplane('XY').box(10,200,13).translate((0,0,13)))"
+  },
+  {
+   "이름": "0007",
+   "실행": true,
+   "모따기": true,
+   "홈": true,
+   "IoU": 0.7752460809332847,
+   "코드": "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-22))\nr=w0.sketch().segment((-93,21),(-6,-56)).segment((6,-56)).segment((93,21)).segment((73,61)).segment((0,-16)).segment((-73,61)).close().assemble().finalize().extrude(36).edges('>Z').chamfer(12).cut(cq.Workplane('XY').box(20,200,12).translate((0,0,18)))"
+  },
+  {
+   "이름": "0008",
+   "실행": false,
+   "모따기": true,
+   "홈": true,
+   "IoU": null,
+   "코드": "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-20))\nr=w0.sketch().segment((-89,-3),(-12,-71)).segment((12,-71)).segment((89,-3)).segment((76,22)).segment((0,-48)).segment((-76,24)).close().assemble().finalize().extrude(35).edges('>Z').chamfer(10).cut(cq.Workplane('XY').box(10,200,10).translate((0,0,10)))"
+  },
+  {
+   "이름": "0009",
+   "실행": true,
+   "모따기": true,
+   "홈": true,
+   "IoU": 0.8163441603317207,
+   "코드": "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-22))\nr=w0.sketch().segment((-92,-4),(-8,-62)).segment((13,-62)).segment((92,-4)).segment((72,35)).segment((0,-24)).segment((-72,35)).close().assemble().finalize().extrude(40).edges('>Z').chamfer(11).cut(cq.Workplane('XY').box(10,200,22).translate((0,0,18)))"
+  },
+  {
+   "이름": "0010",
+   "실행": false,
+   "모따기": false,
+   "홈": true,
+   "IoU": null,
+   "코드": "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-12))\nr=w0.sketch().segment((-90,12),(-10,-49)).segment((10,-49)).segment((90,12)).segment((71,50)).segment((0,-12)).segment((-71,50)).close().assemble().finalize().extrude(12).cut(cq.Workplane('XY').cut(cq.Workplane('XY').box(10,200,12).translate((0,0,12)).cut(cq.Workplane('XY').box(10,200,12).translate((0,0).box(16,200,12).cut(cq.Workplane('XY').box(10,200,12).cut(cq.Workplane('XY').translate((0,0)))"
+  },
+  {
+   "이름": "0011",
+   "실행": true,
+   "모따기": true,
+   "홈": true,
+   "IoU": 0.7632407280689749,
+   "코드": "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-16))\nr=w0.sketch().segment((-97,9),(-11,-51)).segment((11,-51)).segment((97,9)).segment((81,41)).segment((3,-20)).segment((-81,41)).close().assemble().finalize().extrude(28).edges('>Z').chamfer(11).cut(cq.Workplane('XY').box(10,200,20).translate((0,0,16)))"
+  },
+  {
+   "이름": "0012",
+   "실행": false,
+   "모따기": true,
+   "홈": true,
+   "IoU": null,
+   "코드": "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-19))\nr=w0.sketch().segment((-89,13),(-11,-57)).segment((11,-57)).segment((89,13)).segment((76,40)).segment((0,-36)).segment((-76,40)).close().assemble().finalize().extrude(35).edges('>Z').chamfer(11).cut(cq.Workplane('XY').box(10,200,19).translate((20,0,19)))"
+  },
+  {
+   "이름": "0013",
+   "실행": false,
+   "모따기": false,
+   "홈": true,
+   "IoU": null,
+   "코드": "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-12))\nr=w0.sketch().segment((-98,16),(-13,-47)).segment((13,-47)).segment((98,16)).segment((83,47)).segment((0,-16)).segment((-83,47)).close().assemble().finalize().extrude(12).cut(cq.Workplane('XY').cut(cq.Workplane('XY').cut(cq.Workplane('XY').cut(cq.Workplane('XY').box(10,200,12).translate((-10,0,12)))"
+  },
+  {
+   "이름": "0014",
+   "실행": false,
+   "모따기": false,
+   "홈": true,
+   "IoU": null,
+   "코드": "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,14))\nr=w0.sketch().segment((-97,-2),(-8,-62)).segment((97,-2)).segment((81,29)).segment((0,-33)).segment((-81,30)).close().assemble().finalize().extrude(-32).cut(cq.Workplane('XY').box(10,200,12).translate((0,0,15)).cut(cq.Workplane('XY').box(16,200,12).translate((0,0,15).cut(cq.Workplane('XY').box(16,200,12).translate((8,0,15)))"
+  },
+  {
+   "이름": "0015",
+   "실행": true,
+   "모따기": true,
+   "홈": true,
+   "IoU": 0.7600975874220656,
+   "코드": "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-16))\nr=w0.sketch().segment((-97,0),(-15,-64)).segment((15,-64)).segment((97,0)).segment((80,33)).segment((0,-32)).segment((-80,33)).close().assemble().finalize().extrude(26).edges('>Z').chamfer(10).cut(cq.Workplane('XY').box(10,200,26).translate((0,0,16)))"
+  },
+  {
+   "이름": "0016",
+   "실행": false,
+   "모따기": true,
+   "홈": true,
+   "IoU": null,
+   "코드": "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-21))\nr=w0.sketch().segment((-97,0),(-11,-58)).segment((11,-58)).segment((97,0)).segment((84,25)).segment((0,-39)).segment((-85,25)).close().assemble().finalize().extrude(37).edges('>Z').chamfer(10).cut(cq.Workplane('XY').box(10,200,21).translate((0,0,18)))"
+  },
+  {
+   "이름": "0017",
+   "실행": true,
+   "모따기": false,
+   "홈": true,
+   "IoU": 0.8555063785472533,
+   "코드": "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-15))\nr=w0.sketch().segment((-98,20),(-6,-72)).segment((6,-72)).segment((98,20)).segment((82,52)).segment((0,-43)).segment((-82,52)).close().assemble().finalize().extrude(29).cut(cq.Workplane('XY').box(10,200,12).translate((0,0,12)))"
+  },
+  {
+   "이름": "0018",
+   "실행": true,
+   "모따기": true,
+   "홈": true,
+   "IoU": 0.9205280172413793,
+   "코드": "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-20))\nr=w0.sketch().segment((-87,23),(-10,-48)).segment((10,-48)).segment((87,23)).segment((73,50)).segment((0,-20)).segment((-72,50)).close().assemble().finalize().extrude(38).edges('>Z').chamfer(8).cut(cq.Workplane('XY').box(10,200,20).translate((0,0,18)))"
+  },
+  {
+   "이름": "0019",
+   "실행": false,
+   "모따기": false,
+   "홈": true,
+   "IoU": null,
+   "코드": "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-13))\nr=w0.sketch().segment((-93,18),(-11,-56)).segment((11,-56)).segment((93,18)).segment((75,56)).segment((0,-20)).segment((-75,54)).close().assemble().finalize().extrude(20).cut(cq.Workplane('XY').cut(cq.Workplane('XY').box(10,200,20).translate((0,0,18)))"
+  }
+ ],
+ "대조": {
+  "00000093.stl": 0.0,
+  "00000797.stl": 0.9784600148551622,
+  "00000915.stl": 1.0
+ },
+ "요약": {
+  "모따기+홈": 0.5,
+  "실행": 0.5,
+  "IoU중앙": 0.7849478812309736,
+  "대조": {
+   "00000093.stl": 0.0,
+   "00000797.stl": 0.9784600148551622,
+   "00000915.stl": 1.0
+  }
+ }
+}

@@ -27,6 +27,8 @@ def item_pc(m):
 def item_img(m):
     import open3d   # 0.18 은 이 PC 에서 세그폴트 · 0.19 는 됨 → 학습 때와 같은 open3d 렌더
     from dataset import mesh_to_image
+    if os.environ.get("SHADE") == "1":   # run3: 면마다 법선(평면 음영) — 공유 꼭짓점 법선은 면 사이를 매끈하게 섞어 모따기 면이 묻힌다 · 그림 크기 · 시점 · 색은 학습 때 그대로
+        m = m.copy(); m.unmerge_vertices()
     o = open3d.geometry.TriangleMesh(); o.vertices = open3d.utility.Vector3dVector(np.asarray(m.vertices)); o.triangles = open3d.utility.Vector3iVector(np.asarray(m.faces))
     o.paint_uniform_color(np.array([255, 255, 136]) / 255.0); o.compute_vertex_normals()
     ims = [ImageOps.expand(mesh_to_image(o, camera_distance=-0.9, front=f, img_size=int(os.environ.get("IMGSZ", "128"))), border=3, fill="black") for f in [[1, 1, 1], [-1, -1, -1], [-1, 1, -1], [1, -1, 1]]]
