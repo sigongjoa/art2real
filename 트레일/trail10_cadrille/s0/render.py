@@ -3,7 +3,7 @@
 색은 cadrille 학습 렌더와 같은 (255,255,136) · 흰 바탕 · 카메라 쪽 빛(디퓨즈 0.7 + 앰비언트 0.3)."""
 import numpy as np
 from PIL import Image
-def render(V, F, front, dist=-0.9, W=500, img_size=128, fov=60.0):
+def render(V, F, front, dist=-0.9, W=500, img_size=128, fov=60.0, cols=None):   # cols: 면마다 색(0~1) · 없으면 학습 색
     lookat = np.array([0.5, 0.5, 0.5]); f = np.array(front, float); up = np.array([0, 1.0, 0])
     eye = lookat + f * dist; right = np.cross(up, f); right /= np.linalg.norm(right); tup = np.cross(f, right)
     Rm = np.stack([right, tup, f]); P = (V - eye) @ Rm.T            # 카메라 좌표: z = 앞(+f 방향이 화면 안쪽)
@@ -25,6 +25,6 @@ def render(V, F, front, dist=-0.9, W=500, img_size=128, fov=60.0):
         m = (a >= 0) & (b >= 0) & (c >= 0)
         if not m.any(): continue
         zz = a * zs[0] + b * zs[1] + c * zs[2]; sub = zb[y0:y1 + 1, x0:x1 + 1]; w = m & (zz < sub)
-        sub[w] = zz[w]; img[y0:y1 + 1, x0:x1 + 1][w] = base * shade[t]
+        sub[w] = zz[w]; img[y0:y1 + 1, x0:x1 + 1][w] = (base if cols is None else cols[t]) * shade[t]
     im = Image.fromarray((img * 255).astype(np.uint8)).resize((img_size, img_size), Image.LANCZOS)
     return im
