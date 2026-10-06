@@ -8,7 +8,8 @@ python s0/역산수확.py [개수=100]  →  runs/역산/결과.jsonl · 요약.
 import os, sys, glob, json, random, time, numpy as np, trimesh
 from concurrent.futures import ProcessPoolExecutor, TimeoutError as TO
 H = os.path.dirname(os.path.abspath(__file__)); sys.path[:0] = [os.path.dirname(H), os.path.join(H, "stub"), H]
-R = "G:/art2real/원화3d/out/레퍼런스/사람분할/"; O = os.path.join(os.path.dirname(H), "runs", "역산"); os.makedirs(O, exist_ok=True)
+R = "G:/art2real/원화3d/out/레퍼런스/사람분할/"; O = os.path.join(os.path.dirname(H), "runs", "역산v2"); os.makedirs(O, exist_ok=True)   # 10-06 v2: 채점기 교체 후 다시(옛 판 runs/역산 은 −2 의 대부분이 채점 시간 초과)
+sys.path.append(os.path.join(os.path.dirname(os.path.dirname(H)), "trail11_zerotocad", "s")); from score import occ
 
 def 채점(args):   # 별도 프로세스: 코드 실행 → IoU · torch 를 안 올리려고 s0 를 불러오지 않는다(10-06 일꾼 3 개가 각자 transformers 를 올려 메모리 부족으로 잘림)
     code, gpath = args
@@ -17,12 +18,15 @@ def 채점(args):   # 별도 프로세스: 코드 실행 → IoU · torch 를 �
         ns = {"cq": cq}; exec(code, ns)
         obj = ns.get("r") or next((v for v in ns.values() if isinstance(v, cq.Workplane)), None)
         p = os.path.join(tempfile.gettempdir(), "역산_%d.stl" % os.getpid()); cq.exporters.export(obj, p)
-        pm = trimesh.load(p); pm.apply_scale(1 / 100.0); gt = trimesh.load(gpath); n = 64
-        g = (np.indices((n, n, n)).reshape(3, -1).T + 0.5) / n * 2 - 1
-        ia = gt.contains(g) if gt.is_watertight else np.zeros(len(g), bool); ib = pm.contains(g) if pm.is_watertight else np.zeros(len(g), bool)
-        u = (ia | ib).sum(); return float((ia & ib).sum() / u) if u else 0.0
     except Exception:
         return -1.0
+    try:   # −1 = 코드 실패(모델) · −3 = 채점 실패(자) — 섞지 않는다
+        pm = trimesh.load(p); pm.apply_scale(1 / 100.0); gt = trimesh.load(gpath); n = 64
+        g = (np.indices((n, n, n)).reshape(3, -1).T + 0.5) / n * 2 - 1
+        ia = occ(gt, g) if gt.is_watertight else np.zeros(len(g), bool); ib = occ(pm, g) if pm.is_watertight else np.zeros(len(g), bool)
+        u = (ia | ib).sum(); return float((ia & ib).sum() / u) if u else 0.0
+    except Exception:
+        return -3.0
 
 def 부품들(N):
     rng = random.Random(0); out = []
@@ -44,7 +48,7 @@ if __name__ == "__main__":
     from cadrille import Cadrille, collate
     import s0 as S
     N = int(sys.argv[1]) if len(sys.argv) > 1 else 100
-    L_ = O + "/부품목록.json"
+    L_ = os.path.join(os.path.dirname(O), "역산", "부품목록.json")   # 같은 부품 50
     fs = json.load(open(L_, encoding="utf-8")) if os.path.exists(L_) else 부품들(N)
     json.dump(fs, open(L_, "w", encoding="utf-8"), ensure_ascii=False); fs = fs[:N]; print("부품", len(fs), flush=True)
     W = os.path.join(os.path.dirname(H), "weights")
@@ -77,7 +81,7 @@ if __name__ == "__main__":
                 for p in list(getattr(pool, "_processes", {}).values()): p.kill()
                 pool.shutdown(wait=False, cancel_futures=True); pool = ProcessPoolExecutor(1)
         k = int(np.argmax(ious))
-        rec = {"부품": name, "면": int(len(gt.faces)), "IoU": ious, "최고": max(ious), "최고모드": codes[k][0], "코드": codes[k][1]}
+        rec = {"부품": name, "면": int(len(gt.faces)), "IoU": ious, "최고": max(ious), "최고모드": codes[k][0], "코드": codes[k][1], "코드들": codes}
         open(O + "/결과.jsonl", "a", encoding="utf-8").write(json.dumps(rec, ensure_ascii=False) + "\n")
         print(i, name[:40], "최고", rec["최고"], rec["최고모드"], "%.0f초" % (time.time() - t0), flush=True)
     R_ = [json.loads(l) for l in open(O + "/결과.jsonl", encoding="utf-8")]; b_ = np.array([r["최고"] for r in R_])

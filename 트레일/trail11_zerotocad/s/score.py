@@ -4,19 +4,26 @@ import sys, json, os, numpy as np, trimesh, tempfile
 from concurrent.futures import ProcessPoolExecutor
 def norm(m):
     lo, hi = m.bounds; m = m.copy(); m.apply_translation(-(lo + hi) / 2); m.apply_scale(1.0 / (hi - lo).max()); return m
-def one(args):
+def occ(m, g):   # 속 판정: open3d(embree) — trimesh.contains 는 1.7 만 면에서 335 s · 수십 GB(10-06 PC 다운 범인) · 결과 같음
+    import open3d as o3d
+    s = o3d.t.geometry.RaycastingScene(); s.add_triangles(o3d.core.Tensor(m.vertices.astype(np.float32)), o3d.core.Tensor(m.faces.astype(np.uint32)))
+    return s.compute_occupancy(o3d.core.Tensor(g.astype(np.float32))).numpy() > 0.5
+def one(args):   # -1 = 코드 실행 · 내보내기 실패(모델 탓) · -3 = 채점 실패(자 탓) — 둘을 섞지 않는다
     code, stl = args
     try:
         import cadquery as cq
         ns = {"cq": cq, "__name__": "__main__"}; exec(code, ns)
         obj = ns.get("result") or ns.get("r") or next((v for v in ns.values() if isinstance(v, (cq.Workplane, cq.Shape))), None)
         p = os.path.join(tempfile.gettempdir(), "z_%d.stl" % os.getpid()); cq.exporters.export(obj, p)
-        a, b = norm(trimesh.load(stl, force="mesh")), norm(trimesh.load(p)); n = 64
-        g = (np.indices((n, n, n)).reshape(3, -1).T + 0.5) / n - 0.5
-        ia = a.contains(g) if a.is_watertight else np.zeros(len(g), bool); ib = b.contains(g) if b.is_watertight else np.zeros(len(g), bool)
-        u = (ia | ib).sum(); return float((ia & ib).sum() / u) if u else 0.0
     except Exception:
         return -1.0
+    try:
+        a, b = norm(trimesh.load(stl, force="mesh")), norm(trimesh.load(p)); n = 64
+        g = (np.indices((n, n, n)).reshape(3, -1).T + 0.5) / n - 0.5
+        ia = occ(a, g) if a.is_watertight else np.zeros(len(g), bool); ib = occ(b, g) if b.is_watertight else np.zeros(len(g), bool)
+        u = (ia | ib).sum(); return float((ia & ib).sum() / u) if u else 0.0
+    except Exception:
+        return -3.0
 if __name__ == "__main__":
     IN = {json.loads(l)["이름"]: json.loads(l) for l in open(sys.argv[1], encoding="utf-8")}
     OUT = [json.loads(l) for l in open(sys.argv[2], encoding="utf-8")]; S = sys.argv[3]
