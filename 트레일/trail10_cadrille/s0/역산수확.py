@@ -8,7 +8,7 @@ python s0/역산수확.py [개수=100]  →  runs/역산/결과.jsonl · 요약.
 import os, sys, glob, json, random, time, numpy as np, trimesh
 from concurrent.futures import ProcessPoolExecutor, TimeoutError as TO
 H = os.path.dirname(os.path.abspath(__file__)); sys.path[:0] = [os.path.dirname(H), os.path.join(H, "stub"), H]
-R = "G:/art2real/원화3d/out/레퍼런스/사람분할/"; O = os.path.join(os.path.dirname(H), "runs", "역산v2"); os.makedirs(O, exist_ok=True)   # 10-06 v2: 채점기 교체 후 다시(옛 판 runs/역산 은 −2 의 대부분이 채점 시간 초과)
+R = "G:/art2real/원화3d/out/레퍼런스/사람분할/"; O = os.path.join(os.path.dirname(H), "runs", os.environ.get("OUTDIR", "역산v2")); os.makedirs(O, exist_ok=True)   # 10-06 v2: 채점기 교체 후 다시(옛 판 runs/역산 은 −2 의 대부분이 채점 시간 초과)
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(H)), "trail11_zerotocad", "s")); from score import occ
 
 def 채점(args):   # 별도 프로세스: 코드 실행 → IoU · torch 를 안 올리려고 s0 를 불러오지 않는다(10-06 일꾼 3 개가 각자 transformers 를 올려 메모리 부족으로 잘림)
@@ -55,6 +55,9 @@ if __name__ == "__main__":
     json.dump(fs, open(L_, "w", encoding="utf-8"), ensure_ascii=False); fs = fs[:N]; print("부품", len(fs), flush=True)
     W = os.path.join(os.path.dirname(H), "weights")
     model = Cadrille.from_pretrained(os.path.join(W, "cadrille"), torch_dtype=torch.bfloat16, attn_implementation="sdpa", device_map="cuda")
+    if os.environ.get("LORA"):   # 3 바퀴부터: 앞 바퀴 LoRA 로 다시 수확
+        from peft import PeftModel; model = PeftModel.from_pretrained(model, os.environ["LORA"]); model.eval()
+    SKIP = set(json.load(open(os.environ["SKIPSPLIT"], encoding="utf-8"))["시험모델"]) if os.environ.get("SKIPSPLIT") else set()   # 시험 모델 부품은 수확 안 함
     proc = AutoProcessor.from_pretrained(os.path.join(W, "qwen2vl2b"), min_pixels=256 * 28 * 28, max_pixels=1280 * 28 * 28, padding_side="left")
     done = {json.loads(l)["부품"] for l in open(O + "/결과.jsonl", encoding="utf-8")} if os.path.exists(O + "/결과.jsonl") else set()
     pool = ProcessPoolExecutor(1); t0 = time.time()
@@ -62,6 +65,7 @@ if __name__ == "__main__":
     for i, f in enumerate(fs):
         if SH and i % int(SH.split("/")[1]) != int(SH.split("/")[0]): continue
         name = os.path.relpath(f, R).replace("\\", "/")
+        if name.split("/")[0] in SKIP: continue
         if name in done: continue
         if time.time() - t0 > float(os.environ.get("STOPAFTER", "1e9")): print("시간 끝 · 이어서 다시 부르면 됨", flush=True); break   # 포그라운드 조각(백그라운드는 메모리 부족 때 잘림)
         gt = S.unit(trimesh.load(f, force="mesh")); g2 = gt.copy(); g2.apply_translation([-0.5] * 3); g2.apply_scale(2.0)
