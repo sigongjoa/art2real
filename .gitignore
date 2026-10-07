@@ -54,3 +54,7 @@ Thumbs.db
 # 안쪽 저장소 — 공개 GitHub sigongjoa/genkei-lab (09-22). art2real 이 추적하지 않는다
 genkei-lab/
 claudedocs/피규어제작과정/
+
+# 개인 Claude 설정(허용 규칙)
+.claude/settings.local.json
+.secrets/

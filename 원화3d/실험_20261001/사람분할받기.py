@@ -117,7 +117,7 @@ def one(pid, short):
         names = per_file(pid, files, d)
     (d / "출처.json").write_text(json.dumps({
         "이름": p["name"], "url": f"https://www.printables.com/model/{pid}", "작가": p["user"]["publicUsername"],
-        "라이선스": row["라이선스"], "받은날": "2026-10-05", "파일수": len(names),
+        "라이선스": row["라이선스"], "받은날": time.strftime("%Y-%m-%d"), "파일수": len(names),
         "메모": "개인 연구용 · 재배포 금지 · 원작 IP 팬아트"}, ensure_ascii=False, indent=1), encoding="utf-8")
     return {**row, "폴더": str(d.relative_to(ROOT.parents[2])), "파일수": len(names),
             "머리관련파일수": sum(bool(HEAD.search(n)) for n in names), "상태": "받음"}
@@ -175,6 +175,9 @@ def check(row):
 
 if __name__ == "__main__":
     assert safe('a:b?.stl') == "a_b_.stl" and HEAD.search("Upper Jaw v3.stl") and not HEAD.search("leg.stl")
+    if len(sys.argv) > 1:   # 10-07: 에이전트 후보 json 들(id · short) — 이미 받은 폴더는 one() 이 건너뜀 · 목록.json 은 전부 다시 씀
+        MODELS += [(int(c["id"]), safe(str(c["short"]))[:20]) for f in sys.argv[1:] for c in json.load(open(f, encoding="utf-8"))]
+        MODELS = list(dict(MODELS).items())
     rows = []
     for pid, short in MODELS:
         try:
