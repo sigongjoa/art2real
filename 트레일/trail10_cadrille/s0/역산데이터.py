@@ -21,6 +21,16 @@ if __name__ == "__main__":
             q = json.loads(l)
             if q["정제"] >= TH and q["코드"]: 정제.setdefault(q["부품"], []).append(q["코드"])
     tr, te = [r for r in rows if r["부품"].split("/")[0] not in test_models], [r for r in rows if r["부품"].split("/")[0] in test_models]
+    if os.environ.get("GATE") == "edge":   # 10-07: 정답 = 모서리 F1 ≥ 0.42 (블라인드 30 쌍 90 % 일치) · 수확 v2 + v3 · 정제 코드는 안 씀(구멍 메움)
+        RN = os.path.join(os.path.dirname(V2)); 모음 = {}
+        for d in ("역산v2", "역산v3"):
+            if not os.path.exists(RN + "/" + d + "/다시_수확.jsonl"): continue
+            src = {json.loads(l)["부품"]: json.loads(l) for l in open(RN + "/" + d + "/결과.jsonl", encoding="utf-8")}
+            for l in open(RN + "/" + d + "/다시_수확.jsonl", encoding="utf-8"):
+                q = json.loads(l); r0 = src[q["부품"]]
+                codes = [c for (m, c), v in zip(r0["코드들"], r0["IoU"]) if v >= 0.4]
+                모음.setdefault(q["부품"], []).extend(c for c, m in zip(codes, q["자"]) if m and m["edge_f1"] >= TH)
+        tr = [{"부품": k, "코드들": [], "IoU": [], "최고": 0} for k in 모음 if k.split("/")[0] not in test_models]; 정제 = {k: v for k, v in 모음.items()}
     os.makedirs(O + "/train", exist_ok=True); n = 0; seen = set(); parts = set()
     for r in tr:
         good = [c for (mode, c), v in zip(r.get("코드들", []), r["IoU"]) if v >= TH] + 정제.get(r["부품"], [])
