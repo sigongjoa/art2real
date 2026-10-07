@@ -13,10 +13,17 @@ if __name__ == "__main__":
     rows = [json.loads(l) for l in open(V2 + "/결과.jsonl", encoding="utf-8")]
     models = sorted({r["부품"].split("/")[0] for r in rows}); rng = random.Random(0); rng.shuffle(models)
     test_models = set(models[:max(1, round(len(models) * FR))])
+    if os.environ.get("SPLIT"):   # 2 바퀴부터: 1 바퀴 시험 모델을 그대로(같은 시험지 · 학습에 안 새게)
+        test_models = set(json.load(open(os.environ["SPLIT"], encoding="utf-8"))["시험모델"])
+    정제 = {}
+    if os.path.exists(V2 + "/정제.jsonl"):   # 10-07 정제: 숫자만 고쳐 문턱을 넘긴 코드도 학습에
+        for l in open(V2 + "/정제.jsonl", encoding="utf-8"):
+            q = json.loads(l)
+            if q["정제"] >= TH and q["코드"]: 정제.setdefault(q["부품"], []).append(q["코드"])
     tr, te = [r for r in rows if r["부품"].split("/")[0] not in test_models], [r for r in rows if r["부품"].split("/")[0] in test_models]
     os.makedirs(O + "/train", exist_ok=True); n = 0; seen = set(); parts = set()
     for r in tr:
-        good = [c for (mode, c), v in zip(r.get("코드들", []), r["IoU"]) if v >= TH]
+        good = [c for (mode, c), v in zip(r.get("코드들", []), r["IoU"]) if v >= TH] + 정제.get(r["부품"], [])
         if not good: continue
         gt = S.unit(trimesh.load(R + r["부품"], force="mesh")); _, g = S.item_img(gt)
         for c in good:
@@ -29,4 +36,5 @@ if __name__ == "__main__":
         gt = S.unit(trimesh.load(R + r["부품"], force="mesh")); _, g = S.item_img(gt)
         open("%s/show/%04d.py" % (O, k), "w", encoding="utf-8").write(r["코드"]); g.save("%s/show/%04d.png" % (O, k))
     json.dump({"시험부품": [r["부품"] for r in te], "시험모델": sorted(test_models), "문턱": TH}, open(O + "/split.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    print("정제 코드 포함 부품 %d · " % len([k for k in 정제 if k.split("/")[0] not in test_models]), end="")
     print("모델 %d (시험 %d) · 학습 부품 %d 중 코드 있는 부품 %d · 학습 코드 %d · 시험 부품 %d" % (len(models), len(test_models), len(tr), len(parts), n, len(te)))

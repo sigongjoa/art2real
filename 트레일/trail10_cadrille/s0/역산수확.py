@@ -28,7 +28,7 @@ def 채점(args):   # 별도 프로세스: 코드 실행 → IoU · torch 를 �
     except Exception:
         return -3.0
 
-def 부품들(N):
+def 부품들(N, K=3):
     rng = random.Random(0); out = []
     for d in sorted(glob.glob(R + "*/")):
         if os.path.basename(d[:-1]).startswith("_"): continue
@@ -39,7 +39,7 @@ def 부품들(N):
             except Exception: continue
             if len(m.faces) < 12 or not m.is_watertight: continue
             out.append(f); k += 1
-            if k == 3: break
+            if k == K: break
     rng.shuffle(out); return out[:N]
 
 if __name__ == "__main__":
@@ -50,13 +50,17 @@ if __name__ == "__main__":
     N = int(sys.argv[1]) if len(sys.argv) > 1 else 100
     L_ = os.path.join(os.path.dirname(O), "역산", "부품목록.json")   # 같은 부품 50
     fs = json.load(open(L_, encoding="utf-8")) if os.path.exists(L_) else 부품들(N)
+    if len(fs) < N:   # 10-07 확장: 모델당 K 개까지 더 뽑아 뒤에 잇는다(앞 목록 · 순서는 그대로)
+        fs += [f for f in 부품들(10 ** 6, int(os.environ.get("K", "8"))) if f not in set(fs)][:N - len(fs)]
     json.dump(fs, open(L_, "w", encoding="utf-8"), ensure_ascii=False); fs = fs[:N]; print("부품", len(fs), flush=True)
     W = os.path.join(os.path.dirname(H), "weights")
     model = Cadrille.from_pretrained(os.path.join(W, "cadrille"), torch_dtype=torch.bfloat16, attn_implementation="sdpa", device_map="cuda")
     proc = AutoProcessor.from_pretrained(os.path.join(W, "qwen2vl2b"), min_pixels=256 * 28 * 28, max_pixels=1280 * 28 * 28, padding_side="left")
     done = {json.loads(l)["부품"] for l in open(O + "/결과.jsonl", encoding="utf-8")} if os.path.exists(O + "/결과.jsonl") else set()
     pool = ProcessPoolExecutor(1); t0 = time.time()
+    SH = os.environ.get("SHARD")   # "0/2" = 짝수 번째만 · GPU 두 개로 나눠 돌리기
     for i, f in enumerate(fs):
+        if SH and i % int(SH.split("/")[1]) != int(SH.split("/")[0]): continue
         name = os.path.relpath(f, R).replace("\\", "/")
         if name in done: continue
         if time.time() - t0 > float(os.environ.get("STOPAFTER", "1e9")): print("시간 끝 · 이어서 다시 부르면 됨", flush=True); break   # 포그라운드 조각(백그라운드는 메모리 부족 때 잘림)

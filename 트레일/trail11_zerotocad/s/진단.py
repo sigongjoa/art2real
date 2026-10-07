@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """실패 원인 진단(trail10 venv): 코드 300 개를 ① 그대로 ② 필렛 · 모따기 줄을 지운 뒤 실행 → 실패 종류 · IoU 변화. 「바탕 모양은 맞는데 마감 버튼에서 깨지나」를 가른다."""
 import sys, json, re, collections, numpy as np
-sys.path.insert(0, "s"); from score import one
+sys.path.insert(0, "s"); from score import one, cap
 from concurrent.futures import ProcessPoolExecutor
 IN = {json.loads(l)["이름"]: json.loads(l) for l in open("runs/역산/입력.jsonl", encoding="utf-8")}
 OUT = [json.loads(l) for l in open("runs/역산/출력.jsonl", encoding="utf-8")]
@@ -19,14 +19,6 @@ def kind(c):   # 실패한 CadQuery 연산 이름으로 가른다(OCC 오류 글
         import traceback; tb = traceback.extract_tb(e.__traceback__); i = max((j for j, f in enumerate(tb) if f.filename == "<string>"), default=-1)
         op = tb[i + 1].name if 0 <= i < len(tb) - 1 else ""
         return {"fillet": "필렛·모따기", "chamfer": "필렛·모따기", "shell": "셸", "revolve": "회전", "sweep": "스윕·로프트", "loft": "스윕·로프트"}.get(op) or ("선택자" if any(k in str(e).lower() for k in ("empty list", "co-planar", "selected", "nth element")) else "기타 기하:" + op)
-def cap(gb=8):   # 작업자 메모리 상한(Job Object) — 넘으면 MemoryError · 10-06 kind() 를 메인에서 돌려 python 75 GB · PC 두 번 다운
-    import ctypes as C; from ctypes import wintypes as W
-    class Basic(C.Structure): _fields_ = [("t1", C.c_int64), ("t2", C.c_int64), ("LimitFlags", W.DWORD), ("w1", C.c_size_t), ("w2", C.c_size_t), ("n", W.DWORD), ("aff", C.c_size_t), ("pri", W.DWORD), ("sch", W.DWORD)]
-    class Ext(C.Structure): _fields_ = [("B", Basic), ("io", C.c_uint64 * 6), ("ProcessMemoryLimit", C.c_size_t), ("j", C.c_size_t), ("p1", C.c_size_t), ("p2", C.c_size_t)]
-    k = C.WinDLL("kernel32"); k.CreateJobObjectW.restype = k.GetCurrentProcess.restype = C.c_void_p
-    k.SetInformationJobObject.argtypes = [C.c_void_p, C.c_int, C.c_void_p, W.DWORD]; k.AssignProcessToJobObject.argtypes = [C.c_void_p, C.c_void_p]
-    e = Ext(); e.B.LimitFlags = 0x100; e.ProcessMemoryLimit = gb << 30; h = k.CreateJobObjectW(None, None)
-    assert k.SetInformationJobObject(h, 9, C.byref(e), C.sizeof(e)) and k.AssignProcessToJobObject(h, k.GetCurrentProcess()), "메모리 상한 실패"
 def NewPool(): return ProcessPoolExecutor(1, initializer=cap)
 def run(pool, fn, arg, bad):   # 생성 코드는 전부 여기로만(작업자 · 25 초 · 8 GB)
     fu = pool.submit(fn, arg)

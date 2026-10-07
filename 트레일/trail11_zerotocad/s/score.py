@@ -4,6 +4,15 @@ import sys, json, os, numpy as np, trimesh, tempfile
 from concurrent.futures import ProcessPoolExecutor
 def norm(m):
     lo, hi = m.bounds; m = m.copy(); m.apply_translation(-(lo + hi) / 2); m.apply_scale(1.0 / (hi - lo).max()); return m
+def cap(gb=8):   # 작업자 메모리 상한(Job Object) — 넘으면 MemoryError · 10-06 kind() 를 메인에서 돌려 python 75 GB · PC 두 번 다운
+    import ctypes as C; from ctypes import wintypes as W
+    class Basic(C.Structure): _fields_ = [("t1", C.c_int64), ("t2", C.c_int64), ("LimitFlags", W.DWORD), ("w1", C.c_size_t), ("w2", C.c_size_t), ("n", W.DWORD), ("aff", C.c_size_t), ("pri", W.DWORD), ("sch", W.DWORD)]
+    class Ext(C.Structure): _fields_ = [("B", Basic), ("io", C.c_uint64 * 6), ("ProcessMemoryLimit", C.c_size_t), ("j", C.c_size_t), ("p1", C.c_size_t), ("p2", C.c_size_t)]
+    k = C.WinDLL("kernel32"); k.CreateJobObjectW.restype = k.GetCurrentProcess.restype = C.c_void_p
+    k.SetInformationJobObject.argtypes = [C.c_void_p, C.c_int, C.c_void_p, W.DWORD]; k.AssignProcessToJobObject.argtypes = [C.c_void_p, C.c_void_p]
+    e = Ext(); e.B.LimitFlags = 0x100; e.ProcessMemoryLimit = gb << 30; h = k.CreateJobObjectW(None, None)
+    assert k.SetInformationJobObject(h, 9, C.byref(e), C.sizeof(e)) and k.AssignProcessToJobObject(h, k.GetCurrentProcess()), "메모리 상한 실패"
+
 def occ(m, g):   # 속 판정: open3d(embree) — trimesh.contains 는 1.7 만 면에서 335 s · 수십 GB(10-06 PC 다운 범인) · 결과 같음
     import open3d as o3d
     s = o3d.t.geometry.RaycastingScene(); s.add_triangles(o3d.core.Tensor(m.vertices.astype(np.float32)), o3d.core.Tensor(m.faces.astype(np.uint32)))
