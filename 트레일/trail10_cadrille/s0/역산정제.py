@@ -38,12 +38,13 @@ def 일꾼(args):
 if __name__ == "__main__":
     sp = sys.argv[1]; LO = float(sys.argv[2]) if len(sys.argv) > 2 else 0.5; HI = float(sys.argv[3]) if len(sys.argv) > 3 else 0.8
     IT = int(sys.argv[4]) if len(sys.argv) > 4 else 80; NW = int(sys.argv[5]) if len(sys.argv) > 5 else 4; LIM = int(sys.argv[6]) if len(sys.argv) > 6 else None
-    test = set(json.load(open(sp, encoding="utf-8"))["시험모델"]); O = V2 + "/정제.jsonl"
+    test = set(json.load(open(sp, encoding="utf-8"))["시험모델"]); ONLY = os.environ.get("ONLYTEST") == "1"   # 1 = 시험 부품만(1 단계 점수 재기 · 학습엔 안 씀)
+    O = V2 + ("/정제_시험.jsonl" if ONLY else "/정제.jsonl")
     done = {json.loads(l)["부품"] for l in open(O, encoding="utf-8")} if os.path.exists(O) else set()
     rows = [json.loads(l) for l in open(V2 + "/결과.jsonl", encoding="utf-8")]
     jobs = []
     for r in rows:
-        if r["부품"] in done or r["부품"].split("/")[0] in test or not (LO <= r["최고"] < HI) or "코드들" not in r: continue
+        if r["부품"] in done or ((r["부품"].split("/")[0] in test) != ONLY) or not (LO <= r["최고"] < HI) or "코드들" not in r: continue
         top = [c for v, (m, c) in sorted(zip(r["IoU"], r["코드들"]), key=lambda t: -t[0]) if v >= 0.4][:2]
         if top: jobs.append((r["부품"], top, IT, len(jobs)))
     jobs = jobs[:LIM]; print("정제 대상", len(jobs), flush=True)
