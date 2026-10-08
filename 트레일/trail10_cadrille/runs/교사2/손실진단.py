@@ -5,7 +5,7 @@ sys.path[:0] = [".", "s0", "s0/stub"]
 from transformers import AutoProcessor
 from peft import PeftModel
 from cadrille import Cadrille, collate
-W = "weights"; d = "runs/교사1/data/train"
+W = "weights"; d = sys.argv[2] if len(sys.argv) > 2 else "runs/교사1/data/train"
 model = Cadrille.from_pretrained(W + "/cadrille", torch_dtype=torch.bfloat16, attn_implementation="sdpa", device_map="cuda")
 model = PeftModel.from_pretrained(model, sys.argv[1] if len(sys.argv) > 1 else "runs/교사2/lora/lora"); model.eval()
 proc = AutoProcessor.from_pretrained(W + "/qwen2vl2b", min_pixels=256 * 28 * 28, max_pixels=1280 * 28 * 28, padding_side="left")
