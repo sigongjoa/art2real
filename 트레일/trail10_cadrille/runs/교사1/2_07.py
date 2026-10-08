@@ -1,0 +1,17 @@
+import cadquery as cq
+def bx(x0, x1, y0, y1, z0, z1): return cq.Workplane('XY').box(x1 - x0, y1 - y0, z1 - z0).translate(((x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2))
+def yz(P, x0, x1): return cq.Workplane('YZ', origin=(x0, 0, 0)).polyline(P).close().extrude(x1 - x0)
+front = cq.Workplane('XY', origin=(0, 0, -82.4)).polyline([(78.7, -37.9), (78.7, -81.5), (60.3, -100), (-60.3, -100), (-78.7, -81.5), (-78.7, -37.9)]).close().extrude(51.3)
+plate = bx(-78.7, 78.7, -38, 70.7, -43.9, -31.1)
+keel = bx(-9.9, 9.9, -37.2, 99.7, -68.7, -40).union(bx(-9.9, 9.9, 70, 99.7, -68.7, 31.2)).union(bx(-25.1, 25.1, 70, 100, 31.2, 46))
+body = cq.Workplane('XZ').polyline([(72.1, -36), (72.1, 35.8), (63.9, 46), (-63.9, 46), (-72.1, 35.8), (-72.1, -36)]).close().extrude(110, both=True)
+body = body.intersect(yz([(70.7, -36), (70.7, 46), (-3, 46), (-93, -36)], -80, 80))
+for s in (1, -1):
+    x0, x1 = (25.1, 42.2) if s > 0 else (-42.2, -25.1)
+    body = body.union(yz([(70.7, 30), (70.7, 59.9), (-6.1, 59.9), (-93.4, -18), (-93.4, -31), (-70, -31)], x0, x1))
+    c0, c1 = (9.9, 58.7) if s > 0 else (-58.7, -9.9)
+    body = body.cut(bx(c0, c1, 21.3, 72, -41, 31.2))
+    b0, b1 = (25.1, 48.1) if s > 0 else (-48.1, -25.1)
+    body = body.union(yz([(42.6, 46), (42.6, 68), (54.1, 74.9), (65.7, 79.4), (80.7, 81.9), (100, 82.4), (100, 46)], b0, b1))
+body = body.union(yz([(42.6, 46), (42.6, 52), (55.5, 60.7), (66.4, 65.9), (79, 68.6), (100, 69.2), (100, 46)], -25.1, 25.1))
+r = front.union(plate).union(keel).union(body)

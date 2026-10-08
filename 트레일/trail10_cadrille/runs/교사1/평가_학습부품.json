@@ -1,0 +1,889 @@
+{
+ "요약": {
+  "LoRA": "runs/교사1/lora/lora",
+  "부품": 25,
+  "맞힘(모서리≥0.42) 비율": 0.2,
+  "최고 모서리 중앙": 0.323,
+  "≥0.8 비율": 0.0,
+  "≥0.6 비율": 0.32,
+  "최고 중앙": 0.537,
+  "실행 실패율": 0.185
+ },
+ "부품별": [
+  {
+   "부품": "70941_G1하운드/24_hound_leg3_shin_green.stl",
+   "IoU": [
+    0.0,
+    0.0,
+    0.648,
+    0.0,
+    0.616,
+    0.0,
+    0.0,
+    0.626
+   ],
+   "모서리": [
+    0.168,
+    0.197,
+    0.153,
+    0.206,
+    0.206,
+    0.242,
+    0.201,
+    0.174
+   ],
+   "최고": 0.648,
+   "최고모서리": 0.242,
+   "코드": [
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-67))\nw1=cq.Workplane('ZX',origin=(0,37,0))\nr=w0.sketch().segment((-87,39),(-83,-41)).segment((-14,-38)).segment((-18,42)).close().assemble().push([(-50.5,1.5)]).rect(25,29,mode='s').finalize().extrude(-33).union(w0.sketch().segment((-88,41),(-85,-42)).segment((-14,-39)).segment((-14,-42)).segment((14,-42)).segment((14,-38)).segment((16,-38)).segment((16,-42)).segment((87,-40)).segment((85,42)).segment((14,39)).segment((14,42)).segment((-14,42)).segment((-14,38)).close().assemble().reset().face(w0.sketch().segment((14,-20),(14,20)).arc((0,0),(14,-20)).assemble(),mode='s').reset().face(w0.sketch().arc((16,-20),(30,0),(16,20)).close().assemble(),mode='s').finalize().extrude(143)).union(w1.sketch().segment((-100,27),(-90,27)).arc((-73,81),(-56,27)).segment((-52,27)).segment((-52,-84)).arc((-29,-79),(-10,-66)).segment((100,-66)).segment((100,-5)).segment((-10,-5)).arc((-51,12),(-90,-5)).segment((-100,-5)).close().assemble().finalize().extrude(-72))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-66))\nw1=cq.Workplane('ZX',origin=(0,37,0))\nr=w0.sketch().segment((-87,39),(-83,-42)).segment((-13,-39)).segment((-17,42)).close().assemble().push([(-50,0)]).circle(22,mode='s').finalize().extrude(-34).union(w0.sketch().segment((-88,41),(-85,-42)).segment((-13,-39)).segment((-13,-46)).segment((13,-46)).segment((13,-38)).segment((87,-36)).segment((85,42)).segment((13,40)).segment((13,46)).segment((-13,46)).segment((-13,38)).close().assemble().push([(0,1)]).rect(158,36,mode='s').finalize().extrude(142)).union(w1.sketch().segment((-100,26),(-89,26)).arc((-62,81),(-69,20)).segment((-69,-10)).arc((-61,-11),(-53,-13)).arc((-50,-12),(-48,-14)).arc((-46,-14),(-44,-13)).segment((-44,-59)).segment((100,-59)).segment((100,1)).segment((-33,1)).arc((-32,8),(-33,15)).arc((-62,10),(-87,26)).segment((-33,26)).segment((-33,67)).segment((-100,67)).close().assemble().finalize().extrude(-73))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-65))\nw1=cq.Workplane('ZX',origin=(0,37,0))\nr=w0.sketch().segment((-87,39),(-83,-41)).segment((-16,-38)).segment((-20,42)).close().assemble().push([(-51.5,1.5)]).rect(27,29,mode='s').finalize().extrude(-35).union(w0.sketch().segment((-88,41),(-85,-42)).segment((-16,-39)).segment((-16,-42)).segment((16,-42)).segment((16,-38)).segment((87,-36)).segment((84,42)).segment((16,40)).segment((16,43)).segment((-16,43)).segment((-16,39)).close().assemble().push([(0,1)]).rect(128,34,mode='s').finalize().extrude(141)).union(w0.workplane(offset=165/2).moveTo(0,-13.5).box(8,53,165)).union(w1.sketch().segment((-100,29),(-90,29)).arc((-71,81),(-52,29)).segment((-49,29)).segment((-49,-84)).arc((-22,-76),(-1,-57)).arc((99,-13),(1,31)).arc((-49,88),(-100,29)).assemble().finalize().extrude(-67))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-66))\nw1=cq.Workplane('ZX',origin=(0,37,0))\nr=w0.sketch().segment((-87,39),(-83,-42)).segment((-14,-39)).segment((-18,42)).close().assemble().push([(-50.5,0)]).rect(25,34,mode='s').finalize().extrude(-34).union(w0.sketch().segment((-88,41),(-85,-42)).segment((-11,-39)).segment((-11,-46)).segment((11,-46)).segment((11,-38)).segment((87,-36)).segment((85,42)).segment((11,40)).segment((11,47)).segment((-11,47)).segment((-11,40)).close().assemble().push([(0,1)]).rect(156,38,mode='s').finalize().extrude(142)).union(w1.sketch().segment((-100,29),(-90,29)).arc((-76,80),(-62,29)).segment((-59,29)).segment((-59,-84)).arc((-29,-79),(-3,-62)).segment((100,-62)).segment((100,-5)).segment((100,15)).segment((100,62)).segment((-59,62)).segment((-59,61)).arc((-88,84),(-100,49)).close().assemble().finalize().extrude(-73))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-65))\nw1=cq.Workplane('ZX',origin=(0,37,0))\nr=w0.sketch().segment((-87,39),(-83,-41)).segment((-13,-38)).segment((-17,42)).close().assemble().push([(-50,1)]).circle(21,mode='s').finalize().extrude(-35).union(w0.sketch().segment((-88,41),(-85,-42)).segment((-13,-39)).segment((-13,-42)).segment((13,-42)).segment((13,-38)).segment((13,-37)).segment((13,-36)).segment((13,-35)).segment((13,-34)).segment((13,-10)).segment((13,-9)).segment((13,10)).segment((52,10)).segment((52,-9)).segment((52,-10)).segment((52,-34)).segment((87,-33)).segment((84,42)).segment((13,39)).segment((13,42)).segment((-13,42)).segment((-13,38)).close().assemble().finalize().extrude(141)).union(w1.sketch().segment((-100,29),(-82,29)).arc((-62,19),(-42,29)).segment((-24,29)).segment((-24,68)).segment((-42,68)).arc((-62,78),(-82,68)).segment((-100,68)).close().assemble().finalize().extrude(-72))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-66))\nw1=cq.Workplane('ZX',origin=(0,37,0))\nr=w0.sketch().segment((-87,39),(-83,-41)).segment((-15,-38)).segment((-19,42)).close().assemble().push([(-51,1)]).circle(20,mode='s').finalize().extrude(-34).union(w0.sketch().segment((-88,41),(-85,-42)).segment((-15,-39)).segment((-15,-42)).segment((-15,-43)).segment((-15,-44)).segment((-15,-45)).segment((-15,-46)).segment((-15,-47)).segment((-15,-48)).segment((-15,-49)).segment((-15,-48)).segment((-15,-47)).segment((-15,-46)).segment((-15,-45)).segment((-15,-44)).segment((-15,-43)).segment((-15,-42)).segment((88,-39)).segment((85,44)).close().assemble().push([(0,1)]).rect(124,40,mode='s').finalize().extrude(142)).union(w1.sketch().segment((-100,24),(-82,24)).arc((-62,11),(-42,24)).segment((-24,24)).segment((-24,67)).segment((-42,67)).arc((-62,79),(-82,67)).segment((-100,67)).close().assemble().push([(-62,45)]).circle(31,mode='s').finalize().extrude(-72))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-65))\nw1=cq.Workplane('ZX',origin=(0,37,0))\nr=w0.sketch().segment((-87,39),(-83,-20)).arc((-62,-10),(-40,-16)).segment((-40,26)).segment((-18,26)).segment((-18,-28)).segment((-31,-28)).arc((-35,-34),(-40,-39)).segment((-40,-40)).segment((-82,-39)).segment((-82,-44)).segment((-87,44)).close().assemble().finalize().extrude(-35).union(w0.sketch().segment((-88,41),(-85,-43)).segment((-11,-40)).segment((-11,-44)).segment((-1,-44)).segment((-1,-10)).segment((14,-10)).segment((14,-44)).segment((87,-41)).segment((85,43)).close().assemble().push([(40,0)]).rect(26,40,mode='s').finalize().extrude(141)).union(w1.sketch().segment((-100,29),(-89,29)).arc((-62,83),(-69,23)).segment((-69,11)).arc((-61,-1),(-69,-13)).segment((-69,-84)).arc((-20,-79),(17,-46)).segment((100,-46)).segment((100,-3)).segment((22,-3)).arc((22,13),(18,29)).segment((62,29)).segment((62,67)).segment((-100,67)).close().assemble().finalize().extrude(-72))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-67))\nw1=cq.Workplane('ZX',origin=(0,37,0))\nr=w0.sketch().segment((-87,39),(-83,-41)).segment((-14,-38)).segment((-18,42)).close().assemble().push([(-50.5,1.5)]).rect(25,29,mode='s').finalize().extrude(-33).union(w0.sketch().segment((-88,41),(-85,-42)).segment((-14,-39)).segment((-14,-46)).segment((-1,-46)).segment((-1,-39)).segment((14,-38)).segment((14,-10)).segment((18,-10)).segment((18,-38)).segment((88,-36)).segment((85,46)).close().assemble().push([(0,1)]).rect(128,28,mode='s').finalize().extrude(143)).union(w1.sketch().segment((-100,29),(-90,29)).arc((-73,81),(-56,29)).segment((-55,29)).segment((-55,-84)).arc((-29,-79),(-7,-64)).segment((-7,-88)).segment((100,-88)).segment((100,-1)).segment((1,-1)).arc((-44,88),(-100,29)).assemble().finalize().extrude(-72))"
+   ]
+  },
+  {
+   "부품": "1192644_BattleMech_Predator/extra_gun.stl",
+   "IoU": [
+    0.593,
+    0.577,
+    0.569,
+    -1.0,
+    -1.0,
+    0.562,
+    0.563,
+    0.0
+   ],
+   "모서리": [
+    0.232,
+    0.293,
+    0.291,
+    -1.0,
+    -1.0,
+    0.243,
+    0.242,
+    0.291
+   ],
+   "최고": 0.593,
+   "최고모서리": 0.293,
+   "코드": [
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-45))\nw1=cq.Workplane('YZ',origin=(17,0,0))\nr=w0.sketch().segment((-27,-90),(27,-90)).segment((27,90)).segment((17,90)).segment((17,100)).segment((-17,100)).segment((-17,90)).segment((-27,90)).close().assemble().finalize().extrude(54).union(w0.sketch().segment((-26,-83),(26,-83)).segment((26,83)).segment((-26,83)).segment((-26,82)).segment((23,59)).segment((12,36)).arc((13,22),(2,12)).segment((-2,4)).segment((-26,18)).close().assemble().finalize().extrude(55)).union(w1.sketch().arc((-68,11),(-99,-24),(-53,-35)).arc((-31,-46),(-7,-46)).arc((-10,-31),(1,-42)).arc((18,-31),(31,-15)).segment((31,15)).segment((39,15)).arc((40,17),(41,18)).arc((58,29),(60,49)).arc((38,51),(19,59)).arc((16,47),(19,35)).arc((-17,31),(-39,3)).arc((-49,11),(-62,14)).arc((-65,12),(-68,11)).assemble().finalize().extrude(-29))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-45))\nw1=cq.Workplane('YZ',origin=(17,0,0))\nr=w0.sketch().segment((-27,-89),(27,-89)).segment((27,89)).segment((17,89)).segment((17,100)).segment((-17,100)).segment((-17,89)).segment((-27,89)).close().assemble().finalize().extrude(55).union(w0.sketch().segment((-27,-80),(27,-80)).segment((27,80)).segment((-27,80)).segment((-27,79)).segment((23,62)).segment((11,29)).arc((14,18),(5,12)).segment((-27,-58)).close().assemble().finalize().extrude(59)).union(w1.sketch().arc((-66,11),(-99,-26),(-51,-40)).arc((-10,-51),(27,-30)).segment((100,-30)).segment((100,11)).segment((27,11)).arc((-10,32),(-48,11)).close().assemble().push([(-10,-9)]).circle(27,mode='s').finalize().extrude(-33))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-45))\nw1=cq.Workplane('YZ',origin=(17,0,0))\nr=w0.sketch().segment((-27,-90),(27,-90)).segment((27,90)).segment((17,90)).segment((17,100)).segment((-17,100)).segment((-17,90)).segment((-27,90)).close().assemble().finalize().extrude(55).union(w0.sketch().segment((-26,-83),(26,-83)).segment((26,83)).segment((-26,83)).segment((-26,82)).segment((23,59)).segment((13,38)).arc((13,25),(3,16)).segment((-2,3)).segment((-26,14)).close().assemble().finalize().extrude(56)).union(w1.sketch().arc((-66,11),(-99,-26),(-51,-40)).arc((-10,-51),(24,-26)).segment((100,-26)).segment((100,11)).segment((24,11)).arc((-16,36),(-56,11)).close().assemble().push([(-16,-10)]).circle(22,mode='s').finalize().extrude(-33))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-45))\nw1=cq.Workplane('YZ',origin=(17,0,0))\nr=w0.sketch().segment((-27,-89),(27,-89)).segment((27,89)).segment((17,89)).segment((17,100)).segment((-17,100)).segment((-17,89)).segment((-27,89)).close().assemble().finalize().extrude(54).union(w0.sketch().segment((-26,-79),(10,-87)).segment((26,79)).segment((-10,87)).close().assemble().finalize().extrude(59)).union(w1.sketch().arc((-65,11),(-99,-24),(-51,-34)).arc((-10,-51),(29,-32)).segment((100,-32)).segment((100,11)).segment((29,11)).arc((28,12),(27,13)).arc((58,21),(58,54)).segment((19,54)).arc((14,43),(10,32)).segment((10,-32)).segment((10,-33)).arc((-10,-44),(-32,-34)).arc((-95,-24),(-51,11)).close().assemble().finalize().extrude(-29))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-45))\nw1=cq.Workplane('YZ',origin=(17,0,0))\nr=w0.sketch().segment((-27,-89),(27,-89)).segment((27,89)).segment((17,89)).segment((17,100)).segment((-17,100)).segment((-17,89)).segment((-27,89)).close().assemble().finalize().extrude(55).union(w0.sketch().segment((-27,-82),(27,-82)).segment((27,82)).segment((-27,82)).segment((-27,81)).segment((23,59)).segment((11,31)).arc((14,17),(3,10)).segment((-27,-51)).close().assemble().finalize().extrude(56)).union(w1.sketch().arc((-69,11),(-99,-22),(-55,-31)).arc((-31,-45),(-5,-45)).arc((-10,-37),(-11,-28)).segment((-11,-27)).segment((-10,-27)).arc((0,-11),(10,5)).arc((11,10),(11,15)).arc((10,11),(9,8)).segment((9,3)).segment((-11,3)).segment((-11,8)).arc((-12,10),(-12,11)).arc((-31,18),(-50,17)).arc((-57,12),(-69,11)).assemble().push([(-75,-11)]).circle(18,mode='s').finalize().extrude(-43))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-45))\nw1=cq.Workplane('YZ',origin=(17,0,0))\nr=w0.sketch().segment((-27,-90),(27,-90)).segment((27,90)).segment((17,90)).segment((17,100)).segment((-17,100)).segment((-17,90)).segment((-27,90)).close().assemble().finalize().extrude(55).union(w0.sketch().segment((-26,-82),(26,-82)).segment((26,82)).segment((-26,82)).segment((-26,81)).segment((23,58)).segment((13,37)).arc((13,23),(3,13)).segment((-2,1)).segment((-26,13)).close().assemble().finalize().extrude(55)).union(w1.sketch().arc((-67,11),(-99,-24),(-53,-38)).arc((-40,-44),(-26,-46)).arc((-24,-47),(-23,-46)).arc((-1,-39),(16,-24)).segment((100,-24)).segment((100,11)).segment((16,11)).arc((-26,39),(-67,11)).assemble().push([(-26,-17)]).circle(19,mode='s').finalize().extrude(-33))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-45))\nw1=cq.Workplane('YZ',origin=(17,0,0))\nr=w0.sketch().segment((-27,-89),(27,-89)).segment((27,89)).segment((17,89)).segment((17,100)).segment((-17,100)).segment((-17,89)).segment((-27,89)).close().assemble().finalize().extrude(55).union(w0.sketch().segment((-26,-85),(26,-85)).segment((26,85)).segment((-26,85)).segment((-26,84)).segment((23,67)).segment((13,39)).arc((13,27),(5,18)).segment((-2,1)).segment((-26,12)).close().assemble().finalize().extrude(55)).union(w1.sketch().arc((-69,11),(-99,-25),(-53,-38)).arc((-10,-51),(28,-26)).segment((100,-26)).segment((100,11)).segment((28,11)).arc((-19,39),(-66,11)).close().assemble().push([(-19,-17)]).circle(21,mode='s').finalize().extrude(-32))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-45))\nw1=cq.Workplane('YZ',origin=(17,0,0))\nr=w0.sketch().segment((-27,-90),(27,-90)).segment((27,90)).segment((17,90)).segment((17,100)).segment((-17,100)).segment((-17,90)).segment((-27,90)).close().assemble().finalize().extrude(54).union(w0.sketch().segment((-26,-82),(26,-82)).segment((26,82)).segment((-26,82)).segment((-26,81)).segment((23,58)).segment((13,37)).arc((13,23),(2,13)).segment((-26,-52)).close().assemble().finalize().extrude(56)).union(w1.sketch().arc((-67,11),(-99,-23),(-53,-34)).arc((-41,-40),(-28,-43)).segment((-28,-56)).segment((28,-56)).segment((28,-43)).arc((67,0),(28,43)).segment((28,56)).segment((14,56)).arc((13,47),(10,38)).arc((13,33),(15,28)).segment((47,28)).segment((47,-28)).segment((-47,-28)).segment((-47,28)).segment((-39,28)).arc((-52,19),(-67,11)).assemble().finalize().extrude(-29))"
+   ]
+  },
+  {
+   "부품": "70953_G1킥백/19_kick_leg3_shin1_black.stl",
+   "IoU": [
+    -1.0,
+    -1.0,
+    0.0,
+    0.273,
+    0.289,
+    0.0,
+    -1.0,
+    -1.0
+   ],
+   "모서리": [
+    -1.0,
+    -1.0,
+    0.283,
+    0.255,
+    0.274,
+    0.235,
+    -1.0,
+    -1.0
+   ],
+   "최고": 0.289,
+   "최고모서리": 0.283,
+   "코드": [
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(66,0,0))\nw1=cq.Workplane('YZ',origin=(-15,0,0))\nr=w0.sketch().segment((-95,-45),(-32,-45)).segment((-32,-49)).segment((32,-49)).segment((32,-45)).segment((95,-45)).segment((95,12)).segment((32,12)).segment((32,16)).segment((-32,16)).segment((-32,12)).segment((-95,45)).close().assemble().finalize().extrude(-10).union(w0.sketch().segment((-100,-43),(95,-43)).segment((95,-45)).segment((100,17)).segment((67,21)).segment((67,29)).segment((53,29)).segment((53,23)).segment((-95,45)).close().assemble().reset().face(w0.sketch().segment((-77,-29),(-34,-29)).arc((-36,-12),(-21,-19)).segment((-19,-19)).segment((-19,19)).segment((-77,19)).close().assemble(),mode='s').push([(70,-13)]).circle(15,mode='s').finalize().extrude(7)).union(w1.sketch().segment((-95,-40),(-38,-40)).arc((-36,-42),(-34,-44)).segment((-34,-40)).segment((95,-40)).segment((95,12)).segment((38,12)).arc((36,14),(34,16)).segment((34,12)).segment((-95,12)).close().assemble().push([(-47,-11)]).rect(42,32,mode='s').finalize().extrude(-55))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(66,0,0))\nw1=cq.Workplane('YZ',origin=(-17,0,0))\nr=w0.sketch().segment((-95,-45),(-34,-45)).segment((-34,-49)).segment((34,-49)).segment((34,-45)).segment((95,-45)).segment((95,11)).segment((34,11)).segment((34,15)).segment((-34,15)).segment((-34,11)).segment((-95,45)).close().assemble().finalize().extrude(-10).union(w0.sketch().segment((-100,-43),(95,-43)).segment((95,-45)).segment((100,17)).segment((67,21)).segment((70,28)).segment((54,33)).segment((51,24)).segment((-95,45)).close().assemble().reset().face(w0.sketch().segment((-77,-25),(-30,-25)).arc((-32,-12),(-25,-2)).segment((-25,25)).segment((-77,25)).close().assemble(),mode='s').reset().face(w0.sketch().segment((51,-25),(87,-25)).segment((87,25)).segment((51,25)).arc((55,0),(51,-25)).assemble(),mode='s').finalize().extrude(7)).union(w1.sketch().segment((-97,-40),(-38,-40)).arc((-36,-42),(-34,-43)).segment((-34,-40)).segment((97,-40)).segment((97,11)).segment((97,12)).segment((97,14)).segment((97,15)).segment((97,16)).segment((97,17)).segment((97,20)).segment((97,21)).segment((97,23)).segment((97,25)).segment((97,26)).segment((97,27)).segment((97,28)).segment((97,29)).segment((97,31)).segment((97,32)).segment((97,33)).segment((97,34)).segment((97,35)).segment((97,36)).segment((97,37)).segment((97,38)).segment((97,40)).segment((38,40)).arc((36,42),(34,43)).segment((34,40)).segment((-97,40)).segment((-97,-11)).segment((-30,-11)).arc((-32,-22),(-34,-32)).segment((-34,-33)).segment((-97,-40)).close().assemble().finalize().extrude(-52))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(66,0,0))\nw1=cq.Workplane('YZ',origin=(-18,0,0))\nr=w0.sketch().segment((-95,-45),(-34,-45)).segment((-34,-49)).segment((34,-49)).segment((34,-45)).segment((95,-45)).segment((95,11)).segment((34,11)).segment((34,15)).segment((-34,15)).segment((-34,11)).segment((-95,45)).close().assemble().finalize().extrude(-10).union(w0.sketch().segment((-100,-43),(95,-43)).segment((95,-45)).segment((100,17)).segment((67,21)).segment((71,28)).segment((52,35)).segment((47,23)).segment((-95,45)).close().assemble().reset().face(w0.sketch().segment((-77,-25),(-27,-25)).arc((-29,-12),(-27,1)).segment((-77,1)).close().assemble(),mode='s').reset().face(w0.sketch().segment((50,-25),(90,-25)).segment((90,1)).segment((50,1)).arc((52,-12),(50,-25)).assemble(),mode='s').finalize().extrude(7)).union(w1.sketch().segment((-97,-45),(-38,-45)).arc((-36,-43),(-34,-45)).segment((97,-45)).segment((97,11)).segment((-97,11)).close().assemble().push([(-47,-12)]).rect(38,36,mode='s').finalize().extrude(-51))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(66,0,0))\nw1=cq.Workplane('YZ',origin=(-18,0,0))\nr=w0.sketch().segment((-95,-45),(-36,-45)).segment((-36,-40)).segment((95,-40)).segment((95,11)).segment((-36,11)).segment((-36,45)).segment((-95,45)).close().assemble().finalize().extrude(-10).union(w0.sketch().segment((-100,-43),(95,-43)).segment((95,-45)).segment((100,17)).segment((65,21)).segment((67,28)).segment((52,32)).segment((49,23)).segment((-95,45)).close().assemble().reset().face(w0.sketch().segment((-77,-28),(-37,-28)).arc((-39,-12),(-24,-18)).segment((-24,18)).segment((-77,18)).close().assemble(),mode='s').reset().face(w0.sketch().segment((53,-28),(77,-28)).segment((77,18)).segment((53,18)).arc((56,-5),(53,-28)).assemble(),mode='s').finalize().extrude(7)).union(w1.sketch().segment((-95,-45),(-36,-45)).arc((-34,-42),(-32,-45)).segment((95,-45)).segment((95,-11)).segment((100,-11)).segment((100,11)).segment((95,11)).segment((95,14)).segment((-95,14)).close().assemble().push([(-45,-1)]).rect(34,30,mode='s').finalize().extrude(-49))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(66,0,0))\nw1=cq.Workplane('YZ',origin=(-16,0,0))\nr=w0.sketch().segment((-95,-45),(-34,-45)).segment((-34,-49)).segment((-31,-49)).segment((-31,-45)).segment((39,-45)).segment((39,-40)).segment((95,-40)).segment((95,11)).segment((39,11)).segment((39,12)).segment((-31,12)).segment((-31,16)).segment((-34,16)).segment((-34,12)).segment((-95,44)).close().assemble().finalize().extrude(-10).union(w0.sketch().segment((-100,-44),(95,-44)).segment((95,-43)).segment((100,17)).segment((74,20)).segment((76,27)).segment((53,32)).segment((51,23)).segment((-95,44)).close().assemble().reset().face(w0.sketch().segment((-76,-27),(-30,-27)).arc((-32,-10),(-23,4)).segment((-76,4)).close().assemble(),mode='s').push([(66,-11)]).circle(17,mode='s').finalize().extrude(7)).union(w1.sketch().segment((-95,-44),(-39,-44)).arc((-36,-41),(-33,-44)).segment((95,-44)).segment((95,11)).segment((-95,11)).close().assemble().push([(-45.5,-16.5)]).rect(41,27,mode='s').finalize().extrude(-54))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(66,0,0))\nw1=cq.Workplane('YZ',origin=(-16,0,0))\nr=w0.sketch().segment((-95,-45),(-35,-45)).segment((-35,-41)).segment((95,-41)).segment((95,11)).segment((-35,11)).segment((-35,45)).segment((-95,45)).close().assemble().finalize().extrude(-10).union(w0.sketch().segment((-100,-43),(95,-43)).segment((95,-45)).segment((100,17)).segment((67,21)).segment((71,28)).segment((52,35)).segment((44,16)).segment((-95,45)).close().assemble().reset().face(w0.sketch().segment((-76,-28),(-33,-28)).arc((-36,-12),(-21,-18)).segment((-19,-11)).segment((-76,-11)).close().assemble(),mode='s').reset().face(w0.sketch().segment((-73,-22),(-68,-33)).segment((-63,-31)).segment((-68,-20)).close().assemble(),mode='s').push([(67,-14)]).circle(15,mode='s').finalize().extrude(7)).union(w1.sketch().segment((-95,-45),(-35,-45)).arc((-32,-41),(-30,-45)).segment((95,-45)).segment((95,11)).segment((-95,11)).close().assemble().push([(-44.5,-10.5)]).rect(33,27,mode='s').finalize().extrude(-54))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(66,0,0))\nw1=cq.Workplane('YZ',origin=(-16,0,0))\nr=w0.sketch().segment((-95,-45),(-34,-45)).segment((-34,-40)).segment((95,-40)).segment((95,11)).segment((-34,11)).segment((-34,45)).segment((-95,45)).close().assemble().finalize().extrude(-10).union(w0.sketch().segment((-100,-43),(95,-43)).segment((95,-45)).segment((100,17)).segment((67,21)).segment((67,29)).segment((52,29)).segment((52,23)).segment((-95,45)).close().assemble().reset().face(w0.sketch().segment((-76,-29),(-37,-29)).arc((-39,-30),(-41,-31)).segment((-41,-38)).segment((-48,-38)).segment((-48,-31)).arc((-50,-30),(-52,-29)).segment((-20,-29)).segment((-20,11)).segment((-76,11)).close().assemble(),mode='s').push([(69,-11)]).circle(17,mode='s').finalize().extrude(7)).union(w1.sketch().segment((-95,-45),(-36,-45)).arc((-34,-42),(-32,-45)).segment((95,-45)).segment((95,11)).segment((-95,11)).close().assemble().push([(-45.5,-10.5)]).rect(41,21,mode='s').finalize().extrude(-54))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(66,0,0))\nw1=cq.Workplane('YZ',origin=(-18,0,0))\nr=w0.sketch().segment((-95,-45),(-32,-45)).segment((-32,-49)).segment((32,-49)).segment((32,-45)).segment((95,-45)).segment((95,11)).segment((32,11)).segment((32,15)).segment((-32,15)).segment((-32,11)).segment((-95,11)).close().assemble().finalize().extrude(-10).union(w0.sketch().segment((-100,-44),(95,-44)).segment((95,-43)).segment((100,17)).segment((72,20)).segment((76,27)).segment((55,34)).segment((51,23)).segment((-95,44)).close().assemble().reset().face(w0.sketch().segment((-76,-27),(-30,-27)).arc((-32,-10),(-23,4)).segment((-76,4)).close().assemble(),mode='s').reset().face(w0.sketch().segment((51,-27),(76,-27)).segment((76,4)).segment((51,4)).arc((56,-10),(51,-27)).assemble(),mode='s').finalize().extrude(7)).union(w1.sketch().segment((-96,-44),(-36,-44)).arc((-32,-45),(-28,-46)).segment((-28,-44)).segment((96,-44)).segment((96,11)).segment((91,11)).arc((74,26),(54,19)).arc((44,23),(34,25)).segment((34,44)).segment((-34,44)).segment((-34,25)).arc((-67,18),(-96,44)).close().assemble().reset().face(w1.sketch().segment((-73,-27),(-73,27)).arc((-81,0),(-73,-27)).assemble(),mode='s').push([(-45.5,-31.5)]).rect(11,13,mode='s').push([(-45.5,31.5)]).rect(11,13,mode='s').finalize().extrude(-51))"
+   ]
+  },
+  {
+   "부품": "113294_만달로리안핀/brow_r.stl",
+   "IoU": [
+    0.352,
+    0.0,
+    -1.0,
+    0.124,
+    0.0,
+    -1.0,
+    -1.0,
+    0.109
+   ],
+   "모서리": [
+    0.504,
+    0.333,
+    -1.0,
+    0.401,
+    0.332,
+    -1.0,
+    -1.0,
+    0.278
+   ],
+   "최고": 0.352,
+   "최고모서리": 0.504,
+   "코드": [
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-8,0))\nr=w0.sketch().arc((-100,-56),(-39,-64),(19,-40)).segment((-99,-40)).arc((-99,-48),(-100,-56)).assemble().finalize().extrude(-4).union(w0.sketch().segment((-100,-54),(-10,-54)).segment((-10,-52)).arc((74,-10),(99,68)).segment((99,63)).segment((89,63)).segment((89,42)).segment((83,42)).arc((34,-33),(-54,-42)).segment((-100,-47)).close().assemble().finalize().extrude(16))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-8,0))\nr=w0.sketch().arc((-100,-56),(-81,-60),(-62,-66)).segment((-62,-56)).close().assemble().reset().face(w0.sketch().segment((-100,-49),(-62,-49)).segment((-62,-40)).segment((-100,-40)).arc((-99,-45),(-100,-49)).assemble()).reset().face(w0.sketch().arc((-56,-66),(-37,-60),(-18,-56)).segment((-56,-56)).close().assemble()).reset().face(w0.sketch().segment((-56,49),(-18,49)).arc((-37,53),(-56,49)).assemble()).reset().face(w0.sketch().arc((19,-56),(60,-27),(81,19)).segment((100,19)).segment((100,66)).segment((93,66)).arc((92,64),(91,63)).segment((91,49)).segment((81,49)).arc((60,-27),(19,-56)).assemble()).finalize().extrude(16)",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-8,0))\nr=w0.sketch().arc((-100,-56),(-80,-61),(-60,-66)).segment((-60,-56)).close().assemble().reset().face(w0.sketch().segment((-100,-49),(-60,-49)).segment((-60,-43)).segment((-100,-43)).arc((-99,-46),(-100,-49)).assemble()).reset().face(w0.sketch().arc((-48,-66),(-28,-61),(-7,-56)).segment((-48,-56)).close().assemble()).reset().face(w0.sketch().segment((-48,43),(-7,43)).arc((-28,48),(-48,43)).assemble()).reset().face(w0.sketch().arc((21,-49),(61,-1),(59,66)).segment((59,43)).segment((21,43)).close().assemble()).finalize().extrude(11).union(w0.sketch().arc((89,66),(10,-28),(98,55)).segment((98,66)).close().assemble().finalize().extrude(15))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-8,0))\nr=w0.sketch().arc((-100,-56),(-39,-64),(15,-37)).segment((20,-37)).segment((20,-32)).arc((37,13),(20,58)).segment((20,63)).segment((15,63)).arc((-39,90),(-100,63)).segment((-100,58)).arc((-26,13),(-100,-32)).close().assemble().finalize().extrude(10).union(w0.sketch().segment((-100,-53),(10,-53)).segment((10,-48)).arc((81,0),(99,69)).segment((91,69)).arc((19,-38),(-98,11)).segment((-100,11)).close().assemble().finalize().extrude(16))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-8,0))\nr=w0.sketch().arc((-100,-56),(-81,-60),(-62,-66)).segment((-62,-56)).close().assemble().reset().face(w0.sketch().segment((-100,-49),(-62,-49)).segment((-62,-40)).segment((-100,-40)).arc((-99,-45),(-100,-49)).assemble()).reset().face(w0.sketch().arc((-56,-66),(-37,-60),(-18,-56)).segment((-56,-56)).close().assemble()).reset().face(w0.sketch().segment((-56,49),(-18,49)).arc((-37,54),(-56,49)).assemble()).reset().face(w0.sketch().arc((19,-56),(60,-27),(81,19)).segment((100,19)).segment((100,66)).segment((93,66)).arc((91,64),(89,63)).segment((89,49)).segment((81,49)).arc((60,-27),(19,-56)).assemble()).finalize().extrude(16)",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-8,0))\nr=w0.sketch().arc((-100,-56),(-80,-61),(-60,-66)).segment((-60,-56)).close().assemble().reset().face(w0.sketch().segment((-100,-49),(-60,-49)).segment((-60,-43)).segment((-100,-43)).arc((-99,-46),(-100,-49)).assemble()).reset().face(w0.sketch().arc((-47,-66),(-27,-61),(-7,-56)).segment((-47,-56)).close().assemble()).reset().face(w0.sketch().segment((-47,43),(-7,43)).arc((-27,48),(-47,43)).assemble()).reset().face(w0.sketch().arc((21,-43),(73,1),(99,66)).segment((90,66)).arc((64,-10),(21,-66)).close().assemble()).finalize().extrude(15)",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-8,0))\nr=w0.sketch().arc((-100,-56),(-80,-61),(-60,-66)).segment((-60,-56)).close().assemble().reset().face(w0.sketch().segment((-100,-49),(-60,-49)).segment((-60,-43)).segment((-100,-43)).arc((-99,-46),(-100,-49)).assemble()).reset().face(w0.sketch().arc((-49,-66),(-29,-61),(-8,-56)).segment((-49,-56)).close().assemble()).reset().face(w0.sketch().segment((-49,43),(-8,43)).arc((-29,48),(-49,43)).assemble()).reset().face(w0.sketch().arc((19,-49),(20,-46),(21,-43)).segment((19,-43)).close().assemble()).finalize().extrude(11).union(w0.sketch().segment((84,66),(84,67)).arc((-1,-30),(98,52)).segment((98,66)).close().assemble().push([(29,18)]).circle(52,mode='s').finalize().extrude(15))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-8,0))\nr=w0.sketch().arc((-100,-57),(-81,-61),(-62,-66)).segment((-62,-57)).close().assemble().reset().face(w0.sketch().segment((-100,-49),(-62,-49)).segment((-62,-40)).segment((-100,-40)).arc((-99,-45),(-100,-49)).assemble()).reset().face(w0.sketch().arc((-48,-66),(-29,-61),(-10,-57)).segment((-48,-57)).close().assemble()).reset().face(w0.sketch().segment((-48,49),(-47,49)).segment((-47,57)).arc((-48,53),(-48,49)).assemble()).finalize().extrude(11).union(w0.sketch().segment((84,66),(84,67)).arc((-10,-29),(98,50)).segment((98,66)).close().assemble().push([(24,17)]).circle(53,mode='s').finalize().extrude(15))"
+   ]
+  },
+  {
+   "부품": "1640140_RX78_2/feet.stl",
+   "IoU": [
+    0.537,
+    0.0,
+    0.0,
+    0.523,
+    0.0,
+    0.0,
+    0.0,
+    0.486
+   ],
+   "모서리": [
+    0.297,
+    0.271,
+    0.363,
+    0.359,
+    0.381,
+    0.336,
+    0.363,
+    0.299
+   ],
+   "최고": 0.537,
+   "최고모서리": 0.381,
+   "코드": [
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(-46,0,0))\nw1=cq.Workplane('ZX',origin=(0,-48,0))\nr=w0.sketch().push([(14,-23)]).circle(32).circle(31,mode='s').finalize().extrude(69).union(w0.sketch().segment((-51,57),(-49,57)).segment((-49,-57)).segment((-7,-57)).segment((-7,-54)).segment((-49,57)).segment((-49,56)).segment((-50,56)).close().assemble().reset().face(w0.sketch().segment((-49,56),(-7,57)).segment((-30,100)).close().assemble()).finalize().extrude(104)).union(w1.sketch().arc((-100,-47),(-77,-50),(-55,-58)).segment((-55,47)).segment((-100,41)).close().assemble().finalize().extrude(41))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(-46,0,0))\nw1=cq.Workplane('ZX',origin=(0,-48,0))\nr=w0.sketch().push([(13,-23)]).circle(33).circle(31,mode='s').finalize().extrude(69).union(w0.sketch().segment((-51,56),(-49,56)).segment((-49,-59)).segment((-22,-59)).segment((-49,-54)).segment((-1,78)).segment((-30,100)).close().assemble().finalize().extrude(104)).union(w1.sketch().arc((-100,-47),(-78,-51),(-57,-58)).segment((-57,47)).segment((-100,47)).close().assemble().finalize().extrude(41))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(-46,0,0))\nw1=cq.Workplane('ZX',origin=(0,-7,0))\nr=w0.sketch().push([(14,-23)]).circle(32).circle(31,mode='s').finalize().extrude(69).union(w0.sketch().segment((-50,56),(-48,56)).segment((-48,-59)).segment((-22,-59)).segment((-22,-56)).segment((-20,-56)).segment((-48,56)).segment((-48,55)).segment((-50,55)).close().assemble().reset().face(w0.sketch().segment((-48,56),(-22,56)).segment((2,77)).segment((-30,100)).close().assemble()).finalize().extrude(104)).union(w1.sketch().arc((-100,-47),(-78,-50),(-57,-58)).segment((-57,47)).segment((-100,47)).close().assemble().finalize().extrude(-42))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(-46,0,0))\nw1=cq.Workplane('ZX',origin=(0,-7,0))\nr=w0.sketch().push([(14,-23)]).circle(32).circle(31,mode='s').finalize().extrude(69).union(w0.sketch().segment((-50,56),(-49,56)).segment((-49,-59)).segment((-22,-59)).segment((-22,-56)).segment((-20,-56)).segment((-49,56)).segment((-49,55)).close().assemble().reset().face(w0.sketch().segment((-49,55),(-20,56)).segment((5,77)).segment((-30,100)).close().assemble()).finalize().extrude(104)).union(w1.sketch().arc((-100,-47),(-78,-49),(-57,-57)).segment((-57,47)).segment((-100,47)).close().assemble().finalize().extrude(-42))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(-46,0,0))\nw1=cq.Workplane('ZX',origin=(0,-7,0))\nr=w0.sketch().push([(14,-23)]).circle(32).circle(31,mode='s').finalize().extrude(69).union(w0.sketch().segment((-50,56),(-49,56)).segment((-49,-59)).segment((-22,-59)).segment((-22,-56)).segment((-20,-56)).segment((-49,56)).segment((-49,55)).close().assemble().reset().face(w0.sketch().segment((-49,56),(-22,56)).segment((3,77)).segment((-30,100)).close().assemble()).finalize().extrude(104)).union(w1.sketch().arc((-100,-47),(-77,-49),(-55,-58)).segment((-55,47)).segment((-100,47)).close().assemble().finalize().extrude(-42))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(-46,0,0))\nw1=cq.Workplane('ZX',origin=(0,-7,0))\nr=w0.sketch().push([(14,-23)]).circle(32).circle(31,mode='s').finalize().extrude(69).union(w0.sketch().segment((-50,56),(-48,56)).segment((-48,-58)).segment((-24,-58)).segment((-24,-56)).segment((-22,-56)).segment((-48,56)).segment((-48,55)).segment((-50,55)).close().assemble().reset().face(w0.sketch().segment((-48,56),(-22,56)).segment((2,77)).segment((-30,100)).close().assemble()).finalize().extrude(104)).union(w1.sketch().arc((-100,-47),(-77,-50),(-55,-59)).segment((-55,47)).segment((-100,47)).close().assemble().finalize().extrude(-42))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(-46,0,0))\nw1=cq.Workplane('ZX',origin=(0,-7,0))\nr=w0.sketch().push([(14,-23)]).circle(32).circle(31,mode='s').finalize().extrude(69).union(w0.sketch().segment((-50,56),(-48,56)).segment((-48,-59)).segment((-22,-59)).segment((-22,-56)).segment((-20,-56)).segment((-48,56)).segment((-48,55)).segment((-50,55)).close().assemble().reset().face(w0.sketch().segment((-48,56),(-22,56)).segment((2,77)).segment((-30,100)).close().assemble()).finalize().extrude(104)).union(w1.sketch().arc((-100,-47),(-78,-50),(-57,-58)).segment((-57,47)).segment((-100,47)).close().assemble().finalize().extrude(-42))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(-46,0,0))\nw1=cq.Workplane('ZX',origin=(0,-48,0))\nr=w0.sketch().push([(14,-23)]).circle(32).circle(31,mode='s').finalize().extrude(69).union(w0.sketch().segment((-50,56),(-48,56)).segment((-48,-59)).segment((-22,-59)).segment((-22,-56)).segment((-20,-56)).segment((-45,100)).close().assemble().finalize().extrude(104)).union(w1.sketch().arc((-100,-47),(-77,-50),(-55,-58)).segment((-55,47)).segment((-100,47)).close().assemble().finalize().extrude(41))"
+   ]
+  },
+  {
+   "부품": "1402376_콘치로봇/conch_body_handle.stl",
+   "IoU": [
+    0.746,
+    0.746,
+    0.676,
+    0.746,
+    0.746,
+    0.736,
+    0.759,
+    0.746
+   ],
+   "모서리": [
+    0.111,
+    0.11,
+    0.337,
+    0.111,
+    0.11,
+    0.109,
+    0.107,
+    0.11
+   ],
+   "최고": 0.759,
+   "최고모서리": 0.337,
+   "코드": [
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(-73,0,0))\nw1=cq.Workplane('ZX',origin=(0,11,0))\nr=w0.sketch().segment((-11,59),(11,59)).arc((0,65),(-11,59)).assemble().finalize().extrude(-27).union(w0.sketch().segment((-12,61),(12,61)).arc((0,65),(-12,61)).assemble().finalize().extrude(173)).union(w1.sketch().segment((-65,-100),(65,-100)).segment((65,-73)).segment((-37,-73)).segment((-37,-38)).arc((-38,-35),(-37,-32)).segment((-37,81)).segment((65,81)).segment((65,100)).segment((-65,100)).close().assemble().finalize().extrude(-23))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(-74,0,0))\nw1=cq.Workplane('ZX',origin=(0,-12,0))\nr=w0.sketch().segment((-12,59),(12,59)).arc((0,65),(-12,59)).assemble().finalize().extrude(-26).union(w0.sketch().segment((-12,61),(12,61)).arc((0,65),(-12,61)).assemble().finalize().extrude(174)).union(w1.sketch().segment((-65,-100),(65,-100)).segment((65,-73)).segment((-37,-73)).segment((-37,-39)).arc((-38,-37),(-37,-35)).segment((-37,81)).segment((65,81)).segment((65,100)).segment((-65,100)).close().assemble().finalize().extrude(23))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(-73,0,0))\nr=w0.sketch().segment((-12,-64),(12,-64)).segment((12,64)).segment((-12,64)).segment((-12,59)).arc((-10,57),(-12,55)).close().assemble().finalize().extrude(-27).union(w0.sketch().segment((-13,-65),(13,-65)).segment((13,-42)).arc((0,-44),(-13,-42)).close().assemble().finalize().extrude(173))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(-73,0,0))\nw1=cq.Workplane('ZX',origin=(0,11,0))\nr=w0.sketch().segment((-11,59),(11,59)).arc((0,65),(-11,59)).assemble().finalize().extrude(-27).union(w0.sketch().segment((-12,61),(12,61)).arc((0,65),(-12,61)).assemble().finalize().extrude(173)).union(w1.sketch().segment((-65,-100),(65,-100)).segment((65,-73)).segment((-37,-73)).segment((-37,-39)).arc((-38,-37),(-37,-35)).segment((-37,81)).segment((65,81)).segment((65,100)).segment((-65,100)).close().assemble().finalize().extrude(-23))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(-73,0,0))\nw1=cq.Workplane('ZX',origin=(0,-12,0))\nr=w0.sketch().segment((-12,58),(12,58)).arc((0,65),(-12,58)).assemble().finalize().extrude(-27).union(w0.sketch().segment((-12,61),(12,61)).arc((0,65),(-12,61)).assemble().finalize().extrude(173)).union(w1.sketch().segment((-65,-100),(65,-100)).segment((65,-73)).segment((-37,-73)).segment((-37,-38)).arc((-38,-35),(-37,-32)).segment((-37,81)).segment((65,81)).segment((65,100)).segment((-65,100)).close().assemble().finalize().extrude(23))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(-74,0,0))\nw1=cq.Workplane('ZX',origin=(0,-12,0))\nr=w0.sketch().segment((-12,59),(12,59)).arc((0,65),(-12,59)).assemble().finalize().extrude(-26).union(w0.sketch().segment((-12,61),(12,61)).arc((0,65),(-12,61)).assemble().finalize().extrude(174)).union(w1.sketch().segment((-65,-100),(65,-100)).segment((65,-72)).segment((-37,-72)).segment((-37,-38)).arc((-38,-36),(-37,-34)).segment((-37,81)).segment((65,81)).segment((65,100)).segment((-65,100)).close().assemble().finalize().extrude(23))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(-74,0,0))\nw1=cq.Workplane('ZX',origin=(0,11,0))\nr=w0.sketch().segment((-12,59),(12,59)).arc((0,65),(-12,59)).assemble().finalize().extrude(-26).union(w0.sketch().segment((-11,62),(11,62)).arc((0,65),(-11,62)).assemble().finalize().extrude(174)).union(w1.sketch().segment((-65,-100),(65,-100)).segment((65,-73)).segment((-37,-73)).segment((-37,-39)).arc((-38,-37),(-37,-35)).segment((-37,81)).segment((65,81)).segment((65,100)).segment((-65,100)).close().assemble().finalize().extrude(-23))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(-74,0,0))\nw1=cq.Workplane('ZX',origin=(0,-12,0))\nr=w0.sketch().segment((-12,58),(12,58)).arc((0,65),(-12,58)).assemble().finalize().extrude(-26).union(w0.sketch().segment((-12,61),(12,61)).arc((0,65),(-12,61)).assemble().finalize().extrude(174)).union(w1.sketch().segment((-65,-100),(65,-100)).segment((65,-73)).segment((-37,-73)).segment((-37,-38)).arc((-38,-36),(-37,-34)).segment((-37,81)).segment((65,81)).segment((65,100)).segment((-65,100)).close().assemble().finalize().extrude(23))"
+   ]
+  },
+  {
+   "부품": "113294_만달로리안핀/dome_back.stl",
+   "IoU": [
+    0.032,
+    0.033,
+    0.032,
+    0.033,
+    0.023,
+    0.13,
+    0.033,
+    0.023
+   ],
+   "모서리": [
+    0.116,
+    0.117,
+    0.116,
+    0.117,
+    0.075,
+    0.482,
+    0.117,
+    0.079
+   ],
+   "최고": 0.13,
+   "최고모서리": 0.482,
+   "코드": [
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-44,0))\nw1=cq.Workplane('XY',origin=(0,0,55))\nr=w0.sketch().arc((53,98),(-50,-1),(54,98)).close().assemble().push([(2,11)]).circle(79,mode='s').finalize().extrude(14).union(w1.sketch().arc((-100,-43),(29,28),(98,-43)).segment((98,-39)).segment((94,-39)).arc((29,33),(-66,14)).arc((-84,-12),(-100,-43)).assemble().finalize().extrude(-55))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-44,0))\nw1=cq.Workplane('XY',origin=(0,0,55))\nr=w0.sketch().arc((53,98),(-50,-1),(54,98)).close().assemble().push([(3,10)]).circle(78,mode='s').finalize().extrude(14).union(w1.sketch().arc((-100,-43),(29,28),(98,-43)).segment((98,-39)).segment((94,-39)).arc((29,34),(-66,14)).arc((-85,-12),(-100,-43)).assemble().finalize().extrude(-55))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-44,0))\nw1=cq.Workplane('XY',origin=(0,0,55))\nr=w0.sketch().arc((53,98),(-50,-1),(54,98)).close().assemble().push([(2,11)]).circle(79,mode='s').finalize().extrude(14).union(w1.sketch().arc((-100,-43),(29,28),(98,-43)).segment((98,-39)).segment((94,-39)).arc((29,34),(-66,18)).arc((-84,-10),(-100,-43)).assemble().finalize().extrude(-56))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-44,0))\nw1=cq.Workplane('XY',origin=(0,0,55))\nr=w0.sketch().arc((53,98),(-50,-1),(54,98)).close().assemble().push([(2,11)]).circle(78,mode='s').finalize().extrude(14).union(w1.sketch().arc((-100,-43),(29,28),(98,-43)).segment((98,-39)).segment((94,-39)).arc((29,34),(-66,14)).arc((-84,-12),(-100,-43)).assemble().finalize().extrude(-55))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-44,0))\nw1=cq.Workplane('XY',origin=(0,0,55))\nr=w0.sketch().arc((53,98),(-50,-10),(54,97)).segment((54,98)).close().assemble().push([(3,11)]).circle(71,mode='s').finalize().extrude(14).union(w1.sketch().arc((-100,-43),(21,31),(98,-43)).segment((98,-39)).segment((94,-39)).arc((21,35),(-92,10)).segment((-92,-39)).segment((-100,-39)).close().assemble().finalize().extrude(-55))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-11))\nw1=cq.Workplane('ZX',origin=(0,-43,0))\nr=w0.sketch().arc((-100,-43),(14,36),(98,-47)).arc((14,40),(-100,-43)).assemble().finalize().extrude(66).union(w1.sketch().arc((53,-53),(-44,20),(53,94)).arc((-50,20),(53,-53)).assemble().finalize().extrude(14))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-44,0))\nw1=cq.Workplane('XY',origin=(0,0,55))\nr=w0.sketch().arc((53,98),(-50,-1),(54,98)).close().assemble().push([(2,11)]).circle(78,mode='s').finalize().extrude(14).union(w1.sketch().arc((-100,-43),(29,28),(98,-43)).segment((98,-39)).segment((94,-39)).arc((29,34),(-66,13)).arc((-85,-13),(-100,-43)).assemble().finalize().extrude(-55))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-44,0))\nw1=cq.Workplane('XY',origin=(0,0,55))\nr=w0.sketch().arc((53,98),(-50,-10),(54,97)).segment((54,98)).close().assemble().push([(3,11)]).circle(71,mode='s').finalize().extrude(15).union(w1.sketch().arc((-100,-43),(29,28),(98,-43)).segment((98,-39)).segment((94,-39)).arc((29,34),(-66,14)).arc((-85,-12),(-100,-43)).assemble().finalize().extrude(-56))"
+   ]
+  },
+  {
+   "부품": "334967_옵티머스키트/op-edit-22_waist2_front__white___90__scale.stl",
+   "IoU": [
+    -1.0,
+    -1.0,
+    -1.0,
+    -1.0,
+    0.215,
+    -1.0,
+    -1.0,
+    0.0
+   ],
+   "모서리": [
+    -1.0,
+    -1.0,
+    -1.0,
+    -1.0,
+    0.305,
+    -1.0,
+    -1.0,
+    0.381
+   ],
+   "최고": 0.215,
+   "최고모서리": 0.381,
+   "코드": [
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-6,0))\nw1=cq.Workplane('XY',origin=(0,0,3))\nr=w0.sketch().segment((-42,-35),(-39,-35)).segment((-22,-100)).segment((42,-86)).segment((39,-70)).segment((39,86)).segment((22,86)).segment((22,100)).segment((-22,94)).segment((-22,86)).segment((-23,86)).segment((-23,83)).segment((-22,83)).segment((-22,81)).segment((-23,81)).segment((-23,70)).segment((-42,35)).segment((-39,35)).segment((-39,-86)).segment((-22,-86)).segment((-22,-100)).segment((-23,-100)).segment((-23,-83)).segment((-22,-83)).segment((-22,-81)).segment((-23,-81)).segment((-23,-70)).segment((-22,-70)).segment((-22,-68)).segment((-23,-68)).segment((-23,-35)).segment((-42,-35)).close().assemble().finalize().extrude(12).union(w1.sketch().segment((-92,-10),(-68,-10)).arc((-65,-13),(-62,-15)).segment((-62,-10)).segment((62,-10)).segment((62,-15)).arc((65,-13),(68,-10)).segment((92,-10)).segment((92,10)).segment((68,10)).arc((65,13),(62,15)).segment((62,10)).segment((-62,10)).segment((-62,15)).arc((-65,13),(-68,10)).segment((-92,10)).close().assemble().finalize().extrude(37))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-6,0))\nw1=cq.Workplane('XY',origin=(0,0,3))\nr=w0.sketch().segment((-42,-35),(-22,-35)).segment((-22,-36)).segment((22,-36)).segment((22,-35)).segment((42,-35)).segment((42,35)).segment((22,35)).segment((22,36)).segment((-22,36)).segment((-22,35)).segment((-42,35)).close().assemble().finalize().extrude(-10).union(w0.sketch().segment((-43,49),(-23,-100)).segment((43,-91)).segment((23,58)).close().assemble().reset().face(w0.sketch().segment((-29,-93),(-20,-98)).segment((-15,-89)).segment((-24,-84)).close().assemble(),mode='s').circle(19,mode='s').finalize().extrude(12)).union(w1.sketch().segment((-70,-11),(-44,-11)).arc((-42,-14),(-40,-17)).segment((-40,-11)).segment((40,-11)).segment((40,-17)).arc((42,-14),(44,-11)).segment((89,-11)).arc((87,-14),(85,-17)).arc((87,-14),(89,-11)).segment((93,-11)).segment((93,-6)).arc((96,0),(100,6)).segment((100,8)).segment((44,8)).arc((42,11),(40,14)).segment((40,8)).segment((-40,8)).segment((-40,14)).arc((-42,11),(-44,8)).segment((-70,8)).close().assemble().finalize().extrude(37))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-6,0))\nw1=cq.Workplane('XY',origin=(0,0,3))\nr=w0.sketch().segment((-42,-36),(-22,-36)).segment((-22,-88)).segment((22,-88)).segment((22,-36)).segment((42,-36)).segment((42,36)).segment((22,36)).segment((22,88)).segment((-22,88)).segment((-22,36)).segment((-42,36)).close().assemble().finalize().extrude(-10).union(w0.sketch().segment((-43,67),(-22,-100)).segment((43,-91)).segment((22,76)).close().assemble().reset().face(w0.sketch().segment((-28,-93),(-17,-98)).segment((28,93)).segment((17,98)).close().assemble(),mode='s').finalize().extrude(12)).union(w1.sketch().segment((-70,-11),(-44,-11)).arc((-42,-13),(-40,-15)).segment((-40,15)).arc((-42,13),(-44,11)).segment((-70,11)).close().assemble().finalize().extrude(35))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-6,0))\nw1=cq.Workplane('XY',origin=(0,0,3))\nr=w0.sketch().segment((-42,-36),(-39,-36)).segment((-22,-100)).segment((42,-86)).segment((39,-71)).segment((39,86)).segment((22,86)).segment((22,100)).segment((-22,94)).segment((-22,86)).segment((-23,86)).segment((-23,83)).segment((-22,83)).segment((-22,81)).segment((-23,81)).segment((-23,78)).segment((-22,78)).segment((-22,76)).segment((-23,76)).segment((-23,74)).segment((-22,74)).segment((-22,72)).segment((-23,72)).segment((-23,70)).segment((-22,70)).segment((-22,69)).segment((-23,69)).segment((-23,67)).segment((-22,67)).segment((-22,65)).segment((-23,65)).segment((-23,63)).segment((-22,63)).segment((-22,61)).segment((-23,61)).segment((-23,59)).segment((-22,59)).segment((-22,57)).segment((-22,56)).segment((-22,55)).segment((-23,55)).segment((-23,53)).segment((-22,53)).segment((-22,51)).segment((-22,49)).segment((-22,48)).segment((-22,47)).segment((-23,47)).segment((-23,45)).segment((-22,45)).segment((-22,43)).segment((-23,43)).segment((-23,41)).segment((-22,41)).segment((-22,36)).segment((-42,36)).close().assemble().finalize().extrude(12).union(w0.sketch().segment((-18,-96),(-15,-96)).segment((-15,-100)).segment((42,-90)).segment((39,-69)).segment((39,-53)).segment((18,-53)).segment((18,-36)).segment((15,-36)).segment((15,-22)).segment((-15,-22)).segment((-15,-36)).segment((-18,-36)).close().assemble().finalize().extrude(13)).union(w1.sketch().segment((-92,-7),(-69,-7)).arc((-66,-11),(-62,-15)).segment((-62,-7)).segment((62,-7)).segment((62,-15)).arc((66,-11),(69,-7)).segment((92,-7)).segment((92,7)).segment((88,7)).arc((84,11),(80,15)).segment((80,7)).segment((42,7)).segment((42,15)).arc((38,11),(34,7)).",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-6,0))\nw1=cq.Workplane('XY',origin=(0,0,3))\nr=w0.sketch().segment((-42,-36),(-39,-36)).segment((-21,-100)).segment((42,-86)).segment((39,-71)).segment((39,86)).segment((21,86)).segment((21,100)).segment((-21,94)).segment((-21,86)).segment((-22,86)).segment((-21,85)).segment((-42,23)).close().assemble().reset().face(w0.sketch().segment((-39,-8),(-21,-8)).segment((-21,86)).segment((-39,86)).close().assemble(),mode='s').reset().face(w0.sketch().segment((21,-8),(39,-8)).segment((39,86)).segment((21,86)).segment((21,21)).segment((39,25)).segment((42,13)).segment((21,8)).close().assemble(),mode='s').finalize().extrude(12).union(w0.sketch().segment((-23,-97),(-18,-100)).segment((23,-40)).segment((18,-37)).close().assemble().finalize().extrude(15)).union(w1.sketch().segment((-70,-11),(-44,-11)).arc((0,-45),(44,-11)).segment((70,-11)).segment((70,11)).segment((44,11)).arc((0,45),(-44,11)).segment((-70,11)).close().assemble().finalize().extrude(37))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-6,0))\nw1=cq.Workplane('XY',origin=(0,0,3))\nr=w0.sketch().segment((-42,-35),(-22,-35)).segment((-22,-36)).segment((22,-36)).segment((22,-35)).segment((42,-35)).segment((42,35)).segment((22,35)).segment((22,36)).segment((-22,36)).segment((-22,35)).segment((-42,35)).close().assemble().finalize().extrude(-10).union(w0.sketch().segment((-43,59),(-22,-100)).segment((43,-91)).segment((22,68)).close().assemble().reset().face(w0.sketch().segment((-28,-93),(-19,-99)).segment((-10,-85)).segment((-19,-79)).close().assemble(),mode='s').circle(18,mode='s').finalize().extrude(12)).union(w1.sketch().segment((-70,-10),(-44,-10)).arc((-42,-12),(-40,-14)).segment((-40,14)).arc((-42,12),(-44,10)).segment((-70,10)).close().assemble().push([(58.5,0)]).rect(43,24).finalize().extrude(37))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-6,0))\nw1=cq.Workplane('XY',origin=(0,0,3))\nr=w0.sketch().segment((-42,-35),(-39,-35)).segment((-22,-100)).segment((42,-86)).segment((39,-70)).segment((39,86)).segment((22,86)).segment((22,100)).segment((-22,94)).segment((-22,86)).segment((-23,86)).segment((-23,83)).segment((-22,83)).segment((-22,82)).segment((-22,79)).segment((-22,78)).segment((-23,78)).segment((-23,77)).segment((-22,77)).segment((-22,76)).segment((-22,75)).segment((-22,74)).segment((-23,74)).segment((-23,73)).segment((-22,73)).segment((-22,72)).segment((-22,71)).segment((-22,69)).segment((-22,68)).segment((-22,67)).segment((-23,67)).segment((-23,66)).segment((-22,66)).segment((-22,65)).segment((-22,64)).segment((-22,63)).segment((-22,62)).segment((-22,61)).segment((-22,59)).segment((-22,58)).segment((-22,57)).segment((-23,57)).segment((-23,58)).segment((-23,59)).segment((-22,59)).segment((-22,60)).segment((-22,61)).segment((-22,62)).segment((-22,63)).segment((-22,64)).segment((-23,64)).segment((-23,65)).segment((-23,67)).segment((-22,67)).segment((-22,68)).segment((-22,69)).segment((-22,70)).segment((-22,71)).segment((-22,72)).segment((-22,73)).segment((-22,74)).segment((-23,74)).segment((-23,75)).segment((-22,77)).segment((-22,78)).segment((-22,79)).segment((-22,80)).segment((-23,80)).segment((-23,81)).segment((-22,81)).segment((-22,82)).segment((-22,83)).segment((-22,86)).segment((-22,87)).segment((-23,87)).segment((-23,86)).segment((-23,85)).segment((-23,84)).segment((-23,83)).segment((-23,82)).segment((-23,81)).segment((-23,80)).segment((-23,79)).segment((-23,78)).segment((-23,77)).segment((-23,76)).segment((-23,75)).segment((-23,74)).segment((-23,73)).segment((-23,72)).segment",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-6,0))\nw1=cq.Workplane('XY',origin=(0,0,3))\nr=w0.sketch().segment((-42,-35),(-39,-35)).segment((-21,-100)).segment((42,-86)).segment((21,1)).segment((42,86)).segment((-21,100)).segment((-42,13)).close().assemble().reset().face(w0.sketch().segment((-29,-69),(-19,-72)).segment((-19,-96)).segment((19,-96)).segment((19,-84)).segment((21,-85)).segment((29,-58)).segment((19,-55)).segment((19,-31)).segment((-19,-31)).segment((-19,-43)).segment((-21,-42)).close().assemble(),mode='s').finalize().extrude(12).union(w1.sketch().segment((-69,-11),(-46,-11)).arc((-44,-15),(-41,-18)).segment((-41,-11)).segment((41,-11)).segment((41,-18)).arc((44,-15),(46,-11)).segment((89,-11)).arc((87,-15),(84,-18)).segment((84,-11)).segment((95,-11)).segment((95,11)).segment((84,11)).segment((84,18)).arc((87,15),(89,11)).segment((46,11)).arc((44,15),(41,18)).segment((41,11)).segment((-41,11)).segment((-41,18)).arc((-44,15),(-46,11)).segment((-69,11)).close().assemble().finalize().extrude(37))"
+   ]
+  },
+  {
+   "부품": "400101_폴아웃로봇/Head_Eyes.stl",
+   "IoU": [
+    0.0,
+    0.0,
+    0.0,
+    -1.0,
+    0.0,
+    -1.0,
+    0.0,
+    -1.0
+   ],
+   "모서리": [
+    0.159,
+    0.182,
+    0.156,
+    -1.0,
+    0.156,
+    -1.0,
+    0.192,
+    -1.0
+   ],
+   "최고": 0.0,
+   "최고모서리": 0.192,
+   "코드": [
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-58))\nw1=cq.Workplane('YZ',origin=(-15,0,0))\nr=w0.sketch().push([(3,0)]).circle(63).circle(58,mode='s').finalize().extrude(-41).union(w0.sketch().segment((-70,-22),(-10,-83)).segment((70,-1)).segment((10,60)).close().assemble().finalize().extrude(18)).union(w0.sketch().push([(3,0)]).circle(59).circle(51,mode='s').finalize().extrude(128)).union(w1.sketch().arc((-83,-50),(-69,-76),(-43,-92)).arc((-18,-81),(7,-96)).arc((83,-21),(18,64)).arc((-10,81),(-38,62)).arc((-60,52),(-79,36)).arc((-69,39),(-59,39)).arc((-58,41),(-56,43)).arc((-60,-8),(-31,-50)).close().assemble().push([(3,37)]).circle(19,mode='s').finalize().extrude(25))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-58))\nw1=cq.Workplane('YZ',origin=(-15,0,0))\nr=w0.sketch().push([(3,0)]).circle(63).circle(58,mode='s').finalize().extrude(-41).union(w0.sketch().segment((-70,-22),(-10,-83)).segment((70,-1)).segment((10,60)).close().assemble().finalize().extrude(18)).union(w0.sketch().push([(3,0)]).circle(59).circle(51,mode='s').finalize().extrude(128)).union(w1.sketch().arc((-83,-53),(-47,-89),(3,-96)).arc((10,-78),(21,-62)).arc((29,-50),(35,-37)).arc((58,1),(48,44)).arc((21,38),(38,59)).arc((29,69),(18,77)).arc((-1,70),(1,91)).arc((-22,91),(-43,82)).arc((-38,71),(-35,59)).arc((-11,51),(10,36)).arc((-11,36),(-30,28)).arc((-31,-28),(-83,-53)).assemble().finalize().extrude(-20))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-58))\nw1=cq.Workplane('YZ',origin=(-11,0,0))\nr=w0.sketch().circle(65).circle(57,mode='s').finalize().extrude(-41).union(w0.sketch().segment((-70,-21),(-10,-83)).segment((70,-11)).segment((10,51)).close().assemble().finalize().extrude(17)).union(w0.sketch().circle(61).circle(51,mode='s').finalize().extrude(128)).union(w1.sketch().arc((-83,-29),(-40,-91),(33,-86)).arc((31,-71),(39,-83)).arc((83,-21),(47,45)).arc((18,11),(38,51)).arc((29,63),(17,72)).arc((1,70),(-13,79)).arc((-24,77),(-35,73)).arc((-30,57),(-31,41)).arc((-59,11),(-61,-29)).close().assemble().finalize().extrude(-12))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-58))\nw1=cq.Workplane('YZ',origin=(-13,0,0))\nr=w0.sketch().push([(3,0)]).circle(63).circle(58,mode='s').finalize().extrude(-41).union(w0.sketch().segment((-70,-22),(-10,-84)).segment((70,-10)).segment((10,52)).close().assemble().finalize().extrude(19)).union(w0.sketch().push([(3,0)]).circle(59).circle(51,mode='s').finalize().extrude(128)).union(w1.sketch().arc((-83,-29),(-45,-90),(25,-94)).arc((27,-71),(40,-53)).arc((45,-43),(50,-33)).arc((53,-31),(56,-29)).segment((33,-29)).arc((0,-45),(-33,-29)).close().assemble().reset().face(w1.sketch().segment((-40,69),(-20,69)).arc((0,53),(20,69)).segment((40,69)).arc((0,85),(-40,69)).assemble()).finalize().extrude(-21))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-58))\nw1=cq.Workplane('YZ',origin=(-13,0,0))\nr=w0.sketch().circle(65).circle(57,mode='s').finalize().extrude(-41).union(w0.sketch().segment((-70,-22),(-10,-84)).segment((70,-10)).segment((10,52)).close().assemble().finalize().extrude(18)).union(w0.sketch().circle(61).circle(51,mode='s').finalize().extrude(128)).union(w1.sketch().arc((-83,-29),(-39,-91),(35,-87)).arc((34,-62),(59,-65)).arc((69,-51),(77,-35)).arc((48,-3),(43,40)).arc((30,55),(13,65)).arc((11,79),(1,89)).segment((1,65)).arc((-30,43),(-43,6)).segment((-43,-35)).segment((-14,-35)).arc((-35,-41),(-56,-35)).segment((-43,-35)).segment((-43,-29)).close().assemble().finalize().extrude(-13))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-58))\nw1=cq.Workplane('YZ',origin=(-13,0,0))\nr=w0.sketch().push([(3,0)]).circle(63).circle(58,mode='s').finalize().extrude(-41).union(w0.sketch().segment((-70,-22),(-10,-83)).segment((70,-1)).segment((10,60)).close().assemble().finalize().extrude(19)).union(w0.sketch().push([(3,0)]).circle(59).circle(51,mode='s').finalize().extrude(128)).union(w1.sketch().arc((-83,-29),(-45,-90),(25,-94)).arc((27,-77),(39,-64)).arc((45,-57),(51,-50)).arc((83,-1),(51,48)).arc((45,55),(39,61)).arc((33,67),(27,72)).arc((10,69),(-6,77)).arc((-19,73),(-32,67)).arc((-34,66),(-36,64)).arc((-57,11),(-36,-41)).arc((-59,-41),(-83,-29)).assemble().push([(0,10)]).circle(49,mode='s').finalize().extrude(-13))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-58))\nw1=cq.Workplane('YZ',origin=(-13,0,0))\nr=w0.sketch().push([(3,0)]).circle(63).circle(58,mode='s').finalize().extrude(-41).union(w0.sketch().segment((-70,-22),(-10,-83)).segment((70,-1)).segment((10,60)).close().assemble().finalize().extrude(17)).union(w0.sketch().push([(3,0)]).circle(58).circle(49,mode='s').finalize().extrude(128)).union(w1.sketch().arc((-83,-50),(-69,-73),(-46,-89)).segment((-46,-94)).segment((-29,-94)).arc((-10,-97),(9,-94)).segment((26,-94)).segment((26,-89)).arc((83,-10),(26,69)).segment((26,74)).segment((9,74)).arc((-10,77),(-29,74)).segment((-46,74)).segment((-46,69)).arc((-61,61),(-74,50)).arc((-69,46),(-65,41)).arc((-30,53),(6,41)).arc((18,49),(32,53)).arc((-48,-10),(-11,-97)).arc((-25,-94),(-38,-89)).arc((-66,-73),(-83,-50)).assemble().finalize().extrude(-13))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-58))\nw1=cq.Workplane('YZ',origin=(-13,0,0))\nr=w0.sketch().push([(3,0)]).circle(63).circle(58,mode='s').finalize().extrude(-41).union(w0.sketch().segment((-70,-21),(-10,-83)).segment((70,-1)).segment((10,61)).close().assemble().finalize().extrude(19)).union(w0.sketch().push([(3,0)]).circle(58).circle(49,mode='s').finalize().extrude(128)).union(w1.sketch().arc((-83,-50),(-49,-89),(1,-100)).arc((12,-93),(24,-90)).arc((83,-21),(32,57)).arc((1,100),(-38,63)).arc((-61,54),(-80,38)).arc((-69,37),(-59,33)).arc((-29,53),(8,55)).arc((11,57),(15,59)).arc((-56,11),(-34,-73)).arc((-58,-65),(-71,-44)).arc((-77,-47),(-83,-50)).assemble().finalize().extrude(-13))"
+   ]
+  },
+  {
+   "부품": "70946_G1사이드스와이프/2_side_head2_face_grey.stl",
+   "IoU": [
+    0.422,
+    0.0,
+    0.0,
+    0.0,
+    0.0,
+    0.534,
+    0.0,
+    0.443
+   ],
+   "모서리": [
+    0.199,
+    0.198,
+    0.172,
+    0.207,
+    0.167,
+    0.205,
+    0.18,
+    0.192
+   ],
+   "최고": 0.534,
+   "최고모서리": 0.207,
+   "코드": [
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,100))\nw1=cq.Workplane('ZX',origin=(0,-25,0))\nr=w0.sketch().segment((-99,16),(-62,-12)).segment((-62,29)).segment((-99,29)).close().assemble().reset().face(w0.sketch().segment((-18,-49),(18,-76)).segment((61,-16)).segment((24,12)).segment((24,-49)).close().assemble()).reset().face(w0.sketch().segment((62,-29),(99,19)).segment((99,29)).segment((62,29)).close().assemble()).finalize().extrude(-134).union(w1.sketch().segment((-100,-41),(-92,-41)).arc((0,-96),(92,-41)).segment((100,-41)).segment((100,41)).segment((92,41)).arc((0,96),(-92,41)).segment((-100,41)).close().assemble().circle(49,mode='s').finalize().extrude(53))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,100))\nw1=cq.Workplane('ZX',origin=(0,-26,0))\nr=w0.sketch().segment((-99,15),(-53,-15)).segment((-53,26)).arc((-72,23),(-91,28)).segment((-99,28)).close().assemble().reset().face(w0.sketch().segment((-18,-42),(18,-71)).segment((68,-1)).segment((51,10)).segment((51,-42)).close().assemble()).reset().face(w0.sketch().segment((53,28),(99,28)).segment((99,29)).segment((53,60)).close().assemble()).finalize().extrude(-133).union(w1.sketch().segment((-100,-40),(-93,-40)).arc((-1,-94),(89,-40)).segment((96,-40)).segment((96,40)).segment((89,40)).arc((-1,94),(-93,40)).segment((-100,40)).close().assemble().reset().face(w1.sketch().segment((-34,-68),(34,-68)).segment((34,-51)).arc((67,0),(34,51)).segment((34,68)).segment((-34,68)).segment((-34,51)).arc((-67,0),(-34,-51)).close().assemble(),mode='s').finalize().extrude(54))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,100))\nw1=cq.Workplane('ZX',origin=(0,-25,0))\nr=w0.sketch().segment((-99,15),(-64,-11)).segment((-64,29)).segment((-99,29)).close().assemble().reset().face(w0.sketch().segment((-18,-49),(17,-73)).segment((64,-1)).segment((64,-49)).segment((99,15)).segment((64,41)).segment((64,1)).segment((99,1)).segment((99,29)).segment((64,29)).segment((64,73)).segment((39,73)).segment((39,49)).segment((18,65)).segment((18,-49)).close().assemble()).finalize().extrude(-133).union(w1.sketch().segment((-100,-40),(-93,-40)).arc((-1,-94),(89,-40)).segment((96,-40)).segment((96,40)).segment((89,40)).arc((-1,94),(-93,40)).segment((-100,40)).close().assemble().finalize().extrude(53))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,100))\nw1=cq.Workplane('ZX',origin=(0,-25,0))\nr=w0.sketch().segment((-99,15),(-54,-13)).segment((-54,29)).segment((-99,29)).close().assemble().reset().face(w0.sketch().segment((-18,-49),(18,-71)).segment((68,15)).segment((99,15)).segment((99,29)).segment((72,29)).segment((92,61)).segment((54,61)).segment((54,71)).segment((37,71)).segment((37,61)).segment((33,61)).segment((33,-49)).close().assemble()).finalize().extrude(-132).union(w1.sketch().segment((-100,-41),(-92,-41)).arc((-1,-94),(89,-41)).segment((97,-41)).segment((97,41)).segment((89,41)).arc((-1,94),(-92,41)).segment((-100,41)).close().assemble().finalize().extrude(53))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,100))\nw1=cq.Workplane('ZX',origin=(0,-25,0))\nr=w0.sketch().segment((-99,15),(-63,-12)).segment((-63,25)).segment((-99,28)).close().assemble().reset().face(w0.sketch().segment((-18,-49),(18,-71)).segment((63,1)).segment((63,-49)).segment((99,17)).segment((99,33)).segment((36,33)).segment((36,71)).segment((63,71)).segment((63,70)).segment((61,71)).segment((36,33)).segment((36,49)).segment((-18,-25)).close().assemble()).finalize().extrude(-133).union(w1.sketch().segment((-100,-41),(-93,-41)).arc((-1,-94),(89,-41)).segment((96,-41)).segment((96,41)).segment((89,41)).arc((-1,94),(-93,41)).segment((-100,41)).close().assemble().finalize().extrude(53))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,100))\nw1=cq.Workplane('ZX',origin=(0,-25,0))\nr=w0.sketch().segment((-99,15),(-53,-15)).segment((-53,29)).segment((-99,29)).close().assemble().reset().face(w0.sketch().segment((-18,-49),(18,-71)).segment((67,10)).segment((99,19)).segment((99,29)).segment((53,29)).segment((53,71)).segment((37,71)).segment((37,29)).segment((-18,29)).close().assemble()).finalize().extrude(-132).union(w1.sketch().segment((-100,-41),(-93,-41)).arc((0,-97),(93,-41)).segment((100,-41)).segment((100,41)).segment((93,41)).arc((0,97),(-93,41)).segment((-100,41)).close().assemble().circle(49,mode='s').finalize().extrude(53))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,100))\nw1=cq.Workplane('ZX',origin=(0,-25,0))\nr=w0.sketch().segment((-99,15),(-53,-15)).segment((-53,29)).segment((-99,29)).close().assemble().reset().face(w0.sketch().segment((-18,-49),(18,-71)).segment((68,15)).segment((99,15)).segment((99,29)).segment((72,29)).segment((91,59)).segment((53,59)).segment((53,71)).segment((35,71)).segment((35,29)).segment((31,29)).segment((31,-49)).close().assemble()).finalize().extrude(-132).union(w1.sketch().segment((-100,-40),(-93,-40)).arc((-1,-94),(89,-40)).segment((96,-40)).segment((96,40)).segment((89,40)).arc((-1,94),(-93,40)).segment((-100,40)).close().assemble().finalize().extrude(53))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,100))\nw1=cq.Workplane('ZX',origin=(0,-26,0))\nr=w0.sketch().segment((-99,15),(-62,-12)).segment((-62,26)).segment((-99,28)).close().assemble().reset().face(w0.sketch().segment((-18,-46),(18,-72)).segment((62,-15)).segment((62,-26)).segment((99,18)).segment((99,31)).segment((36,31)).segment((36,72)).segment((62,72)).segment((62,71)).segment((62,72)).segment((36,72)).segment((36,46)).close().assemble()).finalize().extrude(-132).union(w1.sketch().segment((-100,-41),(-93,-41)).arc((-1,-94),(89,-41)).segment((96,-41)).segment((96,41)).segment((89,41)).arc((-1,94),(-93,41)).segment((-100,41)).close().assemble().reset().face(w1.sketch().segment((-32,-66),(32,-66)).segment((32,-46)).arc((58,0),(32,46)).segment((32,66)).segment((-32,66)).segment((-32,46)).arc((-58,0),(-32,-46)).close().assemble(),mode='s').finalize().extrude(53))"
+   ]
+  },
+  {
+   "부품": "885858_EVA00_D13/frame-shoulderBlade-L.stl",
+   "IoU": [
+    0.627,
+    0.601,
+    0.614,
+    0.0,
+    0.624,
+    0.6,
+    0.625,
+    0.628
+   ],
+   "모서리": [
+    0.362,
+    0.336,
+    0.348,
+    0.251,
+    0.379,
+    0.349,
+    0.397,
+    0.362
+   ],
+   "최고": 0.628,
+   "최고모서리": 0.397,
+   "코드": [
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,28))\nw1=cq.Workplane('ZX',origin=(0,-57,0))\nr=w0.sketch().push([(-59,47)]).circle(36).reset().face(w0.sketch().segment((-20,-7),(91,-7)).segment((91,-5)).segment((100,-3)).segment((98,11)).arc((99,44),(84,73)).segment((82,78)).segment((74,75)).arc((78,24),(27,12)).arc((-10,35),(2,76)).segment((-15,72)).segment((-13,60)).arc((-14,59),(-14,58)).segment((-20,58)).close().assemble()).finalize().extrude(-63).union(w0.sketch().segment((-11,-10),(79,-10)).segment((79,24)).segment((69,24)).arc((30,1),(-10,24)).segment((-11,24)).close().assemble().finalize().extrude(-39)).union(w1.sketch().arc((-38,22),(38,37),(-35,63)).segment((-35,22)).close().assemble().finalize().extrude(-31))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,28))\nw1=cq.Workplane('ZX',origin=(0,-57,0))\nr=w0.sketch().push([(-59,47)]).circle(36).reset().face(w0.sketch().segment((-21,-7),(91,-7)).segment((91,-5)).segment((100,-3)).segment((98,13)).arc((99,45),(85,73)).segment((83,79)).segment((74,76)).arc((79,25),(28,11)).arc((-11,34),(3,77)).segment((-14,73)).segment((-12,60)).arc((-19,32),(-10,5)).segment((-21,5)).close().assemble()).finalize().extrude(-63).union(w0.sketch().segment((-11,-10),(79,-10)).segment((79,10)).arc((34,-1),(-11,10)).close().assemble().finalize().extrude(-39)).union(w1.sketch().arc((-37,24),(37,36),(-37,58)).close().assemble().finalize().extrude(-31))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,28))\nw1=cq.Workplane('ZX',origin=(0,-57,0))\nr=w0.sketch().push([(-59,47)]).circle(36).reset().face(w0.sketch().segment((-21,-7),(91,-7)).segment((91,-5)).segment((100,-3)).segment((98,13)).arc((99,45),(84,73)).segment((82,79)).segment((73,76)).arc((78,25),(27,12)).arc((-13,35),(3,78)).segment((-15,74)).segment((-13,60)).arc((-14,59),(-14,58)).segment((-21,58)).close().assemble()).finalize().extrude(-63).union(w0.sketch().segment((-11,-10),(80,-10)).segment((80,10)).arc((34,-1),(-11,10)).close().assemble().finalize().extrude(-38)).union(w1.sketch().arc((-37,23),(37,36),(-37,59)).close().assemble().finalize().extrude(-31))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,28))\nw1=cq.Workplane('ZX',origin=(0,-57,0))\nr=w0.sketch().push([(-59,47)]).circle(36).reset().face(w0.sketch().segment((-21,-6),(91,-6)).segment((91,-5)).segment((100,-3)).segment((98,12)).arc((99,45),(84,74)).segment((82,79)).segment((73,76)).arc((78,25),(28,11)).arc((-11,34),(1,77)).segment((-12,74)).segment((-9,60)).arc((-19,32),(-10,3)).arc((-16,0),(-21,-6)).assemble()).finalize().extrude(-63).union(w0.workplane(offset=-28/2).moveTo(39,-11).box(78,32,28)).union(w1.sketch().arc((-37,23),(37,36),(-37,59)).close().assemble().finalize().extrude(-31))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,28))\nw1=cq.Workplane('ZX',origin=(0,-57,0))\nr=w0.sketch().push([(-59,47)]).circle(36).reset().face(w0.sketch().segment((-20,-7),(91,-7)).segment((91,-5)).segment((100,-3)).segment((98,13)).arc((99,45),(85,73)).segment((83,79)).segment((74,76)).arc((78,23),(25,15)).arc((-11,38),(3,78)).segment((-15,74)).segment((-13,60)).arc((-14,59),(-14,58)).segment((-20,58)).close().assemble()).finalize().extrude(-63).union(w0.sketch().segment((-11,-10),(79,-10)).segment((79,10)).arc((34,-1),(-11,10)).close().assemble().finalize().extrude(-38)).union(w1.sketch().arc((-38,22),(38,37),(-35,63)).segment((-35,22)).close().assemble().finalize().extrude(-31))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,28))\nw1=cq.Workplane('ZX',origin=(0,-57,0))\nr=w0.sketch().push([(-59,47)]).circle(36).reset().face(w0.sketch().segment((-21,-7),(91,-7)).segment((91,-5)).segment((100,-3)).segment((98,13)).arc((99,45),(84,73)).segment((82,79)).segment((73,76)).arc((77,22),(22,12)).arc((-11,38),(3,77)).segment((-15,73)).segment((-13,57)).arc((-14,31),(-21,7)).close().assemble()).finalize().extrude(-63).union(w0.sketch().segment((-11,-10),(80,-10)).segment((80,10)).arc((34,-1),(-11,19)).close().assemble().finalize().extrude(-39)).union(w1.sketch().arc((-37,24),(37,36),(-37,58)).close().assemble().finalize().extrude(-31))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,28))\nw1=cq.Workplane('ZX',origin=(0,-57,0))\nr=w0.sketch().push([(-59,47)]).circle(37).reset().face(w0.sketch().segment((-19,-6),(91,-6)).segment((91,-5)).segment((100,-3)).segment((98,13)).arc((99,45),(85,73)).segment((83,79)).segment((74,76)).arc((78,25),(27,11)).arc((-11,36),(1,79)).segment((-19,74)).segment((-17,68)).segment((-19,68)).close().assemble()).finalize().extrude(-63).union(w0.sketch().segment((-11,-10),(80,-10)).segment((80,10)).arc((34,-1),(-11,19)).close().assemble().finalize().extrude(-38)).union(w1.sketch().arc((-38,23),(38,37),(-35,63)).segment((-35,23)).close().assemble().finalize().extrude(-31))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,28))\nw1=cq.Workplane('ZX',origin=(0,-57,0))\nr=w0.sketch().push([(-59,47)]).circle(36).reset().face(w0.sketch().segment((-20,-7),(91,-7)).segment((91,-5)).segment((100,-3)).segment((98,12)).arc((99,44),(85,72)).segment((83,78)).segment((74,75)).arc((77,23),(25,15)).arc((-11,38),(3,78)).segment((-16,73)).segment((-14,60)).arc((-15,59),(-15,58)).segment((-20,58)).close().assemble()).finalize().extrude(-63).union(w0.sketch().segment((-11,-10),(79,-10)).segment((79,10)).arc((34,-1),(-11,10)).close().assemble().finalize().extrude(-39)).union(w1.sketch().arc((-38,23),(38,37),(-35,63)).segment((-35,23)).close().assemble().finalize().extrude(-31))"
+   ]
+  },
+  {
+   "부품": "1280672_RobotHead2/Lower head v2.stl",
+   "IoU": [
+    -1.0,
+    0.08,
+    0.082,
+    -1.0,
+    0.08,
+    -1.0,
+    -1.0,
+    0.0
+   ],
+   "모서리": [
+    -1.0,
+    0.13,
+    0.13,
+    -1.0,
+    0.13,
+    -1.0,
+    -1.0,
+    0.124
+   ],
+   "최고": 0.082,
+   "최고모서리": 0.13,
+   "코드": [
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-37))\nw1=cq.Workplane('YZ',origin=(-48,0,0))\nr=w0.sketch().arc((-51,-80),(-46,-90),(-41,-100)).segment((-10,-100)).arc((-1,-99),(8,-100)).segment((41,-100)).arc((46,-90),(51,-80)).segment((36,-80)).arc((0,-93),(-36,-80)).close().assemble().reset().face(w0.sketch().segment((-51,80),(-36,80)).arc((0,93),(36,80)).segment((51,80)).arc((0,93),(-51,80)).assemble()).finalize().extrude(80).union(w1.sketch().arc((58,-38),(97,11),(92,68)).arc((89,66),(86,65)).arc((79,52),(66,43)).arc((66,40),(65,38)).arc((67,36),(69,34)).arc((73,33),(77,33)).arc((78,33),(80,34)).arc((84,34),(88,35)).arc((88,37),(90,38)).arc((91,40),(91,43)).arc((92,45),(93,47)).arc((87,53),(81,58)).arc((77,57),(73,57)).arc((65,50),(60,41)).arc((54,40),(50,38)).arc((50,36),(48,35)).arc((11,0),(51,-35)).arc((50,-37),(50,-38)).close().assemble().finalize().extrude(97))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-37))\nw1=cq.Workplane('YZ',origin=(-48,0,0))\nr=w0.sketch().arc((-51,-79),(-46,-90),(-38,-100)).segment((-38,-93)).segment((38,-93)).segment((38,-100)).arc((46,-90),(51,-79)).segment((38,-79)).segment((38,79)).segment((51,79)).arc((46,90),(38,100)).segment((38,93)).segment((-38,93)).segment((-38,100)).arc((-46,90),(-51,79)).segment((-38,79)).segment((-38,-79)).close().assemble().finalize().extrude(80).union(w1.sketch().circle(99).circle(97,mode='s').finalize().extrude(97))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-37))\nw1=cq.Workplane('YZ',origin=(-48,0,0))\nr=w0.sketch().arc((-51,-79),(-46,-90),(-39,-100)).segment((-39,-94)).segment((39,-94)).segment((39,-100)).arc((46,-90),(51,-79)).segment((39,-79)).segment((39,79)).segment((51,79)).arc((46,90),(39,100)).segment((39,94)).segment((-39,94)).segment((-39,100)).arc((-46,90),(-51,79)).segment((-39,79)).segment((-39,-79)).close().assemble().finalize().extrude(80).union(w1.sketch().circle(99).circle(97,mode='s').finalize().extrude(97))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-37))\nw1=cq.Workplane('YZ',origin=(-49,0,0))\nr=w0.sketch().arc((-51,-80),(-46,-90),(-41,-100)).segment((-10,-100)).arc((-1,-99),(8,-100)).segment((41,-100)).arc((46,-90),(51,-80)).segment((36,-80)).arc((0,-93),(-36,-80)).close().assemble().reset().face(w0.sketch().segment((-51,80),(-36,80)).arc((0,93),(36,80)).segment((51,80)).arc((0,93),(-51,80)).assemble()).finalize().extrude(80).union(w1.sketch().arc((57,-37),(97,11),(92,69)).arc((88,59),(81,50)).segment((81,46)).segment((77,46)).arc((68,42),(57,39)).close().assemble().finalize().extrude(99))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-37))\nw1=cq.Workplane('YZ',origin=(-48,0,0))\nr=w0.sketch().arc((-51,-79),(-46,-90),(-38,-100)).segment((-38,-93)).segment((38,-93)).segment((38,-100)).arc((46,-90),(51,-79)).segment((38,-79)).segment((38,79)).segment((51,79)).arc((46,90),(38,100)).segment((38,93)).segment((-38,93)).segment((-38,100)).arc((-46,90),(-51,79)).segment((-38,79)).segment((-38,-79)).close().assemble().finalize().extrude(80).union(w1.sketch().circle(99).circle(97,mode='s').finalize().extrude(97))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-38))\nw1=cq.Workplane('YZ',origin=(-48,0,0))\nr=w0.sketch().arc((-51,-80),(-46,-90),(-41,-100)).segment((-10,-100)).arc((-1,-99),(8,-100)).segment((41,-100)).arc((46,-90),(51,-80)).segment((34,-80)).arc((0,-93),(-34,-80)).close().assemble().reset().face(w0.sketch().segment((-51,80),(-34,80)).arc((0,93),(34,80)).segment((51,80)).arc((0,93),(-51,80)).assemble()).finalize().extrude(81).union(w1.sketch().arc((57,-38),(97,11),(92,69)).arc((89,67),(86,65)).arc((79,53),(67,46)).arc((65,44),(63,43)).arc((60,41),(57,38)).close().assemble().finalize().extrude(97))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-38))\nw1=cq.Workplane('YZ',origin=(-48,0,0))\nr=w0.sketch().arc((-51,-80),(-46,-90),(-41,-100)).segment((-10,-100)).arc((-1,-99),(8,-100)).segment((41,-100)).arc((46,-90),(51,-80)).segment((35,-80)).arc((0,-92),(-35,-80)).close().assemble().reset().face(w0.sketch().segment((-51,80),(-35,80)).arc((0,92),(35,80)).segment((51,80)).arc((0,92),(-51,80)).assemble()).finalize().extrude(81).union(w1.sketch().arc((57,-37),(97,11),(92,69)).arc((89,67),(86,65)).arc((79,53),(67,46)).arc((66,44),(64,43)).arc((63,43),(62,44)).arc((10,1),(57,-37)).assemble().finalize().extrude(97))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-37))\nw1=cq.Workplane('YZ',origin=(-48,0,0))\nr=w0.sketch().segment((-52,-79),(-49,-79)).arc((-45,-90),(-39,-100)).segment((-39,-93)).segment((39,-93)).segment((39,-100)).arc((45,-90),(49,-79)).segment((52,-79)).segment((52,79)).segment((49,79)).arc((45,90),(39,100)).segment((39,93)).segment((-39,93)).segment((-39,100)).arc((-45,90),(-49,79)).segment((-52,79)).close().assemble().reset().face(w0.sketch().segment((-39,-89),(-39,89)).arc((-81,0),(-39,-89)).assemble(),mode='s').reset().face(w0.sketch().arc((-39,-89),(0,-100),(39,-89)).close().assemble(),mode='s').reset().face(w0.sketch().segment((-39,89),(39,89)).arc((0,100),(-39,89)).assemble(),mode='s').reset().face(w0.sketch().arc((39,-89),(81,0),(39,89)).close().assemble(),mode='s').finalize().extrude(79).union(w1.workplane(offset=96/2).moveTo(0,-1).cylinder(96,11))"
+   ]
+  },
+  {
+   "부품": "334966_메가트론키트/MG EDIT-39_Meg_Weapon1_Blaster2_BLACK_001.stl",
+   "IoU": [
+    0.587,
+    0.57,
+    0.577,
+    0.57,
+    0.618,
+    -2.0,
+    0.597,
+    0.598
+   ],
+   "모서리": [
+    0.163,
+    0.173,
+    0.178,
+    0.169,
+    0.14,
+    -2.0,
+    0.151,
+    0.168
+   ],
+   "최고": 0.618,
+   "최고모서리": 0.178,
+   "코드": [
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-96))\nw1=cq.Workplane('YZ',origin=(50,0,0))\nr=w0.sketch().segment((59,-55),(100,-55)).segment((100,-29)).arc((80,-39),(59,-29)).close().assemble().reset().face(w0.sketch().arc((59,29),(80,39),(100,29)).segment((100,55)).segment((59,55)).close().assemble()).finalize().extrude(189).union(w0.sketch().segment((-82,-49),(-52,-70)).segment((-49,-65)).arc((63,-49),(56,64)).segment((59,69)).segment((29,89)).segment((26,84)).arc((-36,78),(-80,43)).segment((-82,43)).close().assemble().push([(-12,0)]).circle(56,mode='s').finalize().extrude(192)).union(w1.sketch().push([(0,-39)]).circle(59).circle(43,mode='s').finalize().extrude(-150))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-96))\nw1=cq.Workplane('YZ',origin=(50,0,0))\nr=w0.sketch().segment((58,-55),(100,-55)).segment((100,-29)).arc((79,-39),(58,-29)).close().assemble().reset().face(w0.sketch().arc((58,29),(79,39),(100,29)).segment((100,55)).segment((58,55)).close().assemble()).finalize().extrude(189).union(w0.sketch().segment((-82,-49),(-52,-70)).segment((-49,-65)).arc((63,-49),(54,63)).segment((57,68)).segment((27,89)).segment((24,84)).arc((-38,74),(-80,36)).segment((-82,36)).close().assemble().push([(-13,4)]).circle(57,mode='s').finalize().extrude(192)).union(w1.sketch().push([(0,-41)]).circle(56).circle(42,mode='s').finalize().extrude(-150))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-96))\nw1=cq.Workplane('YZ',origin=(53,0,0))\nr=w0.sketch().segment((59,-55),(100,-55)).segment((100,-29)).arc((80,-39),(59,-29)).close().assemble().reset().face(w0.sketch().arc((59,29),(80,39),(100,29)).segment((100,55)).segment((59,55)).close().assemble()).finalize().extrude(189).union(w0.sketch().segment((-82,-49),(-52,-70)).segment((-50,-67)).arc((65,-54),(56,61)).segment((58,64)).segment((28,85)).segment((26,82)).arc((-30,76),(-74,47)).segment((-82,47)).close().assemble().push([(-12,3)]).circle(57,mode='s').finalize().extrude(192)).union(w1.sketch().push([(0,-39)]).circle(59).circle(42,mode='s').finalize().extrude(-153))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-96))\nw1=cq.Workplane('YZ',origin=(50,0,0))\nr=w0.sketch().segment((59,-55),(100,-55)).segment((100,-29)).arc((80,-39),(59,-29)).close().assemble().reset().face(w0.sketch().arc((59,29),(80,39),(100,29)).segment((100,55)).segment((59,55)).close().assemble()).finalize().extrude(189).union(w0.sketch().segment((-82,-49),(-53,-70)).segment((-51,-67)).arc((62,-54),(56,60)).segment((58,63)).segment((29,84)).segment((27,81)).arc((-36,74),(-80,38)).segment((-82,38)).close().assemble().push([(-12,2)]).circle(57,mode='s').finalize().extrude(192)).union(w1.sketch().push([(0,-36)]).circle(61).circle(42,mode='s').finalize().extrude(-150))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-96))\nw1=cq.Workplane('YZ',origin=(53,0,0))\nr=w0.sketch().segment((59,-55),(100,-55)).segment((100,-29)).arc((80,-39),(59,-29)).close().assemble().reset().face(w0.sketch().arc((59,29),(80,39),(100,29)).segment((100,55)).segment((59,55)).close().assemble()).finalize().extrude(189).union(w0.sketch().segment((-82,-49),(-53,-70)).segment((-51,-67)).arc((71,-46),(46,70)).segment((44,70)).segment((44,72)).arc((37,75),(30,77)).segment((30,78)).segment((-53,67)).segment((-53,66)).arc((-72,55),(-82,37)).close().assemble().push([(-16,0)]).circle(55,mode='s').finalize().extrude(192)).union(w1.sketch().push([(0,-36)]).circle(61).circle(42,mode='s').finalize().extrude(-153))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-96))\nw1=cq.Workplane('YZ',origin=(50,0,0))\nr=w0.sketch().segment((59,-55),(100,-55)).segment((100,-29)).arc((80,-39),(59,-29)).close().assemble().reset().face(w0.sketch().arc((59,29),(80,39),(100,29)).segment((100,55)).segment((59,55)).close().assemble()).finalize().extrude(189).union(w0.sketch().segment((-82,-49),(-52,-70)).segment((-50,-67)).arc((64,-55),(56,59)).segment((58,62)).segment((28,83)).segment((26,80)).arc((-38,72),(-81,31)).segment((-82,31)).close().assemble().push([(-12,2)]).circle(57,mode='s').finalize().extrude(192)).union(w1.sketch().push([(0,-39)]).circle(58).circle(42,mode='s').finalize().extrude(-150))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-96))\nw1=cq.Workplane('YZ',origin=(50,0,0))\nr=w0.sketch().segment((59,-55),(100,-55)).segment((100,-29)).arc((80,-39),(59,-29)).close().assemble().reset().face(w0.sketch().arc((59,29),(80,39),(100,29)).segment((100,55)).segment((59,55)).close().assemble()).finalize().extrude(189).union(w0.sketch().segment((-82,-49),(-52,-70)).segment((-50,-67)).arc((71,-49),(49,64)).segment((52,69)).segment((22,89)).segment((19,85)).arc((-37,78),(-80,47)).segment((-82,47)).close().assemble().push([(-15,0)]).circle(55,mode='s').finalize().extrude(192)).union(w1.sketch().push([(0,-39)]).circle(59).circle(42,mode='s').finalize().extrude(-150))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-96))\nw1=cq.Workplane('YZ',origin=(50,0,0))\nr=w0.sketch().segment((59,-55),(100,-55)).segment((100,-29)).arc((80,-39),(59,-29)).close().assemble().reset().face(w0.sketch().arc((59,29),(80,39),(100,29)).segment((100,55)).segment((59,55)).close().assemble()).finalize().extrude(189).union(w0.sketch().segment((-82,-49),(-52,-70)).segment((-49,-65)).arc((63,-48),(49,64)).segment((52,69)).segment((22,89)).segment((19,84)).arc((-33,78),(-75,49)).segment((-82,49)).close().assemble().push([(-14,0)]).circle(55,mode='s').finalize().extrude(192)).union(w1.sketch().push([(0,-39)]).circle(59).circle(42,mode='s').finalize().extrude(-150))"
+   ]
+  },
+  {
+   "부품": "982988_건담D13완성/2x-elbow-joints.stl",
+   "IoU": [
+    0.0,
+    0.68,
+    0.683,
+    0.71,
+    0.645,
+    0.701,
+    0.653,
+    0.691
+   ],
+   "모서리": [
+    0.136,
+    0.262,
+    0.223,
+    0.265,
+    0.215,
+    0.186,
+    0.182,
+    0.178
+   ],
+   "최고": 0.71,
+   "최고모서리": 0.265,
+   "코드": [
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,22))\nr=w0.sketch().segment((-100,-62),(-94,-62)).arc((-45,-81),(4,-57)).arc((49,-80),(100,-64)).segment((100,-47)).arc((90,-37),(84,-25)).arc((1,-1),(85,26)).arc((91,37),(100,47)).segment((100,64)).arc((45,81),(-4,57)).arc((-52,80),(-100,60)).segment((-100,47)).arc((-85,37),(-75,25)).arc((-21,38),(15,-3)).arc((1,-37),(15,-71)).arc((-38,-58),(-75,-17)).arc((-85,-37),(-100,-52)).close().assemble().finalize().extrude(-44).union(w0.sketch().segment((83,-10),(96,-10)).segment((96,10)).segment((83,10)).arc((84,0),(83,-10)).assemble().finalize().extrude(-13))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,22))\nr=w0.sketch().segment((-100,-62),(-94,-62)).arc((-45,-81),(4,-57)).arc((49,-80),(100,-64)).segment((100,-47)).arc((92,-38),(86,-27)).arc((1,-1),(87,28)).arc((93,38),(100,47)).segment((100,64)).arc((45,81),(-4,57)).arc((-52,80),(-100,60)).segment((-100,47)).arc((-87,42),(-76,33)).arc((-10,-10),(-87,-22)).arc((-92,-32),(-100,-47)).close().assemble().finalize().extrude(-44).union(w0.sketch().segment((84,-10),(95,-10)).segment((95,10)).segment((84,10)).arc((86,0),(84,-10)).assemble().finalize().extrude(-14))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,22))\nr=w0.sketch().segment((-100,-62),(-95,-62)).arc((-46,-81),(3,-59)).arc((49,-80),(100,-64)).segment((100,-47)).arc((91,-38),(85,-27)).arc((1,-1),(87,28)).arc((93,38),(100,47)).segment((100,64)).arc((47,81),(-5,59)).arc((-53,80),(-100,59)).segment((-100,47)).arc((-91,38),(-85,27)).arc((-53,44),(-19,33)).arc((-19,-21),(-73,-22)).arc((-84,-38),(-100,-47)).close().assemble().finalize().extrude(-44).union(w0.sketch().segment((83,-11),(96,-11)).segment((96,11)).segment((83,11)).arc((85,0),(83,-11)).assemble().finalize().extrude(-12))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,22))\nr=w0.sketch().segment((-100,-62),(-94,-62)).arc((-45,-81),(4,-57)).arc((49,-80),(100,-64)).segment((100,-47)).arc((92,-38),(86,-27)).arc((10,1),(86,29)).arc((92,39),(100,47)).segment((100,64)).arc((45,81),(-4,57)).arc((-52,80),(-100,60)).segment((-100,47)).arc((-92,38),(-86,27)).arc((-52,44),(-17,27)).arc((-11,-21),(-58,-38)).arc((-77,-48),(-100,-52)).close().assemble().finalize().extrude(-44).union(w0.sketch().segment((75,-10),(96,-10)).segment((96,10)).segment((75,10)).arc((77,0),(75,-10)).assemble().finalize().extrude(-13))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,22))\nr=w0.sketch().segment((-100,-62),(-94,-62)).arc((-44,-81),(6,-56)).arc((51,-79),(100,-64)).segment((100,-47)).arc((92,-38),(86,-27)).arc((1,-1),(87,28)).arc((93,38),(100,47)).segment((100,64)).arc((45,81),(-6,56)).arc((-54,80),(-100,56)).segment((-100,47)).arc((-87,38),(-78,27)).arc((-21,32),(-11,-24)).arc((-53,-46),(-89,-18)).arc((-93,-20),(-94,-22)).segment((-100,-22)).segment((-100,-32)).arc((-97,-46),(-100,-60)).close().assemble().finalize().extrude(-44).union(w0.sketch().segment((83,-11),(95,-11)).segment((95,11)).segment((83,11)).arc((85,0),(83,-11)).assemble().finalize().extrude(-11))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,22))\nr=w0.sketch().segment((-100,-62),(-94,-62)).arc((-44,-81),(6,-56)).arc((51,-79),(100,-64)).segment((100,-47)).arc((90,-38),(84,-26)).arc((1,-1),(85,26)).arc((91,36),(100,44)).segment((100,62)).segment((94,62)).arc((44,81),(-6,56)).arc((-51,81),(-100,64)).segment((-100,47)).arc((-85,38),(-79,26)).arc((-18,0),(-79,-26)).arc((-85,-38),(-100,-47)).close().assemble().finalize().extrude(-44).union(w0.sketch().segment((74,-10),(96,-10)).segment((96,10)).segment((74,10)).arc((75,0),(74,-10)).assemble().finalize().extrude(-13))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,22))\nr=w0.sketch().segment((-100,-62),(-94,-62)).arc((-45,-81),(4,-58)).arc((50,-80),(100,-64)).segment((100,-47)).arc((91,-37),(85,-25)).arc((1,-1),(85,25)).arc((91,37),(100,47)).segment((100,64)).arc((45,81),(-4,58)).arc((-52,80),(-100,60)).segment((-100,47)).arc((-91,37),(-85,25)).arc((-45,47),(-4,25)).arc((-45,-1),(-45,-47)).segment((-85,-25)).arc((-89,-37),(-94,-47)).segment((-100,-47)).close().assemble().finalize().extrude(-44).union(w0.sketch().segment((73,-11),(96,-11)).segment((96,11)).segment((73,11)).arc((74,0),(73,-11)).assemble().finalize().extrude(-12))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,22))\nr=w0.sketch().segment((-100,-62),(-94,-62)).arc((-44,-81),(6,-56)).arc((51,-80),(100,-64)).segment((100,-47)).arc((91,-37),(85,-25)).arc((1,-1),(86,28)).arc((92,39),(100,47)).segment((100,64)).arc((44,81),(-6,56)).arc((-51,81),(-100,64)).segment((-100,47)).arc((-91,37),(-85,25)).arc((-77,32),(-68,37)).arc((-31,-31),(-86,22)).arc((-91,17),(-100,11)).segment((-100,4)).arc((-91,-13),(-85,-31)).arc((-91,-37),(-100,-47)).close().assemble().finalize().extrude(-44).union(w0.sketch().segment((83,-10),(95,-10)).segment((95,10)).segment((83,10)).arc((84,0),(83,-10)).assemble().finalize().extrude(-12))"
+   ]
+  },
+  {
+   "부품": "1640140_RX78_2/body_bottom.stl",
+   "IoU": [
+    0.0,
+    0.401,
+    0.0,
+    0.0,
+    0.354,
+    0.263,
+    0.556,
+    0.0
+   ],
+   "모서리": [
+    0.279,
+    0.327,
+    0.384,
+    0.332,
+    0.32,
+    0.306,
+    0.31,
+    0.332
+   ],
+   "최고": 0.556,
+   "최고모서리": 0.384,
+   "코드": [
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-16))\nw1=cq.Workplane('YZ',origin=(67,0,0))\nr=w0.sketch().segment((-100,-33),(-82,-23)).segment((-82,27)).segment((-62,27)).segment((-62,-18)).segment((-38,0)).segment((-38,18)).segment((-62,18)).segment((-62,33)).segment((-100,28)).close().assemble().reset().face(w0.sketch().segment((-29,18),(-23,18)).segment((-23,10)).segment((-19,18)).segment((-29,22)).close().assemble()).reset().face(w0.sketch().segment((38,-18),(62,-18)).segment((62,-33)).segment((100,-28)).segment((100,33)).segment((62,23)).segment((62,-18)).close().assemble()).finalize().extrude(22).union(w0.workplane(offset=30/2).moveTo(29,-10).cylinder(30,6)).union(w1.sketch().arc((-10,-11),(0,-11),(10,-13)).segment((10,13)).segment((-10,13)).close().assemble().finalize().extrude(19))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-16))\nw1=cq.Workplane('YZ',origin=(65,0,0))\nr=w0.sketch().segment((-100,-33),(-72,-21)).segment((-72,33)).arc((-85,28),(-96,20)).segment((-100,20)).close().assemble().reset().face(w0.sketch().arc((-69,-20),(-56,-15),(-45,-6)).segment((-69,-18)).close().assemble()).reset().face(w0.sketch().segment((-39,13),(-33,1)).arc((-35,8),(-39,13)).assemble()).reset().face(w0.sketch().segment((59,-33),(100,-33)).segment((100,33)).segment((62,33)).arc((69,24),(73,13)).segment((99,13)).segment((99,-13)).segment((73,-13)).arc((67,-24),(59,-33)).assemble()).finalize().extrude(22).union(w0.workplane(offset=30/2).moveTo(29,-10).cylinder(30,6)).union(w1.sketch().arc((-10,-11),(-8,-12),(-7,-14)).arc((12,12),(-10,-11)).assemble().finalize().extrude(21))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-16))\nw1=cq.Workplane('YZ',origin=(65,0,0))\nr=w0.sketch().segment((-100,-33),(-82,-23)).segment((-82,28)).segment((-100,28)).close().assemble().reset().face(w0.sketch().segment((-75,28),(-62,28)).segment((-62,-28)).segment((-60,-28)).segment((-60,-29)).segment((-58,-29)).segment((-58,-28)).segment((-56,-28)).segment((-56,-25)).segment((-58,-25)).segment((-58,33)).segment((-60,33)).segment((-60,-25)).segment((-62,-25)).segment((-62,-26)).segment((-74,-33)).close().assemble()).push([(-28,0)]).circle(7).reset().face(w0.sketch().segment((39,-33),(59,-23)).segment((59,-33)).segment((100,-33)).segment((100,33)).segment((72,33)).segment((72,34)).segment((70,33)).segment((59,33)).segment((59,29)).segment((59,25)).segment((59,24)).segment((59,23)).segment((58,23)).segment((58,22)).segment((56,23)).segment((56,24)).segment((56,25)).segment((56,26)).segment((58,26)).segment((58,27)).segment((60,26)).segment((72,26)).segment((72,22)).segment((72,21)).segment((72,18)).segment((72,17)).segment((72,16)).segment((72,15)).segment((72,14)).segment((72,13)).segment((72,12)).segment((72,11)).segment((70,11)).segment((60,2)).segment((60,-16)).segment((56,-16)).segment((56,1)).segment((53,-2)).segment((39,10)).close().assemble()).finalize().extrude(22).union(w1.sketch().arc((-11,-15),(-10,-16),(-9,-16)).segment((-9,-15)).close().assemble().finalize().extrude(25))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-16))\nw1=cq.Workplane('YZ',origin=(66,0,0))\nr=w0.sketch().segment((-100,-33),(-82,-23)).segment((-82,28)).segment((-100,28)).close().assemble().reset().face(w0.sketch().segment((-75,28),(-65,28)).segment((-65,-28)).segment((-63,-28)).segment((-63,-29)).segment((-59,-29)).segment((-59,-28)).segment((-57,-28)).segment((-57,-25)).segment((-59,-25)).segment((-59,33)).segment((-63,33)).segment((-63,-25)).segment((-65,-25)).segment((-65,-26)).segment((-73,-26)).close().assemble()).push([(-29,0)]).circle(7).reset().face(w0.sketch().segment((39,-33),(59,-23)).segment((59,-33)).segment((100,-33)).segment((100,33)).segment((72,33)).segment((59,23)).segment((59,33)).segment((39,33)).segment((39,17)).segment((59,25)).segment((59,-17)).segment((39,-25)).close().assemble()).finalize().extrude(22).union(w1.workplane(offset=22/2).moveTo(0,-1).cylinder(22,5))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-16))\nw1=cq.Workplane('YZ',origin=(66,0,0))\nr=w0.sketch().segment((-100,-33),(-82,-23)).segment((-82,28)).segment((-100,28)).close().assemble().reset().face(w0.sketch().segment((-79,28),(-64,28)).segment((-64,-28)).segment((-63,-28)).segment((-63,-29)).segment((-53,-29)).segment((-53,29)).segment((-79,29)).close().assemble()).reset().face(w0.sketch().segment((-38,10),(-28,-1)).arc((-26,-10),(-17,-10)).segment((2,-29)).segment((2,-28)).segment((-15,-10)).arc((-17,0),(-26,0)).segment((-38,18)).close().assemble()).reset().face(w0.sketch().segment((53,-33),(100,-33)).segment((100,33)).segment((64,33)).segment((99,-1)).segment((53,-32)).close().assemble()).finalize().extrude(23).union(w1.sketch().push([(0,-1)]).circle(11).circle(9,mode='s').finalize().extrude(19))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-16))\nw1=cq.Workplane('YZ',origin=(66,0,0))\nr=w0.sketch().segment((-100,-33),(-72,-20)).segment((-72,33)).arc((-87,28),(-100,21)).close().assemble().reset().face(w0.sketch().arc((-69,-33),(-54,-28),(-41,-21)).segment((-69,-32)).close().assemble()).reset().face(w0.sketch().segment((-39,16),(-28,2)).arc((-33,10),(-39,16)).assemble()).reset().face(w0.sketch().segment((10,-16),(21,-2)).arc((15,0),(10,3)).close().assemble()).reset().face(w0.sketch().arc((41,-33),(54,-28),(67,-21)).segment((49,-21)).close().assemble()).reset().face(w0.sketch().segment((41,21),(67,21)).arc((54,28),(41,33)).close().assemble()).reset().face(w0.sketch().arc((72,-33),(87,-28),(100,-21)).segment((100,33)).arc((87,28),(72,21)).segment((99,21)).segment((99,-21)).segment((72,-21)).close().assemble()).finalize().extrude(22).union(w1.workplane(offset=19/2).moveTo(0,-11).cylinder(19,5))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-16))\nw1=cq.Workplane('YZ',origin=(67,0,0))\nr=w0.sketch().segment((-100,-33),(-72,-21)).segment((-72,33)).arc((-84,28),(-95,21)).segment((-100,21)).close().assemble().reset().face(w0.sketch().arc((-69,-20),(-60,-19),(-52,-16)).segment((-52,16)).segment((-69,16)).close().assemble()).reset().face(w0.sketch().segment((-39,13),(-28,-1)).arc((-26,-10),(-17,-16)).segment((-12,-21)).segment((-12,-16)).arc((-27,-1),(-28,18)).close().assemble()).reset().face(w0.sketch().segment((52,-33),(100,-33)).segment((100,33)).segment((72,33)).segment((52,11)).close().assemble()).finalize().extrude(23).union(w1.sketch().arc((-10,-14),(-1,0),(10,12)).segment((10,16)).segment((-10,16)).close().assemble().finalize().extrude(19))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-16))\nw1=cq.Workplane('YZ',origin=(68,0,0))\nr=w0.sketch().segment((-100,-33),(-72,-21)).segment((-72,33)).arc((-84,28),(-95,21)).segment((-100,21)).close().assemble().reset().face(w0.sketch().arc((-69,-20),(-60,-19),(-52,-16)).segment((-52,16)).segment((-69,16)).close().assemble()).reset().face(w0.sketch().segment((-39,12),(-29,-1)).arc((-33,7),(-39,12)).assemble()).reset().face(w0.sketch().segment((29,-16),(39,-12)).segment((29,1)).arc((33,-7),(29,-16)).assemble()).finalize().extrude(26).union(w0.sketch().segment((52,-33),(100,-33)).segment((100,33)).segment((64,33)).segment((99,-1)).close().assemble().finalize().extrude(22)).union(w1.sketch().push([(0,-1)]).circle(10).circle(9,mode='s').finalize().extrude(17))"
+   ]
+  },
+  {
+   "부품": "981111_Dummy13/frame-waist.stl",
+   "IoU": [
+    0.491,
+    0.422,
+    0.438,
+    0.503,
+    0.489,
+    0.521,
+    0.493,
+    0.476
+   ],
+   "모서리": [
+    0.374,
+    0.381,
+    0.343,
+    0.409,
+    0.391,
+    0.359,
+    0.423,
+    0.357
+   ],
+   "최고": 0.521,
+   "최고모서리": 0.423,
+   "코드": [
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,24))\nw1=cq.Workplane('ZX',origin=(0,17,0))\nr=w0.sketch().arc((-46,-99),(-39,-95),(-31,-93)).arc((-1,-41),(37,-89)).arc((42,-94),(46,-99)).arc((53,-61),(31,-31)).segment((28,11)).segment((-29,7)).segment((-26,-31)).arc((-54,-61),(-46,-99)).assemble().finalize().extrude(-55).union(w0.sketch().push([(0,62)]).circle(36).circle(34,mode='s').finalize().extrude(-53)).union(w1.sketch().segment((-28,-29),(22,-29)).segment((22,29)).segment((-28,29)).segment((-28,1)).arc((-25,-1),(-28,-3)).close().assemble().finalize().extrude(-53))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,24))\nw1=cq.Workplane('ZX',origin=(0,17,0))\nr=w0.sketch().segment((-47,-98),(-47,-97)).segment((-41,-97)).arc((-32,-46),(12,-25)).segment((12,-39)).arc((30,-66),(29,-98)).segment((44,-98)).arc((54,-61),(30,-31)).segment((30,11)).segment((-29,11)).segment((-29,-31)).arc((-54,-62),(-47,-98)).assemble().finalize().extrude(-55).union(w0.sketch().push([(0,62)]).circle(35).circle(34,mode='s').finalize().extrude(-53)).union(w1.sketch().push([(0,-1)]).circle(20).push([(0,-1.5)]).rect(28,19,mode='s').finalize().extrude(-27))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,24))\nw1=cq.Workplane('ZX',origin=(0,17,0))\nr=w0.sketch().segment((-46,-98),(-46,-97)).segment((-46,-96)).segment((-46,-95)).segment((-46,-94)).segment((-46,-93)).segment((-44,-93)).segment((-44,-94)).segment((-44,-95)).segment((-44,-96)).segment((-44,-97)).segment((-44,-98)).arc((-38,-36),(-46,-98)).assemble().reset().face(w0.sketch().segment((-29,-41),(20,-41)).arc((10,-75),(39,-97)).segment((39,-100)).arc((55,-65),(31,-34)).segment((31,11)).segment((-29,11)).close().assemble()).finalize().extrude(-55).union(w0.sketch().push([(0,62)]).circle(33).circle(32,mode='s').finalize().extrude(-53)).union(w1.sketch().push([(0,-1)]).circle(19).push([(0,-1.5)]).rect(28,17,mode='s').finalize().extrude(-27))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,24))\nw1=cq.Workplane('ZX',origin=(0,17,0))\nr=w0.sketch().arc((-46,-99),(-39,-95),(-31,-93)).arc((-1,-41),(35,-90)).arc((41,-94),(46,-99)).arc((53,-60),(30,-28)).segment((28,11)).segment((-29,7)).segment((-27,-28)).arc((-54,-59),(-46,-99)).assemble().finalize().extrude(-55).union(w0.sketch().push([(0,62)]).circle(36).circle(34,mode='s').finalize().extrude(-53)).union(w1.sketch().segment((-28,-29),(22,-29)).segment((22,29)).segment((-28,29)).segment((-28,1)).arc((-32,-10),(-28,-21)).close().assemble().finalize().extrude(-51))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,24))\nw1=cq.Workplane('ZX',origin=(0,19,0))\nr=w0.sketch().segment((-46,-98),(-46,-89)).arc((-39,-94),(-31,-97)).arc((-1,-41),(38,-93)).arc((43,-96),(46,-100)).arc((54,-59),(30,-27)).segment((28,11)).segment((-29,7)).segment((-27,-28)).arc((-54,-59),(-46,-98)).assemble().finalize().extrude(-55).union(w0.sketch().push([(0,62)]).circle(35).circle(33,mode='s').finalize().extrude(-53)).union(w1.sketch().segment((-27,-29),(22,-29)).segment((22,29)).segment((-27,29)).segment((-27,19)).arc((-25,18),(-27,17)).close().assemble().push([(-2.5,0)]).rect(27,18,mode='s').finalize().extrude(-58))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,24))\nw1=cq.Workplane('ZX',origin=(0,18,0))\nr=w0.sketch().arc((-46,-99),(-39,-95),(-31,-93)).arc((-1,-42),(36,-90)).arc((42,-94),(46,-99)).arc((53,-60),(30,-28)).segment((28,11)).segment((-29,7)).segment((-27,-28)).arc((-54,-59),(-46,-99)).assemble().finalize().extrude(-55).union(w0.sketch().push([(0,62)]).circle(36).circle(34,mode='s').finalize().extrude(-53)).union(w1.sketch().segment((-28,-29),(-17,-29)).arc((0,-35),(17,-29)).segment((28,-29)).segment((28,29)).segment((17,29)).arc((0,35),(-17,29)).segment((-28,29)).close().assemble().finalize().extrude(-58))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,24))\nw1=cq.Workplane('ZX',origin=(0,17,0))\nr=w0.sketch().arc((-46,-99),(-39,-95),(-31,-93)).arc((-1,-41),(36,-90)).arc((42,-94),(46,-99)).arc((53,-60),(30,-28)).segment((28,11)).segment((-29,7)).segment((-27,-28)).arc((-54,-59),(-46,-99)).assemble().finalize().extrude(-55).union(w0.sketch().push([(0,62)]).circle(36).circle(34,mode='s').finalize().extrude(-53)).union(w1.sketch().segment((-27,-29),(22,-29)).segment((22,29)).segment((-27,29)).segment((-27,28)).arc((-26,27),(-27,26)).close().assemble().push([(-2.5,0)]).rect(27,22,mode='s').finalize().extrude(-51))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,24))\nw1=cq.Workplane('ZX',origin=(0,18,0))\nr=w0.sketch().arc((-46,-99),(-41,-96),(-36,-94)).arc((-1,-42),(36,-93)).arc((42,-96),(47,-100)).arc((53,-57),(27,-25)).segment((27,11)).segment((-27,11)).segment((-27,-25)).arc((-54,-58),(-46,-99)).assemble().finalize().extrude(-55).union(w0.sketch().push([(0,62)]).circle(35).circle(34,mode='s').finalize().extrude(-53)).union(w1.sketch().push([(0,-2)]).circle(21).push([(0,-1.5)]).rect(28,19,mode='s').finalize().extrude(-28))"
+   ]
+  },
+  {
+   "부품": "1223729_REPO로봇/headplug_v4.stl",
+   "IoU": [
+    0.708,
+    0.711,
+    0.711,
+    0.708,
+    0.711,
+    0.71,
+    0.708,
+    0.709
+   ],
+   "모서리": [
+    0.319,
+    0.32,
+    0.32,
+    0.322,
+    0.317,
+    0.319,
+    0.323,
+    0.32
+   ],
+   "최고": 0.711,
+   "최고모서리": 0.323,
+   "코드": [
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-85,0))\nw1=cq.Workplane('YZ',origin=(13,0,0))\nr=w0.workplane(offset=49/2).cylinder(49,100).union(w0.workplane(offset=163/2).moveTo(-4,-4).cylinder(163,90)).union(w1.workplane(offset=75/2).moveTo(-20,56).cylinder(75,44))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-85,0))\nw1=cq.Workplane('YZ',origin=(13,0,0))\nr=w0.workplane(offset=49/2).cylinder(49,100).union(w0.workplane(offset=162/2).moveTo(-4,-4).cylinder(162,90)).union(w1.workplane(offset=75/2).moveTo(-21,57).cylinder(75,43))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-85,0))\nw1=cq.Workplane('YZ',origin=(14,0,0))\nr=w0.workplane(offset=49/2).cylinder(49,100).union(w0.workplane(offset=162/2).moveTo(-4,-4).cylinder(162,89)).union(w1.workplane(offset=74/2).moveTo(-20,57).cylinder(74,43))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-85,0))\nw1=cq.Workplane('YZ',origin=(13,0,0))\nr=w0.workplane(offset=49/2).cylinder(49,100).union(w0.workplane(offset=163/2).moveTo(-4,-4).cylinder(163,90)).union(w1.workplane(offset=75/2).moveTo(-20,58).cylinder(75,42))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-85,0))\nw1=cq.Workplane('YZ',origin=(13,0,0))\nr=w0.workplane(offset=49/2).cylinder(49,100).union(w0.workplane(offset=163/2).moveTo(-4,0).cylinder(163,89)).union(w1.workplane(offset=75/2).moveTo(-20,57).cylinder(75,43))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-85,0))\nw1=cq.Workplane('YZ',origin=(13,0,0))\nr=w0.workplane(offset=49/2).cylinder(49,100).union(w0.workplane(offset=162/2).moveTo(-4,-4).cylinder(162,90)).union(w1.workplane(offset=75/2).moveTo(-20,56).cylinder(75,44))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-85,0))\nw1=cq.Workplane('YZ',origin=(13,0,0))\nr=w0.workplane(offset=49/2).cylinder(49,100).union(w0.workplane(offset=163/2).moveTo(-4,-3).cylinder(163,90)).union(w1.workplane(offset=76/2).moveTo(-20,56).cylinder(76,44))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-85,0))\nw1=cq.Workplane('YZ',origin=(14,0,0))\nr=w0.workplane(offset=49/2).cylinder(49,100).union(w0.workplane(offset=163/2).moveTo(-4,-3).cylinder(163,90)).union(w1.workplane(offset=74/2).moveTo(-20,57).cylinder(74,43))"
+   ]
+  },
+  {
+   "부품": "335719_스타스크림키트/ss-edit1-30_star_leg4_knee1.stl",
+   "IoU": [
+    0.362,
+    0.491,
+    0.412,
+    0.409,
+    0.396,
+    0.427,
+    0.488,
+    0.378
+   ],
+   "모서리": [
+    0.196,
+    0.166,
+    0.242,
+    0.232,
+    0.179,
+    0.184,
+    0.203,
+    0.174
+   ],
+   "최고": 0.491,
+   "최고모서리": 0.242,
+   "코드": [
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(-93,0,0))\nw1=cq.Workplane('XY',origin=(0,0,41))\nr=w0.sketch().segment((-56,-26),(-12,-100)).segment((56,-59)).segment((12,15)).close().assemble().finalize().extrude(16).union(w0.sketch().segment((-56,-29),(-1,-45)).segment((-1,-100)).segment((1,-100)).segment((1,-45)).segment((13,-49)).segment((21,-21)).arc((24,-14),(25,-6)).segment((33,22)).segment((1,32)).segment((1,100)).segment((-1,100)).segment((-1,34)).segment((-21,40)).segment((-29,12)).arc((-32,5),(-34,-3)).close().assemble().finalize().extrude(168)).union(w1.sketch().segment((79,-40),(95,39)).segment((79,40)).close().assemble().finalize().extrude(-141))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(-93,0,0))\nw1=cq.Workplane('XY',origin=(0,0,41))\nr=w0.sketch().segment((-56,-27),(-12,-100)).segment((56,-59)).segment((12,14)).close().assemble().finalize().extrude(16).union(w0.sketch().segment((-56,-29),(-12,-41)).segment((-12,-100)).segment((12,-100)).segment((12,-48)).segment((24,-52)).segment((56,59)).segment((12,71)).segment((12,100)).segment((-12,100)).segment((-12,92)).segment((-24,96)).close().assemble().finalize().extrude(167)).union(w1.sketch().segment((-59,-37),(93,-37)).segment((93,37)).segment((82,37)).arc((17,-17),(-59,18)).close().assemble().finalize().extrude(-141))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(-93,0,0))\nw1=cq.Workplane('XY',origin=(0,0,40))\nr=w0.sketch().segment((-56,-27),(-47,-29)).arc((-33,-66),(-4,-92)).segment((-4,-100)).segment((37,-100)).segment((37,-92)).arc((49,-84),(56,-72)).segment((56,27)).segment((47,29)).arc((33,66),(4,92)).segment((4,100)).segment((-24,100)).close().assemble().finalize().extrude(167).union(w1.sketch().segment((-56,-37),(-45,-37)).arc((18,-61),(81,-37)).segment((93,-37)).segment((93,-14)).arc((96,6),(93,26)).segment((93,37)).segment((-56,37)).close().assemble().push([(-10,1)]).circle(31,mode='s').finalize().extrude(-140))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(-93,0,0))\nw1=cq.Workplane('XY',origin=(0,0,42))\nr=w0.sketch().segment((-56,-27),(-47,-29)).arc((-33,-67),(-4,-95)).segment((-4,-100)).segment((36,-100)).segment((36,-95)).arc((47,-89),(56,-80)).segment((56,27)).segment((56,29)).segment((47,29)).arc((33,67),(4,95)).segment((4,100)).segment((-24,100)).close().assemble().finalize().extrude(167).union(w1.sketch().segment((-56,-37),(-45,-37)).arc((18,-61),(81,-37)).segment((93,-37)).segment((93,-15)).arc((97,6),(93,27)).segment((93,37)).segment((-56,37)).close().assemble().push([(-11,1)]).circle(31,mode='s').finalize().extrude(-142))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(-93,0,0))\nw1=cq.Workplane('XY',origin=(0,0,40))\nr=w0.sketch().segment((-56,-26),(-12,-100)).segment((56,-59)).segment((12,15)).close().assemble().finalize().extrude(16).union(w0.sketch().segment((-56,-29),(-12,-41)).segment((-12,-42)).segment((-9,-42)).segment((29,-53)).segment((56,49)).segment((12,61)).segment((12,62)).segment((9,62)).segment((-29,73)).close().assemble().push([(0,10)]).circle(24,mode='s').finalize().extrude(171)).union(w1.sketch().segment((-94,-24),(-60,-24)).arc((0,-62),(60,-24)).segment((94,-24)).segment((94,39)).segment((82,39)).arc((81,41),(80,42)).segment((80,-10)).segment((-80,-10)).segment((-80,39)).segment((-94,39)).close().assemble().finalize().extrude(-140))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(-93,0,0))\nw1=cq.Workplane('XY',origin=(0,0,41))\nr=w0.sketch().segment((-56,-27),(-12,-100)).segment((56,-59)).segment((12,14)).close().assemble().finalize().extrude(16).union(w0.sketch().segment((-56,-29),(-12,-41)).segment((-12,-42)).segment((-9,-42)).segment((29,-53)).segment((56,49)).segment((12,61)).segment((12,62)).segment((9,62)).segment((-29,73)).close().assemble().push([(0,10)]).circle(24,mode='s').finalize().extrude(170)).union(w1.sketch().segment((-94,-24),(-60,-24)).arc((0,-62),(60,-24)).segment((94,-24)).segment((94,39)).segment((83,39)).arc((81,41),(79,42)).segment((79,1)).segment((-79,1)).segment((-79,39)).segment((-94,39)).close().assemble().push([(0,-12.5)]).rect(100,23,mode='s').finalize().extrude(-141))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(-93,0,0))\nw1=cq.Workplane('XY',origin=(0,0,41))\nr=w0.sketch().segment((-56,-26),(-12,-100)).segment((56,-59)).segment((12,15)).close().assemble().finalize().extrude(16).union(w0.sketch().segment((-56,-29),(-1,-46)).segment((-1,-100)).segment((1,-100)).segment((1,-47)).segment((12,-51)).segment((56,69)).segment((1,87)).segment((1,100)).segment((-1,100)).segment((-1,88)).segment((-23,96)).close().assemble().finalize().extrude(167)).union(w1.sketch().segment((-58,-37),(93,-37)).segment((93,37)).segment((82,37)).arc((18,1),(-46,37)).segment((-58,37)).close().assemble().finalize().extrude(-141))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(-93,0,0))\nw1=cq.Workplane('XY',origin=(0,0,40))\nr=w0.sketch().segment((-56,-27),(-12,-100)).segment((56,-59)).segment((12,14)).close().assemble().finalize().extrude(16).union(w0.sketch().segment((-56,-29),(-12,-41)).segment((-12,-42)).segment((-9,-42)).segment((29,-53)).segment((56,49)).segment((12,61)).segment((12,62)).segment((9,62)).segment((-29,73)).close().assemble().finalize().extrude(169)).union(w1.sketch().segment((-94,-24),(-71,-24)).arc((0,-66),(71,-24)).segment((94,-24)).segment((94,39)).segment((82,39)).arc((87,34),(91,28)).segment((91,-11)).segment((-91,-11)).segment((-91,11)).segment((-11,11)).arc((-19,25),(-24,39)).segment((-94,39)).close().assemble().finalize().extrude(-140))"
+   ]
+  },
+  {
+   "부품": "924146_EVA01_D13/armor-chestCoverR.stl",
+   "IoU": [
+    0.748,
+    0.754,
+    0.754,
+    0.747,
+    0.746,
+    -1.0,
+    0.752,
+    -1.0
+   ],
+   "모서리": [
+    0.398,
+    0.385,
+    0.399,
+    0.372,
+    0.399,
+    -1.0,
+    0.401,
+    -1.0
+   ],
+   "최고": 0.754,
+   "최고모서리": 0.401,
+   "코드": [
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-41,0))\nw1=cq.Workplane('XY',origin=(0,0,-22))\nr=w0.sketch().segment((-100,62),(-29,-49)).segment((100,-31)).segment((59,28)).segment((15,28)).segment((15,30)).segment((-70,80)).close().assemble().finalize().extrude(62).union(w0.sketch().segment((-87,2),(-68,-51)).segment((-10,-30)).segment((-29,23)).close().assemble().finalize().extrude(94)).union(w1.sketch().segment((-80,-11),(-63,-11)).segment((-63,-12)).segment((63,-12)).segment((63,19)).segment((-80,19)).close().assemble().finalize().extrude(-53))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-42,0))\nw1=cq.Workplane('XY',origin=(0,0,-23))\nr=w0.sketch().segment((-100,62),(-29,-49)).segment((100,-31)).segment((59,28)).segment((15,28)).segment((15,30)).segment((-70,80)).close().assemble().finalize().extrude(63).union(w0.sketch().segment((-87,2),(-67,-51)).segment((-10,-29)).segment((-29,24)).close().assemble().finalize().extrude(95)).union(w1.sketch().segment((-80,-11),(-62,-11)).segment((-62,-12)).segment((62,-12)).segment((62,-11)).segment((66,-11)).segment((66,19)).segment((62,19)).segment((62,20)).segment((-62,20)).segment((-62,19)).segment((-80,19)).close().assemble().finalize().extrude(-52))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-42,0))\nw1=cq.Workplane('XY',origin=(0,0,-23))\nr=w0.sketch().segment((-100,62),(-29,-49)).segment((100,-31)).segment((59,28)).segment((15,28)).segment((15,30)).segment((-69,80)).close().assemble().finalize().extrude(63).union(w0.sketch().segment((-87,2),(-67,-51)).segment((-10,-29)).segment((-30,25)).close().assemble().finalize().extrude(95)).union(w1.sketch().segment((-80,-11),(-63,-11)).segment((-63,-12)).segment((63,-12)).segment((63,19)).segment((-80,19)).close().assemble().finalize().extrude(-52))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-42,0))\nw1=cq.Workplane('XY',origin=(0,0,-22))\nr=w0.sketch().segment((-100,62),(-29,-49)).segment((100,-31)).segment((59,28)).segment((15,28)).segment((15,30)).segment((-69,80)).close().assemble().finalize().extrude(63).union(w0.sketch().segment((-87,2),(-67,-51)).segment((-10,-29)).segment((-30,25)).close().assemble().finalize().extrude(95)).union(w1.sketch().segment((-80,-11),(-60,-11)).segment((-60,-13)).segment((60,-13)).segment((60,-11)).segment((80,-11)).segment((80,19)).segment((60,19)).segment((60,21)).segment((-60,21)).segment((-60,19)).segment((-80,19)).close().assemble().finalize().extrude(-53))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-41,0))\nw1=cq.Workplane('XY',origin=(0,0,-23))\nr=w0.sketch().segment((-100,62),(-29,-49)).segment((100,-31)).segment((59,28)).segment((15,28)).segment((15,30)).segment((-70,80)).close().assemble().finalize().extrude(62).union(w0.sketch().segment((-87,2),(-66,-52)).segment((-10,-30)).segment((-31,24)).close().assemble().finalize().extrude(94)).union(w1.sketch().segment((-80,-11),(-63,-11)).segment((-63,-12)).segment((63,-12)).segment((63,19)).segment((-80,19)).close().assemble().finalize().extrude(-52))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-41,0))\nw1=cq.Workplane('XY',origin=(0,0,-22))\nr=w0.sketch().segment((-100,62),(-29,-49)).segment((100,-31)).segment((59,28)).segment((15,28)).segment((15,30)).segment((-70,80)).close().assemble().finalize().extrude(62).union(w0.sketch().segment((-87,2),(-67,-51)).segment((-10,-29)).segment((-29,24)).close().assemble().finalize().extrude(94)).union(w1.sketch().segment((-80,-11),(-79,-11)).arc((-78,-13),(-77,-15)).segment((-77,-16)).segment((64,-16)).segment((64,20)).segment((-77,20)).segment((-77,18)).arc((-78,16),(-79,15)).segment((-80,15)).close().assemble().finalize().extrude(-53))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-42,0))\nw1=cq.Workplane('XY',origin=(0,0,-23))\nr=w0.sketch().segment((-100,62),(-29,-49)).segment((100,-31)).segment((59,28)).segment((15,28)).segment((15,30)).segment((-69,80)).close().assemble().finalize().extrude(63).union(w0.sketch().segment((-87,1),(-67,-51)).segment((-10,-29)).segment((-29,23)).close().assemble().finalize().extrude(95)).union(w1.sketch().segment((-80,-11),(-63,-11)).segment((-63,-12)).segment((63,-12)).segment((63,19)).segment((-80,19)).close().assemble().finalize().extrude(-52))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-41,0))\nw1=cq.Workplane('XY',origin=(0,0,-23))\nr=w0.sketch().segment((-100,62),(-29,-49)).segment((100,-31)).segment((59,28)).segment((15,28)).segment((15,30)).segment((-70,80)).close().assemble().finalize().extrude(62).union(w0.sketch().segment((-87,2),(-66,-52)).segment((-10,-30)).segment((-31,24)).close().assemble().finalize().extrude(94)).union(w1.sketch().segment((-80,-11),(-79,-11)).arc((-78,-13),(-77,-15)).segment((65,-15)).segment((65,21)).segment((-80,21)).close().assemble().finalize().extrude(-52))"
+   ]
+  },
+  {
+   "부품": "1192644_BattleMech_Predator/thigh_armor.stl",
+   "IoU": [
+    0.495,
+    0.494,
+    0.496,
+    0.533,
+    0.495,
+    0.49,
+    0.495,
+    0.576
+   ],
+   "모서리": [
+    0.189,
+    0.188,
+    0.186,
+    0.24,
+    0.204,
+    0.191,
+    0.186,
+    0.274
+   ],
+   "최고": 0.576,
+   "최고모서리": 0.274,
+   "코드": [
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(-33,0,0))\nw1=cq.Workplane('XY',origin=(0,0,1))\nr=w0.sketch().segment((-64,88),(-37,-71)).segment((19,-62)).segment((19,-100)).segment((64,-68)).segment((55,-54)).segment((58,-53)).segment((31,94)).segment((-10,100)).segment((-10,98)).close().assemble().finalize().extrude(68).union(w1.sketch().segment((-15,-64),(15,-64)).segment((15,-51)).arc((43,0),(15,51)).segment((15,64)).segment((-15,64)).segment((-15,51)).arc((-43,0),(-15,-51)).close().assemble().finalize().extrude(-101))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(-33,0,0))\nw1=cq.Workplane('XY',origin=(0,0,2))\nr=w0.sketch().segment((-64,88),(-37,-71)).segment((19,-62)).segment((19,-100)).segment((64,-68)).segment((55,-55)).segment((58,-54)).segment((31,95)).segment((-10,100)).segment((-10,98)).close().assemble().finalize().extrude(68).union(w1.sketch().segment((-15,-64),(15,-64)).segment((15,-51)).arc((43,0),(15,51)).segment((15,64)).segment((-15,64)).segment((-15,51)).arc((-43,0),(-15,-51)).close().assemble().finalize().extrude(-102))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(-33,0,0))\nw1=cq.Workplane('XY',origin=(0,0,1))\nr=w0.sketch().segment((-64,88),(-37,-71)).segment((19,-62)).segment((19,-100)).segment((64,-68)).segment((55,-55)).segment((58,-54)).segment((31,95)).segment((-10,100)).segment((-10,99)).close().assemble().finalize().extrude(68).union(w1.sketch().segment((-15,-64),(15,-64)).segment((15,-50)).arc((43,0),(15,50)).segment((15,64)).segment((-15,64)).segment((-15,50)).arc((-43,0),(-15,-50)).close().assemble().finalize().extrude(-101))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(-33,0,0))\nw1=cq.Workplane('XY',origin=(0,0,1))\nr=w0.sketch().segment((-64,88),(-37,-72)).segment((19,-63)).segment((19,-100)).segment((64,-68)).segment((55,-55)).segment((59,-54)).segment((49,1)).segment((-58,93)).close().assemble().finalize().extrude(68).union(w1.sketch().segment((-38,-59),(-1,-59)).segment((-1,-64)).segment((1,-64)).segment((1,-59)).segment((38,-59)).segment((38,21)).segment((1,21)).segment((1,26)).segment((-1,26)).segment((-1,21)).segment((-38,21)).close().assemble().finalize().extrude(99))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(-33,0,0))\nw1=cq.Workplane('XY',origin=(0,0,1))\nr=w0.sketch().segment((-64,88),(-37,-71)).segment((19,-62)).segment((19,-100)).segment((64,-67)).segment((55,-54)).segment((58,-53)).segment((31,94)).segment((-10,100)).segment((-10,98)).close().assemble().finalize().extrude(68).union(w1.sketch().segment((-15,-64),(15,-64)).segment((15,-54)).arc((42,0),(15,54)).segment((15,64)).segment((-15,64)).segment((-15,54)).arc((-42,0),(-15,-54)).close().assemble().finalize().extrude(-101))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(-33,0,0))\nw1=cq.Workplane('XY',origin=(0,0,1))\nr=w0.sketch().segment((-64,88),(-37,-71)).segment((19,-62)).segment((19,-100)).segment((64,-68)).segment((55,-55)).segment((58,-54)).segment((31,94)).segment((-10,100)).segment((-10,98)).close().assemble().finalize().extrude(68).union(w1.sketch().segment((-15,-64),(15,-64)).segment((15,-53)).arc((44,0),(15,53)).segment((15,64)).segment((-15,64)).segment((-15,53)).arc((-44,0),(-15,-53)).close().assemble().finalize().extrude(-101))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(-33,0,0))\nw1=cq.Workplane('XY',origin=(0,0,1))\nr=w0.sketch().segment((-64,88),(-37,-71)).segment((19,-62)).segment((19,-100)).segment((64,-68)).segment((55,-55)).segment((58,-54)).segment((31,95)).segment((-10,100)).segment((-10,98)).close().assemble().finalize().extrude(68).union(w1.sketch().segment((-15,-64),(15,-64)).segment((15,-50)).arc((43,0),(15,50)).segment((15,64)).segment((-15,64)).segment((-15,50)).arc((-43,0),(-15,-50)).close().assemble().finalize().extrude(-101))",
+    "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(-33,0,0))\nw1=cq.Workplane('XY',origin=(0,0,1))\nr=w0.sketch().segment((-64,88),(-37,-71)).segment((19,-62)).segment((19,-100)).segment((64,-68)).segment((-10,100)).close().assemble().finalize().extrude(69).union(w1.sketch().segment((-15,-64),(-15,50)).arc((-41,-7),(-15,-64)).assemble().finalize().extrude(-91))"
+   ]
+  },
+  {
+   "부품": "981111_Dummy13/armor-upper-arm-2x.stl",
+   "IoU": [
+    -1.0,
+    -1.0,
+    0.597,
+    0.0,
+    0.585,
+    -1.0,
+    -1.0,
+    -1.0
+   ],
+   "모서리": [
+    -1.0,
+    -1.0,
+    0.302,
+    0.408,
+    0.423,
+    -1.0,
+    -1.0,
+    -1.0
+   ],
+   "최고": 0.597,
+   "최고모서리": 0.423,
+   "코드": [
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-55,0))\nw1=cq.Workplane('YZ',origin=(50,0,0))\nr=w0.sketch().segment((-64,-56),(-56,-56)).segment((-58,-62)).segment((28,-74)).segment((29,-70)).arc((47,-67),(64,-56)).segment((64,-43)).segment((35,-43)).arc((0,-58),(-35,-43)).segment((-64,-43)).close().assemble().reset().face(w0.sketch().segment((-64,43),(-35,43)).arc((0,58),(35,43)).segment((64,43)).segment((64,56)).segment((56,56)).segment((58,62)).segment((-28,74)).segment((-29,70)).arc((-47,67),(-64,56)).close().assemble()).finalize().extrude(155).union(w1.sketch().arc((-100,-17),(-96,-22),(-92,-27)).arc((-72,-46),(-48,-60)).segment((-48,-64)).segment((-10,-64)).segment((-10,-60)).arc((14,-46),(34,-27)).arc((48,0),(48,27)).arc((48,46),(40,64)).segment((40,66)).segment((-10,66)).segment((-10,64)).arc((-12,63),(-14,63)).arc((-68,46),(-100,1)).segment((-67,1)).arc((-68,0),(-67,-1)).segment((-100,-1)).arc((-97,-9),(-92,-17)).close().assemble().finalize().extrude(11))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-54,0))\nw1=cq.Workplane('YZ',origin=(50,0,0))\nr=w0.sketch().segment((-64,-55),(-59,-55)).arc((-53,-62),(-46,-68)).segment((-46,-70)).segment((-39,-70)).arc((0,-73),(39,-60)).segment((46,-60)).segment((46,-58)).arc((53,-52),(59,-46)).segment((64,-46)).segment((64,-38)).arc((65,-37),(66,-36)).segment((39,-36)).arc((0,-50),(-39,-37)).segment((-39,46)).segment((-66,46)).segment((-66,36)).segment((-66,35)).segment((-66,34)).arc((-65,33),(-66,32)).segment((-66,31)).arc((-65,30),(-66,29)).segment((-66,-46)).segment((-64,-46)).close().assemble().reset().face(w0.sketch().segment((-64,46),(64,46)).segment((64,55)).segment((59,55)).arc((53,62),(46,68)).segment((46,70)).segment((39,70)).arc((0,73),(-39,60)).segment((-46,60)).segment((-46,58)).arc((-65,0),(-46,-58)).segment((-46,-59)).segment((-46,-60)).segment((-39,-60)).arc((-65,-60),(-64,-46)).assemble()).finalize().extrude(154).union(w1.sketch().arc((-100,-17),(-96,-21),(-92,-25)).arc((-75,-45),(-51,-58)).segment((-51,-64)).segment((-10,-64)).segment((-10,-63)).arc((10,-61),(29,-55)).segment((-10,-55)).segment((-10,63)).segment((10,63)).segment((10,64)).segment((39,64)).arc((21,67),(3,64)).segment((-51,64)).segment((-51,58)).arc((-84,31),(-100,-10)).segment((-51,-10)).segment((-51,-17)).close().assemble().finalize().extrude(10))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-54,0))\nw1=cq.Workplane('YZ',origin=(50,0,0))\nr=w0.sketch().segment((-64,-56),(-57,-56)).arc((-49,-63),(-40,-69)).segment((-40,-70)).segment((40,-70)).segment((40,-69)).arc((49,-63),(57,-56)).segment((64,-56)).segment((64,-43)).arc((65,-39),(66,-36)).segment((35,-36)).arc((0,-52),(-35,-36)).segment((-64,-36)).close().assemble().reset().face(w0.sketch().segment((-64,43),(-35,43)).arc((0,59),(35,43)).segment((64,43)).segment((64,56)).segment((57,56)).arc((49,63),(40,69)).segment((40,70)).segment((-40,70)).segment((-40,69)).arc((-49,63),(-57,56)).segment((-64,56)).close().assemble()).finalize().extrude(154).union(w1.sketch().arc((-100,-18),(-96,-22),(-93,-27)).arc((-73,-45),(-50,-60)).segment((-50,-64)).segment((-10,-64)).segment((-10,-60)).arc((23,-45),(43,-18)).segment((10,-18)).arc((0,-22),(-10,-25)).segment((-10,60)).segment((-50,60)).segment((-50,-25)).arc((-60,-22),(-70,-18)).close().assemble().finalize().extrude(11))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-55,0))\nw1=cq.Workplane('YZ',origin=(50,0,0))\nr=w0.sketch().segment((-64,-56),(-57,-56)).arc((-51,-62),(-44,-67)).segment((-44,-70)).segment((-33,-70)).arc((0,-74),(33,-70)).segment((44,-70)).segment((44,-67)).arc((51,-62),(57,-56)).segment((64,-56)).segment((64,-43)).segment((34,-43)).arc((0,-59),(-34,-43)).segment((-64,-43)).close().assemble().reset().face(w0.sketch().segment((-64,43),(-34,43)).arc((0,59),(34,43)).segment((64,43)).segment((64,56)).segment((57,56)).arc((51,62),(44,67)).segment((44,70)).segment((33,70)).arc((0,74),(-33,70)).segment((-44,70)).segment((-44,67)).arc((-51,62),(-57,56)).segment((-64,56)).close().assemble()).finalize().extrude(155).union(w1.sketch().arc((-100,-17),(-96,-22),(-93,-27)).arc((-73,-45),(-50,-60)).segment((-50,-64)).segment((-10,-64)).segment((-10,-60)).arc((13,-45),(29,-22)).segment((-100,-22)).close().assemble().finalize().extrude(-109))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-56,0))\nw1=cq.Workplane('YZ',origin=(50,0,0))\nr=w0.sketch().segment((-64,-56),(-57,-56)).arc((-51,-62),(-45,-67)).segment((-45,-70)).segment((-36,-70)).arc((0,-74),(36,-67)).segment((45,-67)).segment((45,-64)).arc((55,-60),(64,-56)).segment((64,-44)).segment((36,-44)).arc((0,-59),(-36,-44)).segment((-64,-44)).close().assemble().reset().face(w0.sketch().segment((-64,44),(-36,44)).arc((0,59),(36,44)).segment((64,44)).segment((64,56)).segment((57,56)).arc((51,62),(45,67)).segment((45,70)).segment((36,70)).arc((0,74),(-36,67)).segment((-45,67)).segment((-45,64)).arc((-55,60),(-64,56)).close().assemble()).finalize().extrude(156).union(w1.sketch().arc((-100,-16),(-96,-21),(-93,-27)).arc((-71,-44),(-51,-65)).segment((-51,-64)).segment((-10,-64)).segment((-10,-65)).arc((12,-44),(24,-16)).segment((10,-16)).segment((10,-44)).segment((-10,-44)).segment((-10,-45)).segment((-51,-45)).segment((-51,-44)).segment((-71,-44)).segment((-71,-16)).close().assemble().finalize().extrude(-110))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-55,0))\nw1=cq.Workplane('YZ',origin=(50,0,0))\nr=w0.sketch().segment((-64,-56),(-57,-56)).arc((-50,-62),(-42,-67)).segment((-42,-70)).segment((-30,-70)).arc((0,-73),(30,-70)).segment((42,-70)).segment((42,-67)).arc((50,-62),(57,-56)).segment((64,-56)).segment((64,-43)).segment((34,-43)).arc((0,-58),(-34,-43)).segment((-64,-43)).close().assemble().reset().face(w0.sketch().segment((-64,43),(-34,43)).arc((0,58),(34,43)).segment((64,43)).segment((64,56)).segment((57,56)).arc((50,62),(42,67)).segment((42,70)).segment((30,70)).arc((0,73),(-30,70)).segment((-42,70)).segment((-42,67)).arc((-50,62),(-57,56)).segment((-64,56)).close().assemble()).finalize().extrude(155).union(w1.sketch().arc((-100,-16),(-96,-21),(-92,-26)).arc((-71,-43),(-53,-64)).segment((100,-64)).segment((100,64)).segment((-53,64)).segment((-53,59)).arc((-87,31),(-100,-12)).segment((-96,-12)).segment((-96,-16)).close().assemble().finalize().extrude(11))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-55,0))\nw1=cq.Workplane('YZ',origin=(50,0,0))\nr=w0.sketch().segment((-64,-55),(-57,-55)).segment((-57,-62)).arc((-49,-67),(-40,-71)).segment((-40,-72)).segment((40,-72)).segment((40,-71)).arc((49,-67),(57,-62)).segment((57,-55)).segment((64,-55)).segment((64,-43)).segment((35,-43)).arc((0,-58),(-35,-43)).segment((-64,-43)).close().assemble().reset().face(w0.sketch().segment((-64,43),(-35,43)).arc((0,58),(35,43)).segment((64,43)).segment((64,55)).segment((57,55)).segment((57,62)).arc((49,67),(40,71)).segment((40,72)).segment((-40,72)).segment((-40,71)).arc((-49,67),(-57,62)).segment((-57,55)).segment((-64,55)).close().assemble()).finalize().extrude(155).union(w1.sketch().arc((-100,-16),(-96,-21),(-93,-26)).arc((-72,-45),(-50,-64)).segment((-50,-65)).segment((-10,-65)).segment((-10,-64)).arc((12,-45),(26,-21)).segment((26,-16)).segment((-100,-16)).close().assemble().finalize().extrude(11))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-54,0))\nw1=cq.Workplane('YZ',origin=(50,0,0))\nr=w0.sketch().segment((-64,-56),(-57,-56)).arc((-51,-62),(-44,-67)).segment((-44,-70)).segment((-34,-70)).arc((0,-74),(34,-70)).segment((44,-70)).segment((44,-67)).arc((51,-62),(57,-56)).segment((64,-56)).segment((64,-43)).segment((34,-43)).arc((0,-58),(-34,-43)).segment((-64,-43)).close().assemble().reset().face(w0.sketch().segment((-64,43),(-34,43)).arc((0,58),(34,43)).segment((64,43)).segment((64,56)).segment((57,56)).arc((51,62),(44,67)).segment((44,70)).segment((34,70)).arc((0,74),(-34,70)).segment((-44,70)).segment((-44,67)).arc((-51,62),(-57,56)).segment((-64,56)).close().assemble()).finalize().extrude(154).union(w1.sketch().arc((-100,-17),(-96,-22),(-92,-27)).arc((-73,-45),(-51,-58)).segment((-51,-64)).segment((-10,-64)).segment((-10,-63)).arc((-39,0),(-10,63)).segment((-10,64)).segment((-51,64)).segment((-51,63)).arc((-87,33),(-100,-17)).assemble().finalize().extrude(11))"
+   ]
+  },
+  {
+   "부품": "624957_볼트론/Shield 4x.stl",
+   "IoU": [
+    -1.0,
+    0.346,
+    0.0,
+    0.34,
+    -1.0,
+    0.0,
+    0.341,
+    0.339
+   ],
+   "모서리": [
+    -1.0,
+    0.296,
+    0.254,
+    0.247,
+    -1.0,
+    0.254,
+    0.311,
+    0.246
+   ],
+   "최고": 0.346,
+   "최고모서리": 0.311,
+   "코드": [
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-23))\nw1=cq.Workplane('ZX',origin=(0,-100,0))\nr=w0.sketch().segment((-36,36),(18,-78)).segment((99,-36)).segment((99,-11)).segment((98,-11)).segment((98,100)).arc((73,41),(98,-18)).segment((98,-11)).segment((99,-11)).segment((99,36)).segment((98,36)).segment((98,11)).segment((99,11)).segment((99,10)).segment((98,10)).segment((98,-11)).segment((99,-11)).segment((99,-18)).arc((73,-41),(99,-71)).segment((99,-11)).segment((98,-11)).segment((98,-36)).segment((99,-36)).segment((99,-11)).segment((98,-11)).segment((98,-10)).segment((99,-10)).segment((99,11)).segment((98,11)).segment((98,36)).segment((99,36)).segment((99,11)).segment((99,10)).segment((99,-11)).segment((98,-11)).segment((98,-11,-36)).segment((99,-36)).segment((99,-11)).segment((99,-10)).segment((99,-11)).segment((99,-11)).segment((99,-11,36)).segment((99,36)).close().assemble().finalize().extrude(4).union(w1.sketch().arc((-23,-99),(-10,0),(23,99)).segment((-12,99)).segment((-12,11)).segment((-23,11)).close().assemble().finalize().extrude(129))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-23))\nw1=cq.Workplane('ZX',origin=(0,-100,0))\nr=w0.sketch().segment((-36,36),(18,-79)).segment((99,-36)).segment((99,-11)).segment((98,-11)).segment((98,100)).arc((71,39),(18,-3)).segment((18,-11)).segment((10,-11)).arc((-12,16),(-36,36)).assemble().finalize().extrude(3).union(w1.sketch().arc((-23,-99),(-11,1),(23,99)).segment((-12,99)).segment((-12,10)).segment((-23,10)).close().assemble().finalize().extrude(139))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-23))\nw1=cq.Workplane('ZX',origin=(0,-100,0))\nr=w0.sketch().segment((-36,36),(18,-78)).segment((99,-36)).segment((99,-11)).segment((98,-11)).segment((98,100)).arc((74,43),(98,-13)).segment((98,-11)).segment((99,-11)).segment((99,36)).segment((98,36)).segment((98,11)).segment((99,11)).segment((99,10)).segment((98,10)).segment((98,-11)).segment((99,-11)).segment((99,-13)).segment((98,-13)).segment((98,-36)).close().assemble().finalize().extrude(4).union(w1.sketch().arc((-23,-99),(-11,1),(23,99)).segment((-12,99)).segment((-12,11)).segment((-23,11)).close().assemble().finalize().extrude(139))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-23))\nw1=cq.Workplane('ZX',origin=(0,-100,0))\nr=w0.sketch().segment((-36,36),(19,-79)).segment((99,-36)).segment((99,-11)).segment((98,-11)).segment((98,100)).arc((73,41),(98,-18)).segment((98,-11)).segment((99,-11)).segment((99,36)).segment((98,36)).segment((98,11)).segment((99,11)).segment((99,10)).segment((98,10)).segment((98,-11)).segment((99,-11)).segment((99,-18)).arc((73,-41),(99,-71)).segment((99,-11)).segment((98,-11)).segment((98,-36)).segment((99,-36)).segment((99,-11)).segment((98,-11)).segment((98,-10)).segment((99,-10)).segment((99,11)).segment((98,11)).segment((98,36)).close().assemble().finalize().extrude(4).union(w1.sketch().arc((-23,-99),(-11,0),(23,99)).segment((-12,99)).segment((-12,12)).segment((-23,12)).close().assemble().finalize().extrude(139))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-23))\nw1=cq.Workplane('ZX',origin=(0,-100,0))\nr=w0.sketch().segment((-36,36),(19,-78)).segment((99,-36)).segment((99,-11)).segment((98,-11)).segment((98,100)).arc((73,42),(98,-14)).segment((98,-11)).segment((99,-11)).segment((99,36)).segment((98,36)).segment((98,11)).segment((99,11)).segment((99,10)).segment((98,10)).segment((98,-11)).segment((99,-11)).segment((99,-14)).arc((73,-72),(99,-10)).segment((99,-11)).segment((98,-11)).segment((98,-36)).segment((99,-36)).segment((99,-11)).segment((98,-11)).segment((98,-10)).segment((99,-10)).segment((99,11)).segment((98,11)).segment((98,36)).segment((99,36)).segment((99,11)).segment((99,10)).segment((99,-11)).segment((99,-11)).segment((99,-11,-36)).segment((99,-36)).segment((99,-11)).segment((99,-10)).segment((99,-11)).segment((99,-11,-36)).segment((99,-36)).segment((99,-11)).segment((99,-10)).segment((99,-11)).segment((99,-11,-36)).segment((99,-36)).segment((99,-11)).segment((99,-10)).segment((99,11)).segment((99,12)).arc((93,16),(99,20)).segment((99,36)).close().assemble().finalize().extrude(4).union(w1.sketch().arc((-23,-99),(-10,0),(23,99)).segment((-12,99)).segment((-12,12)).segment((-23,12)).close().assemble().finalize().extrude(129))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-23))\nw1=cq.Workplane('ZX',origin=(0,-100,0))\nr=w0.sketch().segment((-36,36),(19,-78)).segment((99,-36)).segment((99,-11)).segment((98,-11)).segment((98,100)).arc((76,43),(98,-13)).segment((98,-11)).segment((99,-11)).segment((99,36)).segment((98,36)).segment((98,11)).segment((99,11)).segment((99,10)).segment((98,10)).segment((98,-11)).segment((99,-11)).segment((99,-13)).segment((98,-13)).segment((98,-36)).close().assemble().finalize().extrude(4).union(w1.sketch().arc((-23,-99),(-11,1),(23,99)).segment((-12,99)).segment((-12,11)).segment((-23,11)).close().assemble().finalize().extrude(139))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-23))\nw1=cq.Workplane('ZX',origin=(0,-100,0))\nr=w0.sketch().segment((-36,36),(19,-79)).segment((99,-36)).segment((99,-11)).segment((98,-11)).segment((98,100)).arc((72,39),(19,-3)).segment((19,-11)).segment((11,-11)).arc((-11,16),(-36,36)).assemble().finalize().extrude(3).union(w0.sketch().segment((25,-77),(36,-84)).segment((92,-16)).segment((81,-8)).close().assemble().finalize().extrude(50)).union(w1.sketch().arc((-23,-99),(-11,1),(12,100)).segment((-12,100)).segment((-12,10)).segment((-23,10)).close().assemble().finalize().extrude(139))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-23))\nw1=cq.Workplane('ZX',origin=(0,-100,0))\nr=w0.sketch().segment((-36,36),(18,-78)).segment((99,-36)).segment((99,-11)).segment((98,-11)).segment((98,100)).arc((74,41),(98,-18)).segment((98,-11)).segment((99,-11)).segment((99,36)).segment((98,36)).segment((98,11)).segment((99,11)).segment((99,10)).segment((98,10)).segment((98,-11)).segment((99,-11)).segment((99,-18)).arc((74,-41),(99,-73)).segment((99,-11)).segment((98,-11)).segment((98,-36)).segment((99,-36)).segment((99,-11)).segment((98,-11)).segment((98,-10)).segment((99,-10)).segment((99,11)).segment((98,11)).segment((98,36)).close().assemble().finalize().extrude(4).union(w1.sketch().arc((-23,-99),(-10,0),(23,99)).segment((-12,99)).segment((-12,12)).segment((-23,12)).close().assemble().finalize().extrude(139))"
+   ]
+  },
+  {
+   "부품": "982988_건담D13완성/right-thigh-cover.stl",
+   "IoU": [
+    0.496,
+    0.584,
+    0.632,
+    0.599,
+    0.6,
+    0.0,
+    0.622,
+    0.597
+   ],
+   "모서리": [
+    0.353,
+    0.337,
+    0.275,
+    0.303,
+    0.303,
+    0.212,
+    0.33,
+    0.31
+   ],
+   "최고": 0.632,
+   "최고모서리": 0.353,
+   "코드": [
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-5))\nw1=cq.Workplane('ZX',origin=(0,61,0))\nr=w0.sketch().segment((-41,-22),(24,-100)).segment((41,-84)).segment((41,94)).segment((25,100)).segment((-24,-18)).segment((-37,-18)).close().assemble().reset().face(w0.sketch().segment((-2,31),(29,18)).segment((37,37)).segment((6,50)).close().assemble(),mode='s').finalize().extrude(-16).union(w1.sketch().push([(5,17)]).circle(16).circle(13,mode='s').finalize().extrude(14))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-5))\nw1=cq.Workplane('ZX',origin=(0,61,0))\nr=w0.sketch().segment((-41,-22),(24,-100)).segment((41,-84)).segment((41,94)).segment((24,100)).close().assemble().reset().face(w0.sketch().segment((-10,20),(-7,18)).segment((10,40)).segment((7,42)).close().assemble(),mode='s').reset().face(w0.sketch().segment((7,77),(18,23)).segment((33,26)).segment((22,80)).close().assemble(),mode='s').finalize().extrude(-17).union(w1.sketch().push([(5,17)]).circle(16).circle(12,mode='s').finalize().extrude(14))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-5))\nw1=cq.Workplane('ZX',origin=(0,61,0))\nr=w0.sketch().segment((-41,-22),(24,-100)).segment((41,-84)).segment((41,95)).segment((24,100)).close().assemble().reset().face(w0.sketch().segment((-10,21),(-7,18)).segment((10,35)).segment((7,38)).close().assemble(),mode='s').reset().face(w0.sketch().segment((7,78),(15,63)).segment((24,70)).segment((16,84)).close().assemble(),mode='s').finalize().extrude(-17).union(w1.sketch().push([(5,16)]).circle(16).circle(13,mode='s').finalize().extrude(14))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-5))\nw1=cq.Workplane('ZX',origin=(0,60,0))\nr=w0.sketch().segment((-41,-22),(24,-100)).segment((41,-84)).segment((41,95)).segment((24,100)).segment((24,84)).segment((18,84)).segment((18,100)).segment((-24,50)).segment((-24,-22)).close().assemble().reset().face(w0.sketch().segment((-18,22),(18,50)).segment((18,77)).segment((-18,77)).close().assemble(),mode='s').reset().face(w0.sketch().segment((41,7),(41,22)).segment((41,23)).close().assemble(),mode='s').finalize().extrude(-17).union(w1.sketch().push([(0,17)]).circle(18).circle(16,mode='s').finalize().extrude(14))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-5))\nw1=cq.Workplane('ZX',origin=(0,60,0))\nr=w0.sketch().segment((-41,-22),(24,-100)).segment((41,-84)).segment((41,95)).segment((24,100)).segment((24,84)).segment((18,84)).segment((18,100)).segment((-24,51)).segment((-24,-22)).close().assemble().reset().face(w0.sketch().segment((-18,22),(18,51)).segment((18,77)).segment((-18,77)).close().assemble(),mode='s').reset().face(w0.sketch().segment((41,7),(41,22)).segment((41,23)).close().assemble(),mode='s').finalize().extrude(-17).union(w1.sketch().push([(0,17)]).circle(18).circle(16,mode='s').finalize().extrude(14))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-5))\nw1=cq.Workplane('ZX',origin=(0,61,0))\nr=w0.sketch().segment((-41,-22),(24,-100)).segment((41,-84)).segment((41,95)).segment((25,100)).segment((-11,-16)).segment((-24,-16)).segment((-24,16)).segment((-23,16)).close().assemble().reset().face(w0.sketch().segment((-1,33),(29,16)).segment((31,16)).segment((31,18)).segment((35,26)).segment((4,43)).close().assemble(),mode='s').finalize().extrude(-17).union(w1.sketch().push([(5,17)]).circle(16).circle(13,mode='s').finalize().extrude(14))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-5))\nw1=cq.Workplane('ZX',origin=(0,60,0))\nr=w0.sketch().segment((-41,-22),(24,-100)).segment((41,-84)).segment((41,95)).segment((24,100)).close().assemble().reset().face(w0.sketch().segment((-10,21),(-7,18)).segment((10,37)).segment((7,40)).close().assemble(),mode='s').reset().face(w0.sketch().segment((7,37),(32,20)).segment((37,28)).segment((12,45)).close().assemble(),mode='s').finalize().extrude(-17).union(w1.sketch().push([(5,17)]).circle(16).circle(12,mode='s').finalize().extrude(14))",
+    "import cadquery as cq\nw0=cq.Workplane('XY',origin=(0,0,-5))\nw1=cq.Workplane('ZX',origin=(0,60,0))\nr=w0.sketch().segment((-41,-22),(24,-100)).segment((41,-84)).segment((41,95)).segment((24,100)).segment((24,84)).segment((18,84)).segment((18,100)).segment((-24,50)).segment((-24,-22)).close().assemble().reset().face(w0.sketch().segment((-18,22),(18,50)).segment((18,77)).segment((-18,77)).close().assemble(),mode='s').reset().face(w0.sketch().segment((41,10),(41,22)).segment((41,23)).close().assemble(),mode='s').finalize().extrude(-17).union(w1.sketch().push([(5,17)]).circle(16).circle(12,mode='s').finalize().extrude(14))"
+   ]
+  },
+  {
+   "부품": "495843_Ulfberhtmech/shield_Support required.stl",
+   "IoU": [
+    -1.0,
+    0.0,
+    -1.0,
+    -1.0,
+    -1.0,
+    -1.0,
+    0.0,
+    -1.0
+   ],
+   "모서리": [
+    -1.0,
+    0.127,
+    -1.0,
+    -1.0,
+    -1.0,
+    -1.0,
+    0.282,
+    -1.0
+   ],
+   "최고": 0.0,
+   "최고모서리": 0.282,
+   "코드": [
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,40,0))\nw1=cq.Workplane('YZ',origin=(23,0,0))\nr=w0.sketch().segment((-56,12),(-33,-12)).segment((-21,-1)).segment((21,-1)).segment((21,1)).segment((29,1)).segment((29,12)).segment((21,12)).segment((21,14)).segment((-21,14)).segment((-21,12)).segment((-29,12)).segment((-29,11)).segment((-37,19)).close().assemble().finalize().extrude(-129).union(w0.sketch().arc((-89,8),(-69,21),(-46,28)).segment((-46,-28)).arc((-53,-27),(-60,-24)).arc((-58,-29),(-56,-34)).segment((-46,-34)).segment((-46,-8)).segment((46,-8)).segment((46,-34)).segment((89,8)).close().assemble().reset().face(w0.sketch().arc((81,28),(85,19),(89,8)).segment((89,12)).arc((85,20),(81,28)).assemble()).finalize().extrude(-109)).union(w1.workplane(offset=9/2).moveTo(0,1).cylinder(9,99))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-70,0))\nw1=cq.Workplane('YZ',origin=(23,0,0))\nr=w0.sketch().segment((-55,11),(-32,-11)).segment((-32,-10)).segment((24,-10)).segment((24,10)).segment((-24,10)).segment((-24,11)).close().assemble().finalize().extrude(-20).union(w0.sketch().segment((-53,-32),(-43,-37)).arc((-45,-29),(-46,-21)).close().assemble().reset().face(w0.sketch().arc((-32,21),(-24,29),(-14,37)).segment((-24,42)).close().assemble()).reset().face(w0.sketch().segment((14,-37),(24,-42)).segment((32,-11)).arc((24,-29),(14,-37)).assemble()).reset().face(w0.sketch().segment((43,11),(53,32)).segment((43,37)).arc((45,29),(46,21)).close().assemble()).reset().face(w0.sketch().segment((85,10),(90,3)).arc((88,7),(85,10)).assemble()).finalize().extrude(112)).union(w1.sketch().arc((-99,-11),(100,0),(-99,11)).close().assemble().finalize().extrude(9))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,40,0))\nw1=cq.Workplane('YZ',origin=(23,0,0))\nr=w0.sketch().segment((-54,12),(-33,-12)).segment((-20,-1)).segment((24,-1)).segment((24,11)).segment((-1,11)).segment((25,33)).segment((2,57)).close().assemble().finalize().extrude(-129).union(w0.sketch().arc((-89,6),(-63,21),(-33,27)).segment((-33,-27)).segment((-58,-27)).arc((-57,-30),(-55,-33)).arc((-53,-36),(-51,-38)).arc((-49,-40),(-47,-42)).segment((-47,-27)).segment((27,-27)).segment((27,-26)).arc((58,1),(89,27)).arc((87,29),(85,31)).segment((85,27)).arc((55,41),(27,27)).segment((27,29)).segment((-33,29)).segment((-33,27)).arc((-63,21),(-89,6)).assemble().finalize().extrude(-110)).union(w1.sketch().arc((-100,-10),(0,-87),(100,-10)).close().assemble().finalize().extrude(9))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,40,0))\nw1=cq.Workplane('YZ',origin=(23,0,0))\nr=w0.sketch().segment((-55,11),(-32,-11)).segment((-32,-10)).segment((24,-10)).segment((24,10)).segment((-32,10)).segment((-32,11)).close().assemble().finalize().extrude(-129).union(w0.sketch().arc((-89,6),(-63,21),(-33,27)).segment((-33,-27)).segment((-57,-27)).arc((-55,-30),(-53,-33)).arc((-49,-35),(-45,-37)).arc((11,37),(89,6)).arc((86,14),(82,21)).segment((82,22)).arc((11,75),(-60,22)).segment((-60,21)).arc((-74,15),(-89,6)).assemble().finalize().extrude(-110)).union(w1.sketch().arc((-100,-10),(0,-86),(100,-10)).close().assemble().finalize().extrude(9))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,40,0))\nw1=cq.Workplane('YZ',origin=(23,0,0))\nr=w0.sketch().segment((-56,12),(-32,-12)).segment((-32,-3)).segment((23,-3)).segment((23,3)).segment((32,3)).segment((32,12)).segment((23,12)).segment((23,18)).segment((-32,18)).segment((-32,12)).close().assemble().finalize().extrude(-128).union(w0.sketch().arc((-89,7),(-66,21),(-40,27)).segment((-40,-27)).segment((-57,-27)).arc((-56,-30),(-55,-33)).arc((-53,-35),(-51,-37)).arc((-52,-39),(-53,-40)).arc((-52,-41),(-51,-41)).arc((-49,-42),(-47,-43)).arc((-46,-45),(-46,-47)).arc((-44,-49),(-42,-50)).arc((-41,-49),(-40,-47)).segment((-40,-43)).arc((-36,-41),(-32,-39)).arc((-31,-37),(-29,-35)).arc((12,35),(89,7)).arc((87,10),(85,12)).segment((85,7)).close().assemble().finalize().extrude(-110)).union(w1.sketch().arc((-99,-14),(0,-87),(99,-14)).close().assemble().finalize().extrude(9))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-70,0))\nw1=cq.Workplane('YZ',origin=(23,0,0))\nr=w0.sketch().segment((-55,11),(-31,-11)).segment((-31,-3)).segment((25,-3)).segment((25,3)).segment((55,3)).segment((55,30)).segment((25,30)).segment((25,36)).segment((-25,36)).segment((-25,30)).segment((-55,30)).close().assemble().finalize().extrude(-20).union(w0.sketch().arc((-89,7),(-65,22),(-38,30)).segment((-38,-30)).arc((-49,-32),(-59,-32)).arc((-57,-34),(-55,-36)).segment((-55,-39)).segment((-52,-39)).arc((0,-59),(52,-39)).segment((55,-39)).segment((55,-36)).arc((73,-18),(86,7)).close().assemble().reset().face(w0.sketch().segment((-89,19),(86,19)).arc((73,44),(55,62)).segment((55,65)).segment((52,65)).arc((0,85),(-52,65)).segment((-55,65)).segment((-55,62)).arc((-73,44),(-89,19)).assemble()).finalize().extrude(113)).union(w1.sketch().arc((-99,-11),(10,-85),(99,11)).segment((99,10)).segment((96,10)).segment((96,13)).segment((98,13)).arc((1,89),(-99,10)).segment((-99,11)).arc((-100,0),(-99,-11)).assemble().finalize().extrude(9))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-70,0))\nw1=cq.Workplane('YZ',origin=(23,0,0))\nr=w0.sketch().segment((-55,12),(-31,-12)).segment((-31,-2)).segment((24,-2)).segment((24,2)).segment((31,2)).segment((31,12)).segment((24,12)).segment((24,22)).segment((-24,22)).segment((-24,12)).close().assemble().finalize().extrude(-20).union(w0.sketch().arc((77,22),(84,15),(89,6)).arc((87,17),(82,27)).close().assemble().finalize().extrude(112)).union(w0.sketch().arc((-59,-34),(-54,-36),(-51,-39)).segment((-34,-17)).segment((-44,-10)).close().assemble().finalize().extrude(104)).union(w1.sketch().arc((-99,-11),(10,-1),(-86,-54)).arc((18,-85),(99,-5)).segment((99,-1)).segment((100,-1)).arc((0,86),(-99,-11)).assemble().finalize().extrude(9))",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,40,0))\nw1=cq.Workplane('YZ',origin=(23,0,0))\nr=w0.sketch().segment((-55,11),(-33,-11)).segment((-33,-10)).segment((23,-10)).segment((23,10)).segment((-33,10)).segment((-33,11)).close().assemble().finalize().extrude(-129).union(w0.sketch().arc((-89,7),(-64,22),(-36,30)).segment((-36,-30)).arc((-47,-32),(-58,-32)).arc((-57,-36),(-55,-39)).arc((12,30),(89,7)).arc((86,11),(83,15)).segment((83,20)).segment((80,20)).arc((0,66),(-80,20)).segment((-83,20)).segment((-83,15)).arc((-86,11),(-89,7)).assemble().finalize().extrude(-110)).union(w1.sketch().arc((-100,-10),(0,-86),(100,-10)).close().assemble().finalize().extrude(9))"
+   ]
+  },
+  {
+   "부품": "892338_Gladiosmech/Hook.stl",
+   "IoU": [
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5,
+    0.5
+   ],
+   "모서리": [
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0,
+    1.0
+   ],
+   "최고": 0.5,
+   "최고모서리": 1.0,
+   "코드": [
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,100,0))\nr=w0.workplane(offset=-200/2).box(2,6,200)",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,100,0))\nr=w0.workplane(offset=-200/2).box(2,6,200)",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,100,0))\nr=w0.workplane(offset=-200/2).box(2,6,200)",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,100,0))\nr=w0.workplane(offset=-200/2).box(2,6,200)",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,100,0))\nr=w0.workplane(offset=-200/2).box(2,6,200)",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,100,0))\nr=w0.workplane(offset=-200/2).box(2,6,200)",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-100,0))\nr=w0.workplane(offset=200/2).box(2,6,200)",
+    "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-100,0))\nr=w0.workplane(offset=200/2).box(2,6,200)"
+   ]
+  }
+ ]
+}

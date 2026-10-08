@@ -1,0 +1,10 @@
+import cadquery as cq
+ball = cq.Workplane().sphere(40).translate((-58, 47, 0)).intersect(cq.Workplane().box(100, 100, 75.8).translate((-58, 47, 0)))
+blk = cq.Workplane('XY').box(124, 85.6, 62).edges().chamfer(3).translate((38, 35.2, 0))
+blk = blk.intersect(cq.Workplane('XY').circle(62).extrude(80, both=True).translate((38, 48, 0)))
+blk = blk.cut(cq.Workplane('XY').circle(32.5).extrude(80, both=True).translate((38, 48, 0))).cut(cq.Workplane().sphere(40).translate((38, 48, 0)))
+blk = blk.cut(cq.Workplane('XY').polyline([(2.8, 70), (73.2, 70), (90, 81.2), (-14, 81.2)]).close().extrude(80, both=True))
+col = cq.Workplane('XZ', origin=(0, -7.6, 0)).center(38, 0).circle(41).extrude(13.8).intersect(cq.Workplane().box(200, 200, 62))
+neck = cq.Workplane('XZ', origin=(0, -21, 0)).center(38, 0).circle(17.5).extrude(37)
+end = cq.Workplane('XZ', origin=(0, -57.2, 0)).center(38, 0).circle(41).extrude(31.8).intersect(cq.Workplane().box(200, 300, 74))
+r = blk.union(ball).union(col).union(neck).union(end)
