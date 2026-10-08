@@ -38,9 +38,9 @@ if __name__ == "__main__":
     model = Cadrille.from_pretrained(os.path.join(W, "cadrille"), torch_dtype=torch.bfloat16, attn_implementation="sdpa", device_map="cuda")
     proc = AutoProcessor.from_pretrained(os.path.join(W, "qwen2vl2b"), min_pixels=256 * 28 * 28, max_pixels=1280 * 28 * 28, padding_side="left")
     model.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False}); model.enable_input_require_grads()
-    model = get_peft_model(model, LoraConfig(r=RANK, lora_alpha=2 * RANK, lora_dropout=0.05, target_modules=["q_proj", "k_proj", "v_proj", "o_proj"] + (["qkv", "attn.proj"] if os.environ.get("VISLORA") == "1" else [])))   # run2: 비전 인코더 어텐션에도 LoRA(작은 디테일은 비전 쪽이 바뀌어야 — 조사 10-06)
+    model = get_peft_model(model, LoraConfig(r=RANK, lora_alpha=2 * RANK, lora_dropout=0.05, target_modules=["q_proj", "k_proj", "v_proj", "o_proj"] + (["qkv", "attn.proj"] if os.environ.get("VISLORA") == "1" else []) + (["gate_proj", "up_proj", "down_proj"] if os.environ.get("MLP") == "1" else [])))   # run2: 비전 인코더 어텐션에도 LoRA(작은 디테일은 비전 쪽이 바뀌어야 — 조사 10-06)
     n_tr = sum(p.numel() for p in model.parameters() if p.requires_grad); print("학습 매개변수", n_tr)
-    opt = torch.optim.AdamW([p for p in model.parameters() if p.requires_grad], lr=1e-4, weight_decay=0.0)
+    opt = torch.optim.AdamW([p for p in model.parameters() if p.requires_grad], lr=float(os.environ.get("LR", "1e-4")), weight_decay=0.0)
     sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda s: min(1.0, (s + 1) / 20) * 0.5 * (1 + math.cos(math.pi * min(s, STEPS) / STEPS)))
     정답그림 = {t["name"]: render(*(lambda m: (np.asarray(m.vertices), np.asarray(m.faces)))(실행(t["code"])), [0.35, -0.5, -1], img_size=220) for t in te}
     기록 = {"스텝": [], "손실": [], "시험": [], "최대GPU": 0, "초당스텝": None}
