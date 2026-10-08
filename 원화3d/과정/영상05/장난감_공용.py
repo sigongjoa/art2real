@@ -23,7 +23,8 @@ def 시작():
         try: sc.render.engine = eng; break
         except TypeError: pass
     sc.eevee.taa_render_samples = 24
-    sc.render.resolution_x, sc.render.resolution_y, sc.render.fps = 1080, 1920, FPS
+    import os as _os   # 10-08: 편 폴더에 「가로」 파일이 있으면 굽기가 TOY_LAND=1 을 넘김 → 1920×1080
+    sc.render.resolution_x, sc.render.resolution_y = (1920, 1080) if _os.environ.get("TOY_LAND") else (1080, 1920); sc.render.fps = FPS
     sc.view_settings.view_transform = "Standard"; sc.view_settings.exposure = -0.45
     sc.render.image_settings.file_format = "PNG"
     sc.frame_start, sc.frame_end = 1, T.end
@@ -41,7 +42,8 @@ def 끝(T, cams):
             bpy.ops.render.render(write_still=True); f += c["n"]
     else:
         import os as _os
-        if _os.environ.get("FRAMES"): sc.frame_start, sc.frame_end = map(int, _os.environ["FRAMES"].split("-"))   # 10-08: 일부 구간만 렌더(모션 시안)
+        if _os.environ.get("FRAMES"):   # 10-08: 일부 구간만 렌더(모션 시안) · 「a-」 는 끝까지
+            a_, b_ = _os.environ["FRAMES"].split("-"); sc.frame_start, sc.frame_end = int(a_), int(b_) if b_ else T.end
         sc.render.filepath = out.rstrip("/\\") + "/"; bpy.ops.render.render(animation=True)
 
 # ── 재질 · 도형 ──

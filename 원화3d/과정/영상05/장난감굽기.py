@@ -11,6 +11,9 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 NAME = sys.argv[1]; STILL = "still" in sys.argv[2:]; BAKE_ONLY = "자막만" in sys.argv[2:]   # 자막만 = 블렌더 건너뛰고 있는 프레임으로 다시 굽기
 SRC = os.path.join(HERE, "장난감", NAME); D = "G:/art2real/out/영상05/장난감/" + NAME; FR = D + "/frames"
 os.makedirs(FR, exist_ok=True)
+LAND = os.path.exists(os.path.join(SRC, "가로"))   # 10-08 가로 긴 영상
+if LAND: os.environ["TOY_LAND"] = "1"
+VW, VH = (1920, 1080) if LAND else (1080, 1920)
 BL = "C:/Program Files/Blender Foundation/Blender 4.0/blender.exe"
 BG = os.path.join(SRC, "bg.png") if os.path.exists(os.path.join(SRC, "bg.png")) else "G:/art2real/out/영상05/시험판/bg.png"
 BGM = "G:/claude-faceless-shorts-creator/media/library/music/clips/docu-pluck.mp3"
@@ -38,7 +41,7 @@ for (cams, _, _), n in zip(rows, ns):
         else: cuts.append({"cam": c, "n": m})
     f += n
 json.dump({"cuts": cuts, "lines": lines}, open(D + "/시간표.json", "w", encoding="utf-8"))
-if not BAKE_ONLY:
+if not BAKE_ONLY and not os.environ.get("FRAMES"):   # FRAMES=a-b 면 나머지 프레임은 남긴다(끝만 다시 굽기)
     for p in glob.glob(FR + "/*.png"): os.remove(p)
 env = dict(os.environ, PYTHONPATH=HERE)
 # GPU 8 GB 하나 — 블렌더는 동시에 2 개까지(병렬 에이전트용 자리표). 4 시간 넘은 자리표는 죽은 것으로 보고 치운다.
@@ -66,9 +69,10 @@ def text(d, xy, s, size, stroke):
     d.text(xy, s, font=F(size), fill=(255, 255, 255), anchor="mm", stroke_width=stroke, stroke_fill=(20, 20, 30))
 
 if STILL:
-    ims = [Image.open(p).convert("RGB").resize((270, 480)) for p in sorted(glob.glob(FR + "/still_*.png"))]
-    o = Image.new("RGB", (270 * min(8, len(ims)), 480 * ((len(ims) + 7) // 8)), "white")
-    for i, im in enumerate(ims): o.paste(im, (270 * (i % 8), 480 * (i // 8)))
+    tw, th = (VW // 4, VH // 4); nc = 6 if LAND else 8
+    ims = [Image.open(p).convert("RGB").resize((tw, th)) for p in sorted(glob.glob(FR + "/still_*.png"))]
+    o = Image.new("RGB", (tw * min(nc, len(ims)), th * ((len(ims) + nc - 1) // nc)), "white")
+    for i, im in enumerate(ims): o.paste(im, (tw * (i % nc), th * (i // nc)))
     o.save(D + "/스틸시트.jpg"); print(D + "/스틸시트.jpg", len(ims), "컷"); sys.exit()
 
 # 소리: 나레이션 + 큰 낱말마다 뿅 + 배경음
@@ -95,7 +99,7 @@ if os.path.exists(fx_path):
 with wave.open(D + "/_소리.wav", "wb") as w:
     w.setnchannels(1); w.setsampwidth(2); w.setframerate(SR); w.writeframes(np.clip(aud, -32767, 32767).astype(np.int16).tobytes())
 
-ff = subprocess.Popen(["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "1080x1920", "-r", str(FPS), "-i", "-",
+ff = subprocess.Popen(["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "-pix_fmt", "rgb24", "-s", "%dx%d" % (VW, VH), "-r", str(FPS), "-i", "-",
                        "-i", D + "/_소리.wav", "-stream_loop", "-1", "-i", BGM,
                        "-filter_complex", "[2:a]volume=-22dB[b];[1:a][b]amix=inputs=2:duration=first:normalize=0[a]", "-map", "0:v", "-map", "[a]",
                        "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "18", "-c:a", "aac", "-b:a", "192k", "-shortest", D + "/%s.mp4" % NAME],
@@ -103,7 +107,7 @@ ff = subprocess.Popen(["ffmpeg", "-y", "-loglevel", "error", "-f", "rawvideo", "
 # 자막은 지금 구절만: 쉼표 · 마침표에서 나누고 글자 수 비례로 시간을 준다 · 그래도 넓으면 두 줄
 import re
 def phrases(line, f0, nvoice):
-    ps = [p.strip() for p in re.findall(r"[^,.?!]+[,.?!]?", line) if p.strip()]
+    ps = [p.strip() for p in re.findall(r"(?:[^,.?!]|(?<=\d)\.(?=\d))+[,.?!]?", line) if p.strip()]   # 10-08: 2.77 · 1.5 의 점에서 자르지 않음
     tot = sum(len(p) for p in ps); out, f = [], f0
     for p in ps: out.append((f, p)); f += nvoice * len(p) / tot
     return out

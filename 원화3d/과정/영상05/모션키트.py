@@ -8,15 +8,16 @@
 편 폴더 `모션.json` = {"줄번호": [["숫자", "1 / 10", a, b], ["알약", ["앵커이름", "글자", [r, g, b]], a, b]]} — a·b 는 그 줄 안 비율(등장 · 퇴장 시작)
 앵커 = 장면.py 가 `앵커프레임(T, cams, {"이름": (x, y, z)}, ARGS[2])` 로 남긴 frames/앵커프레임.json"""
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
-W, H, FPS = 1080, 1920, 24
+import os
+W, H, FPS = (1920, 1080, 24) if os.environ.get("TOY_LAND") else (1080, 1920, 24)   # 10-08 가로
 KB = lambda n: ImageFont.truetype("C:/Windows/Fonts/malgunbd.ttf", n)
 ease = lambda u: 1 - (1 - min(max(u, 0), 1)) ** 3
 COL = {"초록": (52, 199, 105), "빨강": (232, 72, 64), "노랑": (240, 180, 40), "하늘": (70, 150, 230)}
 
 def big_number(base, s, a):
     lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay); f = KB(190 if len(s) <= 7 else 130)
-    d.text((W // 2 + 6, 480), s, font=f, fill=(0, 0, 0, int(120 * a)), anchor="mm"); lay = lay.filter(ImageFilter.GaussianBlur(14))
-    ImageDraw.Draw(lay).text((W // 2, 470), s, font=f, fill=(255, 255, 255, int(255 * a)), anchor="mm"); base.alpha_composite(lay)
+    d.text((W // 2 + 6, int(H * .25)), s, font=f, fill=(0, 0, 0, int(120 * a)), anchor="mm"); lay = lay.filter(ImageFilter.GaussianBlur(14))
+    ImageDraw.Draw(lay).text((W // 2, int(H * .245)), s, font=f, fill=(255, 255, 255, int(255 * a)), anchor="mm"); base.alpha_composite(lay)
 
 def pill(base, p, s, col, t_in, t_out):
     x, y = p[0] * W, p[1] * H; d = ImageDraw.Draw(base); f = KB(74)
@@ -37,16 +38,16 @@ def caption(base, s):
     global _GRAD
     if _GRAD is None:
         g = Image.new("L", (1, H), 0)
-        for y in range(H): g.putpixel((0, y), int(175 * min(max((y - 1300) / 260, 0), 1)))
+        for y in range(H): g.putpixel((0, y), int(175 * min(max((y - H * .677) / (H * .135), 0), 1)))
         _GRAD = Image.merge("RGBA", (*[Image.new("L", (W, H), 8)] * 3, g.resize((W, H))))
     base.alpha_composite(_GRAD); lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
-    w = s.split(); lines = [s] if d.textlength(s, font=KB(80)) <= 960 else [" ".join(w[:(len(w) + 1) // 2]), " ".join(w[(len(w) + 1) // 2:])]
-    sz = 80
-    while sz > 48 and max(d.textlength(l, font=KB(sz)) for l in lines) > 960: sz -= 4   # 넘치면 줄임(34 편 23 초에 화면 밖으로)
+    w = s.split(); lines = [s] if d.textlength(s, font=KB(62 if W > H else 80)) <= W - 120 else [" ".join(w[:(len(w) + 1) // 2]), " ".join(w[(len(w) + 1) // 2:])]
+    sz = 62 if W > H else 80   # 가로는 한 단계 작게
+    while sz > 48 and max(d.textlength(l, font=KB(sz)) for l in lines) > W - 120: sz -= 4   # 넘치면 줄임(34 편 23 초에 화면 밖으로)
     f = KB(sz)
-    for j, l in enumerate(lines): d.text((W // 2, 1588 + j * (sz + 16)), l, font=f, fill=(0, 0, 0, 200), anchor="mm")
+    for j, l in enumerate(lines): d.text((W // 2, int(H * .827) + j * (sz + 16)), l, font=f, fill=(0, 0, 0, 200), anchor="mm")
     lay = lay.filter(ImageFilter.GaussianBlur(8)); d = ImageDraw.Draw(lay)
-    for j, l in enumerate(lines): d.text((W // 2, 1580 + j * (sz + 16)), l, font=f, fill=(255, 255, 255, 255), anchor="mm", stroke_width=3, stroke_fill=(10, 10, 12, 255))
+    for j, l in enumerate(lines): d.text((W // 2, int(H * .823) + j * (sz + 16)), l, font=f, fill=(255, 255, 255, 255), anchor="mm", stroke_width=3, stroke_fill=(10, 10, 12, 255))
     base.alpha_composite(lay)
 
 def apply(im, fr, k, line_range, plan, anchors):
