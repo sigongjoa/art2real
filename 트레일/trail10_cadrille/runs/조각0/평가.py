@@ -28,8 +28,8 @@ def 채점(a):
 if __name__ == "__main__":
     from 조각 import 이름
     from 학습 import 디코더
-    X = torch.from_numpy(np.load(os.path.join(H, "특징.npy"))); Qs = [json.load(open(p, encoding="utf-8")) for p in sorted(glob.glob(os.path.join(H, "정답", "*.json")))]
-    m = 디코더().cuda(); m.load_state_dict(torch.load(os.path.join(H, "디코더.pt"))); m.eval(); 예측 = []
+    O = os.environ.get("OUT", H); X = torch.from_numpy(np.load(os.path.join(H, "특징.npy"))); Qs = [json.load(open(p, encoding="utf-8")) for p in sorted(glob.glob(os.path.join(H, "정답", "*.json")))]
+    m = 디코더().cuda(); m.load_state_dict(torch.load(os.path.join(O, "디코더.pt"))); m.eval(); 예측 = []
     with torch.no_grad():
         for i in range(NTR, len(X), 50):
             lg, c, s = m(X[i:i + 50].cuda().float()); t = lg.argmax(-1)
@@ -38,9 +38,9 @@ if __name__ == "__main__":
     대조 = [Qs[int(j)] for j in nn_]
     with Pool(12) as pool:
         R = pool.map(채점, [(p, Qs[NTR + i]) for i, p in enumerate(예측)]); RC = pool.map(채점, [(p, Qs[NTR + i]) for i, p in enumerate(대조)])
-    json.dump({"디코더": R, "대조": RC, "예측": 예측}, open(os.path.join(H, "평가.json"), "w", encoding="utf-8"), ensure_ascii=False)
+    json.dump({"디코더": R, "대조": RC, "예측": 예측}, open(os.path.join(O, "평가.json"), "w", encoding="utf-8"), ensure_ascii=False)
     맞 = lambda L: float(np.mean([r["edge_f1"] >= 0.42 for r in L]))
     판 = {"디코더 맞힘": 맞(R), "대조 맞힘": 맞(RC), "기준": "≥ 0.80 그리고 대조 + 0.10", "통과": 맞(R) >= .8 and 맞(R) >= 맞(RC) + .1,
          "모서리 중앙": [float(np.median([r["edge_f1"] for r in L])) for L in (R, RC)], "IoU 중앙": [float(np.median([r["iou"] for r in L])) for L in (R, RC)],
          "빼기 수 맞힘": [float(np.mean([r["빼기수"][0] == r["빼기수"][1] for r in L])) for L in (R, RC)], "오류": sum(bool(r["오류"]) for r in R)}
-    json.dump(판, open(os.path.join(H, "판정.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1); print(판)
+    json.dump(판, open(os.path.join(O, "판정.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1); print(판)

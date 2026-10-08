@@ -5,7 +5,8 @@ python runs/조각0/학습.py [에폭=30]  →  runs/조각0/디코더.pt · 학
 import os, sys, json, glob, time, numpy as np, torch, torch.nn as nn
 H = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, H)
 from 조각 import 이름, 점유, 격자, 보기, 모서리, 정답칸
-torch.manual_seed(0); dev = "cuda"; K, N3, NTR = 12, 32, int(os.environ.get("NTR", 3600))
+torch.manual_seed(0); dev = "cuda"; O = os.environ.get("OUT", H); PEN = float(os.environ.get("PEN", 0)); ST = os.environ.get("ST") == "1"   # 조각1: 창 밖 벌점 · 하나 고르기
+K, N3, NTR = 12, 32, int(os.environ.get("NTR", 3600))
 
 class 디코더(nn.Module):
     def __init__(s, d=256, L=4):
@@ -36,20 +37,21 @@ if __name__ == "__main__":
             Y.append([t.cpu() for t in 그림(P, C, S, 0.005, g)])
         Y = [torch.cat(t) for t in zip(*Y)]
     m = 디코더().to(dev); npar = sum(p.numel() for p in m.parameters()); print("디코더 매개변수", npar, flush=True)
-    opt = torch.optim.AdamW(m.parameters(), 3e-4, weight_decay=1e-4); B = 16; best = 9e9; log = open(os.path.join(H, "학습.log"), "w", encoding="utf-8")
+    opt = torch.optim.AdamW(m.parameters(), 3e-4, weight_decay=1e-4); B = 16; best = 9e9; log = open(os.path.join(O, "학습.log"), "w", encoding="utf-8")
     steps = E * (NTR // B); sched = torch.optim.lr_scheduler.OneCycleLR(opt, 3e-4, total_steps=steps, pct_start=.05); st = 0; t0 = time.time()
     for ep in range(E):
         tau = .05 + (.01 - .05) * ep / max(E - 1, 1); m.train(); perm = torch.randperm(NTR); tl = []
         for i in range(0, NTR - B + 1, B):
-            j = perm[i:i + B]; lg, c, s = m(X[j].to(dev).float()); prob = lg.softmax(-1)
+            j = perm[i:i + B]; lg, c, s = m(X[j].to(dev).float()); prob = nn.functional.gumbel_softmax(lg, tau=1.0, hard=True) if ST and ep >= E // 3 else lg.softmax(-1)
             ent = -(prob * prob.clamp_min(1e-8).log()).sum(-1).mean()
             loss = 손실(그림(prob, c, s, tau, g), [y[j].to(dev) for y in Y]) + 0.01 * (ep / E) * ent
+            if PEN: add = prob[..., 1:6].sum(-1); out = (torch.relu(c + s / 2 - 1.05) + torch.relu(-0.05 - (c - s / 2))).sum(-1); loss = loss + PEN * (add * out).mean()   # 창 밖은 공짜가 아니다
             opt.zero_grad(); loss.backward(); nn.utils.clip_grad_norm_(m.parameters(), 1.0); opt.step(); sched.step(); st += 1; tl.append(loss.item())
         m.eval(); vl = []
         with torch.no_grad():
             for i in range(NTR, len(X), 50):
                 j = torch.arange(i, min(i + 50, len(X))); lg, c, s = m(X[j].to(dev).float())
-                vl.append(손실(그림(lg.softmax(-1), c, s, .01, g), [y[j].to(dev) for y in Y]).item())
+                vl.append(손실(그림(nn.functional.one_hot(lg.argmax(-1), len(이름)).float() if ST else lg.softmax(-1), c, s, .01, g), [y[j].to(dev) for y in Y]).item())
         v = float(np.mean(vl)); msg = "에폭 %d τ %.3f 학습 %.4f 검증 %.4f %.0f 초" % (ep, tau, np.mean(tl), v, time.time() - t0); print(msg, flush=True); log.write(msg + "\n"); log.flush()
-        if v < best: best = v; torch.save(m.state_dict(), os.path.join(H, "디코더.pt"))
+        if v < best: best = v; torch.save(m.state_dict(), os.path.join(O, "디코더.pt"))
     print("ok 최저 검증", best)
