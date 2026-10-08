@@ -39,11 +39,14 @@ def caption(base, s):
         g = Image.new("L", (1, H), 0)
         for y in range(H): g.putpixel((0, y), int(175 * min(max((y - 1300) / 260, 0), 1)))
         _GRAD = Image.merge("RGBA", (*[Image.new("L", (W, H), 8)] * 3, g.resize((W, H))))
-    base.alpha_composite(_GRAD); lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay); f = KB(80)
-    lines = [s] if d.textlength(s, font=f) <= 960 else (lambda w: [" ".join(w[:len(w) // 2]), " ".join(w[len(w) // 2:])])(s.split())
-    for j, l in enumerate(lines): d.text((W // 2, 1588 + j * 96), l, font=f, fill=(0, 0, 0, 200), anchor="mm")
+    base.alpha_composite(_GRAD); lay = Image.new("RGBA", (W, H), (0, 0, 0, 0)); d = ImageDraw.Draw(lay)
+    w = s.split(); lines = [s] if d.textlength(s, font=KB(80)) <= 960 else [" ".join(w[:(len(w) + 1) // 2]), " ".join(w[(len(w) + 1) // 2:])]
+    sz = 80
+    while sz > 48 and max(d.textlength(l, font=KB(sz)) for l in lines) > 960: sz -= 4   # 넘치면 줄임(34 편 23 초에 화면 밖으로)
+    f = KB(sz)
+    for j, l in enumerate(lines): d.text((W // 2, 1588 + j * (sz + 16)), l, font=f, fill=(0, 0, 0, 200), anchor="mm")
     lay = lay.filter(ImageFilter.GaussianBlur(8)); d = ImageDraw.Draw(lay)
-    for j, l in enumerate(lines): d.text((W // 2, 1580 + j * 96), l, font=f, fill=(255, 255, 255, 255), anchor="mm", stroke_width=3, stroke_fill=(10, 10, 12, 255))
+    for j, l in enumerate(lines): d.text((W // 2, 1580 + j * (sz + 16)), l, font=f, fill=(255, 255, 255, 255), anchor="mm", stroke_width=3, stroke_fill=(10, 10, 12, 255))
     base.alpha_composite(lay)
 
 def apply(im, fr, k, line_range, plan, anchors):
