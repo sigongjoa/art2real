@@ -5,7 +5,8 @@
     ],
     "PreToolUse": [
       { "matcher": "Agent|Task", "hooks": [ { "type": "command", "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/wiki.py\" agent" } ] },
-      { "matcher": "Bash", "hooks": [ { "type": "command", "if": "Bash(*new_short_ko.py*)", "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/shorts_script.py\"" } ] }
+      { "matcher": "Bash", "hooks": [ { "type": "command", "if": "Bash(*new_short_ko.py*)", "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/shorts_script.py\"" } ] },
+      { "matcher": "Bash", "hooks": [ { "type": "command", "if": "Bash(*장난감굽기.py*)", "command": "python \"$CLAUDE_PROJECT_DIR/.claude/hooks/shorts_script.py\"" } ] }
     ]
   }
 }

@@ -112,7 +112,19 @@ def wrap(d, s, size, wmax=980):
     w = s.split(" "); best = min(range(1, len(w)), key=lambda i: abs(len(" ".join(w[:i])) - len(" ".join(w[i:])))) if len(w) > 1 else 1
     return [" ".join(w[:best]), " ".join(w[best:])]
 PH = [phrases(r[1], l[0], len(v) / SR * FPS) for r, l, v in zip(rows, lines, voices)]
-frames = sorted(glob.glob(FR + "/*.png")); k = 0
+frames = sorted(glob.glob(FR + "/[0-9]*.png")); k = 0
+MP = os.path.join(SRC, "모션.json")   # 10-08: 있으면 모션키트(레퍼런스 실측 규칙) · 없으면 예전 그대로
+if os.path.exists(MP):
+    import 모션키트 as MK
+    PLAN = json.load(open(MP, encoding="utf-8")); AN = json.load(open(FR + "/앵커프레임.json", encoding="utf-8")) if os.path.exists(FR + "/앵커프레임.json") else {}
+    for i, p in enumerate(frames, 1):
+        while k < len(lines) - 1 and i > lines[k][1]: k += 1
+        im = MK.apply(Image.open(p).convert("RGBA"), i, k, lines[k], PLAN, AN)
+        if rows[k][2] and str(k) not in PLAN: a_ = MK.ease((i - lines[k][0]) / 5); MK.big_number(im, rows[k][2], a_)
+        cur = [p_ for f_, p_ in PH[k] if f_ <= i][-1:] or [PH[k][0][1]]; MK.caption(im, cur[0])
+        ff.stdin.write(im.convert("RGB").tobytes())
+    ff.stdin.close(); ff.wait()
+    print(D + "/%s.mp4" % NAME, round(sum(ns) / FPS, 1), "초 · 모션키트"); sys.exit()
 for i, p in enumerate(frames, 1):
     while k < len(lines) - 1 and i > lines[k][1]: k += 1
     im = Image.open(p).convert("RGB"); d = ImageDraw.Draw(im)

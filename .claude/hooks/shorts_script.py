@@ -7,7 +7,19 @@
 """
 import sys, json, re, os
 
+ROOT = os.environ.get("CLAUDE_PROJECT_DIR") or os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+def 장난감(명령):   # 10-08: 블렌더 장난감 CG 굽기도 같은 관문(34 편이 검증 없이 지나갔다) · still(시안)은 통과
+    # 실제 실행만: 「python … 장난감굽기.py 편이름」 · 문서 · heredoc 안의 「<편>」 같은 글자는 무시(10-08 스킬 문서 추가가 막혔다)
+    m = re.search(r"python[\w.]*\s+(?:\S*[/\\])?장난감굽기\.py\s+\"?([^\s\"<>`]+)\"?([^\n;&|]*)", 명령)
+    if not m or "still" in m.group(2).split(): return ""
+    t = os.path.join(ROOT, "원화3d", "과정", "영상05", "장난감", m.group(1), "대본.tsv")
+    try: 줄 = open(t, encoding="utf-8").read().splitlines()
+    except OSError: return "쇼츠 대본 관문: %s 를 못 읽음" % t
+    return "" if any(re.match(r"#윤문:\s*\S", l) for l in 줄) else ("쇼츠 대본 관문: %s 에 `#윤문:` 머리줄이 없다 — 다섯 버릇 점검 뒤 적고 다시 구워라." % t)
+
 def 막을까(명령):
+    if "장난감굽기.py" in 명령: return 장난감(명령)
     if "new_short_ko.py" not in 명령: return ""
     tsvs = re.findall(r'"([^"]+\.tsv)"|\'([^\']+\.tsv)\'|(\S+\.tsv)', 명령)
     빠짐 = []
@@ -27,6 +39,10 @@ if __name__ == "__main__":
         assert 막을까('python tools/new_short_ko.py "%s" slug' % a)
         assert not 막을까('python tools/new_short_ko.py "%s" slug' % b)
         assert not 막을까("ls -la")
+        assert not 막을까("python 장난감굽기.py 34_클로드코드 still")                      # 시안은 통과
+        assert not 막을까("python 장난감굽기.py 34_클로드코드")                            # #윤문 있음
+        assert 막을까("python 장난감굽기.py 없는편이름")                                    # 못 읽음 → 막음
+        assert not 막을까("cat >> SKILL.md <<'E'\n4. `python 장난감굽기.py <편>` — 설명\nE")       # 문서 속 글자는 통과
         print("ok"); sys.exit(0)
     try: 명령 = json.load(sys.stdin).get("tool_input", {}).get("command", "")
     except Exception: sys.exit(0)   # 훅이 고장 나도 다른 일은 막지 않는다

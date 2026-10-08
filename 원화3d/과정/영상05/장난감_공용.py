@@ -40,6 +40,8 @@ def 끝(T, cams):
             sc.frame_set(f + c["n"] * 3 // 4); sc.render.filepath = out + "/still_%02d.png" % k
             bpy.ops.render.render(write_still=True); f += c["n"]
     else:
+        import os as _os
+        if _os.environ.get("FRAMES"): sc.frame_start, sc.frame_end = map(int, _os.environ["FRAMES"].split("-"))   # 10-08: 일부 구간만 렌더(모션 시안)
         sc.render.filepath = out.rstrip("/\\") + "/"; bpy.ops.render.render(animation=True)
 
 # ── 재질 · 도형 ──
@@ -145,3 +147,25 @@ def camera(name, frm, to, lens=35):
     t = empty(name + "표적", loc=to); k = c.constraints.new("TRACK_TO"); k.target = t
     k.track_axis, k.up_axis = "TRACK_NEGATIVE_Z", "UP_Y"
     return c, t
+
+
+# ── 10-08 모션 키트용(모션키트.py): 프레임마다 3D 점의 화면 좌표 · 물체 깜빡 ──
+def 앵커프레임(T, cams, 점들, out):
+    """점들 = {"이름": (x, y, z)} → out/앵커프레임.json = {프레임: {이름: [x, y]}} (0..1 · 그 프레임 카메라 기준)"""
+    from bpy_extras.object_utils import world_to_camera_view
+    import os
+    sc = bpy.context.scene; cut = []; f0 = 1
+    for c in T.cuts: cut.append((f0, f0 + c["n"], cams[c["cam"]][0])); f0 += c["n"]
+    per = {}
+    for fr in range(1, T.end + 1):
+        sc.frame_set(fr); cam = next((c for a, b, c in cut if a <= fr < b), cut[-1][2])
+        per[fr] = {nm: [round(v, 4) for v in (lambda co: (co.x, 1 - co.y))(world_to_camera_view(sc, cam, Vector(p)))] for nm, p in 점들.items()}
+    os.makedirs(out, exist_ok=True); json.dump(per, open(out + "/앵커프레임.json", "w", encoding="utf-8"))
+
+def 깜빡(T, i, a, fr):
+    """줄 i 의 비율 a 부터: 0.3 초 차오름 → 0.6 초 주기 두 번 → 0.5 로 남음(건축사전 빨간 틀 실측) · 0..1"""
+    f0, f1 = T.lines[i]; t = (fr - (f0 + a * (f1 - f0))) / FPS
+    if t < 0: return 0.0
+    if t < 0.3: return t / 0.3
+    if t < 1.5: return 0.55 + 0.45 * math.cos(2 * math.pi * (t - 0.3) / 0.6)
+    return 0.5
