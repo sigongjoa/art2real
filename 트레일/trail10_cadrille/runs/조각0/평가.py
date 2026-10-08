@@ -20,14 +20,17 @@ def 채점(a):
     from 모양자 import 재기
     try:
         if not any(t in ("상자", "원통z", "원통x", "원통y", "공") for t, _, _ in P): raise ValueError("더하는 칸 없음")
-        r = 재기(메시(P), 메시(Q))
+        pm = 메시(P)
+        if os.environ.get("NORM") == "1":   # 입력 규약(긴 변 1 · 가운데)을 예측에도 — 정답은 이미 그 규약
+            lo, hi = pm.bounds; pm.apply_translation(-(lo + hi) / 2); pm.apply_scale(2.0 / (hi - lo).max())
+        r = 재기(pm, 메시(Q))
     except Exception as e: r = {"edge_f1": 0.0, "iou": 0.0, "오류": str(e)[:80]}
     빼기 = lambda L: sum(t.startswith(("구멍", "사각")) for t, _, _ in L)
     return {"edge_f1": r["edge_f1"], "iou": r["iou"], "빼기수": [빼기(Q), 빼기(P)], "오류": r.get("오류")}
 
 if __name__ == "__main__":
     from 조각 import 이름
-    from 학습 import 디코더
+    from 학습 import 디코더  # N3 와 무관(평가는 CadQuery)
     O = os.environ.get("OUT", H); X = torch.from_numpy(np.load(os.path.join(H, "특징.npy"))); Qs = [json.load(open(p, encoding="utf-8")) for p in sorted(glob.glob(os.path.join(H, "정답", "*.json")))]
     m = 디코더().cuda(); m.load_state_dict(torch.load(os.path.join(O, "디코더.pt"))); m.eval(); 예측 = []
     with torch.no_grad():
@@ -38,9 +41,9 @@ if __name__ == "__main__":
     대조 = [Qs[int(j)] for j in nn_]
     with Pool(12) as pool:
         R = pool.map(채점, [(p, Qs[NTR + i]) for i, p in enumerate(예측)]); RC = pool.map(채점, [(p, Qs[NTR + i]) for i, p in enumerate(대조)])
-    json.dump({"디코더": R, "대조": RC, "예측": 예측}, open(os.path.join(O, "평가.json"), "w", encoding="utf-8"), ensure_ascii=False)
+    json.dump({"디코더": R, "대조": RC, "예측": 예측}, open(os.path.join(O, "평가_정규화.json" if os.environ.get("NORM") == "1" else "평가.json"), "w", encoding="utf-8"), ensure_ascii=False)
     맞 = lambda L: float(np.mean([r["edge_f1"] >= 0.42 for r in L]))
     판 = {"디코더 맞힘": 맞(R), "대조 맞힘": 맞(RC), "기준": "≥ 0.80 그리고 대조 + 0.10", "통과": 맞(R) >= .8 and 맞(R) >= 맞(RC) + .1,
          "모서리 중앙": [float(np.median([r["edge_f1"] for r in L])) for L in (R, RC)], "IoU 중앙": [float(np.median([r["iou"] for r in L])) for L in (R, RC)],
          "빼기 수 맞힘": [float(np.mean([r["빼기수"][0] == r["빼기수"][1] for r in L])) for L in (R, RC)], "오류": sum(bool(r["오류"]) for r in R)}
-    json.dump(판, open(os.path.join(O, "판정.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1); print(판)
+    json.dump(판, open(os.path.join(O, "판정_정규화.json" if os.environ.get("NORM") == "1" else "판정.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1); print(판)
