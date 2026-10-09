@@ -15,16 +15,26 @@ def _cyl(p, c, s, ax):
     q = torch.stack([d[..., o].norm(dim=-1) - r, d[..., ax].abs() - h], -1)
     return q.clamp(min=0).norm(dim=-1) + q.max(-1).values.clamp(max=0)
 
-def sdf(p, c, s):
-    """p (B,G,3) · c,s (B,K,3) → (B,K,T,G) 종류별 SDF (빈칸은 큰 값)"""
-    p = p[:, None]; c = c[:, :, None]; s = s[:, :, None]
+def 회전행렬(r):   # r (...,3) 라디안 x·y·z → (...,3,3) = Rz Ry Rx
+    cx, cy, cz = r.cos().unbind(-1); sx, sy, sz = r.sin().unbind(-1); o, z = torch.ones_like(cx), torch.zeros_like(cx)
+    Rx = torch.stack([o, z, z, z, cx, -sx, z, sx, cx], -1).reshape(*r.shape[:-1], 3, 3)
+    Ry = torch.stack([cy, z, sy, z, o, z, -sy, z, cy], -1).reshape(*r.shape[:-1], 3, 3)
+    Rz = torch.stack([cz, -sz, z, sz, cz, z, z, z, o], -1).reshape(*r.shape[:-1], 3, 3)
+    return Rz @ Ry @ Rx
+
+def sdf(p, c, s, r=None):
+    """p (B,G,3) · c,s (B,K,3) · r (B,K,3) 회전(라디안 · 없으면 축 정렬) → (B,K,T,G) 종류별 SDF (빈칸은 큰 값)
+    10-09 어휘 v2: 회전 — 기울인 상자를 빼면 쐐기 · 빗면 · 모따기(사전0 에서 빠진 것)"""
+    p = p[:, None] - c[:, :, None]; s = s[:, :, None]
+    if r is not None: p = p @ 회전행렬(r)[:, :, None].squeeze(2)   # 조각 좌표계로: q = Rᵀ(p − c) (행 벡터라 p @ R)
+    c = torch.zeros_like(s)
     b = _box(p, c, s); cz, cx, cy = _cyl(p, c, s, 2), _cyl(p, c, s, 0), _cyl(p, c, s, 1)
-    sp = (p - c).norm(dim=-1) - s.mean(-1) / 2
+    sp = p.norm(dim=-1) - s.mean(-1) / 2
     return torch.stack([torch.full_like(b, 9.0), b, cz, cx, cy, sp, cz, cx, cy, b], 2)
 
-def 점유(p, prob, c, s, tau):
+def 점유(p, prob, c, s, tau, r=None):
     """prob (B,K,T) → 전체 점유 (B,G): 더하기는 합집합, 빼기는 그 위에서 깎음 (확률로 섞음)"""
-    o = torch.sigmoid(-sdf(p, c, s) / tau)                                   # (B,K,T,G)
+    o = torch.sigmoid(-sdf(p, c, s, r) / tau)                                   # (B,K,T,G)
     sg = 부호.to(p.device)
     add = (prob * (sg > 0))[..., None].mul(o).sum(2); sub = (prob * (sg < 0))[..., None].mul(o).sum(2)   # (B,K,G)
     A = 1 - torch.exp(torch.log1p(-add.clamp(max=1 - 1e-5)).sum(1)); S = torch.exp(torch.log1p(-sub.clamp(max=1 - 1e-5)).sum(1))
@@ -57,10 +67,22 @@ def 정답칸(Q, K):
     for i, (t, c, s) in enumerate(Q[:K]): P[i] = 0; P[i, 이름.index(t)] = 1; C[i] = torch.tensor(c); S[i] = torch.tensor(s)
     return P, C, S
 
+def 정답칸r(Q, K):
+    """v2: 조각에 회전(4 번째 값 · 없으면 0)까지 → (P, C, S, R)"""
+    P, C, S = 정답칸([q[:3] for q in Q], K); Rt = torch.zeros(K, 3)
+    for i, q in enumerate(Q[:K]):
+        if len(q) > 3: Rt[i] = torch.tensor(q[3])
+    return P, C, S, Rt
+
 if __name__ == "__main__":   # 자기 검사: 상자에 z 구멍 → 위에서 본 실루엣 가운데가 비고, 옆에서 본 건 꽉 참
     n = 32; p = 격자(n, "cpu")[None]
     Q = [("상자", [.5, .5, .5], [.8, .8, .4]), ("구멍z", [.5, .5, .5], [.2, .2, 3])]; P, C, S = 정답칸(Q, 4)
     occ = 점유(p, P[None], C[None], S[None], 0.01); Sil, D = 보기(occ, n)
     assert Sil[0, 4, n // 2, n // 2] < .1 and Sil[0, 4, n // 2, n // 5] > .9, "위에서 본 구멍"
     assert Sil[0, 0, n // 2, n // 2] > .9, "옆에서 본 몸통"
+    # v2: 45° 돌린 상자는 위에서 보면 마름모 — 축 정렬 모서리 칸은 비고 가운데는 참
+    import math
+    P, C, S, Rr = 정답칸r([("상자", [.5, .5, .5], [.5, .5, .3], [0, 0, math.pi / 4])], 2); o2 = 점유(p, P[None], C[None], S[None], 0.01, Rr[None]); Sl, _ = 보기(o2, n)
+    assert Sl[0, 4, n // 2, n // 2] > .9 and Sl[0, 4, int(n * .3), int(n * .3)] < .1, "돌린 상자"
+    assert torch.allclose(점유(p, P[None], C[None], S[None], 0.01), 점유(p, P[None], C[None], S[None], 0.01, torch.zeros(1, 2, 3)), atol=1e-5), "회전 0 = 예전과 같음"
     print("ok", float(occ.mean()))

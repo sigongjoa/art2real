@@ -9,23 +9,23 @@ NTR = 3600
 def 메시(P):
     import cadquery as cq, trimesh
     from 합성 import 짓기
-    if not any(t in ("상자", "원통z", "원통x", "원통y", "공") for t, _, _ in P) or P[0][0].startswith(("구멍", "사각")): 
+    if not any(q[0] in ("상자", "원통z", "원통x", "원통y", "공") for q in P) or P[0][0].startswith(("구멍", "사각")): 
         P = sorted(P, key=lambda q: q[0].startswith(("구멍", "사각")))   # 더하기를 앞으로
     p = os.path.join(tempfile.gettempdir(), "조각0평가_%d.stl" % os.getpid())
-    cq.exporters.export(짓기([(t, [v * 100 for v in c], [max(v, .01) * 100 for v in s]) for t, c, s in P]), p, tolerance=0.05, angularTolerance=0.2)
+    cq.exporters.export(짓기([(q[0], [v * 100 for v in q[1]], [max(v, .01) * 100 for v in q[2]]) + tuple(q[3:4]) for q in P]), p, tolerance=0.05, angularTolerance=0.2)   # 4 번째 = 회전(v2)
     m = trimesh.load(p); m.apply_translation([-50] * 3); m.apply_scale(1 / 50.0); return m   # 단위 상자 → [-1,1]
 
 def 채점(a):
     P, Q = a
     from 모양자 import 재기
     try:
-        if not any(t in ("상자", "원통z", "원통x", "원통y", "공") for t, _, _ in P): raise ValueError("더하는 칸 없음")
+        if not any(q[0] in ("상자", "원통z", "원통x", "원통y", "공") for q in P): raise ValueError("더하는 칸 없음")
         pm = 메시(P)
         if os.environ.get("NORM") == "1":   # 입력 규약(긴 변 1 · 가운데)을 예측에도 — 정답은 이미 그 규약
             lo, hi = pm.bounds; pm.apply_translation(-(lo + hi) / 2); pm.apply_scale(2.0 / (hi - lo).max())
         r = 재기(pm, 메시(Q))
     except Exception as e: r = {"edge_f1": 0.0, "iou": 0.0, "오류": str(e)[:80]}
-    빼기 = lambda L: sum(t.startswith(("구멍", "사각")) for t, _, _ in L)
+    빼기 = lambda L: sum(q[0].startswith(("구멍", "사각")) for q in L)
     return {"edge_f1": r["edge_f1"], "iou": r["iou"], "빼기수": [빼기(Q), 빼기(P)], "오류": r.get("오류")}
 
 if __name__ == "__main__":
