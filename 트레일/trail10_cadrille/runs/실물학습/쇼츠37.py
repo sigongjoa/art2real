@@ -28,7 +28,8 @@ if __name__ == "__main__":
     from multiprocessing import Pool
     TL = json.load(open(sys.argv[1], encoding="utf-8"))["lines"]; O = sys.argv[2]; os.makedirs(O, exist_ok=True)
     E3 = json.load(open(os.path.join(R, "조각3", "평가.json"), encoding="utf-8")); 합 = [1, 4, 37]
-    각 = [8, 11, 35]; 실패 = [32, 27, 14]; SN = sorted(glob.glob(os.path.join(H, "스냅", "*.json"))); SNAPI = [0, 2, 6, 8, 14, 32]; 타 = [6, 8, 32]
+    # 각: 11(Predator)은 표준 라이선스라 화면에서 뺐다(10-09) → 2
+    각 = [8, 2, 35]; 실패 = [32, 27, 14]; SN = sorted(glob.glob(os.path.join(H, "스냅", "*.json"))); SNAPI = [0, 2, 6, 8, 14, 32]; 타 = [6, 8, 32]
     일 = {}
     for i in 합: 일[("합정", i)] = ("조각", json.load(open(os.path.join(R, "조각0", "정답", "%04d.json" % (3600 + i)), encoding="utf-8")), False); 일[("합AI", i)] = ("조각", E3["예측"][i], True)
     for i in 각 + 실패 + 타: 일[("사람", i)] = ("실물", 부품[i], False)
