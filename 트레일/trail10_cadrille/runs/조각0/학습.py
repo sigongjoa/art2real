@@ -55,6 +55,15 @@ if __name__ == "__main__":
     m = 디코더().to(dev); npar = sum(p.numel() for p in m.parameters()); print("디코더 매개변수", npar, flush=True)
     opt = torch.optim.AdamW(m.parameters(), 3e-4, weight_decay=1e-4); best = 9e9; log = open(os.path.join(O, "학습.log"), "w", encoding="utf-8")
     steps = E * (NTR // B); sched = torch.optim.lr_scheduler.OneCycleLR(opt, 3e-4, total_steps=steps, pct_start=.05); st = 0; t0 = time.time()
+    SNAP = int(os.environ.get("SNAP", 0)); SID = list(range(3600, 3606)); os.makedirs(os.path.join(O, "스냅"), exist_ok=True) if SNAP else None
+    def 찍기(m, st, ep, l):   # 10-09 학습 타임랩스: 시험 부품 6 개의 그 순간 예측(한 종류)을 남긴다
+        was = m.training; m.eval()
+        with torch.no_grad():
+            lg, c, s = m(X[SID].to(dev).float()); t_ = lg.argmax(-1)
+            P = [[(이름[int(t_[b, q])], c[b, q].tolist(), s[b, q].tolist()) for q in range(K) if int(t_[b, q]) != 0] for b in range(len(SID))]
+        json.dump({"스텝": st, "에폭": ep, "손실": l, "예측": P}, open(os.path.join(O, "스냅", "%05d.json" % st), "w", encoding="utf-8"), ensure_ascii=False)
+        m.train(was)
+    if SNAP: 찍기(m, 0, 0, None)
     for ep in range(E):
         tau = .05 + (.01 - .05) * ep / max(E - 1, 1); m.train(); perm = torch.randperm(NTR); tl = []
         for i in range(0, NTR - B + 1, B):
@@ -64,6 +73,7 @@ if __name__ == "__main__":
             if AUX: loss = loss + AUX * 짝손실(lg, c, s, [GT[int(q)] for q in j])
             if PEN: add = prob[..., 1:6].sum(-1); out = (torch.relu(c + s / 2 - 1.05) + torch.relu(-0.05 - (c - s / 2))).sum(-1); loss = loss + PEN * (add * out).mean()   # 창 밖은 공짜가 아니다
             opt.zero_grad(); loss.backward(); nn.utils.clip_grad_norm_(m.parameters(), 1.0); opt.step(); sched.step(); st += 1; tl.append(loss.item())
+            if SNAP and st % SNAP == 0: 찍기(m, st, ep, tl[-1])
         m.eval(); vl = []
         with torch.no_grad():
             for i in range(NTR, len(X), B):
