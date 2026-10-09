@@ -33,7 +33,7 @@ if __name__ == "__main__":
         if i % 80 == 0: print(i, "%.0f 초" % (time.time() - t0), flush=True)
     print("다듬기 부품당 %.2f 초" % ((time.time() - t0) / len(예측)))
     from multiprocessing import Pool
-    with Pool(12) as pool: R = pool.map(채점, [(p, Qs[NTR + i]) for i, p in enumerate(예측)])
+    with Pool(int(os.environ.get("POOL", 12))) as pool: R = pool.map(채점, [(p, Qs[NTR + i]) for i, p in enumerate(예측)])
     RC = json.load(open(os.path.join(os.path.dirname(H), "조각2", "평가.json"), encoding="utf-8"))["대조"]
     json.dump({"디코더": R, "대조": RC, "예측": 예측}, open(os.path.join(OUTD, "평가.json"), "w", encoding="utf-8"), ensure_ascii=False)
     맞 = lambda L: float(np.mean([r["edge_f1"] >= 0.42 for r in L]))
