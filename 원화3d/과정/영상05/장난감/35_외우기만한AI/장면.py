@@ -146,9 +146,21 @@ for s in (-1, 1): box((0.06, 0.06, 0.3), ROB, claw, (0, s * 0.09, -0.12))
 text("새로 가르침", (EYX + 1.3, EYY - 0.45, 2.2), 0.24, GRN)
 # ── G 모니터(x=75) · H 결과(x=87) ──
 GX, HX, H2X = 75.0, 87.0, 99.0
-mon, mh = imgplane(STEP_IMG, (GX, 0.6, 1.9), 4.4); res, rh = imgplane(RES_IMG, (HX, 0.6, 1.9), 4.4)
-res2, rh2 = imgplane(RES2_IMG, (H2X, 0.6, 1.9), 4.4)
-for x in (GX, HX, H2X): cyl(0.08, 0.8, DARK, loc=(x, 0.7, 0.4))
+# 10-09 사용자 「png 를 그대로 보여주는 거 너무 밋밋해 · 3D 틱하게」 → 그림판 대신 진짜 3D 부품: 정답(노랑) 옆에 AI 가 지은 것(파랑) · 위에 모서리 점수
+import json as _json
+RD = HERE + "/결과"; SC = _json.load(open(RD + "/점수.json", encoding="utf-8")); 돌이 = []
+FOG = mat("안개", (0.45, 0.72, 0.98), 0.3, emit=0.3, alpha=True); alpha_of(FOG).default_value = 0.45
+def 띄움(path, m, loc, s=0.35):   # 가는 기둥 위에 띄움(1 판의 아래로 삐져나온 조각이 보이게)
+    o = stl(path, m, loc, s); 돌이.append(o); cyl(0.015, loc[2] - 0.05, DARK, loc=(loc[0], loc[1], (loc[2] - 0.05) / 2)); return o
+def 결과판(X0, 판, 제목):
+    box((8.4, 0.12, 1.3), DARK, loc=(X0, 3.4, 3.3), bevel=0.04); text(제목, (X0, 3.3, 3.12), 0.55, WHITE)
+    for k in range(6):
+        col, row = k % 3, k // 3; dx = (col - 1) * 2.7; y = row * 2.1; z = 1.25 + row * 0.55
+        띄움(f"{RD}/{k}_정답.stl", YEL, (X0 + dx - 0.5, y, z)); 띄움(f"{RD}/{k}_{판}.stl", SKY, (X0 + dx + 0.5, y, z))
+        v = SC[f"{k}_{판}"]; text("%.2f" % v, (X0 + dx, y - 0.75, 0.05), 0.34, GRN if v >= 0.42 else RED, rot=(math.radians(60), 0, 0))   # 바닥 앞에 비스듬히 — 공중 숫자가 부품과 겹쳤다
+mon_gt = 띄움(f"{RD}/안개_정답.stl", YEL, (GX - 0.75, 0, 1.3), 0.45); mon_fog = 띄움(f"{RD}/안개.stl", FOG, (GX + 0.75, 0, 1.3), 0.45)
+text("정답", (GX - 0.75, -0.6, 0.35), 0.2, WHITE); text("학습 전 AI", (GX + 0.75, -0.6, 0.35), 0.2, WHITE)
+결과판(HX, "1판", "1판   1.5 %"); 결과판(H2X, "2판", "2판   46 %")
 
 cams = {
     "desk": camera("desk", (AX - 0.4, -5.2, 2.0), (AX, 0.5, 1.1), 30), "deskclose": camera("deskclose", (AX - 1.8, -2.4, 1.5), (AX - 0.6, 0.2, 1.0), 38),
@@ -160,49 +172,56 @@ cams = {
     "theater": camera("theater", (EX + 3.4, -5.0, 2.6), (EX - 0.6, 0.6, 1.3), 28), "theaterclose": camera("theaterclose", (EX + 1.2, -2.4, 1.6), (EX - 0.8, 1.6, 1.3), 30),
     "size": camera("size", (FX, -7.5, 1.6), (FX, 0, 1.4), 30), "sizeclose": camera("sizeclose", (FX + 1.5, -2.4, 0.6), (FX + 1.5, 0, 0.42), 40),
     "eye": camera("eye", (EYX, -5.2, 1.5), (EYX, 0, 1.2), 32), "eyeclose": camera("eyeclose", (EYX - 1.0, -2.3, 1.3), (EYX - 1.0, 0, 1.2), 38),
-    "mon": camera("mon", (GX, -4.4, 1.9), (GX, 0.6, 1.9), 34), "monclose": camera("monclose", (GX + 0.6, -2.4, 1.9), (GX + 0.6, 0.6, 1.9), 40),
-    "result": camera("result", (HX, -4.4, 1.9), (HX, 0.6, 1.9), 34), "resultclose": camera("resultclose", (HX - 0.6, -2.4, 1.9), (HX - 0.6, 0.6, 1.9), 40),
-    "result2": camera("result2", (H2X, -4.4, 1.9), (H2X, 0.6, 1.9), 34), "result2close": camera("result2close", (H2X + 0.6, -2.4, 2.2), (H2X + 0.6, 0.6, 2.2), 40),
+    "mon": camera("mon", (GX, -4.2, 1.8), (GX, 0, 1.25), 34), "monclose": camera("monclose", (GX + 1.0, -2.2, 1.5), (GX + 0.7, 0, 1.3), 40),
+    "result": camera("result", (HX, -7.6, 2.7), (HX, 1.0, 1.6), 30), "resultclose": camera("resultclose", (HX + 1.3, -2.4, 1.0), (HX + 0.3, 0, 0.95), 38),
+    "result2": camera("result2", (H2X, -7.6, 2.7), (H2X, 1.0, 1.6), 30), "result2close": camera("result2close", (H2X + 0.5, -2.7, 1.7), (H2X, 0, 1.25), 38),
 }
 CUTCAM = []; f0 = 1
 for c_ in T.cuts: CUTCAM += [(f0, f0 + c_["n"], cams[c_["cam"]][0])]; f0 += c_["n"]
 xO.rotation_mode = "QUATERNION"
-L12, L18 = T.lines[12], T.lines[18]
+import builtins   # 10-09: 쇼츠 판(35s)이 줄 번호를 따로 넘긴다 — 없는 줄의 움직임은 꺼짐
+_M = getattr(builtins, "줄맵", None) or {"숫자": 6, "숫자2": 5, "코드쓰기": 4, "코드끝": 5, "한줌": 9, "순서": 12, "추측": 18, "흐림": 22, "창고": 8, "크기": 24}
+def U(k, a, b, fr): i = _M.get(k); return T.u(i, a, b, fr) if i is not None else 0.0
+def 빛(k, a, fr): i = _M.get(k); return 깜빡(T, i, a, fr) if i is not None else 0.0
+L18 = T.lines[_M["추측"]] if _M.get("추측") is not None else (0, -1)
+if not os.environ.get("TOY_LAND"):   # 세로: 가로 렌즈 그대로면 양옆이 잘린다(센서가 긴 변=세로에 맞춤)
+    for c_, _ in cams.values(): c_.data.lens *= 0.75
 for fr in range(1, T.end + 1):
     t = fr / FPS
     head.rotation_euler.z = 0.15 * math.sin(t * 1.3); head.keyframe_insert("rotation_euler", frame=fr)
     for o in tests + [gt]: o.rotation_euler.z = t * 0.35; o.keyframe_insert("rotation_euler", frame=fr)
     guess.rotation_euler.z = t * 0.35; guess.keyframe_insert("rotation_euler", frame=fr)
-    NUMP.inputs["Emission Strength"].default_value = 1.0 + 3.0 * max(깜빡(T, 6, 0.25, fr), 깜빡(T, 5, 0.3, fr)); NUMP.inputs["Emission Strength"].keyframe_insert("default_value", frame=fr)
-    HP.inputs["Emission Strength"].default_value = 0.5 + 3.5 * 깜빡(T, 9, 0.45, fr); HP.inputs["Emission Strength"].keyframe_insert("default_value", frame=fr)
+    NUMP.inputs["Emission Strength"].default_value = 1.0 + 3.0 * max(빛("숫자", 0.25, fr), 빛("숫자2", 0.3, fr)); NUMP.inputs["Emission Strength"].keyframe_insert("default_value", frame=fr)
+    HP.inputs["Emission Strength"].default_value = 0.5 + 3.5 * 빛("한줌", 0.45, fr); HP.inputs["Emission Strength"].keyframe_insert("default_value", frame=fr)
     for i, ln in enumerate(code_lines):   # 4 줄 동안 한 줄씩 써짐
-        v = fr < T.lines[5][0] and T.u(4, i * 0.07, i * 0.07 + 0.01, fr) < 0.5
+        v = _M.get("코드끝") is not None and fr < T.lines[_M["코드끝"]][0] and U("코드쓰기", i * 0.07, i * 0.07 + 0.01, fr) < 0.5
         ln.hide_render = v; num_lines[i].hide_render = v; ln.keyframe_insert("hide_render", frame=fr); num_lines[i].keyframe_insert("hide_render", frame=fr)
     # 순서: 왼쪽 A→B · 오른쪽 B→A · 그다음 = 과 X
-    u1, u2 = T.u(12, 0.08, 0.22, fr), T.u(12, 0.26, 0.4, fr)
+    u1, u2 = U("순서", 0.08, 0.22, fr), U("순서", 0.26, 0.4, fr)
     for side, first, dx in (("L", "A", -1.4), ("R", "B", 1.4)):
         second = "B" if first == "A" else "A"; d = drills[side]
         d.location.x = OX + dx + {"A": -0.5, "B": 0.5}[first if u1 < 1 else second]
         d.location.z = 2.2 - 1.0 * math.sin(math.pi * (u1 if u1 < 1 else u2)); d.keyframe_insert("location", frame=fr)
         for nm, u in ((first, u1), (second, u2)):
             h = holes[side + nm]; s = max(min(u * 2, 1), 0.001); h.scale = (s, s, 1); h.keyframe_insert("scale", frame=fr)
-    s = max(T.u(12, 0.5, 0.6, fr), 0.001); eq.scale = (s,) * 3; eq.keyframe_insert("scale", frame=fr)
-    s = max(T.u(12, 0.65, 0.75, fr), 0.001); xO.scale = (s,) * 3; xO.keyframe_insert("scale", frame=fr)
+    s = max(U("순서", 0.5, 0.6, fr), 0.001); eq.scale = (s,) * 3; eq.keyframe_insert("scale", frame=fr)
+    s = max(U("순서", 0.65, 0.75, fr), 0.001); xO.scale = (s,) * 3; xO.keyframe_insert("scale", frame=fr)
     cam_ = next((c for a2, b2, c in CUTCAM if a2 <= fr < b2), CUTCAM[-1][2])
     xO.rotation_quaternion = Vector((0, -1, 0)).rotation_difference(cam_.location - Vector(xO.location)); xO.keyframe_insert("rotation_quaternion", frame=fr)
     # 극장: 추측(파랑)은 18 줄 뒤쪽에만 · 그림자 흐림은 22 줄에서 풀었다 조임
     show = L18[0] + 0.2 * (L18[1] - L18[0]) <= fr <= L18[1]
     for ch in guess.children: ch.hide_render = not show; ch.keyframe_insert("hide_render", frame=fr)
     gt.hide_render = show; gt.keyframe_insert("hide_render", frame=fr)
-    blur = T.u(22, 0.0, 0.3, fr) * (1 - T.u(22, 0.55, 1.0, fr))
+    blur = U("흐림", 0.0, 0.3, fr) * (1 - U("흐림", 0.55, 1.0, fr))
     for s_ in suns: s_.data.angle = math.radians(0.5 + 28 * blur); s_.data.keyframe_insert("angle", frame=fr)
+    for o in 돌이: o.rotation_euler.z = t * 0.35; o.keyframe_insert("rotation_euler", frame=fr)
     claw.rotation_euler.y = 0.3 * math.sin(t * 2.2); claw.keyframe_insert("rotation_euler", frame=fr)
     eye.rotation_euler.z = 0.2 * math.sin(t * 0.9); eye.keyframe_insert("rotation_euler", frame=fr)
     c, _ = cams["wareclose"]; c.location.x = CX + 2.3 - 1.2 * (t % 6) / 6; c.keyframe_insert("location", frame=fr)
     c, _ = cams["theater"]; c.location.x = EX + 3.4 - 1.0 * math.sin(t / 5); c.keyframe_insert("location", frame=fr)
-    c, _ = cams["ware"]; c.location.y = -6.5 + 1.2 * T.u(8, 0, 1, fr); c.keyframe_insert("location", frame=fr)
-    c, _ = cams["size"]; c.location.y = -7.5 + 1.5 * T.u(24, 0, 1, fr); c.keyframe_insert("location", frame=fr)
+    c, _ = cams["ware"]; c.location.y = -6.5 + 1.2 * U("창고", 0, 1, fr); c.keyframe_insert("location", frame=fr)
+    c, _ = cams["size"]; c.location.y = -7.5 + 1.5 * U("크기", 0, 1, fr); c.keyframe_insert("location", frame=fr)
     c, _ = cams["desk"]; c.location.x = AX - 0.8 + 0.8 * math.sin(t / 4); c.keyframe_insert("location", frame=fr)
 앵커프레임(T, cams, {"한줌": (CX + 3.4, 1.45, 0.3), "오른판": (OX + 1.4, 0, 1.0), "구멍칸": (DX, 0, 0.45), "벽": (EX - 0.2, 2.45, 1.5),
-                     "얼음": (EYX - 1.0, EYY, 2.0), "손": (EYX + 1.0, EYY, 1.6), "모니터": (GX + 1.0, 0.5, 1.6), "숫자칠판": (BX - 1.0, 0.9, 2.5)}, ARGS[2])
+                     "얼음": (EYX - 1.0, EYY, 2.0), "손": (EYX + 1.0, EYY, 1.6), "모니터": (GX + 0.75, 0, 1.6), "숫자칠판": (BX - 1.0, 0.9, 2.5)}, ARGS[2])
 끝(T, cams)
