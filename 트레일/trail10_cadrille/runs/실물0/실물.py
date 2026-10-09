@@ -50,8 +50,9 @@ if __name__ == "__main__":
                 lo, hi = m.bounds; P, c, s = map(lambda t: t[None].to(dev), 정답칸([("상자", ((lo + hi) / 2).tolist(), (hi - lo).tolist())], K))
             occ = torch.from_numpy(점유격자(m, N3)).to(dev)[None]; Sil, D = 보기(occ, N3); Y = [Sil, D, 모서리(D)]
         c, s, rr = c.clone().requires_grad_(True), s.clone().requires_grad_(True), rr.clone().requires_grad_(V2); opt = torch.optim.Adam([c, s] + ([rr] if V2 else []), 3e-3)
-        for k in range(200):
-            tau = .03 + (.005 - .03) * k / 199; Sl, Dp = 보기(점유(g, P, c, s, tau, rr if V2 else None), N3)
+        NS = int(os.environ.get("STEPS", 200))   # 10-09 천장 시험: 걸음 수
+        for k in range(NS):
+            tau = .03 + (.005 - .03) * k / (NS - 1); Sl, Dp = 보기(점유(g, P, c, s, tau, rr if V2 else None), N3)
             add = P[..., 1:6].sum(-1); out = (torch.relu(c + s / 2 - 1.05) + torch.relu(-0.05 - (c - s / 2))).sum(-1)
             loss = 손실((Sl, Dp, 모서리(Dp)), Y) + 2 * (add * out).mean(); opt.zero_grad(); loss.backward(); opt.step()
             with torch.no_grad(): s.clamp_(min=0.005)

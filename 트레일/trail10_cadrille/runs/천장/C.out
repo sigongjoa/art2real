@@ -1,0 +1,16 @@
+Using a slow image processor as `use_fast` is unset and a slow processor was saved with this model. `use_fast=True` will be the default behavior in v4.52, even if the model was saved with a slow processor. This will result in minor differences in outputs. You'll still be able to use a slow processor with `use_fast=False`.
+G:\art2real\트레일\trail10_cadrille\runs\실물0\실물.py:36: FutureWarning: You are using `torch.load` with `weights_only=False` (the current default value), which uses the default pickle module implicitly. It is possible to construct malicious pickle data which will execute arbitrary code during unpickling (See https://github.com/pytorch/pytorch/blob/main/SECURITY.md#untrusted-models for more details). In a future release, the default value for `weights_only` will be flipped to `True`. This limits the functions that could be executed during unpickling. Arbitrary objects will no longer be allowed to be loaded via this mode unless they are explicitly allowlisted by the user via `torch.serialization.add_safe_globals`. We recommend you start setting `weights_only=True` for any use case where you don't have full control of the loaded file. Please open an issue on GitHub for any issues related to this experimental feature.
+  dec = 디코더v2().to(dev); dec.load_state_dict(torch.load(os.path.join(R, "실물학습", "디코더v2.pt")))
+0 70938_G1프라울/28_prowl_leg7_foot_white.stl 0.167 364 초
+1 t-22_waist2_front__white___90__scale.stl 0.388 715 초
+2 1640140_RX78_2/body_bottom.stl 0.414 882 초
+3 _스타스크림키트/ss-edit1-30_star_leg4_knee1.stl 0.301 1009 초
+4 113294_만달로리안핀/backplate.stl 0.218 1145 초
+5 1640140_RX78_2/feet.stl 0.095 1280 초
+6 981111_Dummy13/frame-upper-arm-2x.stl 0.309 1416 초
+7 0946_G1사이드스와이프/5_side_body1_main_red.stl 0.169 1555 초
+8 981111_Dummy13/armor-upper-arm-2x.stl 0.31 1691 초
+9 946_G1사이드스와이프/2_side_head2_face_grey.stl 0.125 1828 초
+10 1572649_CARBON13M/joint_m_hip_2x-v1.stl 0.232 1965 초
+11 2644_BattleMech_Predator/thigh_armor.stl 0.582 2101 초
+12 자 통과 1 / 36 · 모서리 중앙 0.2665
