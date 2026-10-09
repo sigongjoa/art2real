@@ -52,7 +52,7 @@ if __name__ == "__main__":
     부품 = [r["부품"] for k in range(3) for r in json.load(open(os.path.join(R, "사전0", "결과%d.json" % k), encoding="utf-8"))]
     O = os.path.join(H, "결과"); os.makedirs(O, exist_ok=True)
     for i in range(a_, b_):
-        if os.path.exists(os.path.join(O, "%02d.json" % i)): continue
+        if os.path.exists(os.path.join(O, "%02d.json" % i)) and os.path.exists(os.path.join(O, "%02d_교차.step" % i)): continue
         m = unit(trimesh.load(RR + 부품[i], force="mesh")); gt = m.copy(); gt.apply_translation([-.5] * 3); gt.apply_scale(2.0)
         S, _ = 실물보기(m, N); r = {"부품": 부품[i]}; 판들 = {}
         for ax in range(3):
@@ -60,6 +60,6 @@ if __name__ == "__main__":
             except Exception as e: r["A%d" % ax] = 0.0; print("판 실패", i, ax, str(e)[:60])
         r["A"] = max(r["A0"], r["A1"], r["A2"])
         try:
-            b = 판들[0].intersect(판들[1]).intersect(판들[2]); pm = 메시로(b); rb = 재기(pm, gt); r["B"] = rb["edge_f1"]; r["B_iou"] = rb["iou"]; pm.export(os.path.join(O, "%02d_교차.stl" % i))
+            b = 판들[0].intersect(판들[1]).intersect(판들[2]); pm = 메시로(b); rb = 재기(pm, gt); r["B"] = rb["edge_f1"]; r["B_iou"] = rb["iou"]; pm.export(os.path.join(O, "%02d_교차.stl" % i)); cq_ = __import__('cadquery'); cq_.exporters.export(b, os.path.join(O, '%02d_교차.step' % i))   # 10-09 윤곽1: 손 깎기 바탕
         except Exception as e: r["B"] = 0.0; print("교차 실패", i, str(e)[:60])
         json.dump(r, open(os.path.join(O, "%02d.json" % i), "w", encoding="utf-8"), ensure_ascii=False); print(i, 부품[i][-34:], "A %.2f B %.2f" % (r["A"], r["B"]), flush=True)
