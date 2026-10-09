@@ -9,7 +9,7 @@ from 조각 import 이름, 점유, 격자, 보기, 모서리, 정답칸
 from 학습 import 디코더, 손실, K, N3
 from 평가 import 메시
 RR = "G:/art2real/원화3d/out/레퍼런스/사람분할/"; BOX = "box" in sys.argv[1:]
-V2 = os.environ.get("V2") == "1"; O = os.path.join(H, "대조_상자" if BOX else ("디코더v2" if V2 else "디코더")); os.makedirs(O, exist_ok=True)
+V2 = os.environ.get("V2") == "1"; O = os.path.join(H, "대조_상자" if BOX else (os.environ.get("OUTN", "디코더v2") if V2 else "디코더")); os.makedirs(O, exist_ok=True)
 부품 = [r["부품"] for i in range(3) for r in json.load(open(os.path.join(R, "사전0", "결과%d.json" % i), encoding="utf-8"))]
 
 def 단위(m):   # 긴 변 1 · 가운데 0.5 (합성과 같은 규약)
