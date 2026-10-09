@@ -6,7 +6,7 @@ H = os.path.dirname(os.path.abspath(__file__)); R = os.path.dirname(H); T0 = os.
 sys.path[:0] = [os.path.join(R, "조각0"), os.path.join(R, "윤곽0"), os.path.join(T0, "s0"), os.path.join(T0, "s0", "stub")]
 from 실물보기 import 실물보기
 from 윤곽 import PL, 메시로
-RR = "G:/art2real/원화3d/out/레퍼런스/사람분할/"; N = 256; TH = 0.02; MINA = 40
+RR = "G:/art2real/원화3d/out/레퍼런스/사람분할/"; N = 256; TH = 0.02; MINA = int(os.environ.get("MINA", 40)); FLAT = float(os.environ.get("FLAT", 0))
 
 def 주머니(Dr, Dh, Sr):   # 한 방향: 실물이 바탕보다 깊은 곳 → [(윤곽 점들(o0,o1), 깊이 d(격자 비율))]
     diff = ((Dr - Dh) > TH) & (Sr > .5)
@@ -15,6 +15,9 @@ def 주머니(Dr, Dh, Sr):   # 한 방향: 실물이 바탕보다 깊은 곳 →
     for c in cs:
         if cv2.contourArea(c) < MINA: continue
         mk = np.zeros_like(im); cv2.drawContours(mk, [c], -1, 255, -1); d = float(np.median(Dr[mk > 0]))
+        if FLAT:   # 10-10: 곡면을 주머니로 읽어 부스러기를 깎던 것 — 바닥 깊이가 고르지 않으면(10~90 % 폭 > FLAT) 안 깎음
+            v = Dr[mk > 0]
+            if np.percentile(v, 90) - np.percentile(v, 10) > FLAT: continue
         a = cv2.approxPolyDP(c, 0.005 * cv2.arcLength(c, True), True)
         pts = [((p[0][1] + .5) / N * 1.1 - .05, (p[0][0] + .5) / N * 1.1 - .05) for p in a]
         if len(pts) >= 3: out.append((pts, d))
@@ -43,7 +46,7 @@ if __name__ == "__main__":
     from 모양자 import 재기
     a_, b_ = (int(sys.argv[1]), int(sys.argv[2])) if len(sys.argv) > 2 else (0, 36)
     부품 = [r["부품"] for k in range(3) for r in json.load(open(os.path.join(R, "사전0", "결과%d.json" % k), encoding="utf-8"))]
-    O = os.path.join(H, "결과"); os.makedirs(O, exist_ok=True)
+    O = os.path.join(H, os.environ.get("OUTN", "결과")); os.makedirs(O, exist_ok=True)
     for i in range(a_, b_):
         sp = os.path.join(R, "윤곽0", "결과", "%02d_교차.step" % i)
         if not os.path.exists(sp): print(i, "바탕 없음"); continue
