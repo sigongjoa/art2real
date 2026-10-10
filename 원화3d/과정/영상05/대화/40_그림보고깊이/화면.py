@@ -16,13 +16,32 @@ def _막대(항목, 진행, 제목, 최대):
     return c
 def _부품(row, col, 테):   # 비교그림.png 의 칸 하나 (줄: #4 #7 #16 #5 #25 #8 · 칸: 사람 · 바탕 · 실물 깊이 · AI 깊이)
     x = 20 + col * 230; y = 50 + row * 244; t = 비.crop((x, y, x + 210, y + 210)).resize((440, 440)); c = _카드(480, 480, 테); c.paste(t, (20, 20)); return c
+def _줄(cards, 제목들, 색들):   # 카드 여럿을 화살표로 잇기 (1000 폭)
+    n = len(cards); w = 300 if n == 3 else 440; c = Image.new("RGBA", (1000, 520), (0, 0, 0, 0)); d = ImageDraw.Draw(c); gap = (1000 - n * w) // max(n - 1, 1)
+    for j, (k, t, col) in enumerate(zip(cards, 제목들, 색들)):
+        x = j * (w + gap); c.alpha_composite(k.resize((w, w), Image.LANCZOS), (x, 90)); d.text((x + w // 2, 40), t, font=F(44), fill=col, stroke_width=6, stroke_fill=(10, 10, 20), anchor="mm")
+        if j < n - 1: d.text((x + w + gap // 2, 90 + w // 2), "→", font=F(70), fill="white", stroke_width=6, stroke_fill=(10, 10, 20), anchor="mm")
+    return c
+def _선(i):   # 시험 부품의 앞 · 옆 · 위 선 그림(학습 입력) 한 카드에
+    import numpy as np
+    X = np.load(T + "시험.npz")["X"][i, 1].astype("float32"); c = _카드(480, 480); d = ImageDraw.Draw(c)
+    for j, (k, t) in enumerate(((0, "앞"), (2, "옆"), (4, "위"))):
+        im = Image.fromarray((255 - X[k] * 255).astype("uint8")).convert("RGB").resize((200, 200), Image.LANCZOS)
+        x, y = (30, 30) if j == 0 else ((250, 30) if j == 1 else (140, 250)); c.paste(im, (x, y)); d.text((x + 10, y + 8), t, font=F(34), fill=(220, 60, 60))
+    return c
 def 판(키, p):
+    if 키 == "목표":   # #7 (비교그림 둘째 줄 · 시험 7)
+        return _줄([_부품(1, 0, (255, 220, 90)), _선(7)], ["진짜 부품", "그림(선 · 앞옆위)"], [(255, 220, 90), (230, 230, 230)])
+    if 키 == "바탕":
+        return _줄([_선(7), _부품(1, 1, (150, 150, 160))], ["그림(선 · 앞옆위)", "윤곽 겹친 덩어리"], [(230, 230, 230), (180, 180, 190)])
+    if 키 == "깎기":
+        return _줄([_부품(1, 1, (150, 150, 160)), _부품(1, 2, (90, 220, 120)), _부품(1, 0, (255, 220, 90))], ["덩어리", "깊이만큼 팜", "진짜"], [(180, 180, 190), (90, 220, 120), (255, 220, 90)])
     if 키 == "결과":
         c = _타임(len(TL) - 1); return c.convert("RGBA")
     if 키 == "타임랩스":
         c = _타임(min(int(p * (len(TL) - 1) * 1.2), len(TL) - 1)); return c.convert("RGBA")
     if 키 == "점수":
-        return _막대([("깎기 전", 24, (150, 150, 160)), ("AI 깊이", 32, (70, 160, 250)), ("진짜 깊이", 33, (240, 190, 60))], p, "35 개 중 통과", 35)
+        return _막대([("깎기 전", 24, (150, 150, 160)), ("AI 깊이", 32, (70, 160, 250)), ("진짜 깊이", 33, (240, 190, 60))], p, "진짜 부품과 닮음 (35 개 중)", 35)
     if 키 == "망가짐":
         c = Image.new("RGBA", (1000, 600), (0, 0, 0, 0)); c.alpha_composite(_부품(3, 1, (200, 200, 210)), (0, 90)); c.alpha_composite(_부품(3, 3, (255, 80, 80)), (520, 90))
         d = ImageDraw.Draw(c); d.text((240, 40), "깎기 전 0.59", font=F(48), fill="white", stroke_width=6, stroke_fill=(10, 10, 20), anchor="mm"); d.text((760, 40), "AI 가 깎음 0.41", font=F(48), fill=(255, 120, 120), stroke_width=6, stroke_fill=(10, 10, 20), anchor="mm"); return c
