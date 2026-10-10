@@ -87,10 +87,51 @@ def 포켓(f, d):
     else: s_ = cq.Workplane(PL[ax]).polyline([tuple(np.array(세계(r, c)) * 100) for r, c in v]).close().extrude((hi - lo) * 100)
     bb = s_.val().BoundingBox(); off = [0, 0, 0]; off[ax] = lo * 100 - (bb.xmin, bb.ymin, bb.zmin)[ax]; return s_.translate(tuple(off))
 
-def 짓기(바탕, fs, 판, 찍기=None):
+def 열린면(S, Dh, Z):
+    """셸 판: 여섯 방향 중 깊이가 바탕보다 「그 자리 부품 두께의 30 %」 넘게 깊은 넓은 영역(실루엣 20 % 초과)이 있는 쪽 하나 → (쪽, 마스크, 벽 두께 px) 또는 None"""
+    best = None
+    for k in range(6):
+        Tk = np.clip(1 - Dh[k] - Dh[k ^ 1], 0, 1); s8 = S[k] > .5
+        m = s8 & (Z[k] - Dh[k] > .3 * Tk) & (Tk > .05)
+        m = cv2.morphologyEx(m.astype(np.uint8), cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8)).astype(bool) & s8   # 잘게 쪼개진 깊은 영역을 메워 합침(#4 · #21 · #35)
+        n_, lab = cv2.connectedComponents(m.astype(np.uint8), connectivity=4)
+        if n_ < 2: continue
+        j = 1 + int(np.argmax([(lab == q).sum() for q in range(1, n_)])); m = lab == j
+        frac = m.sum() / max(s8.sum(), 1)
+        if frac > .2 and (best is None or frac > best[3]):
+            dist = cv2.distanceTransform(s8.astype(np.uint8), cv2.DIST_L2, 3)
+            테 = m & ~cv2.erode(m.astype(np.uint8), np.ones((3, 3), np.uint8)).astype(bool)
+            best = (k, m, float(np.median(dist[테])) if 테.any() else 0.0, frac)
+    return best
+
+def 셸(바탕, 열림, S):
+    """속 비우기 · CAD 커널 shell 은 다각형 바탕(면 40 여 개)에서 오프셋이 꼬여 실패(#21 두께 1.5+) →
+    세 방향 실루엣을 벽 두께만큼 줄여 교차한 「빈 속」을 바탕에서 뺌 · 열린 쪽은 줄이지 않고 밖으로 뚫음"""
+    from 윤곽 import 판 as 윤곽판
+    k, m, 두께px, _ = 열림; t = 두께px / N * 110
+    if not (1.0 <= t <= 12): return None, t
+    ax = k // 2; 앞쪽 = k % 2 == 0; r_ = max(1, int(round(두께px))); 원 = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2 * r_ + 1, 2 * r_ + 1))
+    판들 = []
+    for b in range(3):
+        E = cv2.erode((S[2 * b] > .5).astype(np.uint8), 원).astype(bool)
+        if b != ax:                                                     # 옆에서 본 실루엣: 열린 쪽 끝은 다시 밖으로 늘림(뚜껑 안 남게)
+            o = [j for j in range(3) if j != b]; 축 = o.index(ax); 방향 = -1 if 앞쪽 else 1
+            Ex = E.copy()
+            for d in range(1, r_ + 4): Ex |= np.roll(E, 방향 * d, axis=축)
+            E = Ex
+        if E.sum() < 10: return None, t
+        판들.append(윤곽판(b, cv2.resize(E.astype(np.uint8), (256, 256), interpolation=cv2.INTER_NEAREST).astype(np.float32)))
+    try:
+        속 = 판들[0].intersect(판들[1]).intersect(판들[2]); r = 바탕.cut(속); v0, v1 = 바탕.val().Volume(), r.val().Volume()
+        if 0 < v1 < v0 - 1 and len(r.solids().vals()) == 1: return r, t
+    except Exception: pass
+    return None, t
+
+def 짓기(바탕, fs, 판, 찍기=None, 빈=None):
     r = 바탕; n = 0
     for f in fs:
         if f["종"] != "고리" or f.get("만", 판) != 판 or f[판] - f["바탕"] <= TH: continue
+        if 빈 is not None and f["쪽"] == 빈[0] and (f["m"] > 0)[빈[1]].sum() > .5 * (f["m"] > 0).sum(): continue   # 셸로 이미 빈 쪽 고리
         try:
             r2 = r.cut(포켓(f, f[판])); v0, v1 = r.val().Volume(), r2.val().Volume()
             if CHECK and len(r2.solids().vals()) > len(r.solids().vals()): f.setdefault("되돌림", []).append(판); continue   # 떨어진 조각이 생기면 이 파기는 안 받음
@@ -124,10 +165,17 @@ if __name__ == "__main__":
     sp = os.path.join(R, "윤곽0", "결과", "%02d_교차.step" % i); 기록 = {}
     for 판 in ("A", "B"):
         찍 = []
-        r, n = 짓기(cq.importers.importStep(sp), fs, 판, (lambda r, f: 찍.append(메시로(r))) if GIF else None)
+        바 = cq.importers.importStep(sp); 빈 = None; 셸정보 = None
+        if os.environ.get("SHELLOP") == "1":   # SHELL 은 Git Bash 가 쓰는 이름이라 안 먹음
+            Z = X[3] if 판 == "A" else P; 열 = 열린면(X[0], X[2], Z)
+            if 열 is not None:
+                rs, t = 셸(바, 열, X[0]); 셸정보 = {"쪽": 열[0], "두께": round(t, 2), "넓이": round(열[3], 3), "됨": rs is not None}
+                if rs is not None: 바, 빈 = rs, 열
+                if GIF: 기록.setdefault("셸", {})[판] = (열[0], 열[1], 열[2], t, None if rs is None else 메시로(rs))
+        r, n = 짓기(바, fs, 판, (lambda r, f: 찍.append(메시로(r))) if GIF else None, 빈)
         pm = 메시로(r); res = 재기(pm, gt); 조각, 얇음 = 부스러기(pm)
         O = os.path.join(H, "결과_" + 판 + 꼬리); os.makedirs(O, exist_ok=True); pm.export(os.path.join(O, "%02d_선고리.stl" % i))
-        기록[판] = {"idx": i, "부품": 부품, "판 수": n, "되돌림": sum(판 in f.get("되돌림", []) for f in fs), "MINA": MINA, "CHECK": CHECK, "edge_f1": res["edge_f1"], "iou": res["iou"], "조각": 조각, "얇음": round(얇음, 4)}
+        기록[판] = {"idx": i, "부품": 부품, "판 수": n, "되돌림": sum(판 in f.get("되돌림", []) for f in fs), "MINA": MINA, "CHECK": CHECK, "셸": 셸정보, "edge_f1": res["edge_f1"], "iou": res["iou"], "조각": 조각, "얇음": round(얇음, 4)}
         json.dump(기록[판], open(os.path.join(O, "%02d.json" % i), "w", encoding="utf-8"), ensure_ascii=False)
         print(i, 판, "판 %d 개 · edge %.3f · 조각 %d · 얇음 %.3f" % (n, res["edge_f1"], 조각, 얇음), flush=True)
         if GIF: 기록[판]["찍"] = 찍
