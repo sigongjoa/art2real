@@ -79,8 +79,8 @@ for j, m in enumerate([trimesh.load(os.path.join(R, "윤곽0", "결과", "%02d_�
 # 6 채점
 gtm = trimesh.load(RR + D["부품"], force="mesh")
 줄 = [("사람 부품", gtm, None, None), ("화소 깎기 (정답 깊이)", trimesh.load(os.path.join(R, "윤곽2", "결과_기울기02g", "%02d_깎음.stl" % i)), json.load(open(os.path.join(R, "윤곽2", "결과_기울기02g", "%02d.json" % i), encoding="utf-8"))["edge_f1"], None),
-     ("선 고리 A (정답 깊이)", trimesh.load(os.path.join(H, "결과_A", "%02d_선고리.stl" % i)), D["기록"]["A"]["edge_f1"], None),
-     ("선 고리 B (AI 깊이)", trimesh.load(os.path.join(H, "결과_B", "%02d_선고리.stl" % i)), D["기록"]["B"]["edge_f1"], None)]
+     ("선 고리 A (정답 깊이)", trimesh.load(os.path.join(H, "결과_A" + os.environ.get("OUTS", ""), "%02d_선고리.stl" % i)), D["기록"]["A"]["edge_f1"], None),
+     ("선 고리 B (AI 깊이)", trimesh.load(os.path.join(H, "결과_B" + os.environ.get("OUTS", ""), "%02d_선고리.stl" % i)), D["기록"]["B"]["edge_f1"], None)]
 줄 = [(n, m, e, None if e is None else 부스러기(m)) for n, m, e, _ in 줄]
 for t in range(24):
     im, d = 판(6, "채점: 모서리 점수 + 부스러기")

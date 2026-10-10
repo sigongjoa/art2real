@@ -4,7 +4,8 @@ python runs/선고리/선고리.py <부품 번호> [gif]   →  결과_A/NN.json
 import os, sys, json, numpy as np, trimesh, cv2
 H = os.path.dirname(os.path.abspath(__file__)); R = os.path.dirname(H); T0 = os.path.dirname(R)
 sys.path[:0] = [os.path.join(R, "깊이학습"), os.path.join(R, "조각0"), os.path.join(R, "윤곽0"), os.path.join(T0, "s0"), os.path.join(T0, "s0", "stub")]
-N = 128; TH = 0.02; MINA = 40; 쪽들 = (0, 2, 4)            # 앞 · 옆 · 위 = 각 축의 낮은 쪽에서 본 그림
+N = 128; TH = 0.02; MINA = int(os.environ.get("MINA", 40)); CHECK = os.environ.get("CHECK") == "1"; 꼬리 = os.environ.get("OUTS", "");   # 10-10 2 판: MINA 4 · CHECK = 판 뒤 조각이 늘면 되돌림
+쪽들 = tuple(int(c) for c in os.environ.get("VIEWS", "0,2,4").split(","))   # 기본 = 앞 · 옆 · 위           # 앞 · 옆 · 위 = 각 축의 낮은 쪽에서 본 그림
 PL = {0: "YZ", 1: "XZ", 2: "XY"}
 세계 = lambda r, c: ((r + .5) / N * 1.1 - .05, (c + .5) / N * 1.1 - .05)
 
@@ -56,6 +57,7 @@ def 짓기(바탕, fs, 판, 찍기=None):
         if f["종"] != "고리" or f[판] - f["바탕"] <= TH: continue
         try:
             r2 = r.cut(포켓(f, f[판])); v0, v1 = r.val().Volume(), r2.val().Volume()
+            if CHECK and len(r2.solids().vals()) > len(r.solids().vals()): f.setdefault("되돌림", []).append(판); continue   # 떨어진 조각이 생기면 이 파기는 안 받음
             if 0 < v1 < v0 - 1: r = r2; n += 1; f.setdefault("판것", []).append(판)
             if 찍기: 찍기(r, f)
         except Exception: pass
@@ -85,8 +87,8 @@ if __name__ == "__main__":
         찍 = []
         r, n = 짓기(cq.importers.importStep(sp), fs, 판, (lambda r, f: 찍.append(메시로(r))) if GIF else None)
         pm = 메시로(r); res = 재기(pm, gt); 조각, 얇음 = 부스러기(pm)
-        O = os.path.join(H, "결과_" + 판); os.makedirs(O, exist_ok=True); pm.export(os.path.join(O, "%02d_선고리.stl" % i))
-        기록[판] = {"idx": i, "부품": 부품, "판 수": n, "edge_f1": res["edge_f1"], "iou": res["iou"], "조각": 조각, "얇음": round(얇음, 4)}
+        O = os.path.join(H, "결과_" + 판 + 꼬리); os.makedirs(O, exist_ok=True); pm.export(os.path.join(O, "%02d_선고리.stl" % i))
+        기록[판] = {"idx": i, "부품": 부품, "판 수": n, "되돌림": sum(판 in f.get("되돌림", []) for f in fs), "MINA": MINA, "CHECK": CHECK, "edge_f1": res["edge_f1"], "iou": res["iou"], "조각": 조각, "얇음": round(얇음, 4)}
         json.dump(기록[판], open(os.path.join(O, "%02d.json" % i), "w", encoding="utf-8"), ensure_ascii=False)
         print(i, 판, "판 %d 개 · edge %.3f · 조각 %d · 얇음 %.3f" % (n, res["edge_f1"], 조각, 얇음), flush=True)
         if GIF: 기록[판]["찍"] = 찍
