@@ -20,13 +20,14 @@ def 그(m, a, c=320, 색=(0.45, 0.68, 0.98)):
 def 키움(a, s=300): return Image.fromarray(a).resize((s, s), Image.NEAREST)
 def 선판(k):   # 선 그림 회색 배경 (흰 바탕에 검은 선)
     a = np.full((N, N, 3), 255, np.uint8); a[S[k] > .5] = (238, 240, 245); a[L[k] > .5] = (40, 40, 40); return a
-N = S.shape[-1]; fr = []
+N = S.shape[-1]; fr = []; 대표 = []   # 단계마다 한 장 (모바일용 PNG)
 def 넣(im, n=1): fr.extend([im] * n)
 xs = [35, 350, 665]
 # 0 입력
 im, d = 판(0, "입력: 앞 · 옆 · 위 선 그림", "부품 #%d" % i)
 for x, k in zip(xs, (0, 2, 4)): im.paste(키움(선판(k)), (x, 150)); d.text((x + 150, 120), 쪽이름[k], font=F(28), fill="black", anchor="mm")
 d.text((W // 2, 520), "그림이 주는 것: 바깥 윤곽 + 안쪽 선(홈 · 구멍 · 꺾임 테두리)", font=F(24), fill=(60, 60, 60), anchor="mm"); 넣(im, 14)
+대표.append(fr[-1])
 # 1 바탕
 mb = 정(trimesh.load(os.path.join(R, "윤곽0", "결과", "%02d_교차.stl" % i)))
 for t in range(16):
@@ -34,6 +35,7 @@ for t in range(16):
     for x, k in zip((40, 40, 40), (0, 2, 4)): pass
     for j, k in enumerate((0, 2, 4)): a = np.full((N, N, 3), 255, np.uint8); a[S[k] > .5] = (120, 160, 220); im.paste(키움(a, 150), (40, 110 + j * 170)); d.text((200, 185 + j * 170), 쪽이름[k], font=F(22), fill="black", anchor="lm")
     im.paste(Image.fromarray(그(mb, 2 * np.pi * t / 16, 560)) if not isinstance(그(mb, 0, 10), Image.Image) else 그(mb, 2 * np.pi * t / 16, 560), (360, 120)); fr.append(im)
+대표.append(fr[-1])
 # 2 선 → 벡터 (고리 테두리를 하나씩 그림)
 고 = [f for f in fs if f["종"] == "고리"]
 def 벡터그림(d, f, x0, s=300, 색=(30, 110, 230)):
@@ -45,6 +47,7 @@ for t in range(len(고) + 6):
     for x, k in zip(xs, (0, 2, 4)): a = 선판(k); a[L[k] > .5] = (190, 190, 190); im.paste(키움(a), (x, 150)); d.text((x + 150, 120), 쪽이름[k], font=F(28), fill="black", anchor="mm")
     for f in 고[:t]: 벡터그림(d, f, xs[(0, 2, 4).index(f["쪽"])])
     fr.append(im)
+대표.append(fr[-1])
 # 3 닫힌 고리
 rng = np.random.default_rng(3); 색 = {id(f): tuple(int(c) for c in rng.integers(90, 235, 3)) for f in fs}
 im, d = 판(3, "닫힌 고리 = 면 하나 (회색 = 너무 작아 뺌)")
@@ -54,6 +57,7 @@ for x, k in zip(xs, (0, 2, 4)):
         if f["쪽"] == k: a[f["m"] > 0] = (200, 200, 200) if f["종"] == "작음" else 색[id(f)]
     a[L[k] > .5] = (40, 40, 40); im.paste(키움(a), (x, 150)); d.text((x + 150, 120), 쪽이름[k], font=F(28), fill="black", anchor="mm")
 d.text((W // 2, 520), "고리 %d 개 · 작아서 뺀 것 %d 개" % (len(고), sum(f["종"] == "작음" for f in fs)), font=F(24), fill=(60, 60, 60), anchor="mm"); 넣(im, 14)
+대표.append(fr[-1])
 # 4 깊이 정하기 (A 정답 · B AI)
 im, d = 판(4, "고리마다 깊이: 바탕보다 0.02 넘게 깊으면 판다")
 for row, (판이름, 키) in enumerate((("A 정답 깊이", "A"), ("B AI 깊이", "B"))):
@@ -64,12 +68,14 @@ for row, (판이름, 키) in enumerate((("A 정답 깊이", "A"), ("B AI 깊이"
             if f["쪽"] == k: a[f["m"] > 0] = (90, 200, 120) if f[키] - f["바탕"] > .02 else (215, 215, 215)
         a[L[k] > .5] = (40, 40, 40); im.paste(키움(a, 270), (x + 15, 160 + row * 330))
 d.text((W // 2, 800), "초록 = 판다 · 회색 = 바탕 그대로", font=F(22), fill=(60, 60, 60), anchor="mm"); 넣(im, 16)
+대표.append(fr[-1])
 # 5 CAD 포켓 (정답 깊이 판 · 한 번 팔 때마다)
 찍 = [trimesh.Trimesh(v, f_) for v, f_ in D["찍A"]]; 가 = 0.0
 for j, m in enumerate([trimesh.load(os.path.join(R, "윤곽0", "결과", "%02d_교차.stl" % i))] + 찍):
     for t in range(4):
         im, d = 판(5, "CAD 포켓: 고리 스케치 → 그 깊이까지 빼기", "파기 %d / %d" % (j, len(찍))); 가 += 2 * np.pi / 40
         g = 그(정(m), 가, 640); im.paste(Image.fromarray(g) if not isinstance(g, Image.Image) else g, (180, 100)); fr.append(im)
+대표.append(fr[-1])
 # 6 채점
 gtm = trimesh.load(RR + D["부품"], force="mesh")
 줄 = [("사람 부품", gtm, None, None), ("화소 깎기 (정답 깊이)", trimesh.load(os.path.join(R, "윤곽2", "결과_기울기02g", "%02d_깎음.stl" % i)), json.load(open(os.path.join(R, "윤곽2", "결과_기울기02g", "%02d.json" % i), encoding="utf-8"))["edge_f1"], None),
@@ -85,5 +91,9 @@ for t in range(24):
             d.text((x + 120, 440), "점수 %.2f" % e, font=F(26), fill=(40, 150, 60) if e >= .42 else (200, 40, 40), anchor="mm")
             d.text((x + 120, 480), "조각 %d · 얇음 %.1f%%" % (b[0], 100 * b[1]), font=F(22), fill=(200, 40, 40) if b[0] else (60, 60, 60), anchor="mm")
     fr.append(im)
+대표.append(fr[-1])
+B = Image.new("RGB", (2 * W + 30, 4 * HH + 50), (230, 232, 238))
+for j, im in enumerate(대표): B.paste(im, (10 + (j % 2) * (W + 10), 10 + (j // 2) * (HH + 10)))
+B.save(os.path.join(H, "단계_%02d.png" % i)); print("png", len(대표))
 out = os.path.join(H, "단계_%02d.gif" % i); fr[0].save(out, save_all=True, append_images=fr[1:], duration=140, loop=0); print("ok", out, len(fr), "장")
 print("부스러기:", [(n, b) for n, _, _, b in 줄])
