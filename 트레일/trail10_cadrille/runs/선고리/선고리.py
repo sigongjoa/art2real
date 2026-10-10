@@ -9,6 +9,18 @@ N = 128; TH = 0.02; MINA = int(os.environ.get("MINA", 40)); CHECK = os.environ.g
 PL = {0: "YZ", 1: "XZ", 2: "XY"}
 세계 = lambda r, c: ((r + .5) / N * 1.1 - .05, (c + .5) / N * 1.1 - .05)
 
+def 모서리선(m, D, S, k, 각=30.0, n=N):
+    """가 판: 메시 모서리 중 두 면이 각 ≥ 30° 로 꺾인 선 · 보이는 것만 → 128² 선 그림 (+ 실루엣 윤곽) · m 은 단위 상자 메시 · D · S = 그 쪽 깊이 · 실루엣"""
+    ax = k // 2; fl = k % 2 == 1; o = [j for j in range(3) if j != ax]
+    e = m.face_adjacency_edges[m.face_adjacency_angles > np.radians(각)]; V = m.vertices; L = np.zeros((n, n), np.uint8)
+    for a, b in e:
+        p0, p1 = V[a], V[b]; t = np.linspace(0, 1, max(2, int(np.linalg.norm(p1 - p0) * n * 2)))[:, None]; P = p0 + (p1 - p0) * t
+        r = ((P[:, o[0]] + .05) / 1.1 * n - .5).round().astype(int); c = ((P[:, o[1]] + .05) / 1.1 * n - .5).round().astype(int)
+        d = (P[:, ax] + .05) / 1.1; d = 1 - d if fl else d; ok = (r >= 0) & (r < n) & (c >= 0) & (c < n)
+        r, c, d = r[ok], c[ok], d[ok]; 보임 = d <= D[r, c] + 1.5 / n            # 그 화소의 첫 표면보다 앞(또는 거의 같은 깊이)이면 보인다
+        L[r[보임], c[보임]] = 1
+    s8 = (S > .5).astype(np.uint8); L |= s8 - cv2.erode(s8, np.ones((3, 3), np.uint8)); return (L > 0).astype(np.float32)
+
 def 면나누기(S, L):
     """2·3 단계: 선으로 나뉜 면 = 고리. 선 폭만큼 줄어든 면을 1 칸 불려 선 가운데로 돌려놓는다"""
     안 = ((S > .5) & (L < .5)).astype(np.uint8); n, lab = cv2.connectedComponents(안, connectivity=4); 면 = []
@@ -30,15 +42,39 @@ def 벡터(m):
         if abs(a[i, 1] - a[j, 1]) <= 1: a[j, 1] = a[i, 1]
     return ("선", [(y, x) for x, y in a])
 
+def _오츠(v):
+    v = np.sort(v); n = len(v); best, th = -1, None
+    for q in np.linspace(.05, .95, 37):
+        t = v[int(q * (n - 1))]; a, b = v[v <= t], v[v > t]
+        if len(a) == 0 or len(b) == 0: continue
+        g = len(a) * len(b) * (a.mean() - b.mean()) ** 2
+        if g > best: best, th = g, t
+    return th
+
 def 고리들(X, P=None):
-    """0~4 단계 · X = 시험.npz 한 부품 (4, 6, N, N) = S · L · Dh · D · P = AI 깊이 (6, N, N)"""
-    S, L, Dh, D = X; out = []
+    """0~4 단계 · X = 시험.npz 한 부품 (4, 6, N, N) = S · L · Dh · D · P = AI 깊이 (6, N, N)
+    SPLIT=1 (나 판): 고리 안 깊이가 두 덩어리면 깊은 쪽을 새 고리로 (판마다 따로 · f["만"])"""
+    S, L, Dh, D = X; out = []; SPLIT = os.environ.get("SPLIT") == "1"
     for k in 쪽들:
         for 종, m in 면나누기(S[k], L[k]):
             f = {"쪽": k, "종": 종, "m": m}
             if 종 == "고리":
                 f["벡터"] = 벡터(m); 안 = m > 0
                 f["바탕"] = float(np.median(Dh[k][안])); f["A"] = float(np.median(D[k][안])); f["B"] = float(np.median(P[k][안])) if P is not None else None
+                if SPLIT:
+                    for 키, Z in (("A", D[k]), ("B", P[k] if P is not None else None)):
+                        if Z is None: continue
+                        z = Z[안]; t = _오츠(z)
+                        if t is None: continue
+                        깊 = 안 & (Z > t); 얕 = 안 & (Z <= t)
+                        if 깊.sum() < .1 * 안.sum() or 얕.sum() < .1 * 안.sum() or np.median(Z[깊]) - np.median(Z[얕]) <= TH: continue
+                        mm = cv2.morphologyEx(깊.astype(np.uint8), cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
+                        nn, lab = cv2.connectedComponents(mm, connectivity=4)
+                        for j in range(1, nn):
+                            sub = (lab == j).astype(np.uint8)
+                            if sub.sum() < max(MINA, 4): continue
+                            g = {"쪽": k, "종": "고리", "m": sub, "만": 키, "나눔": 1, "벡터": 벡터(sub)}; i_ = sub > 0
+                            g["바탕"] = float(np.median(Dh[k][i_])); g["A"] = g["B"] = float(np.median(Z[i_])); out.append(g)
             out.append(f)
     return out
 
@@ -54,7 +90,7 @@ def 포켓(f, d):
 def 짓기(바탕, fs, 판, 찍기=None):
     r = 바탕; n = 0
     for f in fs:
-        if f["종"] != "고리" or f[판] - f["바탕"] <= TH: continue
+        if f["종"] != "고리" or f.get("만", 판) != 판 or f[판] - f["바탕"] <= TH: continue
         try:
             r2 = r.cut(포켓(f, f[판])); v0, v1 = r.val().Volume(), r2.val().Volume()
             if CHECK and len(r2.solids().vals()) > len(r.solids().vals()): f.setdefault("되돌림", []).append(판); continue   # 떨어진 조각이 생기면 이 파기는 안 받음
@@ -80,6 +116,9 @@ if __name__ == "__main__":
     T = np.load(os.path.join(R, "깊이학습", "시험.npz")); X = T["X"][i].astype(np.float32); 부품 = str(T["부품"][i])
     m_ = 망().cuda(); m_.load_state_dict(torch.load(os.path.join(R, "깊이학습", "모델.pt"))); m_.eval()
     with torch.no_grad(): P = m_(torch.from_numpy(X[:3]).permute(1, 0, 2, 3).cuda())[:, 0].cpu().numpy()
+    if os.environ.get("LINES") == "mesh":   # 가 판: 고리 찾기에만 새 선 (AI 입력 X[:3] 은 학습 때 선 그대로 → P 는 위에서 이미 구함)
+        mu = unit(trimesh.load("G:/art2real/원화3d/out/레퍼런스/사람분할/" + 부품, force="mesh"))
+        X = X.copy(); X[1] = np.stack([모서리선(mu, X[3][k], X[0][k], k) for k in range(6)])
     fs = 고리들(X, P)
     gt = unit(trimesh.load("G:/art2real/원화3d/out/레퍼런스/사람분할/" + 부품, force="mesh")); gt.apply_translation([-.5] * 3); gt.apply_scale(2.0)
     sp = os.path.join(R, "윤곽0", "결과", "%02d_교차.step" % i); 기록 = {}
