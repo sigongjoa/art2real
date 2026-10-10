@@ -9,12 +9,12 @@ def 음영(D, S, 색):
     gy, gx = np.gradient(-D * 128); n = np.dstack([-gx, -gy, np.ones_like(D) * 1.5]); n /= np.linalg.norm(n, axis=-1, keepdims=True)
     l = np.clip(n @ np.array([-.5, -.6, .65]) / np.linalg.norm([-.5, -.6, .65]), 0, 1) * .75 + .25
     im = np.ones(D.shape + (3,)) * 30; im[S > .5] = (l[..., None] * np.array(색))[S > .5]; return Image.fromarray(im.astype(np.uint8)).resize((300, 300), Image.NEAREST)
-fs = sorted(glob.glob(os.path.join(H, "스냅", "*.npz"))); L = [(int(os.path.basename(f)[:5]), float(np.load(f)["손실"])) for f in fs]
-O = os.path.join(H, "타임랩스"); os.makedirs(O, exist_ok=True)
+SD = os.environ.get("SNAP", "스냅"); fs = sorted(glob.glob(os.path.join(H, SD, "*.npz"))); L = [(int(os.path.basename(f)[:5]), float(np.load(f)["손실"])) for f in fs]
+O = os.path.join(H, "타임랩스" + SD[2:]); os.makedirs(O, exist_ok=True)
 for fi, f in enumerate(fs):
     z = np.load(f); P = z["P"].astype(np.float32).reshape(6, 6, 128, 128); st = int(os.path.basename(f)[:5])
     cv = Image.new("RGB", (1080, 1920), (18, 20, 30)); d = ImageDraw.Draw(cv)
-    d.text((540, 70), "그림 → 깊이 학습", font=F(68), fill="white", anchor="mm"); d.text((540, 150), "스텝 %d · 에폭 %.1f" % (st, float(z["에폭"])), font=F(44), fill=(150, 200, 255), anchor="mm")
+    d.text((540, 70), "그림 → 깊이 학습" + (" 2판 · 불확실성" if SD != "스냅" else ""), font=F(68), fill="white", anchor="mm"); d.text((540, 150), "스텝 %d · 에폭 %.1f" % (st, float(z["에폭"])), font=F(44), fill=(150, 200, 255), anchor="mm")
     for j, t in enumerate(["입력: 선", "AI 깊이", "진짜 깊이"]): d.text((40 + 150 + j * 340, 225), t, font=F(36), fill=[(220, 220, 220), (110, 170, 255), (255, 220, 90)][j], anchor="mm")
     for r, (i, k) in enumerate(zip(SN, range(6))):
         if r >= 4: break
@@ -30,4 +30,4 @@ for fi, f in enumerate(fs):
         if len(q) > 1: d.line(q, fill=(255, 120, 120), width=4)
     d.text((x0, y0 - 40), "손실", font=F(32), fill=(255, 120, 120))
     cv.save(os.path.join(O, "%04d.png" % fi))
-subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-framerate", "8", "-i", os.path.join(O, "%04d.png"), "-vf", "tpad=stop_mode=clone:stop_duration=2", "-pix_fmt", "yuv420p", os.path.join(H, "타임랩스.mp4")]); print("ok", len(fs))
+subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-framerate", "8", "-i", os.path.join(O, "%04d.png"), "-vf", "tpad=stop_mode=clone:stop_duration=2", "-pix_fmt", "yuv420p", os.path.join(H, "타임랩스" + SD[2:] + ".mp4")]); print("ok", len(fs))

@@ -9,13 +9,14 @@ from 윤곽 import PL, 메시로
 RR = "G:/art2real/원화3d/out/레퍼런스/사람분할/"; N = 256; TH = 0.02; MINA = int(os.environ.get("MINA", 40)); FLAT = float(os.environ.get("FLAT", 0))
 TILT = float(os.environ.get("TILT", 0.02))   # 10-10 기울기 바닥: 영역 안 실물 깊이에 평면을 맞춰 잔차(세계 좌표 RMS) ≤ TILT 면 기울어진 바닥으로 깎음
 
-def 주머니(Dr, Dh, Sr):   # 한 방향: 실물이 바탕보다 깊은 곳 → [(윤곽 점들(o0,o1), 깊이 d(격자 비율))]
+def 주머니(Dr, Dh, Sr, Q=None, QK=0):   # Q = 확신 지도(잔차/퍼짐) · 주어지면 영역 중앙값 < QK 인 주머니는 통째로 안 깎음(10-10 2 판)   # 한 방향: 실물이 바탕보다 깊은 곳 → [(윤곽 점들(o0,o1), 깊이 d(격자 비율))]
     diff = ((Dr - Dh) > TH) & (Sr > .5)
     im = cv2.morphologyEx(diff.astype(np.uint8) * 255, cv2.MORPH_OPEN, np.ones((3, 3), np.uint8))
     cs, _ = cv2.findContours(im, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE); out = []
     for c in cs:
         if cv2.contourArea(c) < MINA: continue
         mk = np.zeros_like(im); cv2.drawContours(mk, [c], -1, 255, -1); d = float(np.median(Dr[mk > 0]))
+        if Q is not None and float(np.median(Q[mk > 0])) < QK: continue
         pl = None
         if TILT:   # 깊이 d → 축 좌표는 d 의 일차식이라 d 에 평면을 맞추면 세계 좌표에도 평면
             yy, xx = np.nonzero(mk); A = np.c_[(yy + .5) / N * 1.1 - .05, (xx + .5) / N * 1.1 - .05, np.ones(len(yy))]
@@ -51,19 +52,23 @@ def 기울기둥(ax, fl, pts, a, b, c0):
     except Exception: return None
 def 깎기(바탕, m_real, m_base, 검증=None, 보기r=None):   # 보기r = (Sr, Dr) 를 주면 실물 대신 그 깊이로(10-10 깊이학습 평가)
     import cadquery as cq
-    Sr, Dr = 보기r if 보기r is not None else 실물보기(m_real, N); Sh, Dh = 실물보기(m_base, N); r = 바탕; n = 0
+    Sr, Dr, *Qs = 보기r if 보기r is not None else 실물보기(m_real, N); Sh, Dh = 실물보기(m_base, N); r = 바탕; n = 0
     for ax in range(3):
         for fl in (False, True):
             k = 2 * ax + (1 if fl else 0)
-            for pts, d, pl in 주머니(Dr[k], Dh[k], Sr[k]):
+            for pts, d, pl in 주머니(Dr[k], Dh[k], Sr[k], *((Qs[0][k], Qs[1]) if Qs else ())):
                 # 실물보기 규약: 낮은 쪽에서 본 깊이 d → 표면 세계 좌표 w = d·1.1 − 0.05 · 높은 쪽에서 본 것 → w = (1 − d)·1.1 − 0.05
                 if not fl: lo, hi = -0.2, d * 1.1 - .05
                 else: lo, hi = (1 - d) * 1.1 - .05, 1.2
-                s_ = cq.Workplane(PL[ax]).polyline([(a * 100, b * 100) for a, b in pts]).close().extrude((hi - lo) * 100)
-                bb = s_.val().BoundingBox(); mn = (bb.xmin, bb.ymin, bb.zmin)[ax]
+                try:   # 10-10 꼬인 윤곽(자기 교차)은 빈 기둥 → 건너뜀
+                    s_ = cq.Workplane(PL[ax]).polyline([(a * 100, b * 100) for a, b in pts]).close().extrude((hi - lo) * 100)
+                    bb = s_.val().BoundingBox(); mn = (bb.xmin, bb.ymin, bb.zmin)[ax]
+                except Exception: continue
                 off = [0, 0, 0]; off[ax] = lo * 100 - mn                     # 축 방향으로 [lo, hi] 에 오게(작업면 법선 방향과 상관없이)
                 if pl is not None:   # 기울기 바닥: 기둥을 평면까지 넉넉히 뽑고 평면 반대쪽 반공간과 교차
-                    a, b, c0 = pl; s_ = 기울기둥(ax, fl, pts, a, b, c0)
+                    a, b, c0 = pl
+                    try: s_ = 기울기둥(ax, fl, pts, a, b, c0)
+                    except Exception: s_ = None
                     if s_ is None: continue
                     off = [0, 0, 0]
                 if 검증 is not None:   # 10-10 검증 깎기: 기둥 안 점이 실물에서도 비어 있어야 깎는다(곡면 겉을 홈으로 읽은 것을 거름)
