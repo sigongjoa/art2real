@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 """윤곽2 — 바탕(윤곽 교차 STEP) 위에 6 방향 깊이 차이로 주머니를 찾아 깎기 · 학습 없음
 python runs/윤곽2/깊이깎기.py [시작 끝]"""
-import os, sys, json, numpy as np, trimesh, cv2
+import os, sys, json, time, numpy as np, trimesh, cv2
 H = os.path.dirname(os.path.abspath(__file__)); R = os.path.dirname(H); T0 = os.path.dirname(R)
 sys.path[:0] = [os.path.join(R, "조각0"), os.path.join(R, "윤곽0"), os.path.join(T0, "s0"), os.path.join(T0, "s0", "stub")]
 from 실물보기 import 실물보기
 from 윤곽 import PL, 메시로
 RR = "G:/art2real/원화3d/out/레퍼런스/사람분할/"; N = 256; TH = 0.02; MINA = int(os.environ.get("MINA", 40)); FLAT = float(os.environ.get("FLAT", 0))
-TILT = float(os.environ.get("TILT", 0.02))   # 10-10 기울기 바닥: 영역 안 실물 깊이에 평면을 맞춰 잔차(세계 좌표 RMS) ≤ TILT 면 기울어진 바닥으로 깎음
+TILT = float(os.environ.get("TILT", 0.02))
+CURVE = int(os.environ.get("CURVE", 0))   # 10-10 평면이 안 맞는 주머니는 스플라인 곡면 바닥(깊이 지도 그대로)으로   # 10-10 기울기 바닥: 영역 안 실물 깊이에 평면을 맞춰 잔차(세계 좌표 RMS) ≤ TILT 면 기울어진 바닥으로 깎음
 
 def 주머니(Dr, Dh, Sr, Q=None, QK=0):   # Q = 확신 지도(잔차/퍼짐) · 주어지면 영역 중앙값 < QK 인 주머니는 통째로 안 깎음(10-10 2 판)   # 한 방향: 실물이 바탕보다 깊은 곳 → [(윤곽 점들(o0,o1), 깊이 d(격자 비율))]
     diff = ((Dr - Dh) > TH) & (Sr > .5)
@@ -30,10 +31,33 @@ def 주머니(Dr, Dh, Sr, Q=None, QK=0):   # Q = 확신 지도(잔차/퍼짐) ·
             if np.percentile(v, 90) - np.percentile(v, 10) > FLAT: continue
         a = cv2.approxPolyDP(c, 0.005 * cv2.arcLength(c, True), True)
         pts = [((p[0][1] + .5) / N * 1.1 - .05, (p[0][0] + .5) / N * 1.1 - .05) for p in a]
-        if len(pts) >= 3: out.append((pts, d, pl))
+        gr = None
+        if CURVE and pl is None:   # 영역 상자 위 10×10 격자에서 깊이(영역 밖은 가장 가까운 영역 칸 값)
+            from scipy.ndimage import distance_transform_edt
+            yy, xx = np.nonzero(mk); _, ind = distance_transform_edt(mk == 0, return_indices=True); Df = Dr[ind[0], ind[1]]
+            rs = np.linspace(max(yy.min() - 1, 0), min(yy.max() + 1, N - 1), 10); cs_ = np.linspace(max(xx.min() - 1, 0), min(xx.max() + 1, N - 1), 10)
+            gr = [[((r + .5) / N * 1.1 - .05, (c_ + .5) / N * 1.1 - .05, float(Df[int(round(r)), int(round(c_))])) for c_ in cs_] for r in rs]
+        if len(pts) >= 3: out.append((pts, d, pl) if not CURVE else (pts, d, pl, gr))
     return out
 
 VMIN = float(os.environ.get("VMIN", 0.85)); 기록 = []
+CHECK = float(os.environ.get("CHECK", 0))   # 10-10 파기마다 다시 렌더 · 덜 판 오차 + CHECK × 더 판 오차 가 줄 때만 받음
+def _오차(r, Sr, Dr):
+    m = 메시로(r); m.apply_translation([1, 1, 1]); m.apply_scale(.5); _, Dn = 실물보기(m, N); S = Sr > .5
+    return float(np.maximum(Dr - Dn, 0)[S].mean() + CHECK * np.maximum(Dn - Dr - .01, 0)[S].mean())
+def 곡면둥(ax, fl, pts, gr):
+    """스플라인 곡면(깊이 격자) 을 바닥으로 하는 깎기 기둥 (×100 · 제자리)"""
+    import cadquery as cq
+    o = [k for k in range(3) if k != ax]; ws = []
+    def V(u, v, d):
+        w = (d if not fl else 1 - d) * 1.1 - .05; ws.append(w); p = [0.0, 0.0, 0.0]; p[o[0]], p[o[1]], p[ax] = u * 100, v * 100, w * 100; return cq.Vector(*p)
+    rows = [[V(*q) for q in row] for row in gr]
+    f = cq.Face.makeSplineApprox(rows); e = [0.0, 0.0, 0.0]; e[ax] = -400.0 if not fl else 400.0
+    위 = cq.Workplane().add(cq.Solid.extrudeLinear(f, cq.Vector(*e)))
+    lo, hi = (-0.2, max(ws) + .01) if not fl else (min(ws) - .01, 1.2)
+    s_ = cq.Workplane(PL[ax]).polyline([(p * 100, q * 100) for p, q in pts]).close().extrude((hi - lo) * 100)
+    bb = s_.val().BoundingBox(); off = [0, 0, 0]; off[ax] = lo * 100 - (bb.xmin, bb.ymin, bb.zmin)[ax]
+    return s_.translate(tuple(off)).intersect(위)
 def 기울기둥(ax, fl, pts, a, b, c0):
     """깊이 평면 d = a·u + b·v + c0 (u, v = 남은 두 축 세계 좌표) 를 바닥으로 하는 깎기 기둥(×100 단위 · 이미 제자리)"""
     import cadquery as cq
@@ -53,10 +77,12 @@ def 기울기둥(ax, fl, pts, a, b, c0):
 def 깎기(바탕, m_real, m_base, 검증=None, 보기r=None):   # 보기r = (Sr, Dr) 를 주면 실물 대신 그 깊이로(10-10 깊이학습 평가)
     import cadquery as cq
     Sr, Dr, *Qs = 보기r if 보기r is not None else 실물보기(m_real, N); Sh, Dh = 실물보기(m_base, N); r = 바탕; n = 0
+    e0 = _오차(r, Sr, Dr) if CHECK else 0
     for ax in range(3):
         for fl in (False, True):
             k = 2 * ax + (1 if fl else 0)
-            for pts, d, pl in 주머니(Dr[k], Dh[k], Sr[k], *((Qs[0][k], Qs[1]) if Qs else ())):
+            for pts, d, pl, *gr in 주머니(Dr[k], Dh[k], Sr[k], *((Qs[0][k], Qs[1]) if Qs else ())):
+                gr = gr[0] if gr else None
                 # 실물보기 규약: 낮은 쪽에서 본 깊이 d → 표면 세계 좌표 w = d·1.1 − 0.05 · 높은 쪽에서 본 것 → w = (1 − d)·1.1 − 0.05
                 if not fl: lo, hi = -0.2, d * 1.1 - .05
                 else: lo, hi = (1 - d) * 1.1 - .05, 1.2
@@ -65,7 +91,11 @@ def 깎기(바탕, m_real, m_base, 검증=None, 보기r=None):   # 보기r = (Sr
                     bb = s_.val().BoundingBox(); mn = (bb.xmin, bb.ymin, bb.zmin)[ax]
                 except Exception: continue
                 off = [0, 0, 0]; off[ax] = lo * 100 - mn                     # 축 방향으로 [lo, hi] 에 오게(작업면 법선 방향과 상관없이)
-                if pl is not None:   # 기울기 바닥: 기둥을 평면까지 넉넉히 뽑고 평면 반대쪽 반공간과 교차
+                s평, off평 = s_, list(off)   # 곡면이 실패하면 돌아갈 평평한 기둥
+                if gr is not None:   # 곡면 바닥
+                    try: s_ = 곡면둥(ax, fl, pts, gr); off = [0, 0, 0]
+                    except Exception: pass
+                elif pl is not None:   # 기울기 바닥: 기둥을 평면까지 넉넉히 뽑고 평면 반대쪽 반공간과 교차
                     a, b, c0 = pl
                     try: s_ = 기울기둥(ax, fl, pts, a, b, c0)
                     except Exception: s_ = None
@@ -82,7 +112,14 @@ def 깎기(바탕, m_real, m_base, 검증=None, 보기r=None):   # 보기r = (Sr
                     if 빈 < VMIN: continue
                 try:   # 10-10 #18: 기울기둥 하나가 부피를 음수(−104881)로 뒤집음 → 결과 부피가 양수이고 줄었을 때만 받음
                     r2 = r.cut(s_.translate(tuple(off))); v0, v1 = r.val().Volume(), r2.val().Volume()
-                    if 0 < v1 <= v0 + 1e-6: r = r2; n += 1
+                    if gr is not None and s_ is not s평 and not (0 < v1 < v0 - 1):   # 10-10 #21: 곡면 기둥이 망가져 한 점도 못 파냄(뺀 부피 0) → 평평한 기둥으로 다시
+                        r2 = r.cut(s평.translate(tuple(off평))); v1 = r2.val().Volume(); 기록.append(("곡면→평평", ax, fl))
+                    if 0 < v1 <= v0 + 1e-6:
+                        if CHECK:
+                            e1 = _오차(r2, Sr, Dr)
+                            if e1 >= e0: 기록.append(("거절", ax, fl)); continue
+                            e0 = e1
+                        r = r2; n += 1
                 except Exception: pass
     return r, n
 
@@ -92,10 +129,24 @@ if __name__ == "__main__":
     from 모양자 import 재기
     a_, b_ = (int(sys.argv[1]), int(sys.argv[2])) if len(sys.argv) > 2 else (0, 36)
     부품 = [r["부품"] for k in range(3) for r in json.load(open(os.path.join(R, "사전0", "결과%d.json" % k), encoding="utf-8"))]
-    O = os.path.join(H, os.environ.get("OUTN", "결과")); os.makedirs(O, exist_ok=True)
+    O = os.path.join(H, os.environ.get("OUTN", "결과")); os.makedirs(O, exist_ok=True); 현재 = [None, 0]
+    if os.environ.get("MEMCAP"):   # 10-10 곡면 3 개 동시 → 페이지 파일 20/23 GB · dwm 이 죽고 세션 튕김 → 메모리가 넘으면 그 부품은 건너뜀 기록 후 끝
+        import threading, psutil
+        def 감시(cap=float(os.environ["MEMCAP"]) * 2**30, tcap=float(os.environ.get("TIMECAP", 1e9))):   # TIMECAP 초: 곡면 불리언이 안 끝나는 부품(#5 9 분+)
+            while True:
+                why = None
+                if 현재[0] is not None and psutil.Process().memory_info().rss > cap: why = "메모리 %s GB 넘음" % os.environ["MEMCAP"]
+                elif 현재[0] is not None and time.time() - 현재[1] > tcap: why = "시간 %d 초 넘음" % tcap
+                if why:
+                    json.dump({"idx": 현재[0], "건너뜀": why}, open(os.path.join(O, "%02d.json" % 현재[0]), "w", encoding="utf-8"), ensure_ascii=False)
+                    print(현재[0], why, "건너뜀", flush=True); os._exit(3)
+                time.sleep(.5)
+        threading.Thread(target=감시, daemon=True).start()
     for i in range(a_, b_):
         sp = os.path.join(R, "윤곽0", "결과", "%02d_교차.step" % i)
         if not os.path.exists(sp): print(i, "바탕 없음"); continue
+        if os.path.exists(os.path.join(O, "%02d.json" % i)): continue   # 이어 하기
+        현재[0], 현재[1] = i, time.time()
         m = unit(trimesh.load(RR + 부품[i], force="mesh")); gt = m.copy(); gt.apply_translation([-.5] * 3); gt.apply_scale(2.0)
         mb = trimesh.load(os.path.join(R, "윤곽0", "결과", "%02d_교차.stl" % i)); mb.apply_translation([1, 1, 1]); mb.apply_scale(.5)   # [-1,1] → 단위 상자
         검증 = None
