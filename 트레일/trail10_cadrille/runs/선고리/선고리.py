@@ -5,6 +5,7 @@ import os, sys, json, numpy as np, trimesh, cv2
 H = os.path.dirname(os.path.abspath(__file__)); R = os.path.dirname(H); T0 = os.path.dirname(R)
 sys.path[:0] = [os.path.join(R, "깊이학습"), os.path.join(R, "조각0"), os.path.join(R, "윤곽0"), os.path.join(T0, "s0"), os.path.join(T0, "s0", "stub")]
 N = 128; TH = 0.02; MINA = int(os.environ.get("MINA", 40)); CHECK = os.environ.get("CHECK") == "1"; 꼬리 = os.environ.get("OUTS", "");   # 10-10 2 판: MINA 4 · CHECK = 판 뒤 조각이 늘면 되돌림
+WALLMAX = float(os.environ.get("WALLMAX", 0))   # 10-10 5 판: 셸 벽 상한(긴 변 100 기준) · 0 = 안 씀
 쪽들 = tuple(int(c) for c in os.environ.get("VIEWS", "0,2,4").split(","))   # 기본 = 앞 · 옆 · 위           # 앞 · 옆 · 위 = 각 축의 낮은 쪽에서 본 그림
 PL = {0: "YZ", 1: "XZ", 2: "XY"}
 세계 = lambda r, c: ((r + .5) / N * 1.1 - .05, (c + .5) / N * 1.1 - .05)
@@ -101,6 +102,8 @@ def 열린면(S, Dh, Z):
         if frac > .2 and (best is None or frac > best[3]):
             dist = cv2.distanceTransform(s8.astype(np.uint8), cv2.DIST_L2, 3)
             테 = m & ~cv2.erode(m.astype(np.uint8), np.ones((3, 3), np.uint8)).astype(bool)
+            벽 = dist[테][dist[테] > 1.01]   # 10-10 5 판: 실루엣 바깥에 붙은 테두리(벽 없음)는 빼고 잰 벽 · 두꺼우면 컵 · 홈이지 껍질 아님
+            if WALLMAX and (not len(벽) or np.median(벽) * 110 / N > WALLMAX): continue
             best = (k, m, float(np.median(dist[테])) if 테.any() else 0.0, frac)
     return best
 
