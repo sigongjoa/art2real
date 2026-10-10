@@ -28,6 +28,14 @@ for i in range(a_, b_):
         else: P = y[:, 0]
         Qm = (y[:, 2] / y[:, 1]).cpu().numpy() if RK else None
     P = P.cpu().numpy()   # (6,N,N)
+    SM = os.environ.get("SMOOTH", "")   # 10-10 사용자 제안: 예측 뒤 매끈하게 — 큰 형태는 맞고 잔결이 가짜 주머니를 만든다
+    if SM:
+        S0 = X[i, 0].astype(np.float32) > .5
+        for k in range(6):
+            q = P[k].astype(np.float32)
+            if SM == "중앙5": q = cv2.medianBlur(q, 5)
+            elif SM == "양방향": q = cv2.bilateralFilter(q, 9, 0.03, 4)
+            P[k] = np.where(S0[k], np.maximum(q, X[i, 2, k].astype(np.float32)), 1.0)   # 교차보다 얕아지지 않게 · 실루엣 밖은 1
     mr = unit(trimesh.load(G.RR + str(부품[i]), force="mesh")); Sr, _ = 실물보기(mr, G.N)       # 실루엣은 그림이 준다
     Dp = np.stack([np.where(Sr[k] > .5, cv2.resize(P[k], (G.N, G.N), interpolation=cv2.INTER_LINEAR), 1.0) for k in range(6)])
     gt = mr.copy(); gt.apply_translation([-.5] * 3); gt.apply_scale(2.0)
