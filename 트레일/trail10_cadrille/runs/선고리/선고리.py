@@ -165,7 +165,7 @@ if __name__ == "__main__":
         X = X.copy(); X[1] = np.stack([모서리선(mu, X[3][k], X[0][k], k) for k in range(6)])
     fs = 고리들(X, P)
     gt = unit(trimesh.load("G:/art2real/원화3d/out/레퍼런스/사람분할/" + 부품, force="mesh")); gt.apply_translation([-.5] * 3); gt.apply_scale(2.0)
-    sp = os.path.join(R, "윤곽0", "결과", "%02d_교차.step" % i); 기록 = {}
+    sp = os.path.join(R, "윤곽0", "결과" + os.environ.get("BASE", ""), "%02d_교차.step" % i); 기록 = {}   # 10-11 BASE=_호 : 직선 + 원호 바탕
     for 판 in ("A", "B"):
         찍 = []
         바 = cq.importers.importStep(sp); 빈 = None; 셸정보 = None
