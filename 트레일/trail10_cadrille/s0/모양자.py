@@ -13,6 +13,11 @@ def _occ(m, g):
     s = o3d.t.geometry.RaycastingScene(); s.add_triangles(o3d.core.Tensor(m.vertices.astype(np.float32)), o3d.core.Tensor(m.faces.astype(np.uint32)))
     return s.compute_occupancy(o3d.core.Tensor(g.astype(np.float32))).numpy() > 0.5
 
+def _닫힘(m):   # 10-11: is_watertight 는 두 덩이가 변 하나로 닿기만 해도(면 4 장 변) False → IoU 0 으로 채점 실패가 섞였다(기능0 35 중 12)
+    if m.is_watertight: return True             # 광선 홀짝 점유는 그런 변엔 멀쩡 → 홀수 면 변(열린 곳)이 0.5 % 이하면 잰다
+    import numpy as np
+    _, c = np.unique(m.edges_sorted, axis=0, return_counts=True); return len(c) > 0 and (c % 2 == 1).sum() <= 0.005 * len(c)
+
 def _위상(m):
     b0 = len(m.split(only_watertight=False)); chi = m.euler_number
     return b0, int(round((2 * b0 - chi) / 2))
@@ -31,7 +36,7 @@ def _가까움(a, b):
 
 def 재기(pred, gt, n=128, tau=0.04):
     g = (np.indices((n, n, n)).reshape(3, -1).T + 0.5) / n * 2 - 1
-    ia = _occ(gt, g) if gt.is_watertight else np.zeros(len(g), bool); ib = _occ(pred, g) if pred.is_watertight else np.zeros(len(g), bool)
+    ia = _occ(gt, g) if _닫힘(gt) else np.zeros(len(g), bool); ib = _occ(pred, g) if _닫힘(pred) else np.zeros(len(g), bool)
     u = (ia | ib).sum(); iou = float((ia & ib).sum() / u) if u else 0.0
     pa = trimesh.sample.sample_surface_even(gt, 8192, seed=0)[0]; pb = trimesh.sample.sample_surface_even(pred, 8192, seed=0)[0]
     cd = float((_가까움(pa, pb).mean() + _가까움(pb, pa).mean()) / 2)
@@ -59,7 +64,7 @@ def _거친위상(occ, k=4, frac=0.01):   # 128³ → 32³ (작은 디테일은 
 def 재기2(pred, gt, n=128, tol=2):
     """10-07 사용자 기준(cad-part-match-criterion): 겉보기 = 6 방향 깊이 지도 일치(가장 나쁜 쪽) · 연결 = 거친 격자 덩어리 · 구멍 수."""
     g = (np.indices((n, n, n)).reshape(3, -1).T + 0.5) / n * 2 - 1
-    A = (_occ(gt, g) if gt.is_watertight else np.zeros(len(g), bool)).reshape(n, n, n); B = (_occ(pred, g) if pred.is_watertight else np.zeros(len(g), bool)).reshape(n, n, n)
+    A = (_occ(gt, g) if _닫힘(gt) else np.zeros(len(g), bool)).reshape(n, n, n); B = (_occ(pred, g) if _닫힘(pred) else np.zeros(len(g), bool)).reshape(n, n, n)
     u = (A | B).sum(); iou = float((A & B).sum() / u) if u else 0.0
     views = []
     for ax in range(3):
@@ -73,4 +78,6 @@ if __name__ == "__main__":   # 자기 검사: 구멍 뚫린 상자와 꽉 찬 �
     box = trimesh.creation.cylinder(0.8, 0.6, sections=64); ring = trimesh.creation.annulus(0.15, 0.8, 0.6, sections=64)   # 꽉 찬 원반 대 링
     r = 재기(box, ring); print(r)
     assert r["iou"] > 0.9 and not r["위상같음"], "구멍을 못 잡음"
+    a = trimesh.creation.box((1, 1, 1)); b = a.copy(); b.apply_translation((1, 1, 0)); two = trimesh.util.concatenate([a, b]); two.apply_scale(.8); two.merge_vertices()
+    assert not two.is_watertight and 재기(two, two)["iou"] > 0.99, "변으로 닿은 두 덩이를 0 으로 채점"   # 10-11
     r2 = 재기(ring, ring); assert r2["위상같음"] and r2["iou"] > 0.99 and r2["edge_f1"] > 0.95; print("ok", r2)
