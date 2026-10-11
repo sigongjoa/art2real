@@ -19,5 +19,5 @@ for r_, i in enumerate(ids):
     es = [None, json.load(open(os.path.join(R, "선고리", "결과_A_모", "%02d.json" % i), encoding="utf-8"))["edge_f1"], json.load(open(os.path.join(H, "결과", "%02d.json" % i), encoding="utf-8"))["edge_f1"]]
     for j, (m, e) in enumerate(zip(ms, es)):
         for q, v in enumerate(V): im.paste(그(정(m), v, None if j == 0 else ((0.45, 0.68, 0.98) if j == 1 else (0.98, 0.62, 0.35))), (130 + j * (3 * C + 20) + q * C, y))
-        if e is not None: d.text((130 + j * (3 * C + 20) + 3 * C // 2, y + C + 18), "점수 %.2f" % e, font=F(22), fill="black", anchor="mm")
+        if e is not None: d.text((130 + j * (3 * C + 20) + 3 * C // 2, y + C + 18), ("점수 %.2f" % e) + ("" if j != 2 else " · IoU %.2f" % json.load(open(os.path.join(H, "결과", "%02d.json" % i), encoding="utf-8"))["iou"]), font=F(22), fill="black", anchor="mm")
 im.save(os.path.join(H, sys.argv[1] if len(sys.argv) > 1 else "결과.png")); print("ok")
