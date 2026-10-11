@@ -64,4 +64,14 @@ def 판(키, p):
         c = _카드(1000, 640, 초); d = ImageDraw.Draw(c); b = 0.5 + 0.5 * math.sin(p * 12)
         d.text((500, 250), "학습 중…", font=F(110), fill=초, anchor="mm"); d.rounded_rectangle((150, 400, 850, 460), 30, outline=초, width=6); d.rounded_rectangle((158, 408, 158 + int(684 * min(p * 1.2, 1)), 452), 24, fill=초)
         return c
+    if 키 == "자랑":   # 우리 결과 하나 크게 — 살짝 커지며 등장
+        c = _카드(1000, 700, 초); k = int(520 + 60 * _쉬움(p * 3)); _붙(c, "쌍우_21.png", ((1000 - k) // 2, (700 - k) // 2 + 20), k)
+        ImageDraw.Draw(c).text((500, 50), "우리가 지은 부품", font=F(44), fill=초, anchor="mm"); return c
+    if 키 in ("비교", "비교같다"):
+        c = Image.new("RGBA", (1000, 700), (0, 0, 0, 0))
+        for j, (src, tt, col) in enumerate((("쌍교_21.png", "그림자 3개 겹침", 파), ("쌍우_21.png", "일주일 걸려 지음", 초))):
+            k = _카드(470, 600, col); _붙(k, src, (25, 30), 420); ImageDraw.Draw(k).text((235, 540), tt, font=F(38), fill=col, anchor="mm"); c.alpha_composite(k, (j * 530, 40))
+        if 키 == "비교같다":
+            d = ImageDraw.Draw(c); s_ = 1 + 0.3 * max(0, 1 - p * 5); d.text((500, 330), "=", font=F(int(200 * s_)), fill=(255, 220, 60), stroke_width=12, stroke_fill=(10, 10, 20), anchor="mm")
+        return c
     raise KeyError(키)
