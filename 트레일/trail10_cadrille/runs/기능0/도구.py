@@ -22,4 +22,4 @@ def 돌출(i, ax):   # 그 축 방향 실루엣(직선 + 원호 · 모서리 끊
 def 원기둥(ax, 중심, r, a, b):   # 축 ax 방향 · 중심 = 나머지 두 좌표(CAD) · a~b
     d = [0, 0, 0]; d[ax] = 1; p = list(중심); p.insert(ax, a)
     return cq.Workplane().add(cq.Solid.makeCylinder(r, b - a, V(*p), V(*d)))
-def 구(중심, r): return cq.Workplane().add(cq.Solid.makeSphere(r, V(*중심)))
+def 구(중심, r): return cq.Workplane().add(cq.Solid.makeSphere(r, V(*중심), angleDegrees1=-90))
