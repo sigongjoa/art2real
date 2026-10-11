@@ -13,6 +13,6 @@ d.text((20, 15), "기능 짓기 35 부품: 사람 부품(노랑) · 기능 짓�
 for q, i in enumerate(ids):
     x = 10 + (q % cols) * w; y = 70 + (q // cols) * (C + 30)
     im.paste(그(정(trimesh.load("G:/art2real/원화3d/out/레퍼런스/사람분할/" + str(부[i]), force="mesh")), None), (x, y))
-    im.paste(그(정(trimesh.load(os.path.join(H, "최종", "%02d.stl" % i))), (0.98, 0.62, 0.35)), (x + C, y))
+    im.paste(그(정(trimesh.load(os.path.join(H, os.environ.get("FIN", "최종"), "%02d.stl" % i))), (0.98, 0.62, 0.35)), (x + C, y))
     d.text((x + 5, y + 2), "#%d" % i, font=F(24), fill="black")
-im.save(os.path.join(H, "최종.png")); print("ok")
+im.save(os.path.join(H, os.environ.get("OUT", "최종.png"))); print("ok")
