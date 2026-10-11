@@ -1,0 +1,24 @@
+채널: 서재용 (쇼츠 · 71초) · 파일 G:/art2real/out/영상05/대화/43_왜만드나/43_왜만드나.mp4 · 올릴 땐 C:/Users/zesky/Videos/up/ep43_why.mp4 로 복사
+화면 부품: 42 편 재료 그대로(변형 허용 라이선스만) · 생성 AI 결과물은 화면에 안 씀(글 카드) · 캐릭터는 자체 디자인
+
+제목: 3D 생성 AI 두고 왜 CAD를 한 단계씩 짓게 할까? #Shorts
+
+설명:
+제가 그린 로봇을 직접 출력해 보고 싶어서 시작한 실험입니다. 앞 · 옆 · 위 선 그림 세 장만 보고 AI가 사람처럼 겹치기 → 껍질 → 창 순서로 CAD 부품을 짓습니다. 통짜 메시와 달리 단계마다 숫자가 남아서 창 크기 하나만 고치거나, 두께와 끼움 틈을 mm로 맞춰 출력할 수 있습니다. 부품 35개는 그럴듯해졌지만 전부 만들면서 들여다본 부품이라, 다음은 한 번도 안 본 부품으로 시험합니다.
+
+출처 (3D 부품 모델 · Printables · 화면의 우리 부품은 원본 메시로 만든 실험 결과입니다)
+- Robot Head 2.0 (CC BY-NC-SA) https://www.printables.com/model/1280672
+- Gundam RX78 2 (CC BY-NC-SA) https://www.printables.com/model/1640140
+- Transformers Devastation Megatron (CC BY) https://www.printables.com/model/334966
+- Dummy 13 Gundam (CC BY-NC) https://www.printables.com/model/813280
+- Evangelion EVA-00 Dummy 13 (CC BY-NC-SA) https://www.printables.com/model/885858
+- Transformers Devastation Optimus (CC BY-NC) https://www.printables.com/model/334967
+- Transformers Devastation Starscream (CC BY-NC) https://www.printables.com/model/335719
+- Mandalorian helmet with alignment pins (CC BY-NC-SA) https://www.printables.com/model/113294
+- Dummy 13 (CC BY) https://www.printables.com/model/981111
+- CARBON 13 Printable Jointed Figure (CC BY-NC-SA) https://www.printables.com/model/1572649
+- Gundam Dummy 13 Complete Model (CC BY-NC) https://www.printables.com/model/982988
+- Evangelion EVA-01 Dummy 13 (CC BY-NC-SA) https://www.printables.com/model/924146
+- Articulated Conch Robot (CC BY-SA) https://www.printables.com/model/1402376
+
+#피규어 #CAD #AI학습 #ClaudeCode #3D프린팅
