@@ -8,6 +8,13 @@ sys.path.insert(0, os.path.join(R, "선고리"))
 import importlib.util
 _s = importlib.util.spec_from_file_location("선고리", os.path.join(R, "선고리", "선고리.py")); 선 = importlib.util.module_from_spec(_s); _s.loader.exec_module(선); 선.MINA = 6
 n = 128
+def 깊이선(S, D, 각=30.0):   # 메시 없이: 깊이 그림에서 면 방향이 30° 넘게 꺾이거나 2 칸 넘게 끊기는 곳 + 실루엣 테 = 선 (학습 부품용)
+    import cv2
+    s = S > .5; z = D * n; gy, gx = np.gradient(z); N = np.stack([-gx, -gy, np.ones_like(z)], -1); N /= np.linalg.norm(N, axis=-1, keepdims=True); L = np.zeros_like(s)
+    for dy, dx in ((0, 1), (1, 0)):
+        a = N[:n - dy, :n - dx]; b = N[dy:, dx:]; c = (a * b).sum(-1) < np.cos(np.radians(각)); j = np.abs(z[:n - dy, :n - dx] - z[dy:, dx:]) > 2
+        L[:n - dy, :n - dx] |= c | j
+    s8 = s.astype(np.uint8); L |= (s8 - cv2.erode(s8, np.ones((3, 3), np.uint8))) > 0; return (L & s).astype(np.float32)
 def 점들(D, k, m):   # 깊이 화소 → 3D 점(칸 단위 0..128)
     r, c = np.nonzero(m); ax = k // 2; o = [j for j in range(3) if j != ax]; P = np.zeros((len(r), 3))
     P[:, o[0]] = r + .5; P[:, o[1]] = c + .5; d = D[k][r, c]; P[:, ax] = (1 - d if k % 2 else d) * n; return P
@@ -19,11 +26,11 @@ def 구(P):
 def 원기둥(P, a):
     jj = [j for j in range(3) if j != a]; q = P[:, jj]; A = np.c_[2 * q, np.ones(len(q))]; x = np.linalg.lstsq(A, (q ** 2).sum(1), rcond=None)[0]; o = x[:2]; Rr = float(np.sqrt(max(x[2] + o @ o, 1e-9)))
     return o, Rr, float(np.median(np.abs(np.linalg.norm(q - o, axis=1) - Rr)))
-def 찾기(i):
+def 찾기(i, X=None, 깊선=False):
     from s0 import unit
-    X = 입력(i); D = X[3]; mu = unit(trimesh.load(W.RR + str(부[i]), force="mesh")); out = []
+    X = 입력(i) if X is None else X; D = X[3]; mu = None if 깊선 else unit(trimesh.load(W.RR + str(부[i]), force="mesh")); out = []
     for k in range(6):
-        L = 선.모서리선(mu, D[k], X[0][k], k); ax = k // 2
+        L = 깊이선(X[0][k], D[k]) if 깊선 else 선.모서리선(mu, D[k], X[0][k], k); ax = k // 2
         for 종, m in 선.면나누기(X[0][k], L):
             안 = m > 0
             if 종 != "고리" or 안.sum() < 60: continue
