@@ -29,6 +29,8 @@ if __name__ == "__main__":
     if not os.path.exists(XP): np.save(XP, np.load(os.path.join(H, "학습.npz"))["X"])
     X = np.load(XP, mmap_mode="r"); T = np.load(os.path.join(H, "시험.npz"))["X"]   # (n,4,6,N,N) f16
     rng = np.random.default_rng(0); 순 = rng.permutation(len(X)); V, TR = 순[:150], 순[150:]
+    꼬리 = "_검증뺌" if os.environ.get("VAL") else ""   # VAL=1: 검증목록.json 의 20 모델(150 부품)을 학습 · 검증에서 통째로 뺌
+    if 꼬리: 뺄 = set(__import__("json").load(open(os.path.join(H, "검증목록.json"), encoding="utf-8"))["학습빼기"]); V, TR = np.array([i for i in V if i not in 뺄]), np.array([i for i in TR if i not in 뺄])
     쌍 = lambda idx: np.array([(i, v) for i in idx for v in range(6)])
     PT, PV = 쌍(TR), 쌍(V); SN = [0, 5, 17, 18, 31, 35]
     def 묶음(A, P):
@@ -36,19 +38,19 @@ if __name__ == "__main__":
     m = 망().to(dev); opt = torch.optim.AdamW(m.parameters(), 1e-3, weight_decay=1e-4); nb = len(PT) // B
     sch = torch.optim.lr_scheduler.OneCycleLR(opt, 1e-3, total_steps=E * nb, pct_start=.05)
     # 이어 하기: 에폭 A 부터 C 까지(이번 호출) · 일정은 전체 E 기준 · 상태는 마지막.pt
-    A, C = int(os.environ.get("FROM", 0)), int(os.environ.get("UPTO", E)); CK = os.path.join(H, "마지막.pt"); best = 9e9
+    A, C = int(os.environ.get("FROM", 0)), int(os.environ.get("UPTO", E)); CK = os.path.join(H, "마지막%s.pt" % 꼬리); best = 9e9
     if A:
         if os.path.exists(CK): ck = torch.load(CK); m.load_state_dict(ck["m"]); opt.load_state_dict(ck["opt"]); sch.load_state_dict(ck["sch"]); best = ck["best"]
         else:   # 처음 이어 할 때: 최고 모델만 있음 → 옵티마이저는 새로, 일정은 그 자리까지 돌림
-            m.load_state_dict(torch.load(os.path.join(H, "모델.pt")))
+            m.load_state_dict(torch.load(os.path.join(H, "모델%s.pt" % 꼬리)))
             for _ in range(A * nb): sch.step()
         rng = np.random.default_rng(A)
-    os.makedirs(os.path.join(H, "스냅"), exist_ok=True); log = open(os.path.join(H, "학습.log"), "a" if A else "w", encoding="utf-8"); st = A * nb; t0 = time.time()
+    os.makedirs(os.path.join(H, "스냅" + 꼬리), exist_ok=True); log = open(os.path.join(H, "학습%s.log" % 꼬리), "a" if A else "w", encoding="utf-8"); st = A * nb; t0 = time.time()
     def 찍기(l):
         m.eval()
         with torch.no_grad():
             P = 쌍(SN); x, d = 묶음(T, P); p = m(x)
-            np.savez_compressed(os.path.join(H, "스냅", "%05d.npz" % st), P=p[:, 0].half().cpu().numpy(), 손실=np.float32(l if l is not None else np.nan), 에폭=st / nb)
+            np.savez_compressed(os.path.join(H, "스냅" + 꼬리, "%05d.npz" % st), P=p[:, 0].half().cpu().numpy(), 손실=np.float32(l if l is not None else np.nan), 에폭=st / nb)
         m.train()
     if not A: 찍기(None)
     for ep in range(A, C):
@@ -68,7 +70,7 @@ if __name__ == "__main__":
             바 = np.mean(bb)
         msg = "에폭 %d 학습 %.4f 검증 %.4f 시험 %.4f (교차 그대로 %.4f) %.0f 초" % (ep, np.mean(tl), np.mean(vl), np.mean(tt), 바, time.time() - t0)
         print(msg, flush=True); log.write(msg + "\n"); log.flush()
-        if np.mean(vl) < best: best = np.mean(vl); torch.save(m.state_dict(), os.path.join(H, "모델.pt"))
+        if np.mean(vl) < best: best = np.mean(vl); torch.save(m.state_dict(), os.path.join(H, "모델%s.pt" % 꼬리))
         torch.save({"m": m.state_dict(), "opt": opt.state_dict(), "sch": sch.state_dict(), "best": best}, CK)
     if C >= E: 찍기(tl[-1])
     print("ok 에폭", C, "최저 검증", best)
