@@ -76,5 +76,9 @@ def 찾기(x, 최대=6, 문턱=.003):
 if __name__ == "__main__":
     판 = sys.argv[1]; X = X_(판); ids = [int(a) for a in sys.argv[2:]] or range(len(X)); O = os.path.join(H, "탐색"); os.makedirs(O, exist_ok=True)
     for i in ids:
-        r = 찾기(X[i].astype(np.float32)); json.dump(r, open(os.path.join(O, "%s_%02d.json" % (판, i)), "w", encoding="utf-8"), ensure_ascii=False)
+        f = os.path.join(O, "%s_%02d.json" % (판, i))
+        if os.path.exists(f) and 판 == "학습": continue
+        try: r = 찾기(X[i].astype(np.float32))
+        except Exception as e: print(i, "실패", str(e)[:60], flush=True); continue
+        json.dump(r, open(os.path.join(O, "%s_%02d.json" % (판, i)), "w", encoding="utf-8"), ensure_ascii=False)
         print(i, r["교차 IoU"], "→", r["끝 IoU"], "후보", r["후보 수"], [(s["기능"], s["쪽"]) for s in r["순서"]], flush=True)
