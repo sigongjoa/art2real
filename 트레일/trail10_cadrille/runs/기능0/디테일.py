@@ -16,12 +16,12 @@ def 바탕깊이(s):   # CAD 바탕 → 6 방향 깊이(128)
     from 윤곽 import 메시로
     m = 메시로(s); m.apply_translation([1, 1, 1]); m.apply_scale(.5); return 실물보기(m, n)
 
-def 고리찾기(i, s):
+def 고리찾기(i, s, Z=None):   # Z = 대신 쓸 깊이(학생) · 없으면 실물 깊이
     from s0 import unit
-    X = 입력(i); S = X[0] > .5; D = X[3]; mu = unit(trimesh.load(W.RR + str(부[i]), force="mesh"))
+    X = 입력(i); S = X[0] > .5; D = X[3] if Z is None else Z; mu = unit(trimesh.load(W.RR + str(부[i]), force="mesh"))
     Sb, Db = 바탕깊이(s); out = []
     for k in range(6):
-        L = 선.모서리선(mu, D[k], X[0][k], k)
+        L = 선.모서리선(mu, X[3][k], X[0][k], k)   # 선 그림은 그림(메시 모서리) 그대로
         for 종, m in 선.면나누기(X[0][k], L):
             안 = m > 0
             if 종 != "고리" or 안.sum() < 6 or 안.sum() > .4 * S[k].sum() or (Sb[k][안] > .5).mean() < .8: continue
