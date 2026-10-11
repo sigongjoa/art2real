@@ -5,7 +5,7 @@ import os, sys, json, time, numpy as np, trimesh, cv2
 H = os.path.dirname(os.path.abspath(__file__)); R = os.path.dirname(H); T0 = os.path.dirname(R)
 sys.path[:0] = [os.path.join(R, "조각0"), os.path.join(T0, "s0"), os.path.join(T0, "s0", "stub")]
 from 실물보기 import 실물보기
-RR = "G:/art2real/원화3d/out/레퍼런스/사람분할/"; N = 256; EPS = 0.005; ARC = os.environ.get("ARC") == "1"   # 10-11 호 판: 테두리를 직선 + 원호로 (꺾은선만 쓰면 휜 면이 토막 면이 됨)
+RR = "G:/art2real/원화3d/out/레퍼런스/사람분할/"; N = 256; EPS = 0.005; ARC = os.environ.get("ARC") in ("1", "2"); 모 = os.environ.get("ARC") == "2"   # 10-11 모 판: 꺾임 ≥ 35° 모서리에서 먼저 끊고 구간 안에서만 직선/원호 · 10-11 호 판: 테두리를 직선 + 원호로 (꺾은선만 쓰면 휜 면이 토막 면이 됨)
 PL = {0: "YZ", 1: "XZ", 2: "XY"}
 
 def 다각형들(sil):   # 실루엣 → [(외곽 점들, [구멍 점들…])] · 좌표 = (o0, o1) 단위 상자
@@ -32,10 +32,10 @@ def _원(a, b, c):   # 세 점을 지나는 원 (중심, 반지름) · 한 줄�
     o = np.array([(s[0] * (b[1] - c[1]) + s[1] * (c[1] - a[1]) + s[2] * (a[1] - b[1])) / d, (s[0] * (c[0] - b[0]) + s[1] * (a[0] - c[0]) + s[2] * (b[0] - a[0])) / d])
     return o, float(np.linalg.norm(np.asarray(a) - o))
 
-def 토막(P, tol=1.2, rmax=None):
+def 토막(P, tol=1.2, rmax=None, closed=True):
     """닫힌 화소 테두리 P(n×2) → [("L", p0, p1) | ("A", p0, 가운데, p1)] · 앞에서부터 직선과 원호 중 더 멀리 가는 쪽으로 늘림 · 둘 다 tol 화소 안
     ponytail: 탐욕 늘리기 O(n²) · 부품당 테두리 수천 점이면 충분"""
-    n = len(P); rmax = rmax or 3 * N
+    n = len(P); rmax = rmax or 3 * N; e = n if closed else n - 1   # 열린 구간이면 마지막 점에서 끝남
     def 직선됨(i, j):
         a, b = P[i], P[j % n]; q = P[[k % n for k in range(i, j + 1)]]; v = b - a; L = np.linalg.norm(v)
         if L < 1e-9: return False
@@ -46,11 +46,11 @@ def 토막(P, tol=1.2, rmax=None):
         if r < 3 or r > rmax: return None
         return (o, r) if np.abs(np.linalg.norm(q - o, axis=1) - r).max() <= tol else None
     out, i = [], 0
-    while i < n:
+    while i < e:
         jl = i + 1
-        while jl + 1 <= n and 직선됨(i, jl + 1): jl += 1
+        while jl + 1 <= e and 직선됨(i, jl + 1): jl += 1
         ja = i + 2
-        while ja + 4 <= n and 호됨(i, ja + 4) is not None: ja += 4
+        while ja + 4 <= e and 호됨(i, ja + 4) is not None: ja += 4
         if ja - i > jl - i + 4 and ja - i >= 8 and (c := 호됨(i, ja)) is not None:   # 가운데점만 원 위로
             on = lambda p: c[0] + (p - c[0]) / max(np.linalg.norm(p - c[0]), 1e-9) * c[1]
             out.append(("A", P[i], on(P[((i + ja) // 2) % n]), P[ja % n])); i = ja   # 끝점은 그대로(이웃 토막과 이어짐)
@@ -65,7 +65,14 @@ def 다각형들_호(sil):   # 다각형들 과 같은 꼴 · 점 대신 토막 
     def 변(c):
         P = c[:, 0, :].astype(float)
         k0 = int(np.argmin(np.linalg.norm(P - cv2.approxPolyDP(c, EPS * cv2.arcLength(c, True), True)[0][0], axis=1)))   # 꼭짓점에서 시작(호가 시작점에서 안 끊기게)
-        return [(t, *[u(p) for p in ps]) for t, *ps in 토막(np.roll(P, -k0, axis=0))]
+        P = np.roll(P, -k0, axis=0)
+        if 모:   # 모서리(다각형 꼭짓점 중 꺾임 ≥ 35°)에서 끊기 · 원호가 모서리를 못 삼킴
+            V = cv2.approxPolyDP(c, EPS * cv2.arcLength(c, True), True)[:, 0, :].astype(float)
+            각 = [np.degrees(abs(np.arctan2(np.cross(V[k] - V[k - 1], V[(k + 1) % len(V)] - V[k]), np.dot(V[k] - V[k - 1], V[(k + 1) % len(V)] - V[k])))) for k in range(len(V))]
+            ks = sorted({int(np.argmin(np.linalg.norm(P - V[k], axis=1))) for k in range(len(V)) if 각[k] >= 35} | {0})
+            if len(ks) > 1:
+                return [(t, *[u(p) for p in ps]) for a, b in zip(ks, ks[1:] + [len(P)]) for t, *ps in 토막(P[[k % len(P) for k in range(a, b + 1)]], closed=False)]
+        return [(t, *[u(p) for p in ps]) for t, *ps in 토막(P)]
     out = []
     for i, c in enumerate(cs):
         if hi[0][i][3] != -1 or cv2.contourArea(c) < 4: continue
@@ -122,7 +129,7 @@ if __name__ == "__main__":
     from 모양자 import 재기
     a_, b_ = (int(sys.argv[1]), int(sys.argv[2])) if len(sys.argv) > 2 else (0, 36)
     부품 = [r["부품"] for k in range(3) for r in json.load(open(os.path.join(R, "사전0", "결과%d.json" % k), encoding="utf-8"))]
-    O = os.path.join(H, "결과" + ("_호" if ARC else "")); os.makedirs(O, exist_ok=True)
+    O = os.path.join(H, "결과" + ("_모" if 모 else "_호" if ARC else "")); os.makedirs(O, exist_ok=True)
     for i in range(a_, b_):
         if os.path.exists(os.path.join(O, "%02d.json" % i)) and os.path.exists(os.path.join(O, "%02d_교차.step" % i)): continue
         m = unit(trimesh.load(RR + 부품[i], force="mesh")); gt = m.copy(); gt.apply_translation([-.5] * 3); gt.apply_scale(2.0)
