@@ -15,9 +15,9 @@ d.text((20, 15), "기능 짓기: 사람 / 모 판 / 기능 (손)", font=F(28), f
 for j, t in enumerate(열): d.text((130 + j * (3 * C + 20) + 3 * C // 2, 80), t, font=F(22), fill=(31, 95, 173), anchor="mm")
 for r_, i in enumerate(ids):
     y = 100 + r_ * (C + 50); d.text((15, y + C // 2), "#%d" % i, font=F(32), fill="black")
-    ms = [trimesh.load("G:/art2real/원화3d/out/레퍼런스/사람분할/" + str(부[i]), force="mesh"), trimesh.load(os.path.join(R, "선고리", "결과_A_모", "%02d_선고리.stl" % i)), trimesh.load(os.path.join(H, "결과", "%02d.stl" % i))]
-    es = [None, json.load(open(os.path.join(R, "선고리", "결과_A_모", "%02d.json" % i), encoding="utf-8"))["edge_f1"], json.load(open(os.path.join(H, "결과", "%02d.json" % i), encoding="utf-8"))["edge_f1"]]
+    ms = [trimesh.load("G:/art2real/원화3d/out/레퍼런스/사람분할/" + str(부[i]), force="mesh"), trimesh.load(os.path.join(R, "선고리", "결과_A_모", "%02d_선고리.stl" % i)), trimesh.load(os.path.join(H, os.environ.get("DIR", "결과"), "%02d.stl" % i))]
+    es = [None, json.load(open(os.path.join(R, "선고리", "결과_A_모", "%02d.json" % i), encoding="utf-8"))["edge_f1"], json.load(open(os.path.join(H, os.environ.get("DIR", "결과"), "%02d.json" % i), encoding="utf-8"))["edge_f1"]]
     for j, (m, e) in enumerate(zip(ms, es)):
         for q, v in enumerate(V): im.paste(그(정(m), v, None if j == 0 else ((0.45, 0.68, 0.98) if j == 1 else (0.98, 0.62, 0.35))), (130 + j * (3 * C + 20) + q * C, y))
-        if e is not None: d.text((130 + j * (3 * C + 20) + 3 * C // 2, y + C + 18), ("점수 %.2f" % e) + ("" if j != 2 else " · IoU %.2f" % json.load(open(os.path.join(H, "결과", "%02d.json" % i), encoding="utf-8"))["iou"]), font=F(22), fill="black", anchor="mm")
+        if e is not None: d.text((130 + j * (3 * C + 20) + 3 * C // 2, y + C + 18), ("점수 %.2f" % e) + ("" if j != 2 else " · IoU %.2f" % json.load(open(os.path.join(H, os.environ.get("DIR", "결과"), "%02d.json" % i), encoding="utf-8"))["iou"]), font=F(22), fill="black", anchor="mm")
 im.save(os.path.join(H, sys.argv[1] if len(sys.argv) > 1 else "결과.png")); print("ok")

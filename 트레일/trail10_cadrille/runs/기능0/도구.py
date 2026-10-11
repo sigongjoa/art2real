@@ -45,3 +45,24 @@ def 포켓(i, k, r0, r1, c0, c1, 델타=.04):
     d_ = [0, 0, 0]; d_[ax] = 끝 - a
     f = cq.Face.makeFromWires(cq.Wire.makePolygon(pts, close=True))
     return cq.Workplane().add(cq.Solid.extrudeLinear(f, V(*d_)))
+
+def 홈들(i, 최소=150):
+    """자동 찾기가 짚은 홈 중 큰 것만 → CAD 자르개 목록 [(이름, 자르개)] · 홈 = 실물 깊이 − 교차 깊이 덩이(시험 입력) · 평평한 바닥 다각형 돌출
+    ponytail: 탐색 json 을 다시 읽어 덩이를 네모로 맞춤 · 겹치는 덩이는 첫 것"""
+    import cv2
+    from scipy import ndimage
+    X = 입력(i); S, D, Dh = X[0] > .5, X[3], X[2]; r = json.load(open(os.path.join(H, "탐색", "시험_%02d.json" % i), encoding="utf-8")); out = []
+    for s in r["순서"]:
+        if s["기능"] == "구 빼기":
+            o = np.array(s["중심"]); out.append(("구 빼기 %d" % s["쪽"], 구(tuple(((o / 128) * 1.1 - .05) * 100), s["R"] * 1.1 / 128 * 100))); continue
+        if s["기능"] != "포켓" or s["넓이"] < 최소: continue
+        k = s["쪽"]; ax = k // 2; o = [j for j in range(3) if j != ax]
+        lab, _ = ndimage.label(S[k] & (D[k] - Dh[k] > 3 / 128)); r0, r1, c0, c1 = s["네모"]
+        ids, cnt = np.unique(lab[r0:r1, c0:c1][lab[r0:r1, c0:c1] > 0], return_counts=True); 덩 = (lab == ids[np.argmax(cnt)]).astype(np.uint8)
+        cs, _ = cv2.findContours(덩, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE); p = cv2.approxPolyDP(max(cs, key=cv2.contourArea), 1.5, True)[:, 0, :]
+        a = (1 - s["바닥"]) * 110 - 5 if k % 2 else s["바닥"] * 110 - 5; 끝 = 120.0 if k % 2 else -20.0; pts = []
+        for cc, rr in p:
+            q = [0.0, 0.0, 0.0]; q[o[0]] = c8(rr); q[o[1]] = c8(cc); q[ax] = a; pts.append(V(*q))
+        d_ = [0, 0, 0]; d_[ax] = 끝 - a
+        out.append(("포켓 %d · %d칸" % (k, s["넓이"]), cq.Workplane().add(cq.Solid.extrudeLinear(cq.Face.makeFromWires(cq.Wire.makePolygon(pts, close=True)), V(*d_)))))
+    return out
