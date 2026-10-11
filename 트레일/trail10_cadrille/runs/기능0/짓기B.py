@@ -16,7 +16,7 @@ def 홈칼(i, k, c, 바닥):
     for cc, rr in p:
         q = [0.0, 0.0, 0.0]; q[o[0]] = c8(rr); q[o[1]] = c8(cc); q[ax] = a; pts.append(V(*q))
     d_ = [0, 0, 0]; d_[ax] = 끝 - a
-    return cq.Workplane().add(cq.Solid.extrudeLinear(cq.Face.makeFromWires(cq.Wire.makePolygon(pts, close=True)), V(*d_)))
+    return 다각기둥(pts, d_)
 from 윤곽 import 메시로
 from 모양자 import 재기
 from s0 import unit

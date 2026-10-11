@@ -10,6 +10,14 @@ c = lambda p: ((p + .5) / 256 * 1.1 - .05) * 100   # 256 화소 → CAD (단위 
 c8 = lambda p: ((p + .5) / 128 * 1.1 - .05) * 100
 화 = 1.1 / 256 * 100   # 화소 하나 길이
 _S = {}
+def 꼬임(q):   # 닫힌 2D 다각형의 변끼리 서로 건너는 곳 수 — 0 이어야 CAD 면이 된다
+    n = len(q); o = lambda u, v, w: (v[0] - u[0]) * (w[1] - u[1]) - (v[1] - u[1]) * (w[0] - u[0])
+    return sum(o(q[i], q[(i + 1) % n], q[j]) * o(q[i], q[(i + 1) % n], q[(j + 1) % n]) < 0 and o(q[j], q[(j + 1) % n], q[i]) * o(q[j], q[(j + 1) % n], q[(i + 1) % n]) < 0
+               for i in range(n) for j in range(i + 2, n) if not (i == 0 and j == n - 1))
+def 다각기둥(pts, d_):   # 꼬인 윤곽은 OCC 불리언이 메모리를 끝없이 잡는다(10-11 PC 다운 두 번) → 짓기 전에 막는다
+    ax = int(np.argmax(np.abs(d_))); q = [[p_[j] for j in range(3) if j != ax] for p_ in ((v.x, v.y, v.z) for v in pts)]
+    if len(q) < 3 or 꼬임(q): raise ValueError("꼬인 윤곽")
+    return cq.Workplane().add(cq.Solid.extrudeLinear(cq.Face.makeFromWires(cq.Wire.makePolygon(pts, close=True)), V(*d_)))
 def 실루엣(i):
     if i not in _S:
         from 실물보기 import 실물보기
@@ -43,8 +51,7 @@ def 포켓(i, k, r0, r1, c0, c1, 델타=.04):
     for cc, rr in p:   # (열, 행) → (o0 = 행, o1 = 열)
         q = [0.0, 0.0, 0.0]; q[o[0]] = c8(rr); q[o[1]] = c8(cc); q[ax] = a; pts.append(V(*q))
     d_ = [0, 0, 0]; d_[ax] = 끝 - a
-    f = cq.Face.makeFromWires(cq.Wire.makePolygon(pts, close=True))
-    return cq.Workplane().add(cq.Solid.extrudeLinear(f, V(*d_)))
+    return 다각기둥(pts, d_)
 
 def 홈들(i, 최소=150):
     """자동 찾기가 짚은 홈 중 큰 것만 → CAD 자르개 목록 [(이름, 자르개)] · 홈 = 실물 깊이 − 교차 깊이 덩이(시험 입력) · 평평한 바닥 다각형 돌출
@@ -64,5 +71,5 @@ def 홈들(i, 최소=150):
         for cc, rr in p:
             q = [0.0, 0.0, 0.0]; q[o[0]] = c8(rr); q[o[1]] = c8(cc); q[ax] = a; pts.append(V(*q))
         d_ = [0, 0, 0]; d_[ax] = 끝 - a
-        out.append(("포켓 %d · %d칸" % (k, s["넓이"]), cq.Workplane().add(cq.Solid.extrudeLinear(cq.Face.makeFromWires(cq.Wire.makePolygon(pts, close=True)), V(*d_)))))
+        out.append(("포켓 %d · %d칸" % (k, s["넓이"]), 다각기둥(pts, d_)))
     return out

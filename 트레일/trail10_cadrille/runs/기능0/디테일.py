@@ -41,7 +41,7 @@ def 기둥(f, a, b):   # 고리 다각형을 깊이 a~b(보는 쪽 비율) 사�
     for cc, rr in p:
         q = [0.0, 0.0, 0.0]; q[o[0]] = c8(rr); q[o[1]] = c8(cc); q[ax] = za; pts.append(V(*q))
     d_ = [0, 0, 0]; d_[ax] = zb - za
-    return cq.Workplane().add(cq.Solid.extrudeLinear(cq.Face.makeFromWires(cq.Wire.makePolygon(pts, close=True)), V(*d_)))
+    return 다각기둥(pts, d_)
 
 def 얹기(s, fs):
     n0 = len(s.solids().vals()); 됨 = []
