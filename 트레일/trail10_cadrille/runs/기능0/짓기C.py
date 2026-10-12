@@ -6,7 +6,15 @@ from 도구 import *
 import 디테일 as DT, 회전 as RV
 sys.path.insert(0, os.path.join(R, "깊이학습"))
 from 학습 import 망
-O = os.path.join(H, "B_C" + ("" if 세트 == "시험" else "_" + 세트))
+O = os.path.join(H, ("B_D" if os.environ.get("FILTER") else "B_C") + ("" if 세트 == "시험" else "_" + 세트))   # FILTER=1 → D 판(거름망이 통과시킨 홈만)
+def 홈칼(i, k, c, 바닥):   # 짓기B 와 같음 — 덩이 윤곽을 바닥 깊이부터 바깥까지 민 기둥(128 칸)
+    ax = k // 2; o = [j for j in range(3) if j != ax]
+    cs, _ = cv2.findContours(c.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE); p = cv2.approxPolyDP(max(cs, key=cv2.contourArea), 1.5, True)[:, 0, :]
+    a = (1 - 바닥) * 110 - 5 if k % 2 else 바닥 * 110 - 5; 끝 = 120.0 if k % 2 else -20.0; pts = []
+    for cc, rr in p:
+        q = [0.0, 0.0, 0.0]; q[o[0]] = c8(rr); q[o[1]] = c8(cc); q[ax] = a; pts.append(V(*q))
+    d_ = [0, 0, 0]; d_[ax] = 끝 - a
+    return 다각기둥(pts, d_)
 def 테두리(M): M8 = M.astype(np.uint8); return cv2.distanceTransform((1 - (M8 - cv2.erode(M8, np.ones((3, 3), np.uint8)))).astype(np.uint8), cv2.DIST_L2, 3)
 def 원들(M):   # 허프 원 + 둘레의 몇 % 가 실루엣 테두리 위인가 · (행, 열, 반지름, 덮임)
     c = cv2.HoughCircles(cv2.GaussianBlur(M.astype(np.uint8) * 255, (5, 5), 1.5), cv2.HOUGH_GRADIENT, dp=1.2, minDist=8, param1=100, param2=18, minRadius=6, maxRadius=110)
@@ -34,7 +42,7 @@ def 공찾기(S):   # 두 방향 원이 맞고(공유 좌표 4 칸 · 반지름 
                 D = (yy - ctr[o[0]]) ** 2 + (xx - ctr[o[1]]) ** 2 <= (r - 2) ** 2
                 if D.sum() == 0 or M[D].mean() < .95: continue
                 ctr = (ctr[0], ctr[1], ctr[2])
-                if not any(np.linalg.norm(np.subtract(ctr, q[0])) < r for q in out): out.append((ctr, r))
+                if not any(np.linalg.norm(np.subtract(ctr, q[0])) < r for q in out): out.append((ctr, r, (a, b)))
     return out
 def _토막(B, z, cc):   # 줄 z 에서 열 cc 를 품은 채운 토막의 (왼 · 오른) 반지름
     row = B[z]; c = int(round(cc))
@@ -75,6 +83,18 @@ def 깎기(s, cutter):
         if len(t.solids().vals()) <= n0 and t.val().Volume() >= .7 * v0: return t, True
     except Exception: pass
     return s, False
+def 공깎기(s, cc, rr, 두축):   # 교차 − (공을 감싼 상자 − 공 − 목 심지) · 목 심지 = 공에서 몸통 쪽 축으로 반지름 0.45 원기둥(안 남기면 공이 떨어져 나감 — 10-12 #34 #5 #13)
+    박 = 상자(*[t for j in range(3) for t in (cc[j] - rr, cc[j] + rr)]); 밖 = s.cut(박); bb = 밖.val().Center() if 밖.solids().vals() else None
+    if bb is None: return s, False
+    d = np.array([bb.x, bb.y, bb.z]) - np.array(cc); k = int(np.argmax(np.abs(d))); a, b = (cc[k], cc[k] + rr * 1.05) if d[k] > 0 else (cc[k] - rr * 1.05, cc[k])
+    심 = 원기둥(k, tuple(cc[j] for j in range(3) if j != k), .45 * rr, a, b)
+    통 = [원기둥(a, tuple(cc[j] for j in range(3) if j != a), rr, -50, 150) for a in 두축]   # 원이 보인 두 방향 무한 원기둥 — 공 윤곽 안에 투영되는 것만 깎음(상자 안 몸통은 남김 · #5 공이 블록 위)
+    칼 = 박.cut(구(tuple(cc), rr)).intersect(통[0]).intersect(통[1]).cut(심)
+    n0, v0 = len(s.solids().vals()), s.val().Volume(); t = s.cut(칼)
+    큰 = [x for x in t.solids().vals() if x.Volume() >= .01 * v0]   # 1 % 아래 부스러기는 버림
+    if len(큰) > n0 or sum(x.Volume() for x in 큰) < .7 * v0: return s, False
+    import cadquery as cq
+    return cq.Workplane().add(cq.Compound.makeCompound(큰)) if len(큰) > 1 else cq.Workplane().add(큰[0]), True
 def 회전기둥(a, 중, rs):   # {z: r(px)} → 그 구간 회전체(CAD)
     import cadquery as cq
     zs = sorted(rs); 줄 = [(zs[0] - .5, 0.0)] + [(z, rs[z]) for z in zs] + [(zs[-1] + .5, 0.0)]
@@ -107,13 +127,21 @@ if __name__ == "__main__":
                         s, 됨 = 깎기(s, 상자(lo[0], hi[0], lo[1], hi[1], lo[2], hi[2]).cut(rv))
                         if 됨: 순서.append("원기둥 구간 축 %d · %d 줄" % (a, len(rs)))
                     except Exception: pass
-        for ctr, r in 공찾기(S):
-            cc = [c(t) for t in ctr]; rr = r * 화; 박 = 상자(*[t for j in range(3) for t in (cc[j] - rr, cc[j] + rr)])
+        for ctr, r, 두축 in 공찾기(S):
             try:
-                s, 됨 = 깎기(s, 박.cut(구(tuple(cc), rr)))
+                s, 됨 = 공깎기(s, [c(t) for t in ctr], r * 화, 두축)
                 if 됨: 순서.append("공 R%.0f" % r)
             except Exception: pass
-        s, 디 = DT.얹기(s, DT.고리찾기(i, s, Z)); 순서 += ["%s %d" % (g["종"], g["쪽"]) for g in 디]
+        if os.environ.get("FILTER"):   # 판정기준16: 학생 깊이 홈 후보 → 거름망2 통과만 판다
+            import 거름망 as GM
+            hs = GM.후보들(X, Z); 통 = GM.고르기2([GM.조각(X, Z, k, m_) for k, m_, _ in hs], [f_ for _, _, f_ in hs]) if hs else []
+            for (k, m_, _), ok in zip(hs, 통):
+                if not ok: continue
+                try:
+                    t = s.cut(홈칼(i, k, m_, float(np.median(Z[k][m_])))); 
+                    if len(t.solids().vals()) <= n0 and t.val().Volume() >= .7 * s.val().Volume(): s = t; 순서.append("홈(거름망) %d · %d칸" % (k, m_.sum()))
+                except Exception: pass
+        if os.environ.get("DETAIL"): s, 디 = DT.얹기(s, DT.고리찾기(i, s, Z)); 순서 += ["%s %d" % (g["종"], g["쪽"]) for g in 디]   # 10-12 기본은 끔 — 선 고리 홈 · 보스도 #32 #22 를 긁음(큰 홈과 같은 병)
         gt = unit(trimesh.load(W.RR + str(부[i]), force="mesh")); gt.apply_translation([-.5] * 3); gt.apply_scale(2.0)
         pm = 메시로(s); e = 재기(pm, gt); pm.export(os.path.join(O, "%02d.stl" % i))
         json.dump({"부품": str(부[i]), "순서": 순서, "iou": e["iou"], "조각": len(s.solids().vals()) - n0}, open(os.path.join(O, "%02d.json" % i), "w", encoding="utf-8"), ensure_ascii=False)
