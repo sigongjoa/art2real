@@ -8,7 +8,7 @@ from 가린시트 import 쌍그림, 정, RR
 from 집계 import 윌슨
 if __name__ == "__main__" and sys.argv[1] != "집계":
     세트, O, 표 = sys.argv[1:4]; 방법 = [a.split(":") for a in sys.argv[4:]]; os.makedirs(O, exist_ok=True)
-    L = json.load(open(os.path.join(H, "라벨.json"), encoding="utf-8"))["부품"]; 키 = sorted(k for k in L if k.split("/")[0] == 세트); rng = random.Random(20261016); 항 = []
+    L = json.load(open(os.path.join(H, "라벨.json"), encoding="utf-8"))["부품"]; 키 = sorted(k for k in L if k.split("/")[0] == 세트); rng = random.Random(int(os.environ.get("SEED", 20261016))); 항 = []
     for k in 키:
         i = k.split("/")[1]; 묶 = {}
         for 이름, 폴더 in 방법:

@@ -6,7 +6,7 @@ from 도구 import *
 import 디테일 as DT, 회전 as RV
 sys.path.insert(0, os.path.join(R, "깊이학습"))
 from 학습 import 망
-O = os.path.join(H, ("B_D" if os.environ.get("FILTER") else "B_C") + ("" if 세트 == "시험" else "_" + 세트))   # FILTER=1 → D 판(거름망이 통과시킨 홈만)
+O = os.path.join(H, ("B_E" if os.environ.get("REFINE") else "B_D" if os.environ.get("FILTER") else "B_C") + ("" if 세트 == "시험" else "_" + 세트))   # FILTER=1 → D 판(거름망이 통과시킨 홈만)
 def 홈칼(i, k, c, 바닥):   # 짓기B 와 같음 — 덩이 윤곽을 바닥 깊이부터 바깥까지 민 기둥(128 칸)
     ax = k // 2; o = [j for j in range(3) if j != ax]
     cs, _ = cv2.findContours(c.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE); p = cv2.approxPolyDP(max(cs, key=cv2.contourArea), 1.5, True)[:, 0, :]
@@ -135,8 +135,9 @@ if __name__ == "__main__":
         if os.environ.get("FILTER"):   # 판정기준16: 학생 깊이 홈 후보 → 거름망2 통과만 판다
             import 거름망 as GM
             hs = GM.후보들(X, Z); 통 = GM.고르기2([GM.조각(X, Z, k, m_) for k, m_, _ in hs], [f_ for _, _, f_ in hs]) if hs else []
-            for (k, m_, _), ok in zip(hs, 통):
-                if not ok: continue
+            고른 = [h for h, ok in zip(hs, 통) if ok]
+            if os.environ.get("REFINE"): 고른 = [(k, M, None) for k, M, _ in GM.다듬기(X, Z, 고른)]   # E 판(판정기준17): 배운 마스크 · 바닥 = 그 마스크 안 학생 깊이 중앙(바닥 보정은 못 배움)
+            for k, m_, _ in 고른:
                 try:
                     t = s.cut(홈칼(i, k, m_, float(np.median(Z[k][m_])))); 
                     if len(t.solids().vals()) <= n0 and t.val().Volume() >= .7 * s.val().Volume(): s = t; 순서.append("홈(거름망) %d · %d칸" % (k, m_.sum()))
