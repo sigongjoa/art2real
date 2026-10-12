@@ -67,7 +67,7 @@ if __name__ == "__main__":
         print("ok 최고 검증 IoU", best)
     elif sys.argv[1] == "평가":   # 재심 세트 진짜 홈 바닥 오차 — 3D 학생 대 2D 학생(모델T_검증뺌2)
         from scipy import ndimage
-        from 학습 import 망
+        sys.path.insert(0, H); from 학습 import 망   # 조각0/학습.py 가 이름을 가림
         m = 부피망().to(dev); m.load_state_dict(torch.load(os.path.join(H, "부피학생.pt"))); m.eval(); d2 = 망().to(dev); d2.load_state_dict(torch.load(os.path.join(H, "모델T_검증뺌2.pt"))); d2.eval()
         X2 = np.load(os.path.join(H, "검증2.npz"))["X"].astype(np.float32); Y2 = np.load(os.path.join(H, "부피정답_검증2.npy")); e3, e2, iu, iu0 = [], [], [], []
         for i in range(len(X2)):
