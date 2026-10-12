@@ -6,7 +6,7 @@ from 도구 import *
 import 디테일 as DT, 회전 as RV
 sys.path.insert(0, os.path.join(R, "깊이학습"))
 from 학습 import 망
-O = os.path.join(H, ("B_H" if os.environ.get("HREV") else "B_C2" if os.environ.get("MESH_FINE") and not os.environ.get("FILTER") and not os.environ.get("ORACLE") else "B_O" if os.environ.get("ORACLE") else "B_E" if os.environ.get("REFINE") else "B_D" if os.environ.get("FILTER") else "B_C") + ("" if 세트 == "시험" else "_" + 세트))   # FILTER=1 → D 판(거름망이 통과시킨 홈만)
+O = os.path.join(H, ("B_H" + os.environ.get("HTAG", "") if os.environ.get("HREV") else "B_C2" if os.environ.get("MESH_FINE") and not os.environ.get("FILTER") and not os.environ.get("ORACLE") else "B_O" if os.environ.get("ORACLE") else "B_E" if os.environ.get("REFINE") else "B_D" if os.environ.get("FILTER") else "B_C") + ("" if 세트 == "시험" else "_" + 세트))   # FILTER=1 → D 판(거름망이 통과시킨 홈만)
 def 홈칼(i, k, c, 바닥):   # 짓기B 와 같음 — 덩이 윤곽을 바닥 깊이부터 바깥까지 민 기둥(128 칸)
     ax = k // 2; o = [j for j in range(3) if j != ax]
     cs, _ = cv2.findContours(c.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE); p = cv2.approxPolyDP(max(cs, key=cv2.contourArea), 1.5, True)[:, 0, :]

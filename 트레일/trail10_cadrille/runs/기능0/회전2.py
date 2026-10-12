@@ -8,7 +8,7 @@ _m = None
 def 학생부피(X):   # X (4, 6, 128, 128) → 점유 확률 64³ ∩ 교차
     global _m
     sys.path.insert(0, 깊); import 부피학생 as 부
-    if _m is None: _m = 부.부피망().cuda(); _m.load_state_dict(torch.load(os.path.join(깊, "부피학생G.pt"))); _m.eval()
+    if _m is None: _m = 부.부피망().cuda(); _m.load_state_dict(torch.load(os.path.join(깊, os.environ.get("STUDENT", "부피학생G.pt")))); _m.eval()
     with torch.no_grad():
         with torch.autocast("cuda", dtype=torch.float16): p = torch.sigmoid(_m(torch.tensor(부.입력(X.astype(np.float32))[None]).cuda()).float())[0].cpu().numpy()
     s = [np.asarray(X[0][2 * a] > .5).reshape(64, 2, 64, 2).max((1, 3)) for a in range(3)]; return p * (s[0][None] & s[1][:, None] & s[2][:, :, None])

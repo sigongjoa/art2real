@@ -3,6 +3,8 @@
 좌표: 축 a 그림의 행 = o[0] · 열 = o[1] · 뒤집기 없음 · unit 상자 칸 중심 (좌표시험: 들어 올린 실루엣 AND 가 정답과 IoU 0.54 = 교차)
 python 부피학생.py 준비   → 부피정답.npy(학습 부품 점유 64³ 압축) · 부피정답_검증2.npy
 python 부피학생.py 학습 [에폭=8]   → 부피학생.pt · 부피학생.log
+STEPS=17200 [SYN=1] RESUME=부피학생G.pt TAG=… python 부피학생.py 학습   → 걸음 수 고정 · SYN=1 이면 합성X/Y.npy 섞음 (판정기준24)
+python 부피학생.py 검증3 <pt …>   → 검증3 40 부품 점유 IoU (부피정답_검증3.npy 없으면 만듦)
 python 부피학생.py 평가   → 부피학생.json (검증 모델 IoU 대 교차 · 재심 세트 진짜 홈 바닥 오차 대 2D 학생)"""
 import os, sys, json, time, numpy as np, torch, torch.nn as nn, torch.nn.functional as F
 H = os.path.dirname(os.path.abspath(__file__)); R = os.path.dirname(H); T0 = os.path.dirname(R); sys.path[:0] = [os.path.join(T0, "s0"), os.path.join(T0, "s0", "stub"), os.path.join(R, "조각0")]
@@ -46,8 +48,10 @@ if __name__ == "__main__":
         if 이어: m.load_state_dict(torch.load(os.path.join(H, 이어)))   # 판정기준21: 이어 배우기
         opt = torch.optim.AdamW(m.parameters(), 1e-3 if not 이어 else 5e-4, weight_decay=1e-4); B = 4; nb = len(ti) // B
         sch = torch.optim.lr_scheduler.OneCycleLR(opt, 1e-3 if not 이어 else 5e-4, total_steps=E * nb, pct_start=.05); sc = torch.amp.GradScaler(); log = open(os.path.join(H, "부피학생%s.log" % 꼬리), "w", encoding="utf-8"); t0 = time.time(); best = 0
-        def 배(ix):
-            x = torch.tensor(np.stack([입력(np.asarray(XA[i]).astype(np.float32)) for i in ix]), device=dev); y = torch.tensor(np.stack([np.unpackbits(YA[i])[:n ** 3].reshape(n, n, n) for i in ix]).astype(np.float32), device=dev); return x, y
+        SX = np.load(os.path.join(H, "합성X.npy"), mmap_mode="r") if os.environ.get("SYN") else None; SY = np.load(os.path.join(H, "합성Y.npy")) if SX is not None else None; NR = len(키)
+        def 배(ix):   # 번호 ≥ NR 은 합성(이미 입력 꼴)
+            x = torch.tensor(np.stack([입력(np.asarray(XA[i]).astype(np.float32)) if i < NR else np.asarray(SX[i - NR]).astype(np.float32) for i in ix]), device=dev)
+            y = torch.tensor(np.stack([np.unpackbits(YA[i] if i < NR else SY[i - NR])[:n ** 3].reshape(n, n, n) for i in ix]).astype(np.float32), device=dev); return x, y
         def 재기(ix):
             m.eval(); iu, iu0 = [], []
             with torch.no_grad():
@@ -57,16 +61,43 @@ if __name__ == "__main__":
                     h = (F.max_pool2d(x[:, :, 0], 2) > .5); h = h[:, 0][:, None] & h[:, 1][:, :, None] & h[:, 2][:, :, :, None]; y = y > .5
                     iu += ((p & y).sum((1, 2, 3)) / (p | y).sum((1, 2, 3)).clamp(min=1)).tolist(); iu0 += ((h & y).sum((1, 2, 3)) / (h | y).sum((1, 2, 3)).clamp(min=1)).tolist()
             m.train(); return float(np.mean(iu)), float(np.mean(iu0))
+        풀 = ti + ([NR + j for j in range(len(SX))] if SX is not None else []); ST = int(os.environ.get("STEPS", 0)); 평걸 = 2150
+        if ST:   # 판정기준24: 두 학생 같은 걸음 수 · 2,150 걸음마다 재고 최고 저장
+            E = ST // 평걸; nb = 평걸
+            for g in opt.param_groups: g["lr"] = 5e-4
+            sch = torch.optim.lr_scheduler.OneCycleLR(opt, 5e-4, total_steps=ST, pct_start=.05)
+            def 묶음():
+                while True:
+                    rng.shuffle(풀); yield from (풀[j:j + B] for j in range(0, len(풀) - B + 1, B))
+            gen = 묶음()
         for ep in range(E):
             rng.shuffle(ti); tl = []
             for j in range(nb):
-                x, y = 배(ti[j * B:(j + 1) * B])
+                x, y = 배(next(gen) if ST else ti[j * B:(j + 1) * B])
                 if rng.random() < .5: pass   # ponytail: 뒤집기 증강 없음 — 방향 · 축이 얽혀 있어 같이 뒤집어야 함
                 with torch.autocast("cuda", dtype=torch.float16): l = F.binary_cross_entropy_with_logits(m(x), y)
                 opt.zero_grad(); sc.scale(l).backward(); sc.step(opt); sc.update(); sch.step(); tl.append(l.item())
             vi_iou, vh = 재기(vi); msg = "에폭 %d 손실 %.4f 검증 IoU %.3f (교차 %.3f) %.0f 초" % (ep, np.mean(tl), vi_iou, vh, time.time() - t0); print(msg, flush=True); log.write(msg + "\n"); log.flush()
             if vi_iou > best: best = vi_iou; torch.save(m.state_dict(), os.path.join(H, "부피학생%s.pt" % 꼬리))
         print("ok 최고 검증 IoU", best)
+    elif sys.argv[1] == "검증3":   # 판정기준24 학생 판정 — 검증3 40 부품 점유 IoU (교차 · 학생마다)
+        from multiprocessing import Pool
+        X3 = np.load(os.path.join(H, "검증3.npz")); YP = os.path.join(H, "부피정답_검증3.npy")
+        if not os.path.exists(YP):
+            with Pool(4) as po: np.save(YP, np.stack(po.map(점유, [str(p) for p in X3["부품"]])))
+        Y3 = np.load(YP); X3 = X3["X"].astype(np.float32); r = {}
+        for 이름 in ["교차"] + sys.argv[2:]:
+            if 이름 != "교차": m = 부피망().to(dev); m.load_state_dict(torch.load(os.path.join(H, 이름))); m.eval()
+            iu = []
+            for i in range(len(X3)):
+                y = np.unpackbits(Y3[i])[:n ** 3].reshape(n, n, n).astype(bool)
+                if 이름 == "교차": s0 = [np.asarray(X3[i][0][2 * a] > .5).reshape(n, 2, n, 2).max((1, 3)) for a in range(3)]; O = s0[0][None] & s0[1][:, None] & s0[2][:, :, None]
+                else:
+                    with torch.no_grad():
+                        with torch.autocast("cuda", dtype=torch.float16): O = (m(torch.tensor(입력(X3[i])[None], device=dev)) > 0)[0].cpu().numpy()
+                iu.append(float((O & y).sum() / max((O | y).sum(), 1)))
+            r[이름] = {"평균": round(float(np.mean(iu)), 4), "부품": [round(v, 3) for v in iu]}; print(이름, r[이름]["평균"], flush=True)
+        json.dump(r, open(os.path.join(H, "부피학생_검증3.json"), "w", encoding="utf-8"), ensure_ascii=False); print("ok")
     elif sys.argv[1] == "평가":   # 재심 세트 진짜 홈 바닥 오차 — 3D 학생 대 2D 학생(모델T_검증뺌2)
         from scipy import ndimage
         sys.path.insert(0, H); from 학습 import 망   # 조각0/학습.py 가 이름을 가림

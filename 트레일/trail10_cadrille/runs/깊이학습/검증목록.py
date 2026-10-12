@@ -15,10 +15,12 @@ def 평면비(p):
     if len(m.faces) < 12 or min(m.extents) < 0.01 or len(m.faces) > 200000: return 0
     return float(sum(m.area_faces[f].sum() for f in m.facets) / m.area)
 if __name__ == "__main__":
-    판 = sys.argv[1] if len(sys.argv) > 1 else ""; 씨 = {"": 20261011, "2": 20261012, "3": 20261013}[판]
+    판 = sys.argv[1] if len(sys.argv) > 1 else ""; 씨 = {"": 20261011, "2": 20261012, "3": 20261013, "4": 20261014}[판]
     본 = set(json.load(open(os.path.join(H, "검증목록.json"), encoding="utf-8"))["모델"]) if 판 else set()
     학모 = {p.split("/")[0] for p in 목록.values()}
-    모델 = sorted({d for d in os.listdir(RR) if os.path.isdir(RR + d)} - 학모) if 판 == "3" else sorted(학모 - 본); rng = random.Random(씨); rng.shuffle(모델)
+    밖 = {d for d in os.listdir(RR) if os.path.isdir(RR + d)} - 학모
+    if 판 == "4": 밖 -= set(json.load(open(os.path.join(H, "검증목록3.json"), encoding="utf-8"))["모델"])   # 판정기준24: 검증3 모델도 뺌
+    모델 = sorted(밖) if 판 in ("3", "4") else sorted(학모 - 본); rng = random.Random(씨); rng.shuffle(모델)
     고른모델, 부품 = [], []
     for mo in 모델:
         if len(고른모델) == 20: break
@@ -27,7 +29,7 @@ if __name__ == "__main__":
             try: ok = 평면비(p) >= 0.5
             except Exception: ok = False
             if ok: 됨.append(p)
-            if len(됨) == 2: break
+            if len(됨) == (10 if 판 == "4" else 2): break   # 판정기준24 고침: 남은 모델 중 규칙 맞는 건 4 개뿐 → 모델마다 10
         if 됨: 고른모델.append(mo); 부품 += 됨; print(mo, len(됨), flush=True)
     빼기 = [j for j, k in enumerate(키) if 목록[k].split("/")[0] in set(고른모델)]   # 학습.npy 번호(키 정렬 순 · 2883 = 2883 확인함)
     X = [일(p) for p in 부품]; ok = [j for j, x in enumerate(X) if x is not None]
