@@ -49,4 +49,15 @@ def 판(키, p):
         rng = random.Random(4); 순 = list(range(900)); rng.shuffle(순); 켜 = set(순[:n])
         for q in range(900): x, y = 40 + (q % 45) * 20.5, 110 + (q // 45) * 27; d.rounded_rectangle((x, y, x + 16, y + 21), 4, fill=초 if q in 켜 else (205, 210, 220))
         return c
+    if 키 == "헛구멍":   # 후보 4 칸 중 3 칸이 빨강(헛구멍) · 1 칸 초록
+        c = _카드(1000, 700, 빨); d = ImageDraw.Draw(c); d.text((500, 55), "학생 깊이가 내놓은 홈 후보 16,664개", font=F(42), fill=먹, anchor="mm"); n = int(min(1, p * 1.5) * 200)
+        for q in range(200): x, y = 40 + (q % 20) * 46, 110 + (q // 20) * 52; d.rounded_rectangle((x, y, x + 38, y + 42), 8, fill=((빨 if q % 4 else 초) if q < n else (205, 210, 220)))
+        if p > .5: _도장(d, (500, 650), "진짜 홈 24.5 %", 초, .9)
+        return c
+    if 키 == "파기":   # 고르기는 맞음 · 판 모양은 어긋남 — 막대 둘
+        c = _카드(1000, 700, 주); d = ImageDraw.Draw(c); e = _쉬움(p * 2)
+        for j, (tt, v, col) in enumerate((("어디 팔지 고르기 — 맞힘", .81, 초), ("판 뒤 판사 통과", .275, 빨))):
+            y = 170 + j * 250; d.text((60, y - 50), tt, font=F(48), fill=col); d.rounded_rectangle((60, y + 20, 940, y + 100), 20, fill=(225, 228, 235)); d.rounded_rectangle((60, y + 20, 60 + int(880 * v * e), y + 100), 20, fill=col)
+            d.text((900, y - 50), "%d%%" % round(v * 100 * e), font=F(48), fill=col, anchor="ra")
+        return c
     raise KeyError(키)

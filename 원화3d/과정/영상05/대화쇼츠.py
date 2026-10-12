@@ -19,8 +19,14 @@ rows = [r for r in csv.reader(open(os.path.join(SRC, "대본.tsv"), encoding="ut
 rows = [dict(누구=r[0], 나=r[1], AI=r[2], 화면=r[3], 큰글=r[4], 말=r[5]) for r in rows]
 spec = importlib.util.spec_from_file_location("화면", os.path.join(SRC, "화면.py")); 화면 = importlib.util.module_from_spec(spec); spec.loader.exec_module(화면)
 
+SAPI = os.environ.get("TTS") == "sapi"   # 10-12 edge-tts 403 → Windows 기본 Heami(여) 하나 · 나 = 음높이 내림 · 서버 돌아오면 TTS 빼고 다시 굽기
 def tts(text, who):
-    v, rate = VOICE[who]; key = hashlib.md5((v + rate + text).encode()).hexdigest()[:10]; mp3, wav = D + "/_tts_%s.mp3" % key, D + "/_tts_%s.wav" % key
+    v, rate = VOICE[who]; key = hashlib.md5((("sapi" + who) if SAPI else (v + rate)).encode() + text.encode()).hexdigest()[:10]; mp3, wav = D + "/_tts_%s.mp3" % key, D + "/_tts_%s.wav" % key
+    if SAPI and not os.path.exists(wav):
+        raw = wav + ".raw.wav"; t = text.replace("'", "''")
+        subprocess.run(["powershell", "-NoProfile", "-Command", "Add-Type -AssemblyName System.Speech; $s = New-Object System.Speech.Synthesis.SpeechSynthesizer; $s.SelectVoice('Microsoft Heami Desktop'); $s.Rate = 2; $s.SetOutputToWaveFile('%s'); $s.Speak('%s'); $s.Dispose()" % (raw.replace("/", "\\"), t)], check=True)
+        f = "asetrate=24000*0.82,aresample=24000,atempo=1.2195" if who == "나" else "anull"
+        subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-i", raw, "-af", f, "-ac", "1", "-ar", str(SR), wav], check=True); os.remove(raw)
     if not os.path.exists(wav):
         import edge_tts
         asyncio.run(edge_tts.Communicate(text, v, rate=rate).save(mp3))
