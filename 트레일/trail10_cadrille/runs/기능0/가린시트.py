@@ -6,7 +6,8 @@ H = os.path.dirname(os.path.abspath(__file__)); R = os.path.dirname(H); T0 = os.
 from render import render
 from PIL import Image, ImageDraw, ImageFont
 F = lambda n: ImageFont.truetype("C:/Windows/Fonts/malgunbd.ttf", n); C = 256; RR = "G:/art2real/원화3d/out/레퍼런스/사람분할/"
-폴더 = {("시험", "우리"): "B_모델T_검증뺌", ("검증", "우리"): "B_모델T_검증뺌_검증", ("시험", "교차"): "B_교차", ("검증", "교차"): "B_교차_검증"}
+우 = os.environ.get("OURS", "B_모델T_검증뺌")   # 10-12 C 판 = OURS=B_C
+폴더 = {("시험", "우리"): 우, ("검증", "우리"): 우 + "_검증", ("검증2", "우리"): 우 + "_검증2", ("시험", "교차"): "B_교차", ("검증", "교차"): "B_교차_검증", ("검증2", "교차"): "B_교차_검증2"}
 def 정(m):
     m = m.copy(); m.apply_translation(-m.bounds.mean(0)); m.apply_scale(0.9 / max(m.extents)); m.apply_translation([.5] * 3); return m
 def 그(m, 색, v): return Image.fromarray(np.asarray(render(np.asarray(m.vertices), np.asarray(m.faces), v, img_size=C, cols=None if 색 is None else np.tile(색, (len(m.faces), 1)))))
@@ -19,7 +20,7 @@ def 쌍그림(사람, 후보):
     return c
 if __name__ == "__main__":
     O, 표 = sys.argv[1], sys.argv[2]; os.makedirs(O, exist_ok=True); L = json.load(open(os.path.join(H, "라벨.json"), encoding="utf-8"))["부품"]
-    키 = sorted(L); rng = random.Random(20261012); 항목 = [(k, 방) for k in 키 for 방 in ("우리", "교차")]
+    세트들 = os.environ.get("SETS", "시험,검증").split(","); 키 = sorted(k for k in L if k.split("/")[0] in 세트들); rng = random.Random(int(os.environ.get("SEED", 20261012))); 항목 = [(k, 방) for k in 키 for 방 in ("우리", "교차")]
     for k in rng.sample(키, 10): 항목.append((k, "양성"))
     for k in rng.sample(키, 10): 항목.append((k, "음성:" + rng.choice([q for q in 키 if q != k])))
     rng.shuffle(항목); 대응 = {}
