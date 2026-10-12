@@ -20,7 +20,12 @@ def 쌍그림(사람, 후보):
     return c
 if __name__ == "__main__":
     O, 표 = sys.argv[1], sys.argv[2]; os.makedirs(O, exist_ok=True); L = json.load(open(os.path.join(H, "라벨.json"), encoding="utf-8"))["부품"]
-    세트들 = os.environ.get("SETS", "시험,검증").split(","); 키 = sorted(k for k in L if k.split("/")[0] in 세트들); rng = random.Random(int(os.environ.get("SEED", 20261012))); 항목 = [(k, 방) for k in 키 for 방 in ("우리", "교차")]
+    세트들 = os.environ.get("SETS", "시험,검증").split(","); 키 = sorted(k for k in L if k.split("/")[0] in 세트들); rng = random.Random(int(os.environ.get("SEED", 20261012)))
+    def 같은가(k):   # DEDUP=1: 우리 메시 = 교차 메시면 한 쌍만(같음) — 같은 메시 두 번 채점은 잡음(판정14)
+        s_, i_ = k.split("/"); a_, b_ = [os.path.join(H, 폴더[(s_, w)], "%s.stl" % i_) for w in ("우리", "교차")]
+        if not (os.path.exists(a_) and os.path.exists(b_)): return False
+        A_, B_ = trimesh.load(a_), trimesh.load(b_); return len(A_.faces) == len(B_.faces) and abs(A_.volume - B_.volume) <= 1e-3 * abs(B_.volume)
+    항목 = [(k, 방) for k in 키 for 방 in ((["같음"] if os.environ.get("DEDUP") and 같은가(k) else ["우리", "교차"]))]
     for k in rng.sample(키, 10): 항목.append((k, "양성"))
     for k in rng.sample(키, 10): 항목.append((k, "음성:" + rng.choice([q for q in 키 if q != k])))
     rng.shuffle(항목); 대응 = {}
@@ -28,7 +33,7 @@ if __name__ == "__main__":
         세트, i = k.split("/"); 사람 = 정(trimesh.load(RR + L[k]["부품"], force="mesh"))
         if 방 == "양성": 후보 = 사람
         else:
-            src = k if not 방.startswith("음성") else 방.split(":")[1]; s2, i2 = src.split("/"); p = os.path.join(H, 폴더[(s2, "우리" if 방.startswith("음성") else 방)], "%s.stl" % i2)
+            src = k if not 방.startswith("음성") else 방.split(":")[1]; s2, i2 = src.split("/"); p = os.path.join(H, 폴더[(s2, "우리" if 방.startswith("음성") or 방 == "같음" else 방)], "%s.stl" % i2)
             후보 = 정(trimesh.load(p)) if os.path.exists(p) else None
         쌍그림(사람, 후보).save(os.path.join(O, "쌍%03d.png" % n)); 대응["쌍%03d" % n] = {"부품": k, "후보": 방}; print(n, flush=True)
     json.dump(대응, open(표, "w", encoding="utf-8"), ensure_ascii=False, indent=0); print("ok", len(대응))
