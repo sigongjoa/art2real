@@ -42,8 +42,10 @@ if __name__ == "__main__":
         E = int(sys.argv[2]) if len(sys.argv) > 2 else 8; XA = np.load(os.path.join(H, "학습.npy"), mmap_mode="r"); YA = np.load(os.path.join(H, "부피정답.npy"))
         뺄 = set(json.load(open(os.path.join(H, "검증목록2.json"), encoding="utf-8"))["학습빼기"]); 모 = sorted({목록[k].split("/")[0] for k in 키}); rng = np.random.default_rng(0); rng.shuffle(모); 검모 = set(모[:len(모) // 10])
         ti = [i for i in range(len(키)) if i not in 뺄 and 목록[키[i]].split("/")[0] not in 검모]; vi = [i for i in range(len(키)) if i not in 뺄 and 목록[키[i]].split("/")[0] in 검모]
-        torch.manual_seed(0); m = 부피망().to(dev); opt = torch.optim.AdamW(m.parameters(), 1e-3, weight_decay=1e-4); B = 4; nb = len(ti) // B
-        sch = torch.optim.lr_scheduler.OneCycleLR(opt, 1e-3, total_steps=E * nb, pct_start=.05); sc = torch.amp.GradScaler(); log = open(os.path.join(H, "부피학생.log"), "w", encoding="utf-8"); t0 = time.time(); best = 0
+        torch.manual_seed(0); m = 부피망().to(dev); 이어 = os.environ.get("RESUME"); 꼬리 = os.environ.get("TAG", "")
+        if 이어: m.load_state_dict(torch.load(os.path.join(H, 이어)))   # 판정기준21: 이어 배우기
+        opt = torch.optim.AdamW(m.parameters(), 1e-3 if not 이어 else 5e-4, weight_decay=1e-4); B = 4; nb = len(ti) // B
+        sch = torch.optim.lr_scheduler.OneCycleLR(opt, 1e-3 if not 이어 else 5e-4, total_steps=E * nb, pct_start=.05); sc = torch.amp.GradScaler(); log = open(os.path.join(H, "부피학생%s.log" % 꼬리), "w", encoding="utf-8"); t0 = time.time(); best = 0
         def 배(ix):
             x = torch.tensor(np.stack([입력(np.asarray(XA[i]).astype(np.float32)) for i in ix]), device=dev); y = torch.tensor(np.stack([np.unpackbits(YA[i])[:n ** 3].reshape(n, n, n) for i in ix]).astype(np.float32), device=dev); return x, y
         def 재기(ix):
@@ -63,7 +65,7 @@ if __name__ == "__main__":
                 with torch.autocast("cuda", dtype=torch.float16): l = F.binary_cross_entropy_with_logits(m(x), y)
                 opt.zero_grad(); sc.scale(l).backward(); sc.step(opt); sc.update(); sch.step(); tl.append(l.item())
             vi_iou, vh = 재기(vi); msg = "에폭 %d 손실 %.4f 검증 IoU %.3f (교차 %.3f) %.0f 초" % (ep, np.mean(tl), vi_iou, vh, time.time() - t0); print(msg, flush=True); log.write(msg + "\n"); log.flush()
-            if vi_iou > best: best = vi_iou; torch.save(m.state_dict(), os.path.join(H, "부피학생.pt"))
+            if vi_iou > best: best = vi_iou; torch.save(m.state_dict(), os.path.join(H, "부피학생%s.pt" % 꼬리))
         print("ok 최고 검증 IoU", best)
     elif sys.argv[1] == "평가":   # 재심 세트 진짜 홈 바닥 오차 — 3D 학생 대 2D 학생(모델T_검증뺌2)
         from scipy import ndimage
@@ -100,4 +102,19 @@ if __name__ == "__main__":
             P = ndimage.gaussian_filter(F.interpolate(p_[:, None], scale_factor=2, mode="trilinear")[0, 0].cpu().numpy(), 1.0); P = np.pad(P, 1)
             v, f, _, _ = marching_cubes(P, .5); M = trimesh.Trimesh((v - 1 + .5) / (2 * n), f); M = max(M.split(only_watertight=False), key=lambda q: len(q.faces))
             M.apply_translation([-.5] * 3); M.apply_scale(2.0); M.export(os.path.join(O, "%02d.stl" % i)); print(i, len(M.faces), flush=True)
+        print("ok")
+
+    elif sys.argv[1] == "메시G":   # 판정기준21 — 128 보간(가우시안 없음) × 128 교차 · 부피 1 % 넘는 덩이 모두
+        import trimesh
+        from skimage.measure import marching_cubes
+        m = 부피망().to(dev); m.load_state_dict(torch.load(os.path.join(H, "부피학생G.pt"))); m.eval(); X2 = np.load(os.path.join(H, "검증2.npz"))["X"].astype(np.float32)
+        O = os.path.join(R, "기능0", "B_G_검증2"); os.makedirs(O, exist_ok=True); N2 = 128
+        for i in range(len(X2)):
+            with torch.no_grad():
+                with torch.autocast("cuda", dtype=torch.float16): p_ = torch.sigmoid(m(torch.tensor(입력(X2[i])[None], device=dev)).float())
+            P = F.interpolate(p_[:, None], size=(N2, N2, N2), mode="trilinear", align_corners=False)[0, 0].cpu().numpy()
+            s0 = [X2[i][0][2 * a] > .5 for a in range(3)]; hull = s0[0][None] & s0[1][:, None] & s0[2][:, :, None]
+            P = np.pad(P * hull, 1); v, f, _, _ = marching_cubes(P, .5); M = trimesh.Trimesh((v - 1 + .5) / N2, f)
+            조 = M.split(only_watertight=False); 큰 = max(abs(q.volume) for q in 조) if 조 else 0; 조 = [q for q in 조 if abs(q.volume) >= .01 * 큰 * 1] or 조
+            M = trimesh.util.concatenate(조); M.apply_translation([-.5] * 3); M.apply_scale(2.0); M.export(os.path.join(O, "%02d.stl" % i)); print(i, len(조), flush=True)
         print("ok")
