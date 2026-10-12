@@ -87,3 +87,17 @@ if __name__ == "__main__":
              "홈 바닥 오차 중앙(128 칸) 3D 학생": round(float(np.median(e3)), 2), "홈 바닥 오차 중앙 2D 학생": round(float(np.median(e2)), 2)}
         r["기준"] = bool(r["재심 세트 점유 IoU 3D 학생"] >= r["재심 세트 점유 IoU 교차"] + .10 and r["홈 바닥 오차 중앙(128 칸) 3D 학생"] <= 3.0)
         json.dump(r, open(os.path.join(H, "부피학생.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1); print("ok", r)
+
+    elif sys.argv[1] == "메시":   # 판정기준19 F — 재심 세트 40 · 점유 확률 → 128³ 보간 · 가우시안 → 마칭 큐브 → 가장 큰 덩이 · unit 상자
+        import trimesh
+        from scipy import ndimage
+        from skimage.measure import marching_cubes
+        m = 부피망().to(dev); m.load_state_dict(torch.load(os.path.join(H, "부피학생.pt"))); m.eval(); X2 = np.load(os.path.join(H, "검증2.npz"))["X"].astype(np.float32)
+        O = os.path.join(R, "기능0", "B_F_검증2"); os.makedirs(O, exist_ok=True)
+        for i in range(len(X2)):
+            with torch.no_grad():
+                with torch.autocast("cuda", dtype=torch.float16): p_ = torch.sigmoid(m(torch.tensor(입력(X2[i])[None], device=dev)).float())
+            P = ndimage.gaussian_filter(F.interpolate(p_[:, None], scale_factor=2, mode="trilinear")[0, 0].cpu().numpy(), 1.0); P = np.pad(P, 1)
+            v, f, _, _ = marching_cubes(P, .5); M = trimesh.Trimesh((v - 1 + .5) / (2 * n), f); M = max(M.split(only_watertight=False), key=lambda q: len(q.faces))
+            M.apply_translation([-.5] * 3); M.apply_scale(2.0); M.export(os.path.join(O, "%02d.stl" % i)); print(i, len(M.faces), flush=True)
+        print("ok")
