@@ -31,8 +31,9 @@ def 라벨(x):
     if not x["닫힘"]: L.append("열린 메시")
     return L
 if __name__ == "__main__":
-    out = {}
-    for 세트 in ("시험", "검증"):
+    세트들 = sys.argv[1:] or ["시험", "검증"]; LP = os.path.join(H, "라벨.json")
+    out = json.load(open(LP, encoding="utf-8"))["부품"] if os.path.exists(LP) and sys.argv[1:] else {}   # 세트를 주면 있던 라벨에 덧붙임
+    for 세트 in 세트들:
         부 = np.load(os.path.join(R, "깊이학습", 세트 + ".npz"))["부품"]
         for i, p in enumerate(부):
             if 세트 == "시험" and i == 30: continue   # 30 은 처음부터 뺀 부품
@@ -40,4 +41,4 @@ if __name__ == "__main__":
             out["%s/%02d" % (세트, i)] = {"부품": str(p), "모델": 모델, "이름": 이름, "수치": x, "라벨": 라벨(x)}; print(세트, i, 이름, 라벨(x), flush=True)
     json.dump({"문턱": 문턱, "부품": out}, open(os.path.join(H, "라벨.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     from collections import Counter
-    for 세트 in ("시험", "검증"): print(세트, dict(Counter(l for k, v in out.items() if k.startswith(세트) for l in v["라벨"])))
+    for 세트 in 세트들: print(세트, dict(Counter(l for k, v in out.items() if k.startswith(세트) for l in v["라벨"])))
