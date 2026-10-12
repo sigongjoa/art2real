@@ -16,8 +16,8 @@ if __name__ == "__main__" and sys.argv[1] != "집계":
             묶.setdefault(h, (p, []))[1].append(이름)
         for h, (p, 이름들) in 묶.items(): 항.append((k, "+".join(이름들), p if not h.startswith("없음") else None))
     for k in rng.sample(키, 10): 항.append((k, "양성", None))
-    for k in rng.sample(키, 10):
-        q = rng.choice([x for x in 키 if x != k]); 항.append((k, "음성", os.path.join(H, 방법[-1][1] + "_" + 세트, "%s.stl" % q.split("/")[1])))
+    for k in rng.sample(키, 10):   # 음성: 짓기 실패한 부품 파일은 못 씀
+        q = rng.choice([x for x in 키 if x != k and os.path.exists(os.path.join(H, 방법[-1][1] + "_" + 세트, "%s.stl" % x.split("/")[1]))]); 항.append((k, "음성", os.path.join(H, 방법[-1][1] + "_" + 세트, "%s.stl" % q.split("/")[1])))
     rng.shuffle(항); 대 = {}
     for n, (k, 후, p) in enumerate(항):
         사람 = 정(trimesh.load(RR + L[k]["부품"], force="mesh")); 후보 = 사람 if 후 == "양성" else (정(trimesh.load(p)) if p else None)
