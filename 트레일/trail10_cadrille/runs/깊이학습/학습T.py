@@ -8,8 +8,8 @@ E = int(sys.argv[1]) if len(sys.argv) > 1 else 6; B = 32
 X = np.load(os.path.join(H, "학습.npy"), mmap_mode="r"); TX = np.load(os.path.join(H, "정답T_학습.npy"), mmap_mode="r")
 S_ = np.load(os.path.join(H, "시험.npz"))["X"]; ST = np.load(os.path.join(H, "정답T_시험.npy"))
 rng = np.random.default_rng(0); 순 = rng.permutation(len(X)); V, TR = 순[:150], 순[150:]
-꼬리 = "_검증뺌" if os.environ.get("VAL") else ""   # VAL=1: 검증목록.json 의 20 모델(150 부품)을 학습 · 검증에서 통째로 뺌
-if 꼬리: 뺄 = set(__import__("json").load(open(os.path.join(H, "검증목록.json"), encoding="utf-8"))["학습빼기"]); V, TR = np.array([i for i in V if i not in 뺄]), np.array([i for i in TR if i not in 뺄])
+꼬리 = ("_검증뺌" + ("" if os.environ.get("VAL") == "1" else os.environ.get("VAL"))) if os.environ.get("VAL") else ""   # VAL=2 → 검증목록2 · _검증뺌2   # VAL=1: 검증목록.json 의 20 모델(150 부품)을 학습 · 검증에서 통째로 뺌
+if 꼬리: 뺄 = set(__import__("json").load(open(os.path.join(H, "검증목록%s.json" % ("" if os.environ.get("VAL") == "1" else os.environ.get("VAL"))), encoding="utf-8"))["학습빼기"]); V, TR = np.array([i for i in V if i not in 뺄]), np.array([i for i in TR if i not in 뺄])
 쌍 = lambda idx: np.array([(i, v) for i in idx for v in range(6)])
 PT, PV = 쌍(TR), 쌍(V); SN = [0, 5, 17, 18, 31, 35]
 def 묶음(A, Tt, P):
