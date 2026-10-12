@@ -121,7 +121,7 @@ def 판(ax, sil, arc=None):   # 한 방향 윤곽판(축 ax 로 밀기) · 100 �
 
 def 메시로(s):
     import cadquery as cq, tempfile
-    p = os.path.join(tempfile.gettempdir(), "윤곽_%d.stl" % os.getpid()); cq.exporters.export(s, p, tolerance=0.05, angularTolerance=0.2)
+    p = os.path.join(tempfile.gettempdir(), "윤곽_%d.stl" % os.getpid()); 촘 = os.environ.get("MESH_FINE"); cq.exporters.export(s, p, tolerance=0.02 if 촘 else 0.05, angularTolerance=0.05 if 촘 else 0.2)   # 10-12 MESH_FINE: 원 ≈ 128 각(판정기준20)
     m = trimesh.load(p); m.apply_scale(1 / 50.0); m.apply_translation([-1, -1, -1]); return m   # 100 배 단위 상자 → [-1,1]
 
 if __name__ == "__main__":
