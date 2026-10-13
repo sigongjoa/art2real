@@ -16,8 +16,18 @@ def 다각(mask):
                 q = [화(x, y) for x, y in p]
                 if not 꼬임(q): out.append(q); break   # 끝까지 꼬이거나 꼭짓점 200 넘으면 버림
     return out
-def 짓기(Y, D, H, 덩어리깊이=False):   # 덩어리깊이: 들어감 덩어리(4 이웃)마다 깊이 하나(중앙값) — 판정기준31 ①
+def 몸통53(그림, H):   # 판정기준33 — 몸통은 53 편 윤곽바탕(그림 물붓기 · 가장 큰 바깥 윤곽 · 원 판정 · 1.5 줄이기) · → (고체, 경로)
+    import sys, cadquery as cq
+    sys.path.insert(0, "G:/art2real/원화3d/실험_20261013/구멍"); import 윤곽바탕 as W
+    _, c = W.바깥(그림); f = W.맞추기(c)
+    if f[0] == "원": (x, y), r = f[1], f[2]; cx, cy = 화(x, y); return cq.Workplane("XY").center(cx, cy).circle(r * 칸).extrude(H).translate((0, 0, -H / 2)), "원"
+    for i, e in enumerate((1.5, 1.0, .5, 2.5, 4)):   # 꼬이면 줄임 정도를 바꿔 다시 — 끝까지 꼬이면 볼록 껍질(경로를 세어 찍는다)
+        p = cv2.approxPolyDP(c.reshape(-1, 1, 2).astype(np.float32), e, True)[:, 0, :]; q = [화(x, y) for x, y in p]
+        if 3 <= len(q) <= 300 and not 꼬임(q): return cq.Workplane("XY").polyline(q).close().extrude(H).translate((0, 0, -H / 2)), "다각" if i == 0 else "다시 줄임"
+    q = [화(x, y) for x, y in cv2.convexHull(c.astype(np.float32))[:, 0, :]]; return cq.Workplane("XY").polyline(q).close().extrude(H).translate((0, 0, -H / 2)), "볼록 껍질"
+def 짓기(Y, D, H, 덩어리깊이=False, 그림=None):   # 그림: 주면 몸통은 몸통53(그림) · Y 는 관통 · 들어감에만   # 덩어리깊이: 들어감 덩어리(4 이웃)마다 깊이 하나(중앙값) — 판정기준31 ①
     import cadquery as cq
+    if 그림 is not None: return 깎기(몸통53(그림, H)[0], Y, D, H, 덩어리깊이)
     밖 = Y > 0; ps = 다각(밖)
     if not ps: return None
     s = None
@@ -26,6 +36,9 @@ def 짓기(Y, D, H, 덩어리깊이=False):   # 덩어리깊이: 들어감 덩�
             b = cq.Workplane("XY").polyline(p).close().extrude(H).translate((0, 0, -H / 2)); s = b if s is None else s.union(b)
         except Exception: pass
     if s is None: return None
+    return 깎기(s, Y, D, H, 덩어리깊이)
+def 깎기(s, Y, D, H, 덩어리깊이):   # 몸통 s 에 관통 · 들어감을 깎는다
+    import cadquery as cq
     for p in 다각(Y == 2):
         try: s = s.cut(cq.Workplane("XY").polyline(p).close().extrude(H + .2).translate((0, 0, -H / 2 - .1)))
         except Exception: pass
@@ -58,8 +71,13 @@ def 정규메시(p):   # 데이터.py 와 같은 변환
     if len(m.faces) > 150000: raise ValueError("면이 너무 많음")   # 10-13 평가 메모리 — 큰 메시는 건너뜀(0 점으로 셈)
     e = m.extents; ax = int(np.argmin(e)); order = [i for i in range(3) if i != ax] + [ax]
     return (m.vertices - m.bounds.mean(0))[:, order] / e.max(), m.faces, float(e[ax] / e.max())
-def 부피IoU(job):   # (stl 경로, Y, D[, 덩어리깊이]) → (IoU, 바탕만 IoU)
-    p, Y, D = job[:3]; 덩 = job[3] if len(job) > 3 else False
+def 부피IoU(job):   # (stl 경로, Y, D[, 덩어리깊이[, 그림]]) → (IoU, 바탕만 IoU) · 그림을 주면 (IoU, 바탕만, 몸통 경로)
+    p, Y, D = job[:3]; 덩 = job[3] if len(job) > 3 else False; 그림 = job[4] if len(job) > 4 else None
+    if 그림 is not None:
+        try:
+            v, f, H = 정규메시(p); 정 = 점유_메시(v, f); 몸, 길 = 몸통53(그림, H); s = 깎기(몸, Y, D, H, 덩)
+            r = lambda q: float((q & 정).sum() / max((q | 정).sum(), 1)); return (r(점유_캐드(s)), r(점유_캐드(몸)), 길)
+        except Exception as e: return (0.0, 0.0, "실패 " + type(e).__name__)
     try:
         v, f, H = 정규메시(p); 정 = 점유_메시(v, f); s = 짓기(Y, D, H, 덩); s0 = 짓기(np.where(Y > 0, 1, 0), D * 0, H)
         r = lambda q: float((q & 정).sum() / max((q | 정).sum(), 1))
