@@ -6,7 +6,7 @@ from 도구 import *
 import 디테일 as DT, 회전 as RV
 sys.path.insert(0, os.path.join(R, "깊이학습"))
 from 학습 import 망
-O = os.path.join(H, ("B_H" + os.environ.get("HTAG", "") if os.environ.get("HREV") else "B_C2" if os.environ.get("MESH_FINE") and not os.environ.get("FILTER") and not os.environ.get("ORACLE") else "B_O" if os.environ.get("ORACLE") else "B_E" if os.environ.get("REFINE") else "B_D" if os.environ.get("FILTER") else "B_C") + ("" if 세트 == "시험" else "_" + 세트))   # FILTER=1 → D 판(거름망이 통과시킨 홈만)
+O = os.path.join(H, ("B_I" if os.environ.get("IREV") else "B_H" + os.environ.get("HTAG", "") if os.environ.get("HREV") else "B_C2" if os.environ.get("MESH_FINE") and not os.environ.get("FILTER") and not os.environ.get("ORACLE") else "B_O" if os.environ.get("ORACLE") else "B_E" if os.environ.get("REFINE") else "B_D" if os.environ.get("FILTER") else "B_C") + ("" if 세트 == "시험" else "_" + 세트))   # FILTER=1 → D 판(거름망이 통과시킨 홈만)
 def 홈칼(i, k, c, 바닥):   # 짓기B 와 같음 — 덩이 윤곽을 바닥 깊이부터 바깥까지 민 기둥(128 칸)
     ax = k // 2; o = [j for j in range(3) if j != ax]
     cs, _ = cv2.findContours(c.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE); p = cv2.approxPolyDP(max(cs, key=cv2.contourArea), 1.5, True)[:, 0, :]
@@ -124,7 +124,16 @@ if __name__ == "__main__":
                 if t is not None: s = t; 순서.append("회전2 기움 %.0f° 대칭 %.2f" % (_f2["기움"], _f2["대칭"]))
             except Exception as e: 순서.append("회전2 실패")
         else:
-            for a, (cy, cx), 런 in 원기둥구간(S):
+            구 = 0
+            if os.environ.get("IREV"):   # 판정기준25 I 판: H 가 통째로 안 건 부품 — 둥근 구간만 회전으로 깎음
+                R2 = __import__("회전2"); f3 = R2.찾기(R2.학생부피(X))
+                for b0, b1 in (f3["구간"] if f3 is not None else []):
+                    try:
+                        t = R2.구간짓기(f3, s, b0, b1)
+                        if len(t.solids().vals()) <= n0 and t.val().Volume() >= .7 * s.val().Volume(): s = t; 구 += 1; 순서.append("구간 회전 %d~%d 기움 %.0f°" % (b0, b1, f3["기움"]))
+                        else: 순서.append("구간 회전 버림 %d~%d" % (b0, b1))
+                    except Exception as e: 순서.append("구간 회전 실패 %d~%d" % (b0, b1))
+            for a, (cy, cx), 런 in (원기둥구간(S) if not 구 else []):
                 oa = [j for j in range(3) if j != a]; 중 = [0.0, 0.0, 0.0]; 중[oa[0]] = c(cy); 중[oa[1]] = c(cx)
                 for rs in 런:
                     try:
