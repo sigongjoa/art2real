@@ -49,7 +49,7 @@ def 프레임(k):   # k = 지금 에폭(1부터)
             if i == k - 1: 빛테(c, box, 22, C["강조"], 5, 14)
             else: d.rounded_rectangle(box, 22, outline=C["테"], width=3)
         else:
-            점선테(d, box, 22, C["흐림"]); d.text((cx, yy + ch // 2), "?", font=F(52), fill=C["흐림"], anchor="mm")
+            d.rounded_rectangle(box, 22, fill=C["바탕위"] + (255,)); 점선테(d, box, 22, C["흐림"]); d.text((cx, yy + ch // 2), "?", font=F(52), fill=C["흐림"], anchor="mm")   # 속을 채워 시간축 선을 카드 뒤로
         d.text((x0 + cw + 8, yy + ch // 2), "%d" % (i + 1), font=F(24), fill=C["강조"] if i == k - 1 else C["흐림"], anchor="lm")
     # 큰 형태 카드
     b = T["큰형태"]; mb = tuple(b["상자"]); d.rounded_rectangle(mb, 36, fill=C["카드"] + (255,))
