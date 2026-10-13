@@ -3,7 +3,7 @@ import json, math
 from PIL import Image, ImageDraw, ImageFont
 A = "G:/art2real/out/설명/구멍/"; F = lambda n: ImageFont.truetype("C:/Windows/Fonts/malgunbd.ttf", n); 코 = lambda n: ImageFont.truetype("C:/Windows/Fonts/consola.ttf", n)
 파, 초, 빨, 먹, 회, 노 = (60, 110, 230), (50, 160, 80), (220, 50, 50), (40, 40, 50), (120, 120, 130), (230, 170, 30)
-IOU = {int(k): v for k, v in json.load(open(A + "iou.json")).items()}
+IOU = {int(k): v for k, v in json.load(open(A + "iou.json")).items() if k.isdigit()}   # 10-13 iou.json 에 시안용 「4엇」 · 0~2 도 들어감
 def _카드(w, h, 테):
     c = Image.new("RGBA", (w, h), (0, 0, 0, 0)); ImageDraw.Draw(c).rounded_rectangle((0, 0, w - 1, h - 1), 36, fill=(250, 250, 252, 255), outline=테 + (255,), width=8); return c
 def _붙(c, p, xy, s): im = Image.open(A + p).convert("RGBA").resize((s, s)); c.alpha_composite(im, xy)
