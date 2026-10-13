@@ -2,12 +2,18 @@
 import numpy as np, cv2
 N = 128; 칸 = 1.1 / N
 def 화(x, y): return (-.55 + (x + .5) * 칸, .55 - (y + .5) * 칸)   # 화소 → 세계(데이터.py 의 광선 격자와 같음)
+def 꼬임(q):   # 닫힌 다각형의 변끼리 건너는 곳 수 — 0 이어야 CAD 면이 된다(기능0/도구.py 와 같음 · 꼬인 윤곽은 OCC 불리언이 메모리를 끝없이 잡음 10-11)
+    n = len(q); o = lambda u, v, w: (v[0] - u[0]) * (w[1] - u[1]) - (v[1] - u[1]) * (w[0] - u[0])
+    return sum(o(q[i], q[(i + 1) % n], q[j]) * o(q[i], q[(i + 1) % n], q[(j + 1) % n]) < 0 and o(q[j], q[(j + 1) % n], q[i]) * o(q[j], q[(j + 1) % n], q[(i + 1) % n]) < 0
+               for i in range(n) for j in range(i + 2, n) if not (i == 0 and j == n - 1))
 def 다각(mask):
     cs, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE); out = []
     for c in cs:
         if cv2.contourArea(c) < 3: continue
         p = cv2.approxPolyDP(c, .8, True)[:, 0, :]
-        if len(p) >= 3: out.append([화(x, y) for x, y in p])
+        if 3 <= len(p) <= 200:
+            q = [화(x, y) for x, y in p]
+            if not 꼬임(q): out.append(q)   # 꼬인 다각형 · 꼭짓점 200 넘는 것은 버림
     return out
 def 짓기(Y, D, H):
     import cadquery as cq
@@ -38,7 +44,9 @@ def 점유_캐드(s, n=48):
     vs, ts = s.val().tessellate(0.005, 0.2); return 점유_메시([(q.x, q.y, q.z) for q in vs], ts, n)
 def 정규메시(p):   # 데이터.py 와 같은 변환
     import trimesh
-    m = trimesh.load(p, force="mesh"); e = m.extents; ax = int(np.argmin(e)); order = [i for i in range(3) if i != ax] + [ax]
+    m = trimesh.load(p, force="mesh")
+    if len(m.faces) > 150000: raise ValueError("면이 너무 많음")   # 10-13 평가 메모리 — 큰 메시는 건너뜀(0 점으로 셈)
+    e = m.extents; ax = int(np.argmin(e)); order = [i for i in range(3) if i != ax] + [ax]
     return (m.vertices - m.bounds.mean(0))[:, order] / e.max(), m.faces, float(e[ax] / e.max())
 def 부피IoU(job):   # (stl 경로, Y, D) → (IoU, 바탕만 IoU)
     p, Y, D = job
