@@ -16,7 +16,7 @@ COL = {"나": (120, 190, 255), "AI": (90, 230, 200)}
 F = lambda n: ImageFont.truetype("C:/Windows/Fonts/malgunbd.ttf", n)
 
 rows = [r for r in csv.reader(open(os.path.join(SRC, "대본.tsv"), encoding="utf-8"), delimiter="\t") if r and not r[0].startswith("#")][1:]
-rows = [dict(누구=r[0], 나=r[1], AI=r[2], 화면=r[3], 큰글=r[4], 말=r[5]) for r in rows]
+rows = [dict(누구=r[0], 나=r[1], AI=r[2], 화면=r[3], 큰글=r[4], 말=r[5].split("｜")[0], 읽기=r[5].split("｜")[-1]) for r in rows]   # 10-13 말 칸 「자막｜읽기」 — 자막은 숫자로, 목소리는 읽는 말로(없으면 같음)
 spec = importlib.util.spec_from_file_location("화면", os.path.join(SRC, "화면.py")); 화면 = importlib.util.module_from_spec(spec); spec.loader.exec_module(화면)
 
 SAPI = os.environ.get("TTS") == "sapi"   # 10-12 edge-tts 403 → Windows 기본 Heami(여) 하나 · 나 = 음높이 내림 · 서버 돌아오면 TTS 빼고 다시 굽기
@@ -35,8 +35,8 @@ def tts(text, who):
 if os.environ.get("TTS") == "chatterbox":   # 10-12 사용자 고름: 로컬 Chatterbox(MIT) — 나 = 기본 목소리 · AI = SunHi 한 줄 참고 · 한 번에 굽고 24 kHz 로
     CB = "G:/art2real/out/tts/"; 일 = []
     for r in rows:
-        key = hashlib.md5(("cb" + r["누구"] + r["말"]).encode()).hexdigest()[:10]; r["_wav"] = D + "/_tts_%s.wav" % key
-        if not os.path.exists(r["_wav"]): 일.append({"말": r["말"], "누구": r["누구"], "출력": r["_wav"] + ".raw.wav"})
+        key = hashlib.md5(("cb" + r["누구"] + r["읽기"]).encode()).hexdigest()[:10]; r["_wav"] = D + "/_tts_%s.wav" % key
+        if not os.path.exists(r["_wav"]): 일.append({"말": r["읽기"], "누구": r["누구"], "출력": r["_wav"] + ".raw.wav"})
     if 일:
         json.dump(일, open(D + "/_cb일감.json", "w", encoding="utf-8"), ensure_ascii=False); subprocess.run([CB + "chatterbox/Scripts/python.exe", os.path.join(HERE, "tts", "굽기_chatterbox.py"), D + "/_cb일감.json"], check=True)
         for j in 일:   # 끝 쉼 잘라내고 24 kHz 모노
@@ -44,7 +44,7 @@ if os.environ.get("TTS") == "chatterbox":   # 10-12 사용자 고름: 로컬 Cha
     def _읽(p):
         with wave.open(p) as w: return np.frombuffer(w.readframes(w.getnframes()), np.int16)
     voices = [_읽(r["_wav"]) for r in rows]
-else: voices = [tts(r["말"], r["누구"]) for r in rows]
+else: voices = [tts(r["읽기"], r["누구"]) for r in rows]
 ns = [int(np.ceil((len(v) / SR + GAP) * FPS)) for v in voices]; starts = np.cumsum([0] + ns)[:-1]; N = sum(ns)
 
 # 바탕 · 인물(표정별 누끼 · 한 번만 읽음)
