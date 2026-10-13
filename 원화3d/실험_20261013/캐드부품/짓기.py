@@ -10,10 +10,11 @@ def 다각(mask):
     cs, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE); out = []
     for c in cs:
         if cv2.contourArea(c) < 3: continue
-        p = cv2.approxPolyDP(c, .8, True)[:, 0, :]
-        if 3 <= len(p) <= 200:
-            q = [화(x, y) for x, y in p]
-            if not 꼬임(q): out.append(q)   # 꼬인 다각형 · 꼭짓점 200 넘는 것은 버림
+        for e in (.8, .5, .3, 1.2, 2, 3):   # 꼬이면 버리지 않고 줄임 정도를 바꿔 다시(판정기준32) — 0.8 에서 되던 것은 그대로
+            p = cv2.approxPolyDP(c, e, True)[:, 0, :]
+            if 3 <= len(p) <= 200:
+                q = [화(x, y) for x, y in p]
+                if not 꼬임(q): out.append(q); break   # 끝까지 꼬이거나 꼭짓점 200 넘으면 버림
     return out
 def 짓기(Y, D, H, 덩어리깊이=False):   # 덩어리깊이: 들어감 덩어리(4 이웃)마다 깊이 하나(중앙값) — 판정기준31 ①
     import cadquery as cq
