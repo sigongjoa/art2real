@@ -11,11 +11,10 @@ F = lambda n: ImageFont.truetype("C:/Windows/Fonts/malgunbd.ttf", n); W, H = 108
 바0, 바1, 카, 테, 하, 흰, 회, 빨, 초 = (8, 13, 26), (14, 22, 42), (16, 24, 42), (40, 54, 84), (64, 196, 255), (236, 242, 250), (64, 80, 112), (255, 96, 96), (110, 220, 140)
 S = json.load(open(L + "스냅.json", encoding="utf-8")); 스 = S["스냅"]; 범 = S["범주"]; 정 = S["정답"]
 대사 = json.load(open(os.path.join(H_, "대사52.json"), encoding="utf-8"))   # [[누구, 말(자막), 스냅 처음, 스냅 끝, 판(없으면 6칸)]]
-읽기표 = {"1,500걸음": "천오백 걸음", "100걸음": "백 걸음", "200장": "이백 장", "6개": "여섯 개"}
+읽기표 = {"부품 6개": "부품 여섯 개", "200개": "이백 개", "0.83": "영점 팔삼", "0.95": "영점 구오", "23%": "이십삼 퍼센트"}
 def 읽기(말):
-    import re
     for a, b in 읽기표.items(): 말 = 말.replace(a, b)
-    return re.sub(r"(\d)\.(\d+)", lambda m: "%s 점 %s" % (m.group(1), " ".join(m.group(2))), 말)   # 0.968 → 0 점 9 6 8 (Chatterbox 가 숫자를 읽음)
+    return 말
 
 def 선그림(p, s=512):
     a = Image.new("RGB", (s, s), (250, 248, 240)); d = ImageDraw.Draw(a); q = lambda v: (v + K.반) / (2 * K.반) * s; col = (30, 30, 35)
@@ -62,13 +61,13 @@ def 프레임(k, 누구, 말, 판=None):
         for j, (부, 글) in enumerate((("머리", "머리"), ("발", "발"))):
             y0 = 300 + j * 620; d.rounded_rectangle((60, y0, 1020, y0 + 580), 30, fill=카 + (255,), outline=테, width=3)
             g_ = Image.open("G:/art2real/out/영상05/대화/49_진짜그림/자료/%s_앞그림.png" % 부).convert("RGBA").resize((400, 400)); c.alpha_composite(둥근(g_, 20, 10), (100, y0 + 80))
-            r_ = Image.open(L + "진짜_%s.png" % 부).convert("RGBA").resize((440, 440)); c.alpha_composite(둥근(r_, 24, 50), (540, y0 + 60))
+            r_ = Image.open(L + "진짜_%s.png" % 부).convert("RGBA").crop((180, 160, 720, 700)).resize((440, 440)); c.alpha_composite(둥근(r_, 24, 50), (540, y0 + 60))
             d.text((300, y0 + 520), "진짜 그림(앞)", font=F(32), fill=흰, anchor="mm"); d.text((760, y0 + 520), "모델이 지은 것", font=F(32), fill=빨, anchor="mm")
     else:   # 6 칸
         for j, w in enumerate(s["지켜볼"]):
             col, row = j % 2, j // 2; x0, y0 = 50 + col * 500, 290 + row * 410; bx = (x0, y0, x0 + 480, y0 + 390)
             d.rounded_rectangle(bx, 26, fill=카 + (255,), outline=테, width=2)
-            im = Image.open(A + "빛_r52_s%04d_%d.png" % (s["걸음"], j)).convert("RGB").resize((380, 380)); c.alpha_composite(둥근(im, 24, 50), (x0 + 5, y0 + 5))
+            im = Image.open(A + "빛_r52_s%04d_%d.png" % (s["걸음"], j)).convert("RGB"); im = im.crop((180, 160, 720, 700)).resize((380, 380)); c.alpha_composite(둥근(im, 24, 50), (x0 + 5, y0 + 5))   # 가운데를 잘라 크게
             gm = Image.open(L + "그림_%d.png" % j).convert("RGBA").resize((130, 130)); d.rounded_rectangle((x0 + 338, y0 + 14, x0 + 466, y0 + 142), 14, fill=(244, 246, 250, 255)); c.alpha_composite(gm.resize((118, 118)), (x0 + 343, y0 + 19))
             맞 = w["IoU"] >= .95; pill = (x0 + 140, y0 + 330, x0 + 340, y0 + 378); d.rounded_rectangle(pill, 24, fill=(12, 20, 36, 255)); 빛테(c, pill, 24, 초 if 맞 else 빨, 3, 8)
             d.text(((pill[0] + pill[2]) // 2, (pill[1] + pill[3]) // 2), "맞음" if 맞 else "아직", font=F(30), fill=흰, anchor="mm")
