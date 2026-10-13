@@ -27,7 +27,7 @@ def 보기들(앞, 옆, n):
     A1 = g(옆, pz, px).T                                                      # (X, Z)
     return A0, A1
 
-def 짓기(그림, 이름, r0, r1, a0, a1, b0, b1):
+def 넣기(그림, r0, r1, a0, a1, b0, b1, i=-1):   # 그림 → 도구 캐시(_S · _X)에 번호 i 로 넣음 · (앞 조각, 옆 조각, S, X)
     im = np.asarray(Image.open(그림).convert("RGB")); fa, fb = im[r0:r1, a0:a1], im[r0:r1, b0:b1]
     ma, mb = 마스크(fa), 마스크(fb)
     S, X = [], []
@@ -39,7 +39,10 @@ def 짓기(그림, 이름, r0, r1, a0, a1, b0, b1):
     l0, l1 = [a > 0 for a in 보기들(선그림(fa, ma).astype(np.uint8), 선그림(fb, mb).astype(np.uint8), 128)]
     L = np.stack([l0, l0, l1, l1, np.zeros_like(l0), np.zeros_like(l0)]).astype(np.float32)
     Dx = 교차깊이(Sx); Xin = np.stack([Sx, L, Dx, Dx])                       # 깊이는 모름 → 교차 깊이
-    i = -1; T._S[i] = S; T._X[i] = Xin
+    T._S[i] = S; T._X[i] = Xin
+    return fa, fb, S, Xin
+def 짓기(그림, 이름, r0, r1, a0, a1, b0, b1):
+    i = -1; fa, fb, S, Xin = 넣기(그림, r0, r1, a0, a1, b0, b1, i)
     교 = T.돌출(i, 0).intersect(T.돌출(i, 1)).intersect(T.돌출(i, 2)); s = 교; 순서 = ["교차"]; n0 = len(s.solids().vals())
     f = RV.찾기(S)   # 짓기C 의 H(HREV=1) 순서 그대로
     f2 = None if f["걸림"] else R2.찾기(R2.학생부피(Xin))
