@@ -15,7 +15,7 @@ def 다각(mask):
             q = [화(x, y) for x, y in p]
             if not 꼬임(q): out.append(q)   # 꼬인 다각형 · 꼭짓점 200 넘는 것은 버림
     return out
-def 짓기(Y, D, H):
+def 짓기(Y, D, H, 덩어리깊이=False):   # 덩어리깊이: 들어감 덩어리(4 이웃)마다 깊이 하나(중앙값) — 판정기준31 ①
     import cadquery as cq
     밖 = Y > 0; ps = 다각(밖)
     if not ps: return None
@@ -28,6 +28,15 @@ def 짓기(Y, D, H):
     for p in 다각(Y == 2):
         try: s = s.cut(cq.Workplane("XY").polyline(p).close().extrude(H + .2).translate((0, 0, -H / 2 - .1)))
         except Exception: pass
+    if 덩어리깊이:
+        n, lab = cv2.connectedComponents((Y == 3).astype(np.uint8), connectivity=4)
+        for i in range(1, n):
+            m = lab == i; dz = min(float(np.median(D[m])), .98) * H
+            if dz < .01 * H: continue
+            for p in 다각(m):
+                try: s = s.cut(cq.Workplane("XY").polyline(p).close().extrude(dz + .05).translate((0, 0, H / 2 - dz)))
+                except Exception: pass
+        return s
     층 = np.clip(np.round(np.where(Y == 3, D, 0) / .1), 0, 10).astype(int)
     for k in range(1, 11):
         for p in 다각((Y == 3) & (층 == k)):
@@ -48,10 +57,10 @@ def 정규메시(p):   # 데이터.py 와 같은 변환
     if len(m.faces) > 150000: raise ValueError("면이 너무 많음")   # 10-13 평가 메모리 — 큰 메시는 건너뜀(0 점으로 셈)
     e = m.extents; ax = int(np.argmin(e)); order = [i for i in range(3) if i != ax] + [ax]
     return (m.vertices - m.bounds.mean(0))[:, order] / e.max(), m.faces, float(e[ax] / e.max())
-def 부피IoU(job):   # (stl 경로, Y, D) → (IoU, 바탕만 IoU)
-    p, Y, D = job
+def 부피IoU(job):   # (stl 경로, Y, D[, 덩어리깊이]) → (IoU, 바탕만 IoU)
+    p, Y, D = job[:3]; 덩 = job[3] if len(job) > 3 else False
     try:
-        v, f, H = 정규메시(p); 정 = 점유_메시(v, f); s = 짓기(Y, D, H); s0 = 짓기(np.where(Y > 0, 1, 0), D * 0, H)
+        v, f, H = 정규메시(p); 정 = 점유_메시(v, f); s = 짓기(Y, D, H, 덩); s0 = 짓기(np.where(Y > 0, 1, 0), D * 0, H)
         r = lambda q: float((q & 정).sum() / max((q | 정).sum(), 1))
         return (r(점유_캐드(s)) if s is not None else 0.0, r(점유_캐드(s0)) if s0 is not None else 0.0)
     except Exception: return (0.0, 0.0)
