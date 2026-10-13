@@ -188,4 +188,6 @@ if __name__ == "__main__":
             row["열기확인_면수"] = check(row)
         print(json.dumps(row, ensure_ascii=False), flush=True)
         rows.append(row)
-    (ROOT / "목록.json").write_text(json.dumps(rows, ensure_ascii=False, indent=1), encoding="utf-8")
+    옛 = {r["id"]: r for r in json.loads((ROOT / "목록.json").read_text(encoding="utf-8"))} if (ROOT / "목록.json").exists() else {}   # 10-13: 인자 없이 돌린 판이 10-07 후보 줄을 지우지 않게 합침
+    옛.update({r["id"]: r for r in rows})
+    (ROOT / "목록.json").write_text(json.dumps(list(옛.values()), ensure_ascii=False, indent=1), encoding="utf-8")

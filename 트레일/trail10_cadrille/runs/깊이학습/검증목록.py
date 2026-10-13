@@ -2,7 +2,8 @@
 """검증 세트 — 학습 모델 중 20 개를 통째로 떼어 냄(고정 씨앗) · 모델마다 부품 2 개 · 하드서페이스는 규칙(평면 면 넓이 비율 ≥ 0.5)으로만 고름 · 사람 눈으로 안 고름 · 10-11
 python runs/깊이학습/검증목록.py            →  검증목록.json · 검증.npz
 python runs/깊이학습/검증목록.py 2          →  검증목록2.json · 검증2.npz (10-12 재심: 씨앗 20261012 · 1 차 20 모델은 뺌 — 이미 본 개발 세트)
-python runs/깊이학습/검증목록.py 3          →  검증목록3.json · 검증3.npz (10-12 진짜 검증: 학습 목록 밖 모델(어느 학생도 · 개발도 안 봄)에서만 · 씨앗 20261013)"""
+python runs/깊이학습/검증목록.py 3          →  검증목록3.json · 검증3.npz (10-12 진짜 검증: 학습 목록 밖 모델(어느 학생도 · 개발도 안 봄)에서만 · 씨앗 20261013)
+python runs/깊이학습/검증목록.py 5          →  검증목록5.json · 검증5.npz (10-13 새로 받은 모델만 — 원화3d/실험_20261013/새후보.json · 씨앗 20261015)"""
 import os, sys, json, glob, random, numpy as np
 H = os.path.dirname(os.path.abspath(__file__)); R = os.path.dirname(H); sys.path.insert(0, H)
 from 준비 import RR, 일
@@ -15,12 +16,13 @@ def 평면비(p):
     if len(m.faces) < 12 or min(m.extents) < 0.01 or len(m.faces) > 200000: return 0
     return float(sum(m.area_faces[f].sum() for f in m.facets) / m.area)
 if __name__ == "__main__":
-    판 = sys.argv[1] if len(sys.argv) > 1 else ""; 씨 = {"": 20261011, "2": 20261012, "3": 20261013, "4": 20261014}[판]
+    판 = sys.argv[1] if len(sys.argv) > 1 else ""; 씨 = {"": 20261011, "2": 20261012, "3": 20261013, "4": 20261014, "5": 20261015}[판]
     본 = set(json.load(open(os.path.join(H, "검증목록.json"), encoding="utf-8"))["모델"]) if 판 else set()
     학모 = {p.split("/")[0] for p in 목록.values()}
     밖 = {d for d in os.listdir(RR) if os.path.isdir(RR + d)} - 학모
     if 판 == "4": 밖 -= set(json.load(open(os.path.join(H, "검증목록3.json"), encoding="utf-8"))["모델"])   # 판정기준24: 검증3 모델도 뺌
-    모델 = sorted(밖) if 판 in ("3", "4") else sorted(학모 - 본); rng = random.Random(씨); rng.shuffle(모델)
+    if 판 == "5": 새 = {str(c["id"]) for c in json.load(open(os.path.join(R, "..", "..", "..", "원화3d", "실험_20261013", "새후보.json"), encoding="utf-8"))}; 밖 = {d for d in 밖 if d.split("_")[0] in 새}
+    모델 = sorted(밖) if 판 in ("3", "4", "5") else sorted(학모 - 본); rng = random.Random(씨); rng.shuffle(모델)
     고른모델, 부품 = [], []
     for mo in 모델:
         if len(고른모델) == 20: break
