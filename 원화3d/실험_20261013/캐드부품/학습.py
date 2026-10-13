@@ -4,15 +4,15 @@ import os, json, time, numpy as np
 from multiprocessing import Pool
 import 짓기 as J
 O = "G:/art2real/out/설명/캐드부품/학습/"; os.makedirs(O, exist_ok=True); 에폭 = 15
-def U만들기():
+def U만들기(ch=1):   # ch = 입력 채널(1 위 · 3 위 · 앞 · 옆 — 판정기준31 ②)
     import torch, torch.nn as nn
     class U(nn.Module):
         def __init__(s):
             super().__init__(); b = lambda i, o: nn.Sequential(nn.Conv2d(i, o, 3, 1, 1), nn.BatchNorm2d(o), nn.ReLU(), nn.Conv2d(o, o, 3, 1, 1), nn.BatchNorm2d(o), nn.ReLU())
-            s.e1, s.e2, s.e3, s.e4 = b(1, 32), b(32, 64), b(64, 128), b(128, 192); s.p = nn.MaxPool2d(2)
+            s.e1, s.e2, s.e3, s.e4 = b(ch, 32), b(32, 64), b(64, 128), b(128, 192); s.p = nn.MaxPool2d(2)
             s.u3, s.d3 = nn.ConvTranspose2d(192, 128, 2, 2), b(256, 128); s.u2, s.d2 = nn.ConvTranspose2d(128, 64, 2, 2), b(128, 64); s.u1, s.d1 = nn.ConvTranspose2d(64, 32, 2, 2), b(64, 32); s.o = nn.Conv2d(32, 5, 1)
         def forward(s, x):
-            x = x[:, None]; a = s.e1(x); b_ = s.e2(s.p(a)); c = s.e3(s.p(b_)); d = s.e4(s.p(c))
+            x = x[:, None] if x.dim() == 3 else x; a = s.e1(x); b_ = s.e2(s.p(a)); c = s.e3(s.p(b_)); d = s.e4(s.p(c))
             c2 = s.d3(torch.cat([s.u3(d), c], 1)); b2 = s.d2(torch.cat([s.u2(c2), b_], 1)); a2 = s.d1(torch.cat([s.u1(b2), a], 1)); o = s.o(a2)
             return o[:, :4], torch.sigmoid(o[:, 4])   # 갈래 4 · 깊이 비율 0~1
     return U
