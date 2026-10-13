@@ -1,7 +1,7 @@
 """두 캐릭터 대화 쇼츠 굽기 (10-10) — 나(후드 개발자) · AI(안드로이드) · 2D 누끼 표정 + 위쪽 화면 판 + 대사창
     python 대화쇼츠.py <편>        → out/영상05/대화/<편>/<편>.mp4
     python 대화쇼츠.py <편> still  → 줄마다 한 장 → 스틸시트.jpg
-편 폴더(원화3d/과정/영상05/대화/<편>/): 대본.tsv(누구 · 나표정 · AI표정 · 화면 · 큰글 · 말) + 화면.py(def 판(키, 진행 0~1) → RGBA 1000×760)
+편 폴더(원화3d/과정/영상05/대화/<편>/): 대본.tsv(누구 · 나표정 · AI표정 · 화면 · 큰글 · 말[ · 쉼]) — 굽기 전 python 대본검사.py <편> + 화면.py(def 판(키, 진행 0~1) → RGBA 1000×760)
 목소리: 나 = InJoon · AI = SunHi (edge-tts) · 말하는 쪽만 밝고 통통 · 대사는 한 글자씩 · 큰글은 뿅(앞에 초: · 빨: 로 색) · 배경은 죽인 작업실"""
 import sys, os, csv, glob, json, asyncio, subprocess, wave, hashlib, importlib.util
 import numpy as np
@@ -16,7 +16,7 @@ COL = {"나": (120, 190, 255), "AI": (90, 230, 200)}
 F = lambda n: ImageFont.truetype("C:/Windows/Fonts/malgunbd.ttf", n)
 
 rows = [r for r in csv.reader(open(os.path.join(SRC, "대본.tsv"), encoding="utf-8"), delimiter="\t") if r and not r[0].startswith("#")][1:]
-rows = [dict(누구=r[0], 나=r[1], AI=r[2], 화면=r[3], 큰글=r[4], 말=r[5].split("｜")[0], 읽기=r[5].split("｜")[-1]) for r in rows]   # 10-13 말 칸 「자막｜읽기」 — 자막은 숫자로, 목소리는 읽는 말로(없으면 같음)
+rows = [dict(누구=r[0], 나=r[1], AI=r[2], 화면=r[3], 큰글=r[4], 말=r[5].split("｜")[0], 읽기=r[5].split("｜")[-1], 쉼=float(r[6]) if len(r) > 6 and r[6].strip() else GAP) for r in rows]   # 10-14 7번째 칸 「쉼」(초 · 생략 0.35) — remotion-voicevox-template 의 pauseAfter   # 10-13 말 칸 「자막｜읽기」 — 자막은 숫자로, 목소리는 읽는 말로(없으면 같음)
 spec = importlib.util.spec_from_file_location("화면", os.path.join(SRC, "화면.py")); 화면 = importlib.util.module_from_spec(spec); spec.loader.exec_module(화면)
 
 SAPI = os.environ.get("TTS") == "sapi"   # 10-12 edge-tts 403 → Windows 기본 Heami(여) 하나 · 나 = 음높이 내림 · 서버 돌아오면 TTS 빼고 다시 굽기
@@ -45,7 +45,7 @@ if os.environ.get("TTS") == "chatterbox":   # 10-12 사용자 고름: 로컬 Cha
         with wave.open(p) as w: return np.frombuffer(w.readframes(w.getnframes()), np.int16)
     voices = [_읽(r["_wav"]) for r in rows]
 else: voices = [tts(r["읽기"], r["누구"]) for r in rows]
-ns = [int(np.ceil((len(v) / SR + GAP) * FPS)) for v in voices]; starts = np.cumsum([0] + ns)[:-1]; N = sum(ns)
+ns = [int(np.ceil((len(v) / SR + r["쉼"]) * FPS)) for v, r in zip(voices, rows)]; starts = np.cumsum([0] + ns)[:-1]; N = sum(ns)
 
 # 바탕 · 인물(표정별 누끼 · 한 번만 읽음)
 bg0 = Image.open(CH + "A_작업실.png").convert("RGB").resize((1316, 1920)).crop((118, 0, 1198, 1920))
@@ -71,12 +71,12 @@ def 프레임(f):
     li = int(np.searchsorted(starts, f, side="right") - 1); r = rows[li]; t = (f - starts[li]) / FPS; dur = ns[li] / FPS
     z = 1 + .03 * f / N; b = bg0.resize((int(W * z), int(H * z))); cv = b.crop(((b.width - W) // 2, (b.height - H) // 2, (b.width - W) // 2 + W, (b.height - H) // 2 + H)).convert("RGBA")
     # 위쪽 화면 판(편의 화면.py) — 줄이 바뀌면 0.25 초 튀어나옴
-    p = 화면.판(r["화면"], min(t / max(dur - GAP, .1), 1)).convert("RGBA"); s = 튐(t / .25) * (.85 + .15 * ease(t / .2))
+    p = 화면.판(r["화면"], min(t / max(dur - r["쉼"], .1), 1)).convert("RGBA"); s = 튐(t / .25) * (.85 + .15 * ease(t / .2))
     p = p.resize((int(p.width * s), int(p.height * s)), Image.LANCZOS); 그림자붙(cv, p, ((W - p.width) // 2, 60 + (760 - p.height) // 2))
     # 인물: 말하는 쪽은 밝고 통통(말하는 동안 사인) · 다른 쪽은 어둡게
     for who, h, x0, flip in (("AI", 800, None, True), ("나", 860, -120, False)):
         말 = r["누구"] == who; im = 인물(who, r[who], h, not 말, flip)
-        dy = int(-14 * abs(np.sin(t * 7.5))) if 말 and t < dur - GAP else 0
+        dy = int(-14 * abs(np.sin(t * 7.5))) if 말 and t < dur - r["쉼"] else 0
         x = x0 if x0 is not None else W - im.width + 140; 그림자붙(cv, im, (x, 1560 - h + 50 + dy))
     d = ImageDraw.Draw(cv)
     if r["큰글"]:   # 큰 글: 뿅 커졌다가 자리
