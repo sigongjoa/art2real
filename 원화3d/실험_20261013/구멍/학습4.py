@@ -45,9 +45,8 @@ def 지도칸(m):   # 지도 → 칸 목록(개수 제한 없음): 구멍 덩어
                 out.append((2, float(x0), float(y0), float(w), float(h)) if w >= h else (3, float(x0), float(y0), float(h), float(w)))
     return out
 
-if __name__ == "__main__":
+def U만들기():   # torch 는 여기서만
     import torch, torch.nn as nn
-    torch.manual_seed(29); dev = "cuda"
     class U(nn.Module):
         def __init__(s):
             super().__init__(); b = lambda i, o: nn.Sequential(nn.Conv2d(i, o, 3, 1, 1), nn.BatchNorm2d(o), nn.ReLU(), nn.Conv2d(o, o, 3, 1, 1), nn.BatchNorm2d(o), nn.ReLU())
@@ -56,6 +55,12 @@ if __name__ == "__main__":
         def forward(s, x):
             x = x[:, None]; a = s.e1(x); b_ = s.e2(s.p(a)); c = s.e3(s.p(b_)); d = s.e4(s.p(c))   # 128 → 64 → 32 → 16 (줄이기)
             c2 = s.d3(torch.cat([s.u3(d), c], 1)); b2 = s.d2(torch.cat([s.u2(c2), b_], 1)); a2 = s.d1(torch.cat([s.u1(b2), a], 1)); return s.o(a2)   # 16 → 32 → 64 → 128 (키우기)
+    return U
+
+if __name__ == "__main__":
+    import torch, torch.nn as nn
+    torch.manual_seed(29); dev = "cuda"
+    U = U만들기()
     with Pool(6) as pool:
         Ptr, Xtr, Mtr, Btr = T.묶음(pool, 3000, 27); Pte, Xte, Mte, Bte = T.묶음(pool, 200, 2027)
         Ytr = np.stack([정답지도(p, x) for p, x in zip(Ptr, Xtr)]); Yte = np.stack([정답지도(p, x) for p, x in zip(Pte, Xte)])
