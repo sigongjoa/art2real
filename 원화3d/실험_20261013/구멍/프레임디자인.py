@@ -4,7 +4,7 @@
 import json, math, os
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 H_ = os.path.dirname(os.path.abspath(__file__)); A = "G:/art2real/out/설명/구멍/"; W, H = 1080, 1920
-T = json.load(open(os.path.join(H_, "템플릿.json"), encoding="utf-8")); C = {k: tuple(v) for k, v in T["색"].items()}
+T = json.load(open(os.environ.get("TEMPLATE", os.path.join(H_, "템플릿.json")), encoding="utf-8")); C = {k: tuple(v) for k, v in T["색"].items()}   # TEMPLATE=다른 json
 F = lambda n: ImageFont.truetype("C:/Windows/Fonts/malgunbd.ttf", n)
 
 def 빛테(c, xy, r, col, 굵기=5, 퍼짐=14):   # 바깥으로 번지는 빛 + 선명한 테
@@ -50,13 +50,13 @@ def 프레임(k):   # k = 지금 에폭(1부터)
             else: d.rounded_rectangle(box, 22, outline=C["테"], width=3)
         else:
             d.rounded_rectangle(box, 22, fill=C["바탕위"] + (255,)); 점선테(d, box, 22, C["흐림"]); d.text((cx, yy + ch // 2), "?", font=F(52), fill=C["흐림"], anchor="mm")   # 속을 채워 시간축 선을 카드 뒤로
-        d.text((x0 + cw + 8, yy + ch // 2), "%d" % (i + 1), font=F(24), fill=C["강조"] if i == k - 1 else C["흐림"], anchor="lm")
+        d.text((x0 + cw + 8, yy + ch // 2), E[i].get("눈금", "%d" % (i + 1)), font=F(24), fill=C["강조"] if i == k - 1 else C["흐림"], anchor="lm")
     # 큰 형태 카드
     b = T["큰형태"]; mb = tuple(b["상자"]); d.rounded_rectangle(mb, 36, fill=C["카드"] + (255,))
     big = 둥근가장자리(열기(T["형태"]["파일"] % e["형태"], b["형태크기"]), 40, b["가장자리흐림"]); px_, py_ = b["형태위치"]
     c.alpha_composite(big.crop((0, 0, min(big.width, mb[2] - px_ - 4), min(big.height, mb[3] - py_ - 4))), (px_, py_))
-    d.rounded_rectangle(mb, 36, outline=C["테"], width=2); d.text((mb[0] + 40, mb[1] + 30), "에폭 %d" % k, font=F(46), fill=C["강조"])
-    g_ = T["그림카드"]; gb = tuple(g_["상자"]); d.rounded_rectangle(gb, 24, fill=(244, 246, 250, 255)); c.alpha_composite(열기(T["형태"]["그림"], gb[2] - gb[0] - 50), (gb[0] + 25, gb[1] + 8)); d.text(((gb[0] + gb[2]) // 2, gb[3] - 22), g_["글"], font=F(28), fill=(40, 44, 56), anchor="mm")
+    d.rounded_rectangle(mb, 36, outline=C["테"], width=2); d.text((mb[0] + 40, mb[1] + 30), e.get("이름", "에폭 %d" % k), font=F(46), fill=C["강조"])
+    g_ = T["그림카드"]; gb = tuple(g_["상자"]); d.rounded_rectangle(gb, 24, fill=(244, 246, 250, 255)); c.alpha_composite(열기(e.get("그림", T["형태"]["그림"]), gb[2] - gb[0] - 50), (gb[0] + 25, gb[1] + 8)); d.text(((gb[0] + gb[2]) // 2, gb[3] - 22), g_["글"], font=F(28), fill=(40, 44, 56), anchor="mm")
     # 판정 알약(큰 형태 카드 아래 경계에 걸침)
     p = T["판정"]; col = C["강조"] if e["맞음"] else C["틀림"]; 글 = e["판정"]; pw = d.textlength(글, font=F(p["글크기"])) + 150; px = (mb[0] + mb[2] - pw) / 2; pb = (px, p["y"] - 42, px + pw, p["y"] + 42)
     d.rounded_rectangle(pb, 42, fill=(12, 20, 36, 255)); 빛테(c, pb, 42, col, 4, 12); ix, iy = px + 52, p["y"]; d.ellipse((ix - 25, iy - 25, ix + 25, iy + 25), fill=col)
@@ -72,7 +72,11 @@ def 프레임(k):   # k = 지금 에폭(1부터)
     q = T["대사"]
     if q["켜기"]:
         bb = tuple(q["말풍선"]); d.rounded_rectangle(bb, 40, fill=(12, 20, 36, 235)); 빛테(c, bb, 40, (70, 150, 230), 3, 10)
-        d.polygon([(bb[0], bb[1] + 110), (bb[0] - 34, bb[1] + 140), (bb[0], bb[1] + 160)], fill=(12, 20, 36)); d.text((bb[0] + 50, (bb[1] + bb[3]) // 2), q["예시말"], font=F(54), fill=C["글"], anchor="lm")
+        d.polygon([(bb[0], bb[1] + 110), (bb[0] - 34, bb[1] + 140), (bb[0], bb[1] + 160)], fill=(12, 20, 36)); 줄, 지금 = [], ""   # 말풍선 폭에 맞춰 낱말 단위로 줄 바꿈
+        for w in q["예시말"].split(" "):
+            if 지금 and d.textlength(지금 + " " + w, font=F(46)) > bb[2] - bb[0] - 90: 줄.append(지금); 지금 = w
+            else: 지금 = (지금 + " " + w).strip()
+        줄.append(지금); d.multiline_text((bb[0] + 50, (bb[1] + bb[3]) // 2), chr(10).join(줄), font=F(46), fill=C["글"], anchor="lm", spacing=14)
         im = Image.open(q["인물"]).convert("RGBA"); im = im.crop(im.getbbox()); im = im.resize((int(im.width * q["인물높이"] / im.height), q["인물높이"]), Image.LANCZOS); c.alpha_composite(im, (max(0, bb[0] - im.width + 40), H - im.height))
     return c.convert("RGB")
 
