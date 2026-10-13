@@ -18,16 +18,39 @@ def 찾기(P):
     u = (idx + .5) / 64; c = u.mean(0); w, V = np.linalg.eigh(np.cov((u - c).T)); a = V[:, np.argmax(w)]   # 주축 = 가장 긴 방향
     e1 = np.cross(a, [1, 0, 0] if abs(a[0]) < .9 else [0, 1, 0]); e1 /= np.linalg.norm(e1); e2 = np.cross(a, e1)
     d = u - c; t = d @ a; r = np.hypot(d @ e1, d @ e2); th = np.arctan2(d @ e2, d @ e1); tb = np.floor((t - t.min()) * 64).astype(int); ab = ((th + np.pi) / (2 * np.pi) * 16).astype(int) % 16
-    R, Rin, ok = {}, {}, []
+    R, Rin, ok, 칸ok = {}, {}, [], {}
     for b in np.unique(tb):
         m = tb == b
         if m.sum() < 8: continue
         mx = np.zeros(16); mn = np.full(16, np.inf)
         np.maximum.at(mx, ab[m], r[m]); np.minimum.at(mn, ab[m], r[m])
-        if (mx > 0).sum() < 12: ok.append(False); continue
-        ok.append(mx.std() / max(mx.mean(), 1e-6) <= 비율문턱); R[b] = float(np.median(mx)); 안 = np.median(mn[np.isfinite(mn)]); Rin[b] = float(안) if 안 > 2.5 / 64 else 0.0
+        if (mx > 0).sum() < 12: ok.append(False); 칸ok[int(b)] = False; continue
+        ok.append(mx.std() / max(mx.mean(), 1e-6) <= 비율문턱); 칸ok[int(b)] = bool(ok[-1]); R[b] = float(np.median(mx)); 안 = np.median(mn[np.isfinite(mn)]); Rin[b] = float(안) if 안 > 2.5 / 64 else 0.0
     점 = float(np.mean(ok)) if ok else 0.0; 기움 = float(np.degrees(np.arccos(min(1.0, np.abs(a).max()))))
-    return {"축": a, "중심": c, "e1": e1, "R": R, "Rin": Rin, "t0": float(t.min()), "대칭": round(점, 3), "칸": len(ok), "기움": round(기움, 1), "걸림": 점 >= 대칭문턱 and len(ok) >= 칸문턱}
+    return {"축": a, "중심": c, "e1": e1, "R": R, "Rin": Rin, "t0": float(t.min()), "대칭": round(점, 3), "칸": len(ok), "기움": round(기움, 1), "걸림": 점 >= 대칭문턱 and len(ok) >= 칸문턱, "구간": 구간들(칸ok)}
+def 구간들(칸ok):   # 판정기준25 I 판: 둥근 칸(같은 규칙 · 같은 문턱)이 칸문턱(10) 이상 끊김 없이 이어진 [b0, b1]
+    out, 시작, 앞 = [], None, None
+    for b in sorted(칸ok) + [None]:
+        if b is not None and 칸ok[b] and (시작 is None or b == 앞 + 1): 시작 = b if 시작 is None else 시작
+        else:
+            if 시작 is not None and 앞 - 시작 + 1 >= 칸문턱: out.append((시작, 앞))
+            시작 = b if (b is not None and 칸ok[b]) else None
+        앞 = b
+    return out
+def 구간짓기(f, s, b0, b1):   # 그 구간만: s − (축 둘레 원기둥 판 − 바깥 반지름 회전체) · 안 반지름(Rin)은 안 씀
+    import cadquery as cq, cv2
+    from 도구 import 꼬임
+    from scipy.ndimage import median_filter
+    bs = [b for b in sorted(f["R"]) if b0 <= b <= b1]; T = lambda b: f["t0"] + (b + .5) / 64
+    v = median_filter(np.array([f["R"][b] for b in bs]), size=5, mode="nearest")
+    poly = [(0.0, T(bs[0]) - .5 / 64)] + [(r_, T(b)) for r_, b in zip(v, bs)] + [(0.0, T(bs[-1]) + .5 / 64)]
+    p = cv2.approxPolyDP(np.array(poly, np.float32).reshape(-1, 1, 2) * 1000, 8, True)[:, 0, :] / 1000
+    if len(p) < 3 or 꼬임([list(q) for q in p]): raise ValueError("윤곽")
+    C_ = lambda v_: cq.Vector(*(110 * np.asarray(v_) - 5))
+    면 = cq.Face.makeFromWires(cq.Wire.makePolygon([C_(f["중심"] + t_ * f["축"] + r_ * f["e1"]) for r_, t_ in p], close=True))
+    rv = cq.Solid.revolve(면, 360, C_(f["중심"] - f["축"]), C_(f["중심"] + f["축"]))
+    a0 = C_(f["중심"] + (T(bs[0]) - .5 / 64) * f["축"]); 판 = cq.Solid.makeCylinder(110 * (float(v.max()) + 2 / 64), 110 * (T(bs[-1]) - T(bs[0]) + 1 / 64), a0, cq.Vector(*f["축"]))
+    return s.cut(cq.Workplane().add(판).cut(cq.Workplane().add(rv)))
 def 짓기(f, 교):   # 반쪽 윤곽(바깥 R · 안 Rin) → 임의 축 회전 → ∩ 교차 · CAD = 110 u − 5
     import cadquery as cq, cv2
     from 도구 import 꼬임
