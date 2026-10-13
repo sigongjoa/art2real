@@ -15,6 +15,11 @@ def 평면비(p):
     m = unit(trimesh.load(RR + p, force="mesh"))
     if len(m.faces) < 12 or min(m.extents) < 0.01 or len(m.faces) > 200000: return 0
     return float(sum(m.area_faces[f].sum() for f in m.facets) / m.area)
+def 한덩이키(p):   # 판 5(10-13 사용자 「고쳐서 다시 뽑아」): 연결된 덩어리 하나만 · 같은 모델 안 같은 메시(면 수 · 넓이)는 하나만
+    import trimesh
+    from s0 import unit
+    m = unit(trimesh.load(RR + p, force="mesh"))
+    return (len(m.split(only_watertight=False)) == 1), (len(m.faces), round(float(m.area), 4))
 if __name__ == "__main__":
     판 = sys.argv[1] if len(sys.argv) > 1 else ""; 씨 = {"": 20261011, "2": 20261012, "3": 20261013, "4": 20261014, "5": 20261015}[판]
     본 = set(json.load(open(os.path.join(H, "검증목록.json"), encoding="utf-8"))["모델"]) if 판 else set()
@@ -26,9 +31,12 @@ if __name__ == "__main__":
     고른모델, 부품 = [], []
     for mo in 모델:
         if len(고른모델) == 20: break
-        후보 = sorted(os.path.relpath(q, RR).replace("\\", "/") for q in glob.glob(RR + mo + "/**/*.stl", recursive=True) + glob.glob(RR + mo + "/**/*.STL", recursive=True)); rng.shuffle(후보); 됨 = []
+        후보 = sorted(os.path.relpath(q, RR).replace("\\", "/") for q in glob.glob(RR + mo + "/**/*.stl", recursive=True) + glob.glob(RR + mo + "/**/*.STL", recursive=True)); rng.shuffle(후보); 됨 = []; 본키 = set()
         for p in 후보:
-            try: ok = 평면비(p) >= 0.5
+            try:
+                ok = 평면비(p) >= 0.5
+                if ok and 판 == "5":
+                    한, 키_ = 한덩이키(p); ok = 한 and 키_ not in 본키; 본키.add(키_)
             except Exception: ok = False
             if ok: 됨.append(p)
             if len(됨) == (10 if 판 == "4" else 2): break   # 판정기준24 고침: 남은 모델 중 규칙 맞는 건 4 개뿐 → 모델마다 10
