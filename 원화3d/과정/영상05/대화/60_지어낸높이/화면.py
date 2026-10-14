@@ -6,7 +6,7 @@ def _카드(테, w=1000, h=700):
     c = Image.new("RGBA", (w, h), (0, 0, 0, 0)); ImageDraw.Draw(c).rounded_rectangle((0, 0, w - 1, h - 1), 36, fill=(250, 250, 252, 255), outline=테 + (255,), width=8); return c
 def _쉬움(t): return 1 - (1 - min(max(t, 0), 1)) ** 3
 def _그림(c, n, box):   # box 안에 비율 유지로
-    im = Image.open(A + n + ".png").convert("RGBA"); im = im.crop(Image.open(A + "틀.png").convert("RGBA").getbbox() if n in ("틀", "최종", "지워짐") else im.getbbox()); x0, y0, x1, y1 = box; s = min((x1 - x0) / im.width, (y1 - y0) / im.height); im = im.resize((int(im.width * s), int(im.height * s))); c.alpha_composite(im, (x0 + (x1 - x0 - im.width) // 2, y0 + (y1 - y0 - im.height) // 2))
+    im = Image.open(A + n + ".png").convert("RGBA"); im = im.crop(Image.open(A + "틀.png").convert("RGBA").getbbox() if n in ("틀", "최종", "지워짐", "회전최종") else im.getbbox()); x0, y0, x1, y1 = box; s = min((x1 - x0) / im.width, (y1 - y0) / im.height); im = im.resize((int(im.width * s), int(im.height * s))); c.alpha_composite(im, (x0 + (x1 - x0 - im.width) // 2, y0 + (y1 - y0 - im.height) // 2))
 def _둘(c, a, b, 왼, 오, 색왼=먹, 색오=먹):
     d = ImageDraw.Draw(c); _그림(c, a, (40, 150, 490, 620)); _그림(c, b, (510, 150, 960, 620)); d.text((265, 95), 왼, font=F(38), fill=색왼, anchor="mm"); d.text((735, 95), 오, font=F(38), fill=색오, anchor="mm")
 def _막대(d, p, 줄, y0=200):
@@ -14,7 +14,7 @@ def _막대(d, p, 줄, y0=200):
     for i, (t, v, 색) in enumerate(줄):
         y = y0 + i * 150; d.text((60, y + 30), t, font=F(36), fill=먹, anchor="lm"); w = int(520 * v * e); d.rounded_rectangle((330, y, 330 + max(w, 1), y + 64), 12, fill=색); d.text((330 + w + 20, y + 32), "%.3f" % (v * e), font=F(40), fill=색, anchor="lm")
 def 판(키, p):
-    c = _카드(빨 if 키 in ("전후", "지워짐", "판정") else 금 if 키 in ("입력", "칠", "단면", "포갬") else 초); d = ImageDraw.Draw(c)
+    c = _카드(빨 if 키 in ("전후", "지워짐", "판정", "포갬") else 금 if 키 in ("입력", "칠", "단면") else 초); d = ImageDraw.Draw(c)
     if 키 == "전후": _둘(c, "틀", "최종", "틀로 찍음 0.89", "모델이 깎음 0.17", 초, 빨); return c
     if 키 == "입력": _둘(c, "선_위", "선_앞", "위에서 본 그림", "앞에서 본 그림"); d.text((500, 640), "값은 0 과 1 뿐", font=F(34), fill=회, anchor="mm"); return c
     if 키 == "칠": _둘(c, "칠_정답", "칠_모델", "정답", "모델", 초, 금); return c
@@ -25,5 +25,13 @@ def 판(키, p):
     if 키 == "포갬":
         _그림(c, "포갬", (150, 120, 850, 620)); d.text((300, 80), "■ 위 그림", font=F(36), fill=(0, 150, 255), anchor="mm"); d.text((700, 80), "■ 앞 그림", font=F(36), fill=(255, 0, 150), anchor="mm")
         d.text((500, 650), "빨간 원: 위에선 판 · 앞에선 허공", font=F(32), fill=빨, anchor="mm"); return c
-    if 키 == "판정": _막대(d, p, (("틀만", .694, 초), ("모델이 깎음", .678, 빨))); d.text((500, 600), "시험 부품 200 개 평균", font=F(32), fill=회, anchor="mm"); return c
+    if 키 == "세움":
+        _그림(c, "세움", (200, 110, 800, 680)); d.text((170, 80), "■ 위 → 바닥", font=F(32), fill=(0, 150, 255), anchor="mm"); d.text((500, 80), "■ 앞 → 세움", font=F(32), fill=(255, 0, 150), anchor="mm"); d.text((830, 80), "■ 옆 → 세움", font=F(32), fill=(50, 170, 50), anchor="mm")
+        e = _쉬움(p * 1.5); d.text((120, 640), "깊이 오차", font=F(30), fill=회, anchor="mm"); d.text((880, 600), "%.3f" % (.077 - (.077 - .023) * e), font=F(56), fill=초, anchor="mm"); return c
+    if 키 == "돌아옴": _둘(c, "최종", "회전최종", "예전 0.17", "회전 넣음 0.89", 빨, 초); return c
+    if 키 == "판정":   # 0.60 ~ 0.72 확대 막대(차이가 0.01 단위)
+        e = _쉬움(p * 1.5); X0, W_ = 300, 600; 자 = lambda v: X0 + int(W_ * (v - .6) / .12)
+        for i_, (t, v, 색) in enumerate((("틀만", .694, 회), ("예전 모델", .678, 빨), ("회전 넣음", .703, 금))):
+            y = 150 + i_ * 140; d.text((50, y + 32), t, font=F(36), fill=먹, anchor="lm"); w = 자(.6 + (v - .6) * e); d.rounded_rectangle((X0, y, max(w, X0 + 1), y + 64), 12, fill=색); d.text((w + 15, y + 32), "%.3f" % v, font=F(38), fill=색, anchor="lm")
+        x = 자(.704); [d.line((x, yy, x, yy + 18), fill=먹, width=5) for yy in range(120, 580, 30)]; d.text((x, 615), "기준 0.704", font=F(34), fill=먹, anchor="mm"); d.text((X0, 615), "0.60", font=F(26), fill=회, anchor="mm"); return c
     raise KeyError(키)

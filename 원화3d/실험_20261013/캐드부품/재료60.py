@@ -26,3 +26,11 @@ plt.ylim(0, 1.05); plt.axis("off"); fig.subplots_adjust(0, 0, 1, 1); plt.savefig
 겹 = np.ones(X.shape + (3,)); 겹[X > 0] = [0, .6, 1]; 겹[F > 0] = [1, 0, .6]
 fig = plt.figure(figsize=(6, 6)); plt.imshow(겹); plt.gca().add_patch(Circle((64, 50), 4, fill=False, ec="r", lw=4)); plt.axis("off"); fig.subplots_adjust(0, 0, 1, 1); plt.savefig(A + "포갬.png", dpi=80); plt.close(fig)
 print("ok", 몸칸.sum(), 끝.sum(), 정.sum())
+# 39 추가(회전 넣은 모델 · 세운 세 그림)
+C = np.load(O + "학습39/시험예측.npz"); 입체(J.점유_캐드(J.깎기(몸, C["P"][j], C["D"][j].astype(np.float32), H, True)), "tab:orange", "회전최종.png")
+u = (np.arange(128) + .5) / 128 * 1.1 - .55; fig = plt.figure(figsize=(8, 7)); a = fig.add_subplot(projection="3d")
+r_, c_ = np.nonzero(X); a.scatter(u[c_], -u[r_], np.full(len(r_), -.55), s=3, c=[(0, .6, 1)])
+r_, c_ = np.nonzero(F); a.scatter(u[c_], np.full(len(r_), .55), -u[r_], s=3, c=[(1, 0, .6)])
+r_, c_ = np.nonzero(S); a.scatter(np.full(len(r_), .55), u[c_], -u[r_], s=3, c=[(.2, .7, .2)])
+a.set_xlim(-.55, .55); a.set_ylim(-.55, .55); a.set_zlim(-.55, .55); a.view_init(22, -60); a.set_box_aspect((1, 1, 1)); a.set_xticks([]); a.set_yticks([]); a.set_zticks([])
+fig.subplots_adjust(0, 0, 1, 1); plt.savefig(A + "세움.png", dpi=80, transparent=True); plt.close(fig); print("39 ok")
