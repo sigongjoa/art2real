@@ -2,7 +2,7 @@
 import json, collections, sys, numpy as np, cv2
 from multiprocessing import Pool
 import 짓기 as J
-sys.path.insert(0, "G:/art2real/원화3d/실험_20261013/구멍"); import 윤곽바탕 as W
+sys.path.append("G:/art2real/원화3d/실험_20261013/구멍"); import 윤곽바탕 as W
 O = "G:/art2real/out/설명/캐드부품/"
 def 갇힌만(Y, X):   # 관통 덩어리 중 테두리에 닿는 것은 윗면으로
     m = W.바깥(X)[0]; Y = Y.copy(); n, lab = cv2.connectedComponents((Y == 2).astype(np.uint8), connectivity=4)
