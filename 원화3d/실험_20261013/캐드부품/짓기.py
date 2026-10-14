@@ -102,13 +102,40 @@ def 깎기(s, Y, D, H, 덩어리깊이):   # 몸통 s 에 관통 · 들어감을
             try: s = s.cut(cq.Workplane("XY").polyline(p).close().extrude(dz + .05).translate((0, 0, H / 2 - dz)))
             except Exception: pass
     return s
-def 점유_메시(v, f, n=48):
+def 점유_캐드(s, n=48):   # 10-14 감사 뒤 — 메시로 안 바꾸고 기둥마다 위→아래 선을 쏴 CAD 면과 만나는 점 사이를 채운다(tessellate 가 면을 말없이 빠뜨려 칸이 틀 밖으로 튀던 것 · 비결정) · 홀수면 그 기둥만 OCC 안팎 판정
+    from OCP.IntCurvesFace import IntCurvesFace_ShapeIntersector
+    from OCP.BRepClass3d import BRepClass3d_SolidClassifier
+    from OCP.gp import gp_Lin, gp_Pnt, gp_Dir
+    from OCP.TopAbs import TopAbs_IN
+    g = (np.arange(n) + .5) / n * 1.1 - .55; sh = s.val().wrapped; it = IntCurvesFace_ShapeIntersector(); it.Load(sh, 1e-7); q = np.zeros((n, n, n), bool)
+    for i, x in enumerate(g):
+        for j, y in enumerate(g):
+            it.Perform(gp_Lin(gp_Pnt(x, y, 1.0), gp_Dir(0, 0, -1)), -1e9, 1e9)
+            z = sorted(1.0 - it.WParameter(k) for k in range(1, it.NbPnt() + 1)); z = [a for k, a in enumerate(z) if k == 0 or a - z[k - 1] > 1e-6]
+            if len(z) % 2 == 0:
+                for a, b in zip(z[0::2], z[1::2]): q[i, j] |= (g >= a) & (g <= b)
+            else: q[i, j] = [BRepClass3d_SolidClassifier(sh, gp_Pnt(x, y, zc), 1e-7).State() == TopAbs_IN for zc in g]
+    return q
+def 점유_메시(v, f, n=48):   # 같은 방식(open3d 선 교차 전부 · 홀수 기둥만 compute_occupancy)
+    import open3d as o3d
+    g = (np.arange(n) + .5) / n * 1.1 - .55; sc = o3d.t.geometry.RaycastingScene(); sc.add_triangles(o3d.core.Tensor(np.asarray(v, np.float32)), o3d.core.Tensor(np.asarray(f, np.uint32)))
+    X, Y = np.meshgrid(g, g, indexing="ij"); r = np.zeros((n * n, 6), np.float32); r[:, 0], r[:, 1], r[:, 2], r[:, 5] = X.ravel(), Y.ravel(), 1.0, -1
+    Lr = sc.list_intersections(o3d.core.Tensor(r)); sp = Lr["ray_splits"].numpy(); t = Lr["t_hit"].numpy(); q = np.zeros((n, n, n), bool); occ = None
+    for k in range(n * n):
+        z = np.sort(1.0 - t[sp[k]:sp[k + 1]]); z = z[np.r_[True, np.diff(z) > 1e-6]] if len(z) else z; i, j = divmod(k, n)
+        if len(z) % 2 == 0:
+            for a, b in zip(z[0::2], z[1::2]): q[i, j] |= (g >= a) & (g <= b)
+        else:
+            if occ is None: P = np.stack(np.meshgrid(g, g, g, indexing="ij"), -1).reshape(-1, 3).astype(np.float32); occ = sc.compute_occupancy(o3d.core.Tensor(P), nsamples=9).numpy().reshape(n, n, n) > .5
+            q[i, j] = occ[i, j]
+    return q
+def 옛점유_메시(v, f, n=48):
     import open3d as o3d
     sc = o3d.t.geometry.RaycastingScene(); sc.add_triangles(o3d.core.Tensor(np.asarray(v, np.float32)), o3d.core.Tensor(np.asarray(f, np.uint32)))
     g = (np.arange(n) + .5) / n * 1.1 - .55; P = np.stack(np.meshgrid(g, g, g, indexing="ij"), -1).reshape(-1, 3).astype(np.float32)
     return sc.compute_occupancy(o3d.core.Tensor(P)).numpy().reshape(n, n, n) > .5
-def 점유_캐드(s, n=48):
-    vs, ts = s.val().tessellate(0.005, 0.2); return 점유_메시([(q.x, q.y, q.z) for q in vs], ts, n)
+def 옛점유_캐드(s, n=48):
+    vs, ts = s.val().tessellate(0.005, 0.2); return 옛점유_메시([(q.x, q.y, q.z) for q in vs], ts, n)
 def 정규메시(p):   # 데이터.py 와 같은 변환
     import trimesh
     m = trimesh.load(p, force="mesh")
