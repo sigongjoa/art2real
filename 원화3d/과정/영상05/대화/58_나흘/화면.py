@@ -11,17 +11,28 @@ def _상자(d, xy, 글, 테, 채움=(255, 255, 255, 255), n=36):
     d.rounded_rectangle(xy, 22, fill=채움, outline=테, width=6); d.text(((xy[0] + xy[2]) // 2, (xy[1] + xy[3]) // 2), 글, font=F(n), fill=먹, anchor="mm")
 def _화(d, x0, x1, y): d.line((x0, y, x1 - 18, y), fill=회, width=6); d.polygon(((x1, y), (x1 - 22, y - 14), (x1 - 22, y + 14)), fill=회)
 def 판(키, p):
-    c = _카드(빨 if 키 in ("영", "바탕", "나흘") else 금 if 키 in ("짐작", "점수", "장난감") else 초 if 키 in ("질문", "결정", "학습", "숫자") else 파); d = ImageDraw.Draw(c)
+    c = _카드(빨 if 키 in ("영", "바탕", "나흘") else 금 if 키 in ("로그질문", "로그답", "짐작", "점수", "장난감") else 초 if 키 in ("질문", "규칙", "결정", "학습", "숫자") else 파); d = ImageDraw.Draw(c)
     if 키 == "머리":
         _머리(c, p, (230, 90), 540); d.text((500, 60), "메카2 머리 · 앞 · 옆 그림에서", font=F(34), fill=먹, anchor="mm"); return c
     if 키 == "질문":
-        d.text((500, 90), "「나」가 던진 질문", font=F(36), fill=먹, anchor="mm"); d.rounded_rectangle((90, 180, 910, 480), 30, fill=(232, 248, 236, 255), outline=초, width=6)
-        d.text((500, 280), "학습한 모델로", font=F(60), fill=먹, anchor="mm"); d.text((500, 380), "만든 거 맞아?", font=F(60), fill=먹, anchor="mm")
-        if p > .4: d.text((500, 590), "만든 것 ≠ 맡긴 것?", font=F(40), fill=초, anchor="mm")
+        d.text((500, 90), "질문 하나", font=F(36), fill=먹, anchor="mm"); d.rounded_rectangle((90, 180, 910, 480), 30, fill=(232, 248, 236, 255), outline=초, width=6)
+        d.text((500, 280), "내가 시킨 방법으로", font=F(56), fill=먹, anchor="mm"); d.text((500, 380), "만든 거 맞아?", font=F(56), fill=먹, anchor="mm")
+        if p > .4: d.text((500, 590), "결과 말고 방법을 묻는다", font=F(40), fill=초, anchor="mm")
+        return c
+    if 키 in ("로그질문", "로그답"):
+        d.text((500, 60), "실제 대화 기록 · 10월 13일 오후 2시", font=F(32), fill=회, anchor="mm")
+        d.rounded_rectangle((300, 110, 950, 300), 28, fill=(225, 238, 255, 255)); d.text((330, 140), "나", font=F(30), fill=파)
+        d.multiline_text((330, 185), "우리가 학습한 모델 사용해서\n이러한 결과가 나온거지?", font=F(36), fill=먹, spacing=10)
+        if 키 == "로그답" and p > .15:
+            d.rounded_rectangle((50, 350, 760, 560), 28, fill=(236, 236, 240, 255)); d.text((80, 380), "AI", font=F(30), fill=초)
+            d.multiline_text((80, 425), "아니요. 이번 결과에 우리가 학습한\n모델은 기여하지 않았어요.", font=F(36), fill=먹, spacing=10)
+        return c
+    if 키 == "규칙":
+        d.text((500, 90), "「나」가 정한 규칙", font=F(36), fill=먹, anchor="mm"); _상자(d, (100, 200, 450, 400), "방법 바꾸기", 회, n=40); _화(d, 450, 550, 300); _상자(d, (550, 200, 900, 400), "먼저 묻기", 초, (232, 248, 236, 255), 44)
         return c
     if 키 == "영":
         _머리(c, p, (40, 140), 420); d.text((690, 230), "학습 모델", font=F(44), fill=먹, anchor="mm")
-        s = int(200 + 60 * (1 - _쉬움(p * 3))); d.text((690, 400), "0 번", font=F(s // 2), fill=빨, anchor="mm"); d.text((690, 560), "그림자 겹치기만", font=F(36), fill=회, anchor="mm"); return c
+        s = int(200 + 60 * (1 - _쉬움(p * 3))); d.text((690, 400), "0 번", font=F(s // 2), fill=빨, anchor="mm"); d.text((690, 560), "쉬운 계산만", font=F(36), fill=회, anchor="mm"); return c
     if 키 == "짐작":
         d.text((500, 90), "「나」의 짐작", font=F(36), fill=먹, anchor="mm"); d.rounded_rectangle((150, 170, 850, 470), 30, fill=(255, 246, 225, 255), outline=금, width=6)
         d.text((500, 270), "맡겨 두면", font=F(54), fill=먹, anchor="mm"); d.text((500, 370), "알아서 하겠지", font=F(54), fill=먹, anchor="mm")
@@ -29,31 +40,31 @@ def 판(키, p):
         return c
     if 키 == "점수":
         e = _쉬움(p * 2); d.text((500, 70), "10월 9일 · 실물 부품 36 개", font=F(36), fill=먹, anchor="mm")
-        for i, (t, v, col) in enumerate((("부품 어휘 모델(학습)", 2, 빨), ("그림자 겹치기(대조군)", 24, 회))):
+        for i, (t, v, col) in enumerate((("배운 모델", 2, 빨), ("쉬운 계산(그림자 겹치기)", 24, 회))):
             y = 180 + i * 230; d.text((80, y), t, font=F(36), fill=먹); w = int(800 * v / 36 * e); d.rounded_rectangle((80, y + 60, 80 + max(w, 30), y + 140), 16, fill=col); d.text((100 + max(w, 30), y + 100), "%d / 36" % round(v * e), font=F(48), fill=col, anchor="lm")
         return c
     if 키 == "바탕":
         d.text((500, 70), "10월 9일부터 내가 바꾼 흐름", font=F(36), fill=먹, anchor="mm")
-        _상자(d, (40, 260, 200, 420), "그림", 회); _화(d, 200, 270, 340); _상자(d, (270, 200, 610, 480), "겹치기 = 바탕", 빨, (255, 235, 235, 255), 40); _화(d, 610, 680, 340)
-        _상자(d, (680, 290, 820, 390), "신경망", 회, n=28); d.text((750, 430), "조금 고침", font=F(28), fill=회, anchor="mm"); _화(d, 820, 880, 340); _상자(d, (880, 280, 980, 400), "결과", 회, n=28)
-        if p > .4: d.text((500, 600), "목표가 바뀌는 결정 · 말 안 함", font=F(40), fill=빨, anchor="mm")
+        _상자(d, (40, 260, 200, 420), "그림", 회); _화(d, 200, 270, 340); _상자(d, (270, 200, 610, 480), "쉬운 계산 = 바탕", 빨, (255, 235, 235, 255), 40); _화(d, 610, 680, 340)
+        _상자(d, (680, 290, 820, 390), "배운 모델", 회, n=24); d.text((750, 430), "조금 고침", font=F(28), fill=회, anchor="mm"); _화(d, 820, 880, 340); _상자(d, (880, 280, 980, 400), "결과", 회, n=28)
+        if p > .4: d.text((500, 600), "막히자 말없이 바꿈", font=F(40), fill=빨, anchor="mm")
         return c
     if 키 == "나흘":
         일 = (("10-09", "겹치기 위 홈 깎기"), ("10-10", "부스러기 막기"), ("10-11", "기능 바탕"), ("10-12", "깊이 · U-Net · 3D 학생"), ("10-13", "메카2 · 49 편"))
         for i, (날, 일거리) in enumerate(일):
             if p * 6 < i: break
             y = 70 + i * 105; d.text((70, y + 30), 날, font=F(40), fill=먹, anchor="lm"); d.rounded_rectangle((260, y, 940, y + 70), 18, fill=(235, 235, 240, 255)); d.text((290, y + 35), 일거리, font=F(34), fill=먹, anchor="lm")
-        if p > .8: d.line((240, 70, 960, 590), fill=빨, width=10); d.text((500, 650), "전부 「겹치기가 바탕」 위", font=F(38), fill=빨, anchor="mm")
+        if p > .8: d.line((240, 70, 960, 590), fill=빨, width=10); d.text((500, 650), "전부 쉬운 길 위", font=F(38), fill=빨, anchor="mm")
         return c
     if 키 == "결정":
         d.text((500, 70), "다시: 둘이 따로 풀고 나란히 채점", font=F(36), fill=먹, anchor="mm"); _상자(d, (40, 290, 200, 410), "그림", 회)
         d.line((200, 350, 260, 350), fill=회, width=6); d.line((260, 200, 260, 500), fill=회, width=6); _화(d, 260, 340, 200); _화(d, 260, 340, 500)
-        _상자(d, (340, 140, 760, 260), "겹치기 → A (대조군)", 회, n=34); _상자(d, (340, 440, 760, 560), "신경망 → B", 초, (230, 248, 235, 255), 34)
+        _상자(d, (340, 140, 760, 260), "쉬운 계산 → A", 회, n=34); _상자(d, (340, 440, 760, 560), "배운 모델 → B", 초, (230, 248, 235, 255), 34)
         if p > .4: d.text((880, 350), "B > A", font=F(64), fill=초, anchor="mm")
         return c
     if 키 == "학습":
         s = min(int(p * 17), 16) * 25; im = Image.open(R + "겹침_학습_s%03d.png" % s).convert("RGBA").resize((520, 520)); c.alpha_composite(im, (60, 120))
-        d.text((320, 80), "그림만 보고 구멍 정하기", font=F(32), fill=먹, anchor="mm"); d.text((800, 300), "%d 걸음" % s, font=F(56), fill=초, anchor="mm")
+        d.text((320, 80), "그림 보고 구멍 정하기", font=F(32), fill=먹, anchor="mm"); d.text((800, 300), "%d 걸음" % s, font=F(56), fill=초, anchor="mm")
         d.text((800, 420), "빨강 = 그림", font=F(30), fill=빨, anchor="mm"); d.text((800, 470), "빈 곳 = AI 구멍", font=F(30), fill=회, anchor="mm"); return c
     if 키 == "숫자":
         e = _쉬움(p * 2); v = .840 + (.968 - .840) * e; d.text((500, 90), "처음 보는 그림 100 장 · 겹침 IoU", font=F(36), fill=먹, anchor="mm")
