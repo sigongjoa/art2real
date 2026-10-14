@@ -6,6 +6,10 @@ def 꼬임(q):   # 닫힌 다각형의 변끼리 건너는 곳 수 — 0 이어�
     n = len(q); o = lambda u, v, w: (v[0] - u[0]) * (w[1] - u[1]) - (v[1] - u[1]) * (w[0] - u[0])
     return sum(o(q[i], q[(i + 1) % n], q[j]) * o(q[i], q[(i + 1) % n], q[(j + 1) % n]) < 0 and o(q[j], q[(j + 1) % n], q[i]) * o(q[j], q[(j + 1) % n], q[(i + 1) % n]) < 0
                for i in range(n) for j in range(i + 2, n) if not (i == 0 and j == n - 1))
+def 면유효(q):   # 판정기준44 — 꼬임 검사는 변이 「건너는」 것만 센다 · 꼭짓점이 다른 변에 「닿는」 다각형(787 번)도 OCC 면이 무효 → 깎는 도구가 깨지고 칸이 틀 밖으로 튐 · OCC 에 직접 묻는다
+    import cadquery as cq
+    try: return cq.Face.makeFromWires(cq.Wire.makePolygon([cq.Vector(x, y, 0) for x, y in q], close=True)).isValid()
+    except Exception: return False
 def 다각(mask):
     cs, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE); out = []
     for c in cs:
@@ -14,7 +18,7 @@ def 다각(mask):
             p = cv2.approxPolyDP(c, e, True)[:, 0, :]
             if 3 <= len(p) <= 200:
                 q = [화(x, y) for x, y in p]
-                if not 꼬임(q): out.append(q); break   # 끝까지 꼬이거나 꼭짓점 200 넘으면 버림
+                if not 꼬임(q) and 면유효(q): out.append(q); break   # 끝까지 꼬이거나 꼭짓점 200 넘으면 버림
     return out
 def 몸통53(그림, H):   # 판정기준33 — 몸통은 53 편 윤곽바탕(그림 물붓기 · 가장 큰 바깥 윤곽 · 원 판정 · 1.5 줄이기) · → (고체, 경로)
     import sys, cadquery as cq
@@ -36,7 +40,7 @@ def _판(그림, 면, 길, 넓힘=0.0):   # 넓힘 > 0: 채운 윤곽을 4 배�
     원래 = lambda p: [화((x + .5) / k - .5, (y + .5) / k - .5) for x, y in p]
     for i, e in enumerate((1.5, 1.0, .5, 2.5, 4)):
         p = cv2.approxPolyDP(c.reshape(-1, 1, 2).astype(np.float32), e * k, True)[:, 0, :]; q = 원래(p)
-        if 3 <= len(q) <= 300 and not 꼬임(q): return 밀(cq.Workplane(면).polyline(q).close()), "다각" if i == 0 else "다시 줄임"
+        if 3 <= len(q) <= 300 and not 꼬임(q) and 면유효([(x, y) for x, y in q]): return 밀(cq.Workplane(면).polyline(q).close()), "다각" if i == 0 else "다시 줄임"
     q = 원래(cv2.convexHull(c.astype(np.float32))[:, 0, :]); return 밀(cq.Workplane(면).polyline(q).close()), "볼록 껍질"
 def 몸통35(그림셋, H):   # 위 · 앞 · 옆 바깥 윤곽 교차(사용자 「해보자고」 10-14 · 판정기준34 B) · → (고체, 경로)
     X, Fr, S = 그림셋; t, a = _판(X, "XY", H); f, b = _판(Fr, "XZ", 1.2); s, c = _판(S, "YZ", 1.2)
