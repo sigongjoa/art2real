@@ -25,37 +25,46 @@ def 몸통53(그림, H):   # 판정기준33 — 몸통은 53 편 윤곽바탕(�
         p = cv2.approxPolyDP(c.reshape(-1, 1, 2).astype(np.float32), e, True)[:, 0, :]; q = [화(x, y) for x, y in p]
         if 3 <= len(q) <= 300 and not 꼬임(q): return cq.Workplane("XY").polyline(q).close().extrude(H).translate((0, 0, -H / 2)), "다각" if i == 0 else "다시 줄임"
     q = [화(x, y) for x, y in cv2.convexHull(c.astype(np.float32))[:, 0, :]]; return cq.Workplane("XY").polyline(q).close().extrude(H).translate((0, 0, -H / 2)), "볼록 껍질"
-def _판(그림, 면, 길):   # 판정기준35 — 한 장의 바깥 윤곽(53 편 방식)을 면(XY 위 · XZ 앞 · YZ 옆) 위에 그려 민다 · XY 는 높이 길 가운데 · 나머지는 양쪽으로 길 · → (고체, 경로)
+def _판(그림, 면, 길, 넓힘=0.0):   # 넓힘 > 0: 채운 윤곽을 4 배로 키워 다시 딴다(화소 가운데 윤곽은 반 화소 안쪽 → 1/8 화소 · 판정기준37 · OCC offset2D 는 얇은 모양을 깨뜨려 버림)
     import sys, cadquery as cq
     sys.path.insert(0, "G:/art2real/원화3d/실험_20261013/구멍"); import 윤곽바탕 as W
     밀 = (lambda w: w.extrude(길).translate((0, 0, -길 / 2))) if 면 == "XY" else (lambda w: w.extrude(길, both=True))
-    _, c = W.바깥(그림); f = W.맞추기(c)
-    if f[0] == "원": (x, y), r = f[1], f[2]; cx, cy = 화(x, y); return 밀(cq.Workplane(면).center(cx, cy).circle(r * 칸)), "원"
+    m, c = W.바깥(그림); f = W.맞추기(c); k = 4 if 넓힘 else 1
+    if f[0] == "원": (x, y), r = f[1], f[2]; cx, cy = 화(x, y); return 밀(cq.Workplane(면).center(cx, cy).circle((r + (.5 if 넓힘 else 0)) * 칸)), "원"
+    if 넓힘:
+        큰 = cv2.resize(m.astype(np.uint8), None, fx=k, fy=k, interpolation=cv2.INTER_NEAREST); cs, _ = cv2.findContours(큰, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE); c = max(cs, key=cv2.contourArea)[:, 0, :]
+    원래 = lambda p: [화((x + .5) / k - .5, (y + .5) / k - .5) for x, y in p]
     for i, e in enumerate((1.5, 1.0, .5, 2.5, 4)):
-        p = cv2.approxPolyDP(c.reshape(-1, 1, 2).astype(np.float32), e, True)[:, 0, :]; q = [화(x, y) for x, y in p]
+        p = cv2.approxPolyDP(c.reshape(-1, 1, 2).astype(np.float32), e * k, True)[:, 0, :]; q = 원래(p)
         if 3 <= len(q) <= 300 and not 꼬임(q): return 밀(cq.Workplane(면).polyline(q).close()), "다각" if i == 0 else "다시 줄임"
-    q = [화(x, y) for x, y in cv2.convexHull(c.astype(np.float32))[:, 0, :]]; return 밀(cq.Workplane(면).polyline(q).close()), "볼록 껍질"
+    q = 원래(cv2.convexHull(c.astype(np.float32))[:, 0, :]); return 밀(cq.Workplane(면).polyline(q).close()), "볼록 껍질"
 def 몸통35(그림셋, H):   # 위 · 앞 · 옆 바깥 윤곽 교차(사용자 「해보자고」 10-14 · 판정기준34 B) · → (고체, 경로)
     X, Fr, S = 그림셋; t, a = _판(X, "XY", H); f, b = _판(Fr, "XZ", 1.2); s, c = _판(S, "YZ", 1.2)
     return t.intersect(f).intersect(s), "/".join((a, b, c))
 def _폭(m, 축): i = np.nonzero(m.any(axis=축))[0]; return (i.max() - i.min() + 1) if len(i) else 0
-def 몸통36(그림셋, H):   # 판정기준36 — 몸통35 + 두 안전장치(쓴 장을 경로에 찍는다) · → (고체, 경로)
+def 몸통36(그림셋, H, 넓힘=0.0, 빈장건너뜀=False):   # 판정기준37: 넓힘 = 반 화소 · 빈 앞 · 옆 그림은 건너뜀   # 판정기준36 — 몸통35 + 두 안전장치(쓴 장을 경로에 찍는다) · → (고체, 경로)
     # ① 앞 · 옆 그림을 믿는 조건: 채운 윤곽의 가로 폭이 위 그림의 그 축 폭과 3 화소 안 · 세로 6 화소 이상(얇은 부품은 한 줄이라 조각만 잡힘 · 판정35)
     # ② 교차 결과가 재료보다 크거나 비면(OCC 순서 탈) 다른 순서 → 그래도 안 되면 그 장을 뺀다
     import sys; sys.path.insert(0, "G:/art2real/원화3d/실험_20261013/구멍"); import 윤곽바탕 as W
     X, Fr, S = 그림셋; mt = W.바깥(X)[0]; t, a = _판(X, "XY", H); 쓴 = [("위", t)]
     for 이름, g, 면, 축폭 in (("앞", Fr, "XZ", _폭(mt, 0)), ("옆", S, "YZ", _폭(mt, 1))):
+        if 빈장건너뜀 and (g > .3).sum() < 3: continue
         m = W.바깥(g)[0]
-        if abs(_폭(m, 0) - 축폭) <= 3 and _폭(m, 1) >= 6: 쓴.append((이름, _판(g, 면, 1.2)[0]))
+        if abs(_폭(m, 0) - 축폭) <= 3 and _폭(m, 1) >= 6:
+            for 넓 in ((넓힘, 0.0) if 넓힘 else (0.0,)):   # 넓히기가 OCC 에서 깨지면(빈 모양) 안 넓힌 것으로 · 그것도 깨지면 그 장을 뺀다
+                try: q = _판(g, 면, 1.2, 넓)[0]; q.val().Volume(); 쓴.append((이름, q)); break
+                except Exception: pass
     V = lambda q: q.val().Volume()
     for 판 in ([쓴[0], 쓴[1], 쓴[2]], [쓴[0], 쓴[2], 쓴[1]], 쓴[:2], [쓴[0], 쓴[-1]], 쓴[:1]) if len(쓴) == 3 else (쓴, 쓴[:1]):
         try:
             r = 판[0][1]
             for _, q in 판[1:]: r = r.intersect(q)
-            v = V(r)
-            if 0 < v <= min(V(q) for _, q in 판) * 1.001: return r, "+".join(n for n, _ in 판) + " · " + a
+            if len(판) == 1: return r, "위 · " + a
+            칸들 = [점유_캐드(q) for _, q in 판]; 기대 = np.logical_and.reduce(칸들); 얻 = 점유_캐드(r)   # 재료를 칸으로 겹친 것과 CAD 교차가 맞아야(정답 안 봄 · 판정37)
+            if 기대.sum() and (기대 & 얻).sum() / max((기대 | 얻).sum(), 1) >= .9: return r, "+".join(n for n, _ in 판) + " · " + a
         except Exception: pass
     return t, "위 · " + a
+def 몸통37(그림셋, H): return 몸통36(그림셋, H, 넓힘=.5 * 칸, 빈장건너뜀=True)
 def 짓기(Y, D, H, 덩어리깊이=False, 그림=None):   # 그림: 주면 몸통은 몸통53(그림) · Y 는 관통 · 들어감에만   # 덩어리깊이: 들어감 덩어리(4 이웃)마다 깊이 하나(중앙값) — 판정기준31 ①
     import cadquery as cq
     if 그림 is not None: return 깎기(몸통53(그림, H)[0], Y, D, H, 덩어리깊이)
@@ -106,7 +115,7 @@ def 부피IoU(job):   # (stl 경로, Y, D[, 덩어리깊이[, 그림]]) → (IoU
     p, Y, D = job[:3]; 덩 = job[3] if len(job) > 3 else False; 그림 = job[4] if len(job) > 4 else None
     if 그림 is not None:
         try:
-            v, f, H = 정규메시(p); 정 = 점유_메시(v, f); 몸, 길 = 몸통36(그림, H) if isinstance(그림, tuple) else 몸통53(그림, H); s = 깎기(몸, Y, D, H, 덩)
+            v, f, H = 정규메시(p); 정 = 점유_메시(v, f); 몸, 길 = 몸통37(그림, H) if isinstance(그림, tuple) else 몸통53(그림, H); s = 깎기(몸, Y, D, H, 덩)
             r = lambda q: float((q & 정).sum() / max((q | 정).sum(), 1)); return (r(점유_캐드(s)), r(점유_캐드(몸)), 길)
         except Exception as e: return (0.0, 0.0, "실패 " + type(e).__name__)
     try:
