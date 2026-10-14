@@ -25,6 +25,19 @@ def 몸통53(그림, H):   # 판정기준33 — 몸통은 53 편 윤곽바탕(�
         p = cv2.approxPolyDP(c.reshape(-1, 1, 2).astype(np.float32), e, True)[:, 0, :]; q = [화(x, y) for x, y in p]
         if 3 <= len(q) <= 300 and not 꼬임(q): return cq.Workplane("XY").polyline(q).close().extrude(H).translate((0, 0, -H / 2)), "다각" if i == 0 else "다시 줄임"
     q = [화(x, y) for x, y in cv2.convexHull(c.astype(np.float32))[:, 0, :]]; return cq.Workplane("XY").polyline(q).close().extrude(H).translate((0, 0, -H / 2)), "볼록 껍질"
+def _판(그림, 면, 길):   # 판정기준35 — 한 장의 바깥 윤곽(53 편 방식)을 면(XY 위 · XZ 앞 · YZ 옆) 위에 그려 민다 · XY 는 높이 길 가운데 · 나머지는 양쪽으로 길 · → (고체, 경로)
+    import sys, cadquery as cq
+    sys.path.insert(0, "G:/art2real/원화3d/실험_20261013/구멍"); import 윤곽바탕 as W
+    밀 = (lambda w: w.extrude(길).translate((0, 0, -길 / 2))) if 면 == "XY" else (lambda w: w.extrude(길, both=True))
+    _, c = W.바깥(그림); f = W.맞추기(c)
+    if f[0] == "원": (x, y), r = f[1], f[2]; cx, cy = 화(x, y); return 밀(cq.Workplane(면).center(cx, cy).circle(r * 칸)), "원"
+    for i, e in enumerate((1.5, 1.0, .5, 2.5, 4)):
+        p = cv2.approxPolyDP(c.reshape(-1, 1, 2).astype(np.float32), e, True)[:, 0, :]; q = [화(x, y) for x, y in p]
+        if 3 <= len(q) <= 300 and not 꼬임(q): return 밀(cq.Workplane(면).polyline(q).close()), "다각" if i == 0 else "다시 줄임"
+    q = [화(x, y) for x, y in cv2.convexHull(c.astype(np.float32))[:, 0, :]]; return 밀(cq.Workplane(면).polyline(q).close()), "볼록 껍질"
+def 몸통35(그림셋, H):   # 위 · 앞 · 옆 바깥 윤곽 교차(사용자 「해보자고」 10-14 · 판정기준34 B) · → (고체, 경로)
+    X, Fr, S = 그림셋; t, a = _판(X, "XY", H); f, b = _판(Fr, "XZ", 1.2); s, c = _판(S, "YZ", 1.2)
+    return t.intersect(f).intersect(s), "/".join((a, b, c))
 def 짓기(Y, D, H, 덩어리깊이=False, 그림=None):   # 그림: 주면 몸통은 몸통53(그림) · Y 는 관통 · 들어감에만   # 덩어리깊이: 들어감 덩어리(4 이웃)마다 깊이 하나(중앙값) — 판정기준31 ①
     import cadquery as cq
     if 그림 is not None: return 깎기(몸통53(그림, H)[0], Y, D, H, 덩어리깊이)
@@ -75,7 +88,7 @@ def 부피IoU(job):   # (stl 경로, Y, D[, 덩어리깊이[, 그림]]) → (IoU
     p, Y, D = job[:3]; 덩 = job[3] if len(job) > 3 else False; 그림 = job[4] if len(job) > 4 else None
     if 그림 is not None:
         try:
-            v, f, H = 정규메시(p); 정 = 점유_메시(v, f); 몸, 길 = 몸통53(그림, H); s = 깎기(몸, Y, D, H, 덩)
+            v, f, H = 정규메시(p); 정 = 점유_메시(v, f); 몸, 길 = 몸통35(그림, H) if isinstance(그림, tuple) else 몸통53(그림, H); s = 깎기(몸, Y, D, H, 덩)
             r = lambda q: float((q & 정).sum() / max((q | 정).sum(), 1)); return (r(점유_캐드(s)), r(점유_캐드(몸)), 길)
         except Exception as e: return (0.0, 0.0, "실패 " + type(e).__name__)
     try:
