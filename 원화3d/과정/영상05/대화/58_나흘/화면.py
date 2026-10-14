@@ -11,9 +11,14 @@ def _상자(d, xy, 글, 테, 채움=(255, 255, 255, 255), n=36):
     d.rounded_rectangle(xy, 22, fill=채움, outline=테, width=6); d.text(((xy[0] + xy[2]) // 2, (xy[1] + xy[3]) // 2), 글, font=F(n), fill=먹, anchor="mm")
 def _화(d, x0, x1, y): d.line((x0, y, x1 - 18, y), fill=회, width=6); d.polygon(((x1, y), (x1 - 22, y - 14), (x1 - 22, y + 14)), fill=회)
 def 판(키, p):
-    c = _카드(빨 if 키 in ("영", "바탕", "나흘") else 금 if 키 in ("짐작", "점수", "장난감") else 초 if 키 in ("결정", "학습", "숫자") else 파); d = ImageDraw.Draw(c)
+    c = _카드(빨 if 키 in ("영", "바탕", "나흘") else 금 if 키 in ("짐작", "점수", "장난감") else 초 if 키 in ("질문", "결정", "학습", "숫자") else 파); d = ImageDraw.Draw(c)
     if 키 == "머리":
         _머리(c, p, (230, 90), 540); d.text((500, 60), "메카2 머리 · 앞 · 옆 그림에서", font=F(34), fill=먹, anchor="mm"); return c
+    if 키 == "질문":
+        d.text((500, 90), "「나」가 던진 질문", font=F(36), fill=먹, anchor="mm"); d.rounded_rectangle((90, 180, 910, 480), 30, fill=(232, 248, 236, 255), outline=초, width=6)
+        d.text((500, 280), "학습한 모델로", font=F(60), fill=먹, anchor="mm"); d.text((500, 380), "만든 거 맞아?", font=F(60), fill=먹, anchor="mm")
+        if p > .4: d.text((500, 590), "만든 것 ≠ 맡긴 것?", font=F(40), fill=초, anchor="mm")
+        return c
     if 키 == "영":
         _머리(c, p, (40, 140), 420); d.text((690, 230), "학습 모델", font=F(44), fill=먹, anchor="mm")
         s = int(200 + 60 * (1 - _쉬움(p * 3))); d.text((690, 400), "0 번", font=F(s // 2), fill=빨, anchor="mm"); d.text((690, 560), "그림자 겹치기만", font=F(36), fill=회, anchor="mm"); return c
