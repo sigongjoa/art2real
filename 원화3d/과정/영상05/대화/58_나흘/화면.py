@@ -52,12 +52,26 @@ def _선로(d, p, 나흘):   # 시간축 두 선로: 위 = 모델 · 아래 = �
             x = X(9) + 110 + i * 140
             if x < 끝: d.ellipse((x - 10, 아래 - 10, x + 10, 아래 + 10), fill=글); d.text((x, 아래 - 40), t, font=F(24), fill=글, anchor="mm")
 def 판(키, p):
-    c = _카드(빨 if 키 in ("실제길", "갈림", "나흘", "비교") else 금 if 키 in ("요청길", "점수1", "점수2", "장난감") else 초 if 키 in ("결정", "확인", "학습", "곡선") else 하늘); d = ImageDraw.Draw(c)
+    c = _카드(빨 if 키 in ("그림자", "파인곳", "실제길", "갈림", "나흘", "비교") else 금 if 키 in ("요청길", "점수1", "점수2", "장난감") else 초 if 키 in ("결정", "확인", "학습", "곡선") else 하늘); d = ImageDraw.Draw(c)
     if 키 == "머리":
         _머리(c, p, (240, 90), 540); return c
     if 키 == "입력":   # 앞 · 옆 그림 → 머리
         for j, (f, t) in enumerate((("머리_앞그림.png", "앞"), ("머리_옆그림.png", "옆"))): _붙(c, _투명(Image.open(A + f)), (40 + j * 260, 160), 230); d.text((155 + j * 260, 430), t, font=F(32), fill=흐림, anchor="mm")
         _화(d, (560, 280), (640, 280)); _머리(c, p, (650, 120), 320); return c
+    if 키 == "목표":   # 손그림 → ? → 3D 부품
+        _붙(c, _투명(Image.open(A + "머리_앞그림.png")), (50, 200), 260); d.text((180, 500), "손그림", font=F(32), fill=흐림, anchor="mm")
+        _화(d, (330, 330), (420, 330)); d.text((500, 330), "?", font=F(110), fill=금, anchor="mm"); _화(d, (580, 330), (660, 330))
+        im = Image.open(R + "빛_r2a_정답_0.png").convert("RGBA").crop((130, 110, 770, 750)).resize((300, 300)); c.alpha_composite(im, (670, 180)); d.text((820, 520), "3D 부품", font=F(32), fill=흐림, anchor="mm"); return c
+    if 키 == "그림자":   # 앞 · 옆 그림자를 겹친 것 · 9월
+        _붙(c, _투명(Image.open(A + "머리_겹침_05.png")), (300, 110), 420); d.text((500, 58), "그림자 겹치기 · 9월", font=F(36), fill=흐림, anchor="mm")
+        d.text((500, 610), "부피 점수 0.56에서 멈춤", font=F(34), fill=빨, anchor="mm"); return c
+    if 키 == "파인곳":   # 정답 vs 윤곽(그림자)만으로 만든 것
+        for j, i in enumerate((0, 7)):
+            for k, (n, t, col) in enumerate((("정답", "정답", 초), ("바탕", "그림자로", 빨))):
+                im = Image.open(R + "빛_r2a_%s_%d.png" % (n, i)).convert("RGBA").crop((130, 110, 770, 750)).resize((230, 230)); x = 30 + j * 490 + k * 240; c.alpha_composite(im, (x, 160)); d.text((x + 115, 430), t, font=F(30), fill=col, anchor="mm")
+        if p > .3:
+            for x in (145, 635): d.ellipse((x - 70, 230, x + 70, 330), outline=초, width=5)
+        return c
     if 키 in ("요청길", "실제길"): _길(c, d, p, 키 == "실제길"); return c
     if 키 in ("점수1", "점수2"):   # 36 칸 점: 모델 2 · 그림자 겹치기 24
         d.text((500, 58), "실제 부품 36개", font=F(36), fill=흐림, anchor="mm")
