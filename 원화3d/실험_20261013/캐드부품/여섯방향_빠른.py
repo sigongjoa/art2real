@@ -150,4 +150,10 @@ def 지킴짓기(몸, 지도, 고침=True, 띠=.01):   # 면짓기 의 정확판
     K, 정 = 칸고체(q, True, 고침, 자)
     op = BRepAlgoAPI_Common(몸.val().wrapped, K.val().wrapped); op.Build()
     if not op.IsDone(): raise RuntimeError("몸 ∩ K 실패")
-    return cq.Workplane(cq.Shape.cast(op.Shape()).clean()), dict(정, 격자=[len(x) for x in 가])
+    from OCP.GProp import GProp_GProps; from OCP.BRepGProp import BRepGProp; from OCP.TopTools import TopTools_ListOfShape
+    부피 = lambda x: (lambda g: (BRepGProp.VolumeProperties_s(x, g), g.Mass())[1])(GProp_GProps()); 다시 = 0
+    if 부피(op.Shape()) < 1e-9 < 부피(K.val().wrapped):   # 10-15 천장51c 5 번: 맞닿은 면 때문에 「성공」인데 빈 결과 → 퍼지 1e-6 로 한 번 더(1e-4 는 다시 비었다) · 센다
+        op = BRepAlgoAPI_Common(); a_, b_ = TopTools_ListOfShape(), TopTools_ListOfShape(); a_.Append(몸.val().wrapped); b_.Append(K.val().wrapped)
+        op.SetArguments(a_); op.SetTools(b_); op.SetFuzzyValue(1e-6); op.Build(); 다시 = 1
+        if not op.IsDone() or 부피(op.Shape()) < 1e-9: raise RuntimeError("몸 ∩ K 빈 결과(퍼지로도)")
+    return cq.Workplane(cq.Shape.cast(op.Shape()).clean()), dict(정, 격자=[len(x) for x in 가], 퍼지다시=다시)
