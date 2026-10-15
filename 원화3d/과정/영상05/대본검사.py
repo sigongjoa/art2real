@@ -17,7 +17,7 @@ rows = [r for r in csv.reader([l for l in raw if l and not l.startswith("#")], d
 자막 = lambda r: r[5].split("｜")[0].strip()
 첫 = 자막(rows[0])
 if 첫.endswith("?") or re.match(r"(지난번|저번|전에|아까)", 첫): 문제.append("① 첫 줄이 질문이거나 회상: " + 첫[:30])
-결정 = [자막(r) for r in rows if r[0] == "나" and re.search(r"(해 ?봐|해\.|깎아|바꿔|빼|넣어|하자|돌려|정하자|으로 해|로 가)", 자막(r)) and not 자막(r).endswith("?")]
+결정 = [자막(r) for r in rows if r[0] == "나" and re.search(r"(해 ?봐|해\.|고쳐|깎아|바꿔|빼|넣어|하자|돌려|정하자|으로 해|로 가)", 자막(r)) and not 자막(r).endswith("?")]
 if not 결정: 문제.append("② 「나」의 결정 대사 없음(질문만 함)")
 for r in rows[-2:]:
     if re.search(r"(다음 ?편|다음에|나중에|보여 ?드릴게|알려 ?줘|해 볼게요|기대)", 자막(r)): 문제.append("③ 끝에 예고 · 약속: " + 자막(r)[:30])
