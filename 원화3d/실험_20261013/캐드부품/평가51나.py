@@ -20,7 +20,7 @@ def 하나(job):
         return {"틀": r(틀, 정), "CAD": r(c, 정), "칸": r(k, 정), "유효": 유, "시간초과": 초과, "버린": 버, "덩정": int(label(정, K)[1]), "덩CAD": int(label(c, K)[1]), "초": time.time() - t0, "실패": ""}
     except Exception as ex: return {"실패": type(ex).__name__ + " " + str(ex)[:60], "초": time.time() - t0}
 if __name__ == "__main__":
-    이름 = sys.argv[1]; D = O + os.environ.get("평가머리", "학습51나_") + "%s/" % 이름; 조 = D + "평가/"; os.makedirs(조, exist_ok=True); 범 = json.load(open(O + "범위46.json"))   # 10-15 감사54: 판정기준54 는 평가머리=학습54나_
+    이름 = sys.argv[1]; D = O + os.environ.get("EVAL_PREFIX", "학습51나_") + "%s/" % 이름; 조 = D + "평가/"; os.makedirs(조, exist_ok=True); 범 = json.load(open(O + "범위46.json"))   # 10-15 감사54: 판정기준54 는 EVAL_PREFIX=학습54나_(한글 환경변수는 bash 에서 안 됨)
     if sys.argv[2] == "판정":
         v = {}; [v.update({k: x for k, x in zip(d["자리"], d["값"])}) for d in (json.load(open(조 + fn, encoding="utf-8")) for fn in os.listdir(조))]
         if len(v) < len(범): sys.exit("아직 %d / %d" % (len(v), len(범)))
