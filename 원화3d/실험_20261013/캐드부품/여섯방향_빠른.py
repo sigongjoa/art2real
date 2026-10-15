@@ -147,6 +147,7 @@ def 지킴짓기(몸, 지도, 고침=True, 띠=.01):   # 면짓기 의 정확판
             L = np.stack([np.full_like(Y, x), Y, Z], -1) @ r
             u = np.clip(np.round((L[..., 0] + .55) / S6.칸 - .5).astype(int), 0, 끝); v = np.clip(np.round((-L[..., 1] + .55) / S6.칸 - .5).astype(int), 0, 끝)
             q[i] &= ~(L[..., 2] > h - 깊[v, u])
+    if not q.any(): return cq.Workplane(), {"빈": 1, "퍼지다시": 0}   # 10-15 천장51c 175 번: 다 깎이면(얇은 판 · 정답도 빈 칸) 빈 결과가 맞다 — 오류 아님
     K, 정 = 칸고체(q, True, 고침, 자)
     op = BRepAlgoAPI_Common(몸.val().wrapped, K.val().wrapped); op.Build()
     if not op.IsDone(): raise RuntimeError("몸 ∩ K 실패")

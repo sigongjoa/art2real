@@ -12,7 +12,7 @@ def 하나(job):   # → dict
         v, f, H = J.정규메시(p); 정 = J.점유_메시(v, f); 정96 = J.점유_메시(v, f, 96); K = np.ones((3, 3, 3))
         닫 = bool(trimesh.Trimesh(v, f, process=False).is_watertight); d48, d96 = int(label(정, K)[1]), int(label(정96, K)[1])
         몸, _ = J.몸통37(그림, H); 틀 = J.점유_캐드(몸); 지 = S6.깊이지도(v, f); k = S6.칸깎기(틀, 몸, 지)
-        try: s, 정보 = S6빠.지킴짓기(몸, 지); 버 = 정보.get("퍼지다시", 0); c = J.점유_캐드(s); 유 = bool(s.val().isValid()); 초과 = False
+        try: s, 정보 = S6빠.지킴짓기(몸, 지); 버 = 정보.get("퍼지다시", 0); 빈 = not s.vals(); c = np.zeros_like(틀) if 빈 else J.점유_캐드(s); 유 = True if 빈 else bool(s.val().isValid()); 초과 = False
         except TimeoutError: c = np.zeros_like(틀); 버 = 0; 유 = False; 초과 = True
         r = lambda a, b: float((a & b).sum() / max((a | b).sum(), 1))
         return {"틀": r(틀, 정), "CAD": r(c, 정), "칸": r(k, 정), "CAD대칸": r(c, k), "유효": 유, "시간초과": 초과, "버린": 버, "닫힘": 닫, "덩48": d48, "덩96": d96, "빈": int(정.sum() == 0), "초": time.time() - t0, "실패": ""}
