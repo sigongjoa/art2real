@@ -4,7 +4,7 @@
 # 좌표: 칸 [x, y, z] = 짓기.점유_캐드 · 위 그림 [행 = N−1−y, 열 = x] · 앞 [행 = N−1−z, 열 = x] · 옆 [행 = N−1−z, 열 = y] — 지역틀.껍질 과 같다 · 검사는 좌표검사51가.py
 import sys, os, json, time, numpy as np
 from 학습51나 import 묶음
-O = "G:/art2real/out/설명/캐드부품/"; 에폭 = 8; 배치 = 8; n = 48
+O = "G:/art2real/out/설명/캐드부품/"; 에폭 = int(os.environ.get("A_EPOCH", 8)); 배치 = int(os.environ.get("A_BATCH", 8)); 폭 = int(os.environ.get("A_WIDTH", 1)); n = 48   # 10-15 판정기준51b: 학습량(에폭 · 폭 · 배치)을 환경변수로
 def 풀기(a): return np.unpackbits(a, axis=-1).reshape(*a.shape[:-1], n, n, n).astype(bool)   # packbits 13824 → 48³
 def 그림들(X, F, S, idx):   # 부품 → (B, 3, 2, 128, 128) [선 · 채운 윤곽] uint8
     import 입력51 as I
@@ -15,16 +15,16 @@ def 늘림(위, 앞, 옆):   # (B, C, 48, 48) 그림 틀 [행, 열] 셋 → (B, 
     앞 = 앞.flip(2).transpose(2, 3)[:, :, :, None]  # [N−1−z, x] → [x, z] → y 로 늘림
     옆 = 옆.flip(2).transpose(2, 3)[:, :, None]     # [N−1−z, y] → [y, z] → x 로 늘림
     s = (위.shape[0], 위.shape[1], n, n, n); return torch.cat([위.expand(s), 앞.expand(s), 옆.expand(s)], 1)
-def 모만들기(c=8):   # c = 그림마다 채널
+def 모만들기(c=8, w=1):   # c = 그림마다 채널 · w = 채널 배수
     import torch, torch.nn as nn, torch.nn.functional as Fn
     b3 = lambda i, o: nn.Sequential(nn.Conv3d(i, o, 3, 1, 1), nn.BatchNorm3d(o), nn.ReLU(), nn.Conv3d(o, o, 3, 1, 1), nn.BatchNorm3d(o), nn.ReLU())
     class 모(nn.Module):
         def __init__(s):
             super().__init__()   # 2D 인코더는 셋 따로(위 · 앞 · 옆은 보는 것이 다르다)
-            s.en = nn.ModuleList([nn.Sequential(nn.Conv2d(2, 16, 3, 1, 1), nn.BatchNorm2d(16), nn.ReLU(), nn.Conv2d(16, 32, 3, 2, 1), nn.BatchNorm2d(32), nn.ReLU(), nn.Conv2d(32, 32, 3, 1, 1), nn.ReLU()) for _ in range(3)])
-            s.to2 = nn.ModuleList([nn.Conv2d(32, c, 1) for _ in range(3)])
-            s.e1, s.e2, s.e3 = b3(3 * c + 2, 24), b3(24, 48), b3(48, 96); s.p = nn.MaxPool3d(2)   # 48 → 24 → 12
-            s.u2, s.d2 = nn.ConvTranspose3d(96, 48, 2, 2), b3(96, 48); s.u1, s.d1 = nn.ConvTranspose3d(48, 24, 2, 2), b3(48, 24); s.o = nn.Conv3d(24, 1, 1)
+            s.en = nn.ModuleList([nn.Sequential(nn.Conv2d(2, 16 * w, 3, 1, 1), nn.BatchNorm2d(16 * w), nn.ReLU(), nn.Conv2d(16 * w, 32 * w, 3, 2, 1), nn.BatchNorm2d(32 * w), nn.ReLU(), nn.Conv2d(32 * w, 32 * w, 3, 1, 1), nn.ReLU()) for _ in range(3)])
+            cw = c * w; s.to2 = nn.ModuleList([nn.Conv2d(32 * w, cw, 1) for _ in range(3)])
+            s.e1, s.e2, s.e3 = b3(3 * cw + 2, 24 * w), b3(24 * w, 48 * w), b3(48 * w, 96 * w); s.p = nn.MaxPool3d(2)   # 48 → 24 → 12
+            s.u2, s.d2 = nn.ConvTranspose3d(96 * w, 48 * w, 2, 2), b3(96 * w, 48 * w); s.u1, s.d1 = nn.ConvTranspose3d(48 * w, 24 * w, 2, 2), b3(48 * w, 24 * w); s.o = nn.Conv3d(24 * w, 1, 1)
         def forward(s, 그, 틀, 앞):   # 그 (B, 3, 2, 128, 128) · 틀 · 앞 (B, 48, 48, 48) → 로짓 (B, 48, 48, 48)
             f = [s.to2[k](Fn.interpolate(s.en[k](그[:, k]), size=(n, n), mode="bilinear", align_corners=False)) for k in range(3)]   # 64 → 48 · 범위가 같아 칸 가운데가 맞는다
             x = torch.cat([늘림(*f), 틀[:, None], 앞[:, None]], 1); a = s.e1(x); b_ = s.e2(s.p(a)); c_ = s.e3(s.p(b_))
@@ -43,7 +43,10 @@ if __name__ == "__main__":
     print("학습 부품", len(tr), "예측 부품", len(예부), flush=True); t0 = time.time()
     쓸 = np.union1d(tr, 예부)
     G = dict(zip(쓸, 그림들(X, F, S, 쓸))); del X, F, S; print("채운 윤곽 %.0f 초" % (time.time() - t0), flush=True)   # ponytail: 부품마다 3 × 2 × 128² = 98 KB · 1 만이면 1 GB 램
-    m = 모만들기()().to(dev); opt = torch.optim.Adam(m.parameters(), 1e-3)
+    m = 모만들기(w=폭)().to(dev); opt = torch.optim.Adam(m.parameters(), 1e-3); 줄 = torch.optim.lr_scheduler.CosineAnnealingLR(opt, max(에폭, 1))
+    범 = json.load(open(O + "범위46.json")); 시험712 = np.nonzero(시)[0][범]; 곡선 = []   # 판정기준51b: 2 에폭마다 712 개 칸 IoU(학습 곡선)
+    def 점수712():
+        P7 = 예측(시험712); a, b = 풀기(P7), 풀기(정p[시험712]); return float(((a & b).sum((1, 2, 3)) / np.maximum((a | b).sum((1, 2, 3)), 1)).mean())
     def 입력(idx):
         g = torch.tensor(np.stack([G[i] for i in idx]), device=dev).float(); t = torch.tensor(풀기(틀p[idx]), device=dev).float()
         p = torch.tensor(np.stack([np.asarray(앞판[i]) for i in idx]) > 0, device=dev).float() if 앞판 is not None else t
@@ -65,6 +68,8 @@ if __name__ == "__main__":
             if ep == 0 and s == 배치: t1 = time.time()   # 첫 두 배치(준비 · cudnn 고르기)는 예상에서 뺀다
         if ep == 0: print("1 에폭 예상(학습 부품 %d) %.0f 초" % (전체, (time.time() - t1) / (len(perm) - 2 * 배치) * 전체), flush=True)
         기록.append({"에폭": ep + 1, "손실": 합 / len(perm), "초": time.time() - t0}); print("에폭 %d · 손실 %.4f · %.0f 초 · GPU 최고 %.2f GB" % (ep + 1, 합 / len(perm), time.time() - t0, torch.cuda.max_memory_allocated() / 2 ** 30), flush=True); json.dump(기록, open(D + "기록.json", "w"))
+        줄.step()
+        if 묶 < 0 and not os.environ.get("QUICK") and ((ep + 1) % 2 == 0 or ep + 1 == 에폭): 곡선.append({"에폭": ep + 1, "712": 점수712()}); print("  712 개 칸 IoU %.4f" % 곡선[-1]["712"], flush=True); json.dump(곡선, open(D + "곡선.json", "w"))
     torch.save(m.state_dict(), D + "망.pt"); P = 예측(예부); np.save(D + "예측.npy", P); np.save(D + "예측부품.npy", 예부)
     pp, 정, 틀 = 풀기(P), 풀기(정p[예부]), 풀기(틀p[예부]); r = lambda a, b: ((a & b).sum((1, 2, 3)) / np.maximum((a | b).sum((1, 2, 3)), 1)).mean()
     print("예측 부피 IoU %.3f · 틀만 %.3f" % (r(pp, 정), r(틀, 정)), flush=True)
