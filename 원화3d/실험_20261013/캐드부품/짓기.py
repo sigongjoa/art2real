@@ -10,16 +10,40 @@ def 면유효(q):   # 판정기준44 — 꼬임 검사는 변이 「건너는」
     import cadquery as cq
     try: return cq.Face.makeFromWires(cq.Wire.makePolygon([cq.Vector(x, y, 0) for x, y in q], close=True)).isValid()
     except Exception: return False
-def 다각(mask):
-    cs, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE); out = []
-    for c in cs:
-        if cv2.contourArea(c) < 3: continue
-        for e in (.8, .5, .3, 1.2, 2, 3):   # 꼬이면 버리지 않고 줄임 정도를 바꿔 다시(판정기준32) — 0.8 에서 되던 것은 그대로
-            p = cv2.approxPolyDP(c, e, True)[:, 0, :]
-            if 3 <= len(p) <= 200:
-                q = [화(x, y) for x, y in p]
-                if not 꼬임(q) and 면유효(q): out.append(q); break   # 끝까지 꼬이거나 꼭짓점 200 넘으면 버림
+import collections; 버린 = collections.Counter()   # 깎기에서 말없이 빠지던 것 — 이유마다 센다(10-15)
+def _다(c):
+    if cv2.contourArea(c) < 3: return None
+    for e in (.8, .5, .3, 1.2, 2, 3):   # 꼬이면 버리지 않고 줄임 정도를 바꿔 다시(판정기준32) — 0.8 에서 되던 것은 그대로
+        p = cv2.approxPolyDP(c, e, True)[:, 0, :]
+        if 3 <= len(p) <= 200:
+            q = [화(x, y) for x, y in p]
+            if not 꼬임(q) and 면유효(q): return q   # 끝까지 꼬이거나 꼭짓점 200 넘으면 버림
+    return None
+def 다각(mask):   # 바깥 윤곽만(몸통용)
+    cs, _ = cv2.findContours(mask.astype(np.uint8), cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE); return [q for q in map(_다, cs) if q]
+def 다각섬(mask):   # 10-15 — 깎는 영역 안의 섬(들어감 안에 솟은 고리 · 보스)을 살린다: (바깥, [구멍…]) · 다각 은 RETR_EXTERNAL 이라 고리 영역이 원판째 깎였다(475 번)
+    cs, h = cv2.findContours(mask.astype(np.uint8), cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE); out = []
+    if h is None: return out
+    h = h[0]
+    for i, c in enumerate(cs):
+        if h[i][3] != -1: continue
+        q = _다(c)
+        if not q: continue
+        구, k = [], h[i][2]
+        while k != -1:
+            r = _다(cs[k])
+            if r: 구.append(r)
+            elif cv2.contourArea(cs[k]) >= 3: 버린["섬 윤곽"] += 1
+            k = h[k][0]
+        out.append((q, 구))
     return out
+def _도구(q, 구, h, z0):   # 바깥 기둥 − 섬 기둥(섬 빼기가 깨지면 그 섬만 버리고 센다)
+    import cadquery as cq
+    t = cq.Workplane("XY").polyline(q).close().extrude(h).translate((0, 0, z0))
+    for r in 구:
+        try: t = t.cut(cq.Workplane("XY").polyline(r).close().extrude(h + .2).translate((0, 0, z0 - .1)))
+        except Exception: 버린["섬 빼기"] += 1
+    return t
 def 몸통53(그림, H):   # 판정기준33 — 몸통은 53 편 윤곽바탕(그림 물붓기 · 가장 큰 바깥 윤곽 · 원 판정 · 1.5 줄이기) · → (고체, 경로)
     import sys, cadquery as cq
     sys.path.insert(0, "G:/art2real/원화3d/실험_20261013/구멍"); import 윤곽바탕 as W
@@ -81,7 +105,27 @@ def 짓기(Y, D, H, 덩어리깊이=False, 그림=None):   # 그림: 주면 몸�
         except Exception: pass
     if s is None: return None
     return 깎기(s, Y, D, H, 덩어리깊이)
-def 깎기(s, Y, D, H, 덩어리깊이):   # 몸통 s 에 관통 · 들어감을 깎는다
+def 깎기(s, Y, D, H, 덩어리깊이):   # 몸통 s 에 관통 · 들어감을 깎는다 · 10-15 섬을 살림(다각섬) · 옛 것은 옛깎기
+    for q, 구 in 다각섬(Y == 2):
+        try: s = s.cut(_도구(q, 구, H + .2, -H / 2 - .1))
+        except Exception: 버린["뚫음"] += 1
+    if 덩어리깊이:
+        n, lab = cv2.connectedComponents((Y == 3).astype(np.uint8), connectivity=4)
+        for i in range(1, n):
+            m = lab == i; dz = min(float(np.median(D[m])), .98) * H
+            if dz < .01 * H: continue
+            for q, 구 in 다각섬(m):
+                try: s = s.cut(_도구(q, 구, dz + .05, H / 2 - dz))
+                except Exception: 버린["들어감"] += 1
+        return s
+    층 = np.clip(np.round(np.where(Y == 3, D, 0) / .1), 0, 10).astype(int)
+    for k in range(1, 11):
+        for q, 구 in 다각섬((Y == 3) & (층 == k)):
+            dz = min(k * .1, .98) * H
+            try: s = s.cut(_도구(q, 구, dz + .05, H / 2 - dz))
+            except Exception: 버린["들어감"] += 1
+    return s
+def 옛깎기(s, Y, D, H, 덩어리깊이):   # 10-14 까지 — 바깥 윤곽만(섬도 같이 깎임)
     import cadquery as cq
     for p in 다각(Y == 2):
         try: s = s.cut(cq.Workplane("XY").polyline(p).close().extrude(H + .2).translate((0, 0, -H / 2 - .1)))
