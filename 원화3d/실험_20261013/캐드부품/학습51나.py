@@ -11,7 +11,7 @@ if __name__ == "__main__":
     D = O + "학습51나_%s/" % 이름; os.makedirs(D, exist_ok=True); torch.manual_seed(31); dev = "cuda"
     입 = np.load(O + "입력51.npy", mmap_mode="r"); z = np.load(O + "데이터51.npz"); 층, ok = z["층"], z["ok"]; 시 = np.load(O + "데이터.npz")["시험"]
     앞판 = np.load(앞, mmap_mode="r") if 앞 else None
-    부 = np.arange(len(ok)); tr = 부[~시 & ok]; 예부 = 부[시]
+    부 = np.arange(len(ok)); 찬 = np.load(O + "데이터51.npz")["정답"].any(1); tr = 부[~시 & ok & 찬]; 예부 = 부[시]   # 10-15 감사: 정답 칸이 빈 학습 부품 171 개(얇은 판)는 「다 비워라」를 가르쳐서 뺀다 · 예측(시험)은 그대로
     if 묶 >= 0: 예부 = tr[np.array([묶음(i) == 묶 for i in tr])]; tr = tr[np.array([묶음(i) != 묶 for i in tr])]
     if os.environ.get("QUICK"): tr, 예부, 에폭 = tr[:64], 예부[:8], 1   # 연기 시험(망 · 입출력만)
     print("학습 부품", len(tr), "예측 부품", len(예부), flush=True)

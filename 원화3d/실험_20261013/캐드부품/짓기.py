@@ -1,6 +1,6 @@
 # 로드맵 2 — 지도(0 바깥 · 1 윗면 · 2 관통 · 3 들어감 + 깊이 비율) → CadQuery: 바깥 윤곽을 높이 H 로 밀고 · 관통은 뚫고 · 들어감은 깊이 층(0.1 단위)마다 덩어리째 깎음 · 부피 IoU(48³) · 10-13
 import numpy as np, cv2, os, sys
-sys.path.append("G:/art2real/트레일/trail10_cadrille/runs/기능0"); import 상한 as _상한; _상한.자기상한(float(os.environ.get("ART_MEM_GB", "10")))   # 10-15 — 이 모듈을 쓰는 모든 프로세스(OCC 깎기)는 메모리 상한 안에서만 돈다
+sys.path.append("G:/art2real/트레일/trail10_cadrille/runs/기능0"); import 상한 as _상한; _상한.자기상한(float(os.environ.get("ART_MEM_GB", "12")))   # 10-15 — 보통은 sitecustomize 가 먼저 걸어 건너뜀 · 그게 없는 파이썬(-S · 다른 venv)에서도 OCC 깎기는 상한 안에서만
 N = 128; 칸 = 1.1 / N
 def 화(x, y): return (-.55 + (x + .5) * 칸, .55 - (y + .5) * 칸)   # 화소 → 세계(데이터.py 의 광선 격자와 같음)
 def 꼬임(q):   # 닫힌 다각형의 변끼리 건너는 곳 수 — 0 이어야 CAD 면이 된다(기능0/도구.py 와 같음 · 꼬인 윤곽은 OCC 불리언이 메모리를 끝없이 잡음 10-11)
@@ -43,7 +43,9 @@ def _다4(c, 이름):   # 4 배 윤곽(경계 화소 가운데 말고 화소 가
         p = cv2.approxPolyDP(c, e, True)[:, 0, :]
         if 3 <= len(p) <= 300:
             q = [화((x + .5) / 4 - .5, (y + .5) / 4 - .5) for x, y in p]
-            if not 꼬임(q) and 면유효(q): return q
+            if not 꼬임(q) and 면유효(q):
+                if e > 2: 버린["줄임 " + 이름] += 1   # 감사 51b: 크게 줄여서 산 것도 센다(1 화소 넘게 어긋날 수 있음)
+                return q
     버린[이름] += 1; return None
 def 다각섬4(mask):   # 10-15 맥락 없는 감사 뒤 — 다각섬 의 두 버그: ① 넓이 3 미만 섬이 말없이 깎임(519 막대 · 300 부품에 9,594 개) ② 깎는 다각형이 반 화소 안쪽 · 4 배로 키워 따서 둘 다 고침(몸통 _판 넓힘 과 같은 방식)
     큰 = cv2.resize(mask.astype(np.uint8), None, fx=4, fy=4, interpolation=cv2.INTER_NEAREST); cs, h = cv2.findContours(큰, cv2.RETR_CCOMP, cv2.CHAIN_APPROX_SIMPLE); out = []

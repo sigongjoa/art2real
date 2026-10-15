@@ -3,7 +3,7 @@
 # 사용: python 상한설치.py   (원본을 고치면 다시 돌린다)
 import os, shutil, subprocess
 원 = os.path.join(os.path.dirname(os.path.abspath(__file__)), "sitecustomize.py")
-파이썬 = ["G:/art2real/트레일/trail10_cadrille/venv/Scripts/python.exe", "G:/art2real/out/tts/chatterbox/Scripts/python.exe",
+파이썬 = ["G:/art2real/트레일/trail10_cadrille/venv/Scripts/python.exe", "G:/art2real/트레일/trail11_zerotocad/venv/Scripts/python.exe", "G:/art2real/out/tts/melo/Scripts/python.exe", "G:/art2real/out/tts/chatterbox/Scripts/python.exe",
        "C:/Users/zesky/AppData/Local/Programs/Python/Python311/python.exe", "C:/Users/zesky/AppData/Local/Microsoft/WindowsApps/PythonSoftwareFoundation.Python.3.13_qbz5n2kfra8p0/python.exe"]
 시험 = "import os\ntry: bytearray(2 * 2**30); print('안 막힘', os.environ.get('ART_MEM_CAPPED'))\nexcept MemoryError: print('막힘', os.environ.get('ART_MEM_CAPPED'))"
 for p in 파이썬:
