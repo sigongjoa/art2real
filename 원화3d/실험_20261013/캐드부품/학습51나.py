@@ -4,7 +4,7 @@
 import sys, os, json, time, numpy as np
 import 학습 as T
 O = "G:/art2real/out/설명/캐드부품/"; 에폭 = 8; 배치 = 32
-def 묶음(i): return (i * 2654435761 % 2 ** 32) % 5   # 부품 번호 → 묶음(고정)
+from 묶음51 import 묶음   # 조립 폴더 해시(판정기준51 고침 · 감사: 부품 번호 묶음은 형제 부품이 갈렸다) · 학습51가 도 이것을 가져간다
 if __name__ == "__main__":
     import torch, torch.nn as nn, torch.nn.functional as Fn
     이름 = sys.argv[1]; 앞 = sys.argv[2] if len(sys.argv) > 2 and sys.argv[2] != "-" else None; 묶 = int(sys.argv[3]) if len(sys.argv) > 3 else -1

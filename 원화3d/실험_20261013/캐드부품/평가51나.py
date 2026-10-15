@@ -34,7 +34,11 @@ if __name__ == "__main__":
     d = np.load(O + "데이터.npz"); te = np.nonzero(d["시험"])[0]; X = d["X"][te]; del d; e = np.load(O + "데이터_앞옆.npz"); F = e["F"][te]; S = e["S"][te]; del e; L = json.load(open(O + "목록.json", encoding="utf-8"))
     반 = np.load(O + "데이터51.npz")["반"]; P = np.load(D + "예측.npy", mmap_mode="r"); 예부 = list(np.load(D + "예측부품.npy")); 자 = {int(i): n for n, i in enumerate(예부)}
     ks = list(range(int(sys.argv[2]), min(int(sys.argv[3]), len(범)))); 일꾼 = int(sys.argv[4]) if len(sys.argv) > 4 else 4
-    with Pool(일꾼, maxtasksperchild=10) as pool: r = pool.map(하나, [(L[te[범[k]]], (X[범[k]], F[범[k]], S[범[k]]), np.array(P[자[int(te[범[k]])]]), 반[te[범[k]]]) for k in ks], chunksize=1)
+    pool = Pool(일꾼, maxtasksperchild=10); 일 = [pool.apply_async(하나, ((L[te[범[k]]], (X[범[k]], F[범[k]], S[범[k]]), np.array(P[자[int(te[범[k]])]]), 반[te[범[k]]]),)) for k in ks]; r = []
+    for k, a in zip(ks, 일):   # 천장51 과 같이 — OCC 안에서 멈춘 부품은 200 초에 강제 시간초과(판정기준51 고침)
+        try: r.append(a.get(timeout=200))
+        except Exception as ex: r.append({"실패": "강제 시간초과 " + type(ex).__name__, "초": 200.0}); print("강제 시간초과", k, flush=True)
+    pool.terminate()
     실 = collections.Counter(x["실패"] for x in r if x["실패"]); print(ks[0], "~", ks[-1], "실패", sum(실.values()), dict(실), "CAD %.3f" % np.mean([x.get("CAD", 0) for x in r]), flush=True)
     if 실 and 실.most_common(1)[0][1] > len(r) // 2: sys.exit("절반 넘게 실패 — 환경부터 본다")
     json.dump({"자리": ks, "값": r}, open(조 + "%04d.json" % ks[0], "w", encoding="utf-8"), ensure_ascii=False)
