@@ -128,7 +128,8 @@ def 짓기(Y, D, H, 덩어리깊이=False, 그림=None):   # 그림: 주면 몸�
         except Exception: pass
     if s is None: return None
     return 깎기(s, Y, D, H, 덩어리깊이)
-def 깎기(s, Y, D, H, 덩어리깊이):   # 몸통 s 에 관통 · 들어감을 깎는다 · 10-15 섬을 살림(다각섬) · 옛 것은 옛깎기
+def 깎기(s, Y, D, H, 덩어리깊이, 다각=None):   # 몸통 s 에 관통 · 들어감을 깎는다 · 10-15 섬을 살림(다각섬) · 옛 것은 옛깎기 · 다각 = 다각섬4 면 감사 고친 판
+    다각섬 = 다각 or globals()["다각섬"]
     for q, 구 in 다각섬(Y == 2):
         try: s = s.cut(_도구(q, 구, H + .2, -H / 2 - .1))
         except Exception: 버린["뚫음"] += 1

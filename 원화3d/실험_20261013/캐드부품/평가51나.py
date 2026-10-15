@@ -15,7 +15,7 @@ def 하나(job):
     try:
         v, f, H = J.정규메시(p); 정 = J.점유_메시(v, f); 몸, _ = J.몸통37(그림, H); 틀 = J.점유_캐드(몸); 지 = 지도(층, 반); k = S6.칸깎기(틀, 몸, 지)
         r = lambda a, b: float((a & b).sum() / max((a | b).sum(), 1)); K = np.ones((3, 3, 3))
-        try: s, 버 = S6.깎기(몸, 지, t0 + 120); c = J.점유_캐드(s); 유 = bool(s.val().isValid()); 초과 = False
+        try: s, 버 = S6.깎기(몸, 지, t0 + 120, J.다각섬4); c = J.점유_캐드(s); 유 = bool(s.val().isValid()); 초과 = False
         except TimeoutError: c = np.zeros_like(틀); 버 = 0; 유 = False; 초과 = True
         return {"틀": r(틀, 정), "CAD": r(c, 정), "칸": r(k, 정), "유효": 유, "시간초과": 초과, "버린": 버, "덩정": int(label(정, K)[1]), "덩CAD": int(label(c, K)[1]), "초": time.time() - t0, "실패": ""}
     except Exception as ex: return {"실패": type(ex).__name__ + " " + str(ex)[:60], "초": time.time() - t0}
