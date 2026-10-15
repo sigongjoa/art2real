@@ -6,7 +6,7 @@ import 짓기 as J
 plt.rcParams["font.family"] = "Malgun Gothic"; O = "G:/art2real/out/설명/캐드부품/"
 d = np.load(O + "데이터.npz"); te = np.nonzero(d["시험"])[0]; X = d["X"][te]; del d; e = np.load(O + "데이터_앞옆.npz"); F = e["F"][te]; S = e["S"][te]; L = json.load(open(O + "목록.json", encoding="utf-8"))
 범 = json.load(open(O + "범위46.json")); 자리 = {j: k for k, j in enumerate(범)}; z = np.load(O + "데이터51.npz"); 정 = z["정답"]
-D = O + "학습51가_첫판/"; P = np.load(D + "예측.npy"); 자 = {int(i): n for n, i in enumerate(np.load(D + "예측부품.npy"))}; a = np.load(D + "부피IoU.npy"); c = np.load(O + "부피IoU_52대조.npy")
+import sys; 이름 = sys.argv[1] if len(sys.argv) > 1 else "첫판"; D = O + "학습51가_%s/" % 이름; P = np.load(D + "예측.npy"); 자 = {int(i): n for n, i in enumerate(np.load(D + "예측부품.npy"))}; a = np.load(D + "부피IoU.npy"); c = np.load(O + "부피IoU_52대조.npy")
 M = np.load(O + "학습42/시험예측.npz"); YP, DP = M["P"], M["D"].astype(np.float32); 풀 = lambda b: np.unpackbits(b)[:48 ** 3].reshape(48, 48, 48).astype(bool)
 고른 = [942, 769, 475, 264] + list(np.random.default_rng(51).choice([j for j in 범 if j not in (942, 769, 475, 264)], 8, replace=False))
 def 면(ax, q, 색):
@@ -22,5 +22,5 @@ for row, j in enumerate(고른):
     for col, (q, t, 색) in enumerate(((풀(정[i]), "정답", "#7fc97f"), (q42, "42 + 고친 짓기 %.2f" % c[k, 0], "#f0a030"), (풀(P[자[i]]), "(가) 칸 %.2f" % a[k, 0], "#5b9bd5"))):
         ax = fig.add_subplot(len(고른), 4, row * 4 + 2 + col, projection="3d"); 면(ax, q, 색); ax.set_title(t, fontsize=22)
     print(j, flush=True)
-fig.suptitle("판정기준51 (가) 첫 판 — 위 4 개는 정해 둔 부품 · 아래 8 개는 무작위 · 712 개 평균 (가) 0.677 · 42 + 고친 짓기 0.663", fontsize=26)
-plt.savefig(O + "결과51가_첫판.png", dpi=36, bbox_inches="tight")
+fig.suptitle("판정기준51 (가) %s — 위 4 개는 정해 둔 부품 · 아래 8 개는 무작위 · 712 개 평균 (가) %.3f · 42 + 고친 짓기 0.663" % (이름, a[:, 0].mean()) + "", fontsize=26)
+plt.savefig(O + "결과51가_%s.png" % 이름, dpi=36, bbox_inches="tight")

@@ -46,7 +46,10 @@ if __name__ == "__main__":
     m = 모만들기(w=폭)().to(dev); opt = torch.optim.Adam(m.parameters(), 1e-3); 줄 = torch.optim.lr_scheduler.CosineAnnealingLR(opt, max(에폭, 1))
     범 = json.load(open(O + "범위46.json")); 시험712 = np.nonzero(시)[0][범]; 곡선 = []   # 판정기준51b: 2 에폭마다 712 개 칸 IoU(학습 곡선)
     def 점수712():
-        P7 = 예측(시험712); a, b = 풀기(P7), 풀기(정p[시험712]); return float(((a & b).sum((1, 2, 3)) / np.maximum((a | b).sum((1, 2, 3)), 1)).mean())
+        P7 = 예측(시험712); 합 = []   # 64 개씩 풀어 잰다(10-15 한 번에 풀다 메모리 상한에 걸려 학습이 죽음)
+        for s in range(0, len(시험712), 64):
+            a, b = 풀기(P7[s:s + 64]), 풀기(정p[시험712[s:s + 64]]); 합 += list((a & b).sum((1, 2, 3)) / np.maximum((a | b).sum((1, 2, 3)), 1))
+        return float(np.mean(합))
     def 입력(idx):
         g = torch.tensor(np.stack([G[i] for i in idx]), device=dev).float(); t = torch.tensor(풀기(틀p[idx]), device=dev).float()
         p = torch.tensor(np.stack([np.asarray(앞판[i]) for i in idx]) > 0, device=dev).float() if 앞판 is not None else t
