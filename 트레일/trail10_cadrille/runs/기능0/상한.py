@@ -10,7 +10,9 @@ class 기본(ctypes.Structure):
 class 확장(ctypes.Structure):
     _fields_ = [("Basic", 기본), ("Io", ctypes.c_uint64 * 6), ("ProcessMemoryLimit", ctypes.c_size_t), ("JobMemoryLimit", ctypes.c_size_t),
                 ("PeakProcess", ctypes.c_size_t), ("PeakJob", ctypes.c_size_t)]
-k.CreateJobObjectW.restype = w.HANDLE; k.OpenProcess.restype = w.HANDLE
+k.CreateJobObjectW.restype = w.HANDLE; k.OpenProcess.restype = w.HANDLE; k.GetCurrentProcess.restype = w.HANDLE
+k.IsProcessInJob.argtypes = [w.HANDLE, w.HANDLE, ctypes.POINTER(w.BOOL)]; k.AssignProcessToJobObject.argtypes = [w.HANDLE, w.HANDLE]
+k.SetInformationJobObject.argtypes = [w.HANDLE, ctypes.c_int, ctypes.c_void_p, w.DWORD]
 def 돌림(gb, cmd):
     j = k.CreateJobObjectW(None, None); x = 확장(); x.Basic.LimitFlags = 0x100 | 0x200 | 0x2000   # 프로세스 · 작업 메모리 · 핸들 닫으면 같이 죽음
     x.ProcessMemoryLimit = x.JobMemoryLimit = int(gb * 2**30)
@@ -18,6 +20,12 @@ def 돌림(gb, cmd):
     p = subprocess.Popen(cmd); h = k.OpenProcess(0x1F0FFF, False, p.pid)
     assert k.AssignProcessToJobObject(j, h), ctypes.get_last_error()   # ponytail: 띄운 뒤 몇 ms 는 상한 밖 — 시작 직후엔 메모리를 거의 안 쓴다
     return p.wait()
+def 자기상한(gb):   # 10-15 서브 에이전트가 상한 없이 OCC 를 돌려 81 GB → PC 다운(세 번째) — import 하는 쪽이 스스로 건다 · 터미널이 이미 작업 개체를 걸어 둬서 「안이면 건너뜀」은 안 막혔다 → 늘 겹쳐 건다(Windows 8+) · 자식은 환경변수로 건너뛰고 부모 개체에 합쳐서 gb
+    import os
+    if os.environ.get("ART_MEM_CAPPED"): return False
+    j = k.CreateJobObjectW(None, None); x = 확장(); x.Basic.LimitFlags = 0x100 | 0x200; x.ProcessMemoryLimit = x.JobMemoryLimit = int(gb * 2**30)
+    assert k.SetInformationJobObject(j, 9, ctypes.byref(x), ctypes.sizeof(x)), ctypes.get_last_error()
+    assert k.AssignProcessToJobObject(j, k.GetCurrentProcess()), ctypes.get_last_error(); os.environ["ART_MEM_CAPPED"] = "%g" % gb; return True
 if __name__ == "__main__":
     if sys.argv[1] == "시험":   # 1 GB 상한에서 3 GB 잡기 → 죽어야 한다
         r = 돌림(1, [sys.executable, "-c", "import time; time.sleep(.5); b = bytearray(3 * 2**30); print('안 막힘')"]); assert r != 0, r; print("ok 막힘", r)
