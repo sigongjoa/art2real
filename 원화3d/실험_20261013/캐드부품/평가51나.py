@@ -36,7 +36,7 @@ if __name__ == "__main__":
     ks = list(range(int(sys.argv[2]), min(int(sys.argv[3]), len(범)))); 일꾼 = int(sys.argv[4]) if len(sys.argv) > 4 else 4
     pool = Pool(일꾼, maxtasksperchild=10); 일 = [pool.apply_async(하나, ((L[te[범[k]]], (X[범[k]], F[범[k]], S[범[k]]), np.array(P[자[int(te[범[k]])]]), 반[te[범[k]]]),)) for k in ks]; r = []
     for k, a in zip(ks, 일):   # 천장51 과 같이 — OCC 안에서 멈춘 부품은 200 초에 강제 시간초과(판정기준51 고침)
-        try: r.append(a.get(timeout=200))
+        try: r.append(a.get(timeout=200)); print("끝", k, "%.0f 초" % r[-1].get("초", 0), r[-1].get("실패", "")[:40], flush=True)   # 10-16 마지막 조각이 45 분 멈춤 — 부품마다 찍는다
         except Exception as ex: r.append({"실패": "강제 시간초과 " + type(ex).__name__, "초": 200.0}); print("강제 시간초과", k, flush=True)
     pool.terminate()
     실 = collections.Counter(x["실패"] for x in r if x["실패"]); print(ks[0], "~", ks[-1], "실패", sum(실.values()), dict(실), "CAD %.3f" % np.mean([x.get("CAD", 0) for x in r]), flush=True)
