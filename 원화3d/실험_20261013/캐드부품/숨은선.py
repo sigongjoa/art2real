@@ -1,9 +1,15 @@
 # 판정기준56 입력 — 위 · 앞 · 옆 세 방향의 숨은선 128² (도면의 점선 자리) · 데이터.py · 데이터_앞옆.py 와 같은 정규화 · 같은 광선 · 같은 선 규칙 · 10-16
-# 숨은선 = 광선을 벗겨 2 번째 이후로 맞은 면들(깊이 벗기기 · 최대 층 6)에 같은 선 규칙을 쓴 것 − 보이는 선(+ 1 화소 번짐)
+# 숨은선 = 광선을 벗겨 2 번째 이후로 맞은 면들(깊이 벗기기 · 최대 층 6)의 윤곽 + 높이 끊김(꺾임 규칙은 뺌) − 보이는 선(+ 1 화소 번짐)
+# 10-16 고침: 꺾임 규칙까지 쓰면 곡면 뒤쪽(9806 나사 이음 안쪽)이 빨간 덩어리로 칠해졌다(층애니 · 규칙비교.jpg) → 끊김만
 # 사용(venv): 숨은선.py [시작 끝] → out/설명/캐드부품/숨은선.npz (HX · HF · HS uint8 · 목록.json 순서) · 숨은선.py 시험 <i…> → 그림만
 import sys, json, numpy as np
 from multiprocessing import Pool
 from 데이터_앞옆 import 선그림
+def 끊김선(t, S):   # 선그림 에서 꺾임(2 차 차분)만 뺀 것
+    import cv2
+    zz = np.where(S, -t, -3.0); s8 = S.astype(np.uint8)
+    gx, gy = np.abs(np.diff(zz, axis=0, append=zz[-1:])), np.abs(np.diff(zz, axis=1, append=zz[:, -1:]))
+    return (((s8 - cv2.erode(s8, np.ones((3, 3), np.uint8))) > 0) | (((gx > .03) | (gy > .03)) & S)).astype(np.uint8)
 N = 128; O = "G:/art2real/out/설명/캐드부품/"; 층수 = 6; 틈 = 1e-4
 def 벗기기(sc, r):   # r (N, N, 6) → 층마다 (t, 맞음) · t 는 처음 원점에서 잰 거리
     import open3d as o3d
@@ -27,7 +33,7 @@ def 하나(p):
             r = np.zeros((N, N, 6), np.float32); r[..., 가로] = A; r[..., 2] = B; r[..., 깊축] = 1.0; r[..., 3 + 깊축] = -1; 광선들.append(r)
         for r in 광선들:
             L = 벗기기(sc, r); 보 = 선그림(*L[0]) if L else np.zeros((N, N), np.uint8); 숨 = np.zeros((N, N), bool)
-            for t, S in L[1:]: 숨 |= 선그림(t, S) > 0
+            for t, S in L[1:]: 숨 |= 끊김선(t, S) > 0
             out.append((숨 & ~(cv2.dilate(보, np.ones((3, 3), np.uint8)) > 0)).astype(np.uint8))
         return out
     except Exception as ex: return [np.zeros((N, N), np.uint8)] * 3 + [type(ex).__name__]
