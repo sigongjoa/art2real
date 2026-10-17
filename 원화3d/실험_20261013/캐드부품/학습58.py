@@ -1,7 +1,7 @@
 # 판정기준58 — 세 장을 함께 보는 3D 모델: 위 · 앞 · 옆 선 그림(+ 채운 윤곽) → 같은 2D 인코더 → 정사영이라 특징을 보는 축으로 그대로 들어 올려(48³) 세 장을 더함 → 3D U-Net → 48³ 칸 점유 · 10-17
 # 진단59: 데이터 두 배마다 +0.032 → +0.012 · 방향마다 따로 보는 2D 깊이 층 모델(판0)은 0.696 근처에서 멈춤 · 깎기 천장 0.803 — 이 모델은 깊이 층 · 깎기를 거치지 않고 칸을 바로 낸다(속 빈 곳 · 언더컷도 표현 가능)
 # 축: 지역틀.껍질 과 같음 — 위 X[::-1].T → [x, y] · 앞 F[::-1].T → [x, z] · 옆 S[::-1].T → [y, z] (확인: 들어 올린 실루엣 대 저장된 틀 IoU 중앙 0.955)
-# 사용(venv · ART_MEM_GB=12): 학습58.py <이름> · QUICK=1 연기 · 출력 out/설명/캐드부품/학습58_<이름>/: 망.pt · 기록.json · 결과.json · 부피IoU.npy(712 × [모델, 틀])
+# 사용(venv · ART_MEM_GB=12): 학습58.py <이름> · QUICK=1 연기 · HARD=1 어려운 학습 부품만 · INIT=<판> 이어 배우기 · LR · 출력 out/설명/캐드부품/학습58_<이름>/: 망.pt · 기록.json · 결과.json · 부피IoU.npy(712 × [모델, 틀])
 import sys, os, json, time, numpy as np
 O = "G:/art2real/out/설명/캐드부품/"; 에폭 = int(os.environ.get("EPOCHS", 8)); 배치 = 8
 if __name__ == "__main__":
@@ -11,6 +11,7 @@ if __name__ == "__main__":
     d = np.load(O + "데이터.npz"); X, 시 = d["X"], d["시험"]; e = np.load(O + "데이터_앞옆.npz"); F, S = e["F"], e["S"]; z = np.load(O + "데이터51.npz"); 정b, 틀b, ok = z["정답"], z["틀"], z["ok"]
     풀 = lambda b: np.unpackbits(b)[:48 ** 3].reshape(48, 48, 48)
     부 = np.arange(len(ok)); tr = 부[~시 & ok & 정b.any(1)]; te = np.nonzero(시)[0]; 범 = json.load(open(O + "범위46.json")); 예부 = te[범]   # 학습 부품은 판0 과 같게 · 시험은 712
+    if os.environ.get("HARD"): tr = tr[np.load(O + "난이도57.npy")[tr, 0] < .5]   # 10-17 사용자 「어려운 것만 모아서」 — 학습 부품 중 틀 IoU < 0.5(시험 어려운 217 과 같은 선)
     if os.environ.get("QUICK"): tr, 예부, 에폭 = tr[:64], 예부[:16], 1
     print("학습 부품", len(tr), "시험", len(예부), flush=True)
     _채 = {}
@@ -37,7 +38,7 @@ if __name__ == "__main__":
         return t(m[:, 0])[:, :, :, None] & t(m[:, 1])[:, :, None, :] & t(m[:, 2])[:, None, :, :]
     def 묶음(idx):
         g = torch.tensor(np.stack([그림(int(i)) for i in idx]), device=dev); 껍 = 껍질(g); y = torch.tensor(np.stack([풀(정b[i]) for i in idx]), device=dev).float(); return g, 껍, y
-    m = 모().to(dev); opt = torch.optim.Adam(m.parameters(), 1e-3); 척 = torch.amp.GradScaler(); 기록 = []; t0 = time.time()
+    m = 모().to(dev); os.environ.get("INIT") and m.load_state_dict(torch.load(O + "학습58_%s/망.pt" % os.environ["INIT"], map_location=dev)); opt = torch.optim.Adam(m.parameters(), float(os.environ.get("LR", 1e-3)))   # INIT = 이어 배울 판 이름; 척 = torch.amp.GradScaler(); 기록 = []; t0 = time.time()
     print("파라미터 %.2f M" % (sum(p.numel() for p in m.parameters()) / 1e6), flush=True)
     for ep in range(에폭):
         perm = np.random.default_rng(ep).permutation(tr); 합 = 0.0; m.train()
