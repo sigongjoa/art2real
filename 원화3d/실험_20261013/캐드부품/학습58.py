@@ -38,7 +38,7 @@ if __name__ == "__main__":
         return t(m[:, 0])[:, :, :, None] & t(m[:, 1])[:, :, None, :] & t(m[:, 2])[:, None, :, :]
     def 묶음(idx):
         g = torch.tensor(np.stack([그림(int(i)) for i in idx]), device=dev); 껍 = 껍질(g); y = torch.tensor(np.stack([풀(정b[i]) for i in idx]), device=dev).float(); return g, 껍, y
-    m = 모().to(dev); os.environ.get("INIT") and m.load_state_dict(torch.load(O + "학습58_%s/망.pt" % os.environ["INIT"], map_location=dev)); opt = torch.optim.Adam(m.parameters(), float(os.environ.get("LR", 1e-3)))   # INIT = 이어 배울 판 이름; 척 = torch.amp.GradScaler(); 기록 = []; t0 = time.time()
+    m = 모().to(dev); os.environ.get("INIT") and m.load_state_dict(torch.load(O + "학습58_%s/망.pt" % os.environ["INIT"], map_location=dev)); opt = torch.optim.Adam(m.parameters(), float(os.environ.get("LR", 1e-3))); 척 = torch.amp.GradScaler(); 기록 = []; t0 = time.time()
     print("파라미터 %.2f M" % (sum(p.numel() for p in m.parameters()) / 1e6), flush=True)
     for ep in range(에폭):
         perm = np.random.default_rng(ep).permutation(tr); 합 = 0.0; m.train()
@@ -49,15 +49,16 @@ if __name__ == "__main__":
             p = torch.sigmoid(lo.float()); 소 = 1 - (p * y).sum((1, 2, 3)) / (p + y - p * y).sum((1, 2, 3)).clamp_min(1)
             loss = Fn.binary_cross_entropy_with_logits(lo.float(), y) + 소.mean(); opt.zero_grad(); 척.scale(loss).backward(); 척.step(opt); 척.update(); 합 += loss.item() * len(y)
         기록.append({"에폭": ep + 1, "손실": 합 / len(perm), "초": time.time() - t0}); print("에폭 %d · 손실 %.4f · %.0f 초" % (ep + 1, 합 / len(perm), time.time() - t0), flush=True); json.dump(기록, open(D + "기록.json", "w"))
-    torch.save(m.state_dict(), D + "망.pt"); m.eval(); R = []
+    torch.save(m.state_dict(), D + "망.pt"); m.eval(); R = []; 예측 = []
     from scipy.ndimage import label
     with torch.no_grad():
         for s_ in range(0, len(예부), 8):
             idx = 예부[s_:s_ + 8]; g, 껍, y = 묶음(idx)
             with torch.autocast("cuda", dtype=torch.float16): lo = m(g, 껍.float()).masked_fill(~껍, -20.)
             P = (lo > 0).cpu().numpy(); Y = y.bool().cpu().numpy(); T = np.stack([풀(틀b[i]).astype(bool) for i in idx])
+            예측 += list(P)
             for p_, y_, t_ in zip(P, Y, T): R.append([(p_ & y_).sum() / max((p_ | y_).sum(), 1), (t_ & y_).sum() / max((t_ | y_).sum(), 1), label(p_, np.ones((3, 3, 3)))[1], label(y_, np.ones((3, 3, 3)))[1]])
-    R = np.array(R, float); np.save(D + "부피IoU.npy", R); 판0 = np.load(O + "학습51나_판0전체/부피IoU.npy")[: len(R)]
+    R = np.array(R, float); np.save(D + "부피IoU.npy", R); np.save(D + "예측.npy", np.packbits(np.stack(예측).reshape(len(예측), -1), 1)); 판0 = np.load(O + "학습51나_판0전체/부피IoU.npy")[: len(R)]
     결과 = {"712 칸 평균(모델)": float(R[:, 0].mean()), "틀(저장된 틀 · 판0 틀 열과 같아야)": float(R[:, 1].mean()), "판0 틀 열": float(판0[:, 2].mean()), "판0 칸 열": float(판0[:, 1].mean()), "판0 CAD 열": float(판0[:, 0].mean()),
-          "망침(모델 < 틀 − 0.01)": int((R[:, 0] < R[:, 1] - .01).sum()), "조각내기(정답 한 덩어리 · 모델 여럿)": int(((R[:, 3] == 1) & (R[:, 2] > 1)).sum()), "부품": len(R), "마지막 손실": 기록[-1]["손실"]}
+          "망침(모델 < 틀 − 0.01)": int((R[:, 0] < R[:, 1] - .01).sum()), "조각내기(정답 한 덩어리 · 모델 여럿)": int(((R[:, 3] == 1) & (R[:, 2] > 1)).sum()), "부품": len(R), "마지막 손실": 기록[-1]["손실"] if 기록 else None}
     json.dump(결과, open(D + "결과.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1); print(json.dumps(결과, ensure_ascii=False, indent=1))
