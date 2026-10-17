@@ -144,7 +144,7 @@ function frame(i) {
     let z = zp, cl = "";
     if (cs.act !== "lock" && a !== p) { z = lerp(zp, za, act); cl = cs.act === "cut" && t >= 24 ? "cut" : t >= 24 ? "fixed" : ""; }
     if (cs.act === "cut" && a !== p && tr === p && t < 24 && t >= 12) cl = "real";
-    if (cs.act === "lock" && p !== 17 && tr === 17 && t >= 30) cl = "lump";
+    if (cs.act === "lock" && p !== 17 && tr === 17 && t >= 16) cl = "lump";   // 잠금(26) 전에 빨강
     tops[r].push(z); cls[r].push(cl);
   } }
   const plane = planeOf(cs); const zLift = cs.act === "lock" ? lerp(16, 10, ease(span(t, 24, 30))) - (t >= 30 ? Math.sin((t - 30) * 1.3) * 0.6 * Math.exp(-(t - 30) / 6) : 0) : lerp(46, 0, act);
