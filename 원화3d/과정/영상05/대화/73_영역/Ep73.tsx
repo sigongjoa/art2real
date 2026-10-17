@@ -37,7 +37,7 @@ export const 영역73 = () => {
     <AbsoluteFill style={{ fontFamily: 글꼴, fontWeight: 700 }}>
       <Img src={staticFile("ep73/영역/선.png")} style={{ position: "absolute", left: 60, top: 70, width: 500, height: 500 }} />
       <Img src={staticFile("ep73/영역/색.png")} style={{ position: "absolute", left: 60, top: 70, width: 500, height: 500, clipPath: `inset(0 ${100 - 덮}% 0 0)` }} />
-      <div style={{ position: "absolute", left: 600, top: 150, width: 380, fontSize: 46, color: 먹, lineHeight: 1.4 }}>앞에서 본 도면</div>
+      <div style={{ position: "absolute", left: 600, top: 150, width: 380, fontSize: 46, color: 먹, lineHeight: 1.4 }}>끝에서 본 도면</div>
       <div style={{ position: "absolute", left: 600, top: 260, width: 380, fontSize: 46, color: 파, lineHeight: 1.4, opacity: Math.min(Math.max(글, 0) * 2, 1), scale: `${interpolate(글, [0, 1], [1.3, 1])}` }}>선으로 막힌 칸<br />= 깊이 하나</div>
     </AbsoluteFill>
   );
@@ -46,8 +46,8 @@ export const 영역73 = () => {
 export const 단면73 = () => {
   const f = useCurrentFrame(); const { fps } = useVideoConfig();
   const 판 = interpolate(f, [5, 25], [0, 1], C), 선 = interpolate(f, [35, 55], [0, 1], { ...C, easing: 이징 }), 잘 = interpolate(f, [65, 95], [0, 1], C), 도 = spring({ frame: f - 100, fps, config: { stiffness: 260, damping: 15 } });
-  const y = (x: number) => 300 + (x < 500 ? (500 - x) * 0.16 : (x - 500) * 0.16) * -1 + 40;   // 가운데가 낮게 꺾인 판
-  const 점 = Array.from({ length: 85 }).map((_, i) => 80 + i * 10), h = y(500) - 40;
+  const y = (x: number) => 220 + (x - 80) * 0.26;   // 한쪽으로 기운 판(깊이가 15 층 → 0 층으로 고르게)
+  const 점 = Array.from({ length: 85 }).map((_, i) => 80 + i * 10), h = y(500) - 40;   // 점선 = 영역 가운데 깊이 하나
   return (
     <AbsoluteFill style={{ fontFamily: 글꼴, fontWeight: 700 }}>
       <svg width={1000} height={700}>
@@ -55,7 +55,7 @@ export const 단면73 = () => {
           return <line key={i} x1={x} y1={y(x)} x2={x + 10} y2={y(x + 10)} stroke={색} strokeWidth={16} opacity={판} />; })}
         <line x1={60} y1={h + 40} x2={60 + 880 * 선} y2={h + 40} stroke={파} strokeWidth={6} strokeDasharray="18 12" />
       </svg>
-      <div style={{ position: "absolute", left: 60, top: 90, fontSize: 38, color: 초, opacity: 판 }}>━ 살짝 꺾인 얇은 판 (옆에서 자른 모습)</div>
+      <div style={{ position: "absolute", left: 60, top: 90, fontSize: 38, color: 초, opacity: 판 }}>━ 비스듬히 기운 얇은 판 (옆에서 자른 모습)</div>
       <div style={{ position: "absolute", left: 60, top: 145, fontSize: 38, color: 파, opacity: 선 }}>┅ 칸에 준 깊이 하나</div>
       <div style={{ position: "absolute", left: 0, top: 560, width: 1000, textAlign: "center", fontSize: 54, color: 빨, opacity: Math.min(Math.max(도, 0) * 2, 1), scale: `${interpolate(도, [0, 1], [1.4, 1])}` }}>깊이가 다른 곳은 다 깎여 나감</div>
     </AbsoluteFill>

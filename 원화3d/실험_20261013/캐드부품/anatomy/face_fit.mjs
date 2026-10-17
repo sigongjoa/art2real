@@ -1,6 +1,6 @@
 // 판정기준65 면 맞춤 — 핀 아트 누름틀: 핀 하나 = 화소 하나 · 핀 높이 = 깊이(가까울수록 높다) · 푸른 칸 = 도면 선으로 막힌 영역 하나
 // 다이얼 = 영역 안 뚫린 핀 비율(초록 0–20 % 면 맞춤 · 회색 20–80 % 손 안 댐 · 빨강 80 % 넘음 전부 뚫림) → 누름판이 맞춘 면으로 내려와 핀을 맞춘다
-// 세 장면(실제 핀 값 · 핀값.json · 면65.면묶기 그대로): ① 꺾인 판 0 % → 기운 평면 ② 관 49 % → 잠금 · 덩어리 남음 ③ ㄱ자 0 % → 튀는 다리 핀을 잡음으로 보고 눌러 버림(버그)
+// 세 장면(실제 핀 값 · 핀값.json · 면65.면묶기 그대로): ① 기운 판 0 % → 기운 평면 ② 관 49 % → 잠금 · 덩어리 남음 ③ ㄱ자 0 % → 튀는 다리 핀을 잡음으로 보고 눌러 버림(버그)
 // node face_fit.mjs → shorts/면맞춤/out/프레임_NNN.png (투명 1000×700 · 180 장 · 30 fps)
 import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { spawn } from "node:child_process";
@@ -16,7 +16,7 @@ const DIR = join(HERE, "shorts", "면맞춤"), OUT = join(DIR, "out");
 mkdirSync(OUT, { recursive: true });
 const PIN = JSON.parse(readFileSync(join(HERE, "핀값.json"), "utf-8"));
 const CASES = [
-  { key: "판", name: "꺾인 판", act: "fit", note: "기운 평면으로 맞춤" },
+  { key: "판", name: "기운 판", act: "fit", note: "기운 평면으로 맞춤" },
   { key: "관", name: "관", act: "lock", note: "손 안 댐 · 덩어리 남음" },
   { key: "ㄱ", name: "ㄱ자 막대", act: "cut", note: "튀는 핀을 잡음으로 보고 눌러 버림" },
 ];
@@ -87,7 +87,8 @@ function press(cs, plane, zLift, tone = "gold") { // 누름판: 영역 상자 �
   const x0 = xa - PITCH / 2, x1 = xb + PITCH / 2, y0 = ya - PITCH / 2, y1 = yb + PITCH / 2, T = 2.4;
   const z = (x, y) => plane(x, y) + zLift;
   const c = [[x0, y0], [x1, y0], [x1, y1], [x0, y1]];
-  const top = d2(c.map(([x, y]) => [x, y, z(x, y) + T]), true);
+  const B = 3.2, inn = [[x0 + B, y0 + B], [x1 - B, y0 + B], [x1 - B, y1 - B], [x0 + B, y1 - B]];   // 틀 띠 폭 · 가운데는 비어 핀이 보임
+  const top = d2(c.map(([x, y]) => [x, y, z(x, y) + T]), true) + d2(inn.slice().reverse().map(([x, y]) => [x, y, z(x, y) + T]), true);
   const front = d2([[x0, y0, z(x0, y0)], [x1, y0, z(x1, y0)], [x1, y0, z(x1, y0) + T], [x0, y0, z(x0, y0) + T]], true);
   const side = d2([[x1, y0, z(x1, y0)], [x1, y1, z(x1, y1)], [x1, y1, z(x1, y1) + T], [x1, y0, z(x1, y0) + T]], true);
   const rim = d2(c.map(([x, y]) => [x + Math.sign(x - (x0 + x1) / 2) * -2, y + Math.sign(y - (y0 + y1) / 2) * -2, z(x, y) + T + 0.05]), true);
@@ -163,7 +164,7 @@ html,body{margin:0;background:transparent}.shot{width:1000px;height:700px;overfl
 .gold{--anatomy-paper:#f3d68f;--anatomy-face:#f3d68f;--anatomy-top:#f6dc9c;--anatomy-lit-top:#f6dc9c;--anatomy-shade-0:#c48f1c;--anatomy-shade-1:#d39d26;--anatomy-shade-2:#dcab3a;--anatomy-shade-3:#e8bf5c;--anatomy-mid:#8a5c06;--anatomy-hi:#6b4704;--anatomy-lo:#b88420}
 .red{--anatomy-paper:#f2b0b0;--anatomy-top:#f6c4c4;--anatomy-lit-top:#f6c4c4;--anatomy-shade-0:#c84848;--anatomy-shade-1:#d05454;--anatomy-shade-2:#d86060;--anatomy-shade-3:#e07a7a;--anatomy-hi:rgb(150,30,30);--anatomy-lo:rgb(190,40,40)}
 .press .pt{fill:#f6dc9c;stroke:#6b4704;stroke-width:1.1}.press .pf{fill:#dcab3a;stroke:#6b4704;stroke-width:1.1}.press .ps{fill:#c48f1c;stroke:#6b4704;stroke-width:1.1}.press .pr{fill:none;stroke:#b88420;stroke-width:.7}
-.press{opacity:.55}.press.hot .pt{fill:#f6c4c4;stroke:rgb(150,30,30)}.press.hot .pf{fill:#e07a7a;stroke:rgb(150,30,30)}.press.hot .ps{fill:#c84848;stroke:rgb(150,30,30)}
+.press{opacity:1}.press .pt{fill-rule:evenodd}.press.hot .pt{fill:#f6c4c4;stroke:rgb(150,30,30)}.press.hot .pf{fill:#e07a7a;stroke:rgb(150,30,30)}.press.hot .ps{fill:#c84848;stroke:rgb(150,30,30)}
 .pin{--anatomy-paper:#e9e9e6;--anatomy-shade-0:#bdbdb7;--anatomy-shade-1:#c8c8c2;--anatomy-shade-2:#d3d3cd;--anatomy-shade-3:#dcdcd7;--anatomy-top:#f3f3f0;--anatomy-lit-top:#f3f3f0;--anatomy-hi:#55554f;--anatomy-lo:#8e8e88}
 .pin.real{--anatomy-paper:#d3ecd9;--anatomy-shade-0:#5fae76;--anatomy-shade-1:#72b987;--anatomy-shade-2:#8bc79c;--anatomy-shade-3:#a8d6b4;--anatomy-top:#e3f3e7;--anatomy-lit-top:#e3f3e7;--anatomy-hi:rgb(30,120,60);--anatomy-lo:rgb(40,160,80)}
 .pin.cut{--anatomy-paper:#f7d4d4;--anatomy-shade-0:#d06060;--anatomy-shade-1:#d87272;--anatomy-shade-2:#e08a8a;--anatomy-shade-3:#e9a4a4;--anatomy-top:#fbe3e3;--anatomy-lit-top:#fbe3e3;--anatomy-hi:rgb(160,30,30);--anatomy-lo:rgb(220,50,50)}
