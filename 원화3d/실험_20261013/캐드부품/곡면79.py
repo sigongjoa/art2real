@@ -4,7 +4,7 @@
 import sys, os, json, numpy as np
 from multiprocessing import Pool
 sys.path.append("G:/art2real/원화3d/실험_20261013/구멍")
-O = "G:/art2real/out/설명/캐드부품/"; 예측 = os.environ.get("PRED", "판0"); D = O + ("곡면79/" if 예측 == "판0" else "곡면79_%s/" % 예측) if not os.environ.get("SET") else O + "곡면79_%s/" % os.environ["SET"]; N = 128; G = 160; 팔들 = ["칸32", "연속정답", "단32장", "단32맞춤", "판0칸", "판0맞춤"]
+O = "G:/art2real/out/설명/캐드부품/"; 예측 = os.environ.get("PRED", "판0"); 꼬 = ("_" + os.environ["SET"] if os.environ.get("SET") else "") + ("" if 예측 == "판0" else "_" + 예측); D = O + "곡면79%s/" % 꼬; N = 128; G = 160; 팔들 = ["칸32", "연속정답", "단32장", "단32맞춤", "판0칸", "판0맞춤"]
 def 조각(L, 층):   # 선 그림 · 층(0~32) → 조각 번호 (0 = 통째 · 선 화소도 가까운 조각에)
     from scipy import ndimage as nd
     끊 = np.zeros(층.shape, bool); a = 층.astype(int); 끊[:-1] |= np.abs(a[1:] - a[:-1]) >= 2; 끊[:, :-1] |= np.abs(a[:, 1:] - a[:, :-1]) >= 2
@@ -92,4 +92,4 @@ if __name__ == "__main__":
     결["판정"] = {"감사 연속정답 F ≥ 0.95 · 15° 몫 ≤ 0.05": bool(평["연속정답"][0] >= .95 and 평["연속정답"][3] <= .05),
                 "(가) 천장": bool(평["단32맞춤"][3] <= 평["칸32"][3] * .7 and 평["단32맞춤"][0] >= 평["칸32"][0] - .005),
                 "(가) 실제": bool(평["판0맞춤"][3] <= 평["판0칸"][3] * .7 and 평["판0맞춤"][0] >= 평["판0칸"][0] - .005)}
-    json.dump({"요약": 결, "부품별": {str(r[0]): r[1] for r in R_}}, open(D + "결과.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1); json.dump(결, open("결과판정79%s.json" % ("" if 예측 == "판0" and not os.environ.get("SET") else "_" + os.environ.get("SET", 예측)), "w", encoding="utf-8"), ensure_ascii=False, indent=1); print(json.dumps(결, ensure_ascii=False, indent=1))
+    json.dump({"요약": 결, "부품별": {str(r[0]): r[1] for r in R_}}, open(D + "결과.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1); json.dump(결, open("결과판정79%s.json" % 꼬, "w", encoding="utf-8"), ensure_ascii=False, indent=1); print(json.dumps(결, ensure_ascii=False, indent=1))

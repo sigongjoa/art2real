@@ -19,6 +19,7 @@ def 선손실(lo, x, h):   # 판정기준78 — lo (B, 33, N, N) · x 입력(0 �
     return -(재[양] + 1e-4).log().mean().nan_to_num(0) - (1 - 정[음] + 1e-4).log().mean().nan_to_num(0)
 if __name__ == "__main__":
     import torch, torch.nn as nn, torch.nn.functional as Fn
+    교차쓰기 = os.environ.get("CROSS") == "1"   # 판정기준86
     이름 = sys.argv[1]; 앞 = sys.argv[2] if len(sys.argv) > 2 and sys.argv[2] != "-" else None; 묶 = int(sys.argv[3]) if len(sys.argv) > 3 else -1
     D = O + "학습69_%s/" % 이름; os.makedirs(D, exist_ok=True); torch.manual_seed(31); dev = "cuda"
     입 = np.load(O + "입력51.npy", mmap_mode="r"); z = np.load(O + "데이터51.npz"); ok = z["ok"]; 층 = np.load(O + "층32.npy", mmap_mode="r"); 시 = np.load(O + "데이터.npz")["시험"]
@@ -29,7 +30,7 @@ if __name__ == "__main__":
     print("학습 부품", len(tr), "예측 부품", len(예부), flush=True)
     class 모(nn.Module):
         def __init__(s):
-            super().__init__(); s.u = T.U만들기(10)(); s.u.o = nn.Conv2d(32, 33, 1)
+            super().__init__(); s.u = T.U만들기(10 + 64 * 교차쓰기)(); s.u.o = nn.Conv2d(32, 33, 1)
         def forward(s, x):
             u = s.u; a = u.e1(x); b_ = u.e2(u.p(a)); c = u.e3(u.p(b_)); d = u.e4(u.p(c))
             c2 = u.d3(torch.cat([u.u3(d), c], 1)); b2 = u.d2(torch.cat([u.u2(c2), b_], 1)); a2 = u.d1(torch.cat([u.u1(b2), a], 1)); return u.o(a2)
@@ -38,11 +39,15 @@ if __name__ == "__main__":
         k = torch.isin(torch.tensor(방, device=dev), 진)
         if not k.any(): return lo.sum() * 0
         return 선손실(lo[k], x[k], torch.tensor(반[idx, 방], device=dev).float()[k])
+    if 교차쓰기:
+        import 교차86 as X86; _d = np.load(O + "데이터.npz")["X"]; _e = np.load(O + "데이터_앞옆.npz"); 뷰86 = X86.준비(_d, _e["F"], _e["S"], dev); del _d, _e
     m = 모().to(dev); os.environ.get("INIT") and m.load_state_dict(torch.load(O + "학습69_%s/망.pt" % os.environ["INIT"])); opt = torch.optim.Adam(m.parameters(), 1e-3); 눈 = torch.eye(6, device=dev); 칸값 = torch.arange(33, device=dev).float()
     def 입력(idx, 방):   # idx 부품 · 방 방향 → (B, 10, 128, 128)
         a = torch.tensor(np.stack([입[i, k] for i, k in zip(idx, 방)]), device=dev).float(); 껍 = torch.where(a[:, 2] == 17, 32., a[:, 2] * 2)   # 16 단계 껍질 → 32 단계 아래 한계
         o = 눈[torch.tensor(방, device=dev)][:, :, None, None].expand(-1, -1, 128, 128)
-        return torch.cat([a[:, :1], a[:, 1:2], 껍[:, None] / 32, 껍[:, None] / 32, o], 1), 껍.long()
+        x = torch.cat([a[:, :1], a[:, 1:2], 껍[:, None] / 32, 껍[:, None] / 32, o], 1)
+        if 교차쓰기: x = torch.cat([x, X86.교차(뷰86, np.asarray(idx), torch.tensor(방, device=dev), torch.tensor(반[np.asarray(idx), np.asarray(방)], device=dev))], 1)   # 판정기준86 다른 두 뷰 선 × 깊이 칸
+        return x, 껍.long()
     def 예측(부품):
         m.eval(); out = np.zeros((len(부품), 6, 128, 128), np.uint8)
         with torch.no_grad():

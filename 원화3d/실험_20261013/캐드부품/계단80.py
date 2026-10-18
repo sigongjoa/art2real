@@ -3,7 +3,7 @@
 import sys, json, numpy as np
 from multiprocessing import Pool
 sys.path.append("G:/art2real/원화3d/실험_20261013/구멍")
-O = "G:/art2real/out/설명/캐드부품/"; 예측 = __import__("os").environ.get("PRED", "판0"); D = O + ("곡면79/" if 예측 == "판0" else "곡면79_%s/" % 예측) if not __import__("os").environ.get("SET") else O + "곡면79_%s/" % __import__("os").environ["SET"]; 칸 = 1.1 / 48; 팔들 = ["정답", "칸32", "연속정답", "단32장", "단32맞춤", "판0칸", "판0맞춤"]
+O = "G:/art2real/out/설명/캐드부품/"; 예측 = __import__("os").environ.get("PRED", "판0"); 꼬 = ("_" + __import__("os").environ["SET"] if __import__("os").environ.get("SET") else "") + ("" if 예측 == "판0" else "_" + 예측); D = O + "곡면79%s/" % 꼬; 칸 = 1.1 / 48; 팔들 = ["정답", "칸32", "연속정답", "단32장", "단32맞춤", "판0칸", "판0맞춤"]
 def 깊이들(v, f):
     import 여섯방향 as S6; return S6.깊이지도(v, f)   # {방향: 지역 w 첫 맞음 · nan}
 def 계단(만, 정):   # 2 판 자 → [기울기 오차 °, 10° 넘는 몫, 깊이 오차 칸, 겉 어긋남 몫] · 같은 128² 깊이 지도의 유한 차분 법선끼리(삼각형 모양 안 탐)
@@ -35,5 +35,5 @@ if __name__ == "__main__":
     결["판정(잠정)"] = {"(가) 천장": bool(평["단32맞춤"][1] <= 평["칸32"][1] * .7 and 평["단32맞춤"][2] <= 평["칸32"][2] + .05),
                 "(가) 실제": bool(평["판0맞춤"][1] <= 평["판0칸"][1] * .7 and 평["판0맞춤"][2] <= 평["판0칸"][2] + .05)}
     결["부품별"] = {str(k): R[k] for k in ks}
-    json.dump(결, open("결과판정80%s.json" % ("" if 예측 == "판0" and not __import__("os").environ.get("SET") else "_" + __import__("os").environ.get("SET", 예측)), "w", encoding="utf-8"), ensure_ascii=False, indent=1); print(json.dumps({a: b for a, b in 결.items() if a != "부품별"}, ensure_ascii=False, indent=1))
+    json.dump(결, open("결과판정80%s.json" % 꼬, "w", encoding="utf-8"), ensure_ascii=False, indent=1); print(json.dumps({a: b for a, b in 결.items() if a != "부품별"}, ensure_ascii=False, indent=1))
     assert 결["감사"]["정답 ≤ 0.05°"], "자 감사 실패 — 정답이 0 이 아님"
