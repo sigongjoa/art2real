@@ -5,7 +5,7 @@
 # 출력 out/설명/캐드부품/학습51나_<이름>/: 망.pt · 기록.json · 예측.npy(예측한 부품 × 6 × 128² uint8 · 껍질보다 얕게는 안 냄)
 import sys, os, json, time, numpy as np
 import 학습 as T
-O = "G:/art2real/out/설명/캐드부품/"; 에폭 = 8; 배치 = 32
+O = "G:/art2real/out/설명/캐드부품/"; 에폭 = int(os.environ.get("EPOCHS", 8)); 배치 = 32   # 10-18 판정기준81: EPOCHS · INIT=<이름> 이어 배우기
 from 묶음51 import 묶음   # 조립 폴더 해시(판정기준51 고침 · 감사: 부품 번호 묶음은 형제 부품이 갈렸다) · 학습51가 도 이것을 가져간다
 def 선손실(lo, x, h):   # 판정기준78 — lo (B, 33, N, N) · x 입력(0 선 · 1 채운 윤곽) · h (B,) 반높이 · 실제 그림 방향만 넣는다 · 데이터.py 선 규칙의 소프트판
     import torch, torch.nn.functional as Fn
@@ -38,7 +38,7 @@ if __name__ == "__main__":
         k = torch.isin(torch.tensor(방, device=dev), 진)
         if not k.any(): return lo.sum() * 0
         return 선손실(lo[k], x[k], torch.tensor(반[idx, 방], device=dev).float()[k])
-    m = 모().to(dev); opt = torch.optim.Adam(m.parameters(), 1e-3); 눈 = torch.eye(6, device=dev); 칸값 = torch.arange(33, device=dev).float()
+    m = 모().to(dev); os.environ.get("INIT") and m.load_state_dict(torch.load(O + "학습69_%s/망.pt" % os.environ["INIT"])); opt = torch.optim.Adam(m.parameters(), 1e-3); 눈 = torch.eye(6, device=dev); 칸값 = torch.arange(33, device=dev).float()
     def 입력(idx, 방):   # idx 부품 · 방 방향 → (B, 10, 128, 128)
         a = torch.tensor(np.stack([입[i, k] for i, k in zip(idx, 방)]), device=dev).float(); 껍 = torch.where(a[:, 2] == 17, 32., a[:, 2] * 2)   # 16 단계 껍질 → 32 단계 아래 한계
         o = 눈[torch.tensor(방, device=dev)][:, :, None, None].expand(-1, -1, 128, 128)
