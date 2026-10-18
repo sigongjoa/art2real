@@ -1,11 +1,22 @@
 # 판정기준69 — 학습51나 판0 그대로 · 깊이만 32 단계(33 갈래 · 32 = 통째) · 정답 층32.npy · 껍질 층 입력 = 16 단계 × 2 · 10-17
 # 판정기준51 (나) — 여섯 방향 깊이 층 모델 · 방향마다 [선 그림 · 채운 윤곽 · 껍질 층 · 앞 판 층 · 방향 원핫 6] → 층 18 갈래(0 ~ 16 · 17 통째) · 10-15
+# 10-18 판정기준78: LINE=λ 면 선 손실(재투영 — 위 · 앞 · 옆 세 방향의 기대 깊이에서 뽑은 선을 입력 선 그림과 맞춤) 을 더한다 · 없으면 예전과 같음
 # 사용(venv): 학습51나.py <이름> [앞판.npy | -] [묶음 0~4 | -1] · 앞판 = (부품, 6, 128, 128) uint8 층 · 없으면 껍질 층 · 묶음 k 면 학습에서 k 를 빼고 k 를 예측
 # 출력 out/설명/캐드부품/학습51나_<이름>/: 망.pt · 기록.json · 예측.npy(예측한 부품 × 6 × 128² uint8 · 껍질보다 얕게는 안 냄)
 import sys, os, json, time, numpy as np
 import 학습 as T
 O = "G:/art2real/out/설명/캐드부품/"; 에폭 = 8; 배치 = 32
 from 묶음51 import 묶음   # 조립 폴더 해시(판정기준51 고침 · 감사: 부품 번호 묶음은 형제 부품이 갈렸다) · 학습51가 도 이것을 가져간다
+def 선손실(lo, x, h):   # 판정기준78 — lo (B, 33, N, N) · x 입력(0 선 · 1 채운 윤곽) · h (B,) 반높이 · 실제 그림 방향만 넣는다 · 데이터.py 선 규칙의 소프트판
+    import torch, torch.nn.functional as Fn
+    h = h[:, None, None]; E = (torch.softmax(lo, 1) * torch.arange(33, device=lo.device).float()[None, :, None, None]).sum(1); d = -E * (2 * h / 32)
+    gx = (d[:, 1:] - d[:, :-1]).abs(); gx = torch.cat([gx, gx[:, -1:] * 0], 1); gy = (d[:, :, 1:] - d[:, :, :-1]).abs(); gy = torch.cat([gy, gy[:, :, -1:] * 0], 2)
+    p = torch.cat([d[:, :1], d, d[:, -1:]], 1); cx = (p[:, 2:] - 2 * p[:, 1:-1] + p[:, :-2]).abs(); p = torch.cat([d[:, :, :1], d, d[:, :, -1:]], 2); cy = (p[:, :, 2:] - 2 * p[:, :, 1:-1] + p[:, :, :-2]).abs()
+    g = torch.maximum(gx, gy); 재 = torch.maximum(torch.sigmoid((g - .03) / .01), torch.sigmoid((torch.maximum(cx, cy) - .004) / .002))
+    t = (h * 2 / 32 * 1.5).clamp_min(.03); 정 = torch.sigmoid((g - t) / (.3 * t))
+    L = x[:, 0]; 안 = -Fn.max_pool2d(-x[:, 1:2], 3, 1, 1)[:, 0]; 근 = Fn.max_pool2d(L[:, None], 3, 1, 1)[:, 0]
+    양 = (L * 안) > 0; 음 = (근 == 0) & (안 > 0); 재 = Fn.max_pool2d(재[:, None], 3, 1, 1)[:, 0]
+    return -(재[양] + 1e-4).log().mean().nan_to_num(0) - (1 - 정[음] + 1e-4).log().mean().nan_to_num(0)
 if __name__ == "__main__":
     import torch, torch.nn as nn, torch.nn.functional as Fn
     이름 = sys.argv[1]; 앞 = sys.argv[2] if len(sys.argv) > 2 and sys.argv[2] != "-" else None; 묶 = int(sys.argv[3]) if len(sys.argv) > 3 else -1
@@ -22,6 +33,11 @@ if __name__ == "__main__":
         def forward(s, x):
             u = s.u; a = u.e1(x); b_ = u.e2(u.p(a)); c = u.e3(u.p(b_)); d = u.e4(u.p(c))
             c2 = u.d3(torch.cat([u.u3(d), c], 1)); b2 = u.d2(torch.cat([u.u2(c2), b_], 1)); a2 = u.d1(torch.cat([u.u1(b2), a], 1)); return u.o(a2)
+    선λ = float(os.environ.get("LINE", 0)); 반 = z["반"]; 진 = torch.tensor([0, 2, 4], device=dev)   # 위 · 앞 · 옆 = 실제 그림이 있는 방향(아래 · 뒤 · 반옆은 같은 그림의 거울)
+    def 선손실_(lo, x, idx, 방):   # 학습 묶음 → 실제 그림 방향만 골라 선손실
+        k = torch.isin(torch.tensor(방, device=dev), 진)
+        if not k.any(): return lo.sum() * 0
+        return 선손실(lo[k], x[k], torch.tensor(반[idx, 방], device=dev).float()[k])
     m = 모().to(dev); opt = torch.optim.Adam(m.parameters(), 1e-3); 눈 = torch.eye(6, device=dev); 칸값 = torch.arange(33, device=dev).float()
     def 입력(idx, 방):   # idx 부품 · 방 방향 → (B, 10, 128, 128)
         a = torch.tensor(np.stack([입[i, k] for i, k in zip(idx, 방)]), device=dev).float(); 껍 = torch.where(a[:, 2] == 17, 32., a[:, 2] * 2)   # 16 단계 껍질 → 32 단계 아래 한계
@@ -41,7 +57,9 @@ if __name__ == "__main__":
         for s in range(0, len(perm), 배치):
             c = 쌍[perm[s:s + 배치]]; x, _ = 입력(c[:, 0], c[:, 1]); y = torch.tensor(np.stack([층[i, k] for i, k in c]), device=dev).long(); lo = m(x)
             기대 = (torch.softmax(lo, 1) * 칸값[None, :, None, None]).sum(1)   # 기대 층 — 가까운 층으로 틀리면 덜 벌함
-            loss = Fn.cross_entropy(lo, y) + .1 * (기대 - y.float()).abs().mean(); opt.zero_grad(); loss.backward(); opt.step(); 합 += loss.item() * len(c)
+            loss = Fn.cross_entropy(lo, y) + .1 * (기대 - y.float()).abs().mean()
+            if 선λ: loss = loss + 선λ * 선손실_(lo, x, c[:, 0], c[:, 1])
+            opt.zero_grad(); loss.backward(); opt.step(); 합 += loss.item() * len(c)
         기록.append({"에폭": ep + 1, "손실": 합 / len(perm), "초": time.time() - t0}); print("에폭 %d · 손실 %.4f · %.0f 초" % (ep + 1, 합 / len(perm), time.time() - t0), flush=True); json.dump(기록, open(D + "기록.json", "w"))
     torch.save(m.state_dict(), D + "망.pt"); P = 예측(예부); np.save(D + "예측.npy", P); np.save(D + "예측부품.npy", 예부)
     정 = np.array(층[예부]); print("예측 층 맞음 %.3f · 통째 맞음 IoU %.3f" % ((P == 정).mean(), ((P == 32) & (정 == 32)).sum() / max(((P == 32) | (정 == 32)).sum(), 1)), flush=True)

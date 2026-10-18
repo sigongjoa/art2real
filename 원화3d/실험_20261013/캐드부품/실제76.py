@@ -36,9 +36,9 @@ if __name__ == "__main__":
         def forward(s, x):
             u = s.u; a = u.e1(x); b_ = u.e2(u.p(a)); c = u.e3(u.p(b_)); d = u.e4(u.p(c))
             c2 = u.d3(torch.cat([u.u3(d), c], 1)); b2 = u.d2(torch.cat([u.u2(c2), b_], 1)); a2 = u.d1(torch.cat([u.u1(b2), a], 1)); return u.o(a2)
-    m = 모().cuda(); m.load_state_dict(torch.load(O + "학습69_판0/망.pt")); m.eval(); 눈 = torch.eye(6, device="cuda")
+    m = 모().cuda(); 망 = os.environ.get("NET", "판0"); m.load_state_dict(torch.load(O + "학습69_%s/망.pt" % 망))   # 10-18 NET=선 → 판정기준78 선 손실 망; m.eval(); 눈 = torch.eye(6, device="cuda")
     for p in sys.argv[1:]:
-        이름 = os.path.splitext(os.path.basename(p))[0]; D = O + "실제입력/%s/" % 이름; os.makedirs(D, exist_ok=True)
+        이름 = os.path.splitext(os.path.basename(p))[0]; D = O + "실제입력/%s%s/" % (이름, "" if 망 == "판0" else "_" + 망); os.makedirs(D, exist_ok=True)
         X, F, S, H = 그림셋(p); 몸, 길 = J.몸통37((X, F, S), H); 반 = [S6.반높이(몸, S6.R(*S6.방향[k])) for k in S6.방향]
         a = torch.tensor(I.하나((X, F, S, np.array(반, np.float32))), device="cuda").float()   # (6, 3, 128, 128)
         껍 = torch.where(a[:, 2] == 17, 32., a[:, 2] * 2); x = torch.cat([a[:, :1], a[:, 1:2], 껍[:, None] / 32, 껍[:, None] / 32, 눈[:, :, None, None].expand(-1, -1, N, N)], 1)
