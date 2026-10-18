@@ -42,7 +42,12 @@ def 장메시(위들, 반):   # 위들[k] = 지역 w 의 표면(N × N · nan = 
     for (k, 방), 위, h in zip(enumerate(S6.방향), 위들, 반):
         loc = P @ S6.R(*S6.방향[방]).astype(np.float32); 바닥 = -h - .05
         px = (loc[:, 0] + .55) / S6.칸 - .5; py = (-loc[:, 1] + .55) / S6.칸 - .5
-        s = map_coordinates(np.nan_to_num(위, nan=바닥).astype(np.float32), [py, px], order=1, mode="constant", cval=바닥); f = np.minimum(f, s - loc[:, 2])
+        # 10-18 고침: nan(안 맞음)을 바닥값으로 두고 쌍선형하면 실루엣 테가 반 화소 안으로 끌려 겉 전체가 0.2 칸 줄었다 → 표면은 가까운 값으로 메워 쌍선형 · 맞음 여부는 가장 가까운 화소로
+        from scipy.ndimage import distance_transform_edt
+        맞 = np.isfinite(위); 위 = 위[tuple(distance_transform_edt(~맞, return_distances=False, return_indices=True))] if 맞.any() else np.full(위.shape, 바닥)
+        sd = ((distance_transform_edt(맞) - .5) * (맞) - (distance_transform_edt(~맞) - .5) * (~맞)) * S6.칸   # 실루엣 부호 거리(테 = 화소 사이) — 밖을 −1 로 끊으면 marching cubes 가 벽을 한 격자 안으로 당긴다
+        s = map_coordinates(위.astype(np.float32), [py, px], order=1, mode="nearest"); 테 = map_coordinates(sd.astype(np.float32), [py, px], order=1, mode="constant", cval=-1.)
+        f = np.minimum(f, np.minimum(s - loc[:, 2], 테))
     f = f.reshape(G, G, G)
     if f.max() <= 0: return None
     vs, fs, _, _ = marching_cubes(np.pad(f, 1, constant_values=-1), 0); return (vs - 1) * Δ + g3[0], fs
