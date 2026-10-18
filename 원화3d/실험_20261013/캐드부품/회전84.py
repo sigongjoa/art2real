@@ -4,13 +4,14 @@ import sys, os, json, numpy as np, cv2
 from multiprocessing import Pool
 sys.path.append("G:/art2real/원화3d/실험_20261013/구멍")
 O = "G:/art2real/out/설명/캐드부품/"; D = O + "회전84/"; N = 128; g = (np.arange(N) + .5) * 1.1 / N - .55
+패턴 = os.environ.get("PATTERN") == "1"   # 판정기준85: N 회(6 ~ 64) 대칭 · 아니면 84 그대로(30° 돌림 11 번)
 def 대칭(m):   # 채운 윤곽 회전 대칭 점수 · 무게중심 (행, 열)
     ys, xs = np.nonzero(m)
     if len(ys) < 30: return 0., (0, 0)
-    c = (float(xs.mean()), float(ys.mean())); u = m.astype(np.uint8); s = []
-    for a in range(30, 360, 30):
-        r = cv2.warpAffine(u, cv2.getRotationMatrix2D(c, a, 1.), (N, N), flags=cv2.INTER_NEAREST) > 0; s.append((r & m).sum() / max((r | m).sum(), 1))
-    return float(np.mean(s)), (c[1], c[0])
+    c = (float(xs.mean()), float(ys.mean())); u = m.astype(np.uint8)
+    def 점(각들): return float(np.mean([((cv2.warpAffine(u, cv2.getRotationMatrix2D(c, a, 1.), (N, N), flags=cv2.INTER_NEAREST) > 0) & m).sum() / max(((cv2.warpAffine(u, cv2.getRotationMatrix2D(c, a, 1.), (N, N), flags=cv2.INTER_NEAREST) > 0) | m).sum(), 1) for a in 각들]))
+    if not 패턴: return 점(range(30, 360, 30)), (c[1], c[0])
+    return max(점([k * 360 / n for k in range(1, 6)]) for n in range(6, 65)), (c[1], c[0])
 def 회전장(X, F, S):   # 선 그림 셋 → ((축 글자, 덧장 함수), 점수) · 축이 안 잡히면 (None, 점수)
     import 입력51 as I
     rows, cols = np.mgrid[0:N, 0:N]; 장 = {"위": (I._채움(X) > 0, {"y": -g[rows], "x": g[cols]}), "앞": (I._채움(F) > 0, {"z": -g[rows], "x": g[cols]}), "옆": (I._채움(S) > 0, {"z": -g[rows], "y": g[cols]})}
@@ -24,18 +25,18 @@ def 회전장(X, F, S):   # 선 그림 셋 → ((축 글자, 덧장 함수), 점
     r = np.where(r >= 0, r + 1.1 / N / 2, -1.); 축i = "xyz".index(a); 가 = [j for j in range(3) if j != 축i]; 중심 = [중["xyz"[j]] for j in 가]
     def 덧(P):
         rr = np.interp(P[:, 축i], g, r, left=-1., right=-1.); return (rr - np.hypot(P[:, 가[0]] - 중심[0], P[:, 가[1]] - 중심[1])).astype(np.float32)
-    return (a, 덧), 값
+    return (a, 덧, 축i, 가, 중심, r), 값
 def _시험():   # 원통(축 z · 반지름 .3 · 높이 ±.2)의 세 장 → 축 z · 덧장이 안 · 밖을 맞게 가르는지
     m = np.zeros((N, N), np.uint8); cv2.circle(m, (64, 64), int(.3 / (1.1 / N)), 1, -1); 옆 = np.zeros((N, N), np.uint8); r0, r1 = int((.55 - .2) / (1.1 / N)), int((.55 + .2) / (1.1 / N)); 옆[r0:r1, 64 - 35:64 + 35] = 1
     선 = lambda q: (q - cv2.erode(q, np.ones((3, 3), np.uint8))).astype(np.uint8)
-    (a, 덧), 값 = 회전장(선(m), 선(옆), 선(옆)); P = np.array([[0, 0, 0], [.25, 0, 0], [.35, 0, 0], [0, 0, .3]], np.float32); v = 덧(P)
+    (a, 덧, *_), 값 = 회전장(선(m), 선(옆), 선(옆)); P = np.array([[0, 0, 0], [.25, 0, 0], [.35, 0, 0], [0, 0, .3]], np.float32); v = 덧(P)
     assert a == "z" and 값 > .9 and v[0] > 0 and v[1] > 0 and v[2] < 0 and v[3] < 0, (a, 값, v); print("시험 통과", a, round(값, 3), np.round(v, 3))
 def 하나(job):
     k, p, 층정, 층판, 반, 선, 그림 = job
     import 곡면79 as Q, 계단80 as T, 짓기 as J, 여섯방향 as S6
     축, 값 = 회전장(*그림)
     if 축 is None: return k, None, 값
-    _, 덧 = 축; gv, gf, _ = J.정규메시(p); 정 = T.깊이들(gv, gf); u = np.tile(S6.g, (N, 1)); v = -u.T; out = {}
+    덧 = 축[1]; gv, gf, _ = J.정규메시(p); 정 = T.깊이들(gv, gf); u = np.tile(S6.g, (N, 1)); v = -u.T; out = {}
     def 층위(층):
         위들 = []
         for j, h in enumerate(반):
