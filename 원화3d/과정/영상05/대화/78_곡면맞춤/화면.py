@@ -2,7 +2,7 @@
 from PIL import Image, ImageDraw
 A = "G:/art2real/out/영상05/대화/78_곡면맞춤/자료/"
 초, 빨, 금, 파 = (40, 160, 80), (220, 50, 50), (220, 160, 30), (60, 120, 200)
-카드 = {"비누": 금, "자고장": 빨, "막대": 초}
+카드 = {"전": 빨, "테두리": 금, "후": 초, "막대": 초}
 def 판(키, p):
     끝 = 키.endswith("끝"); k = 키[:-1] if 끝 else 키; 뒤 = k.endswith("2"); k = k[:-1] if 뒤 else k
     i = 149 if 끝 else min(149, int(max(p, 0) * 150)); i += 150 if 뒤 else 0
