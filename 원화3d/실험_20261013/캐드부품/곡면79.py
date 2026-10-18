@@ -4,7 +4,7 @@
 import sys, os, json, numpy as np
 from multiprocessing import Pool
 sys.path.append("G:/art2real/원화3d/실험_20261013/구멍")
-O = "G:/art2real/out/설명/캐드부품/"; 예측 = os.environ.get("PRED", "판0"); D = O + ("곡면79/" if 예측 == "판0" else "곡면79_%s/" % 예측); N = 128; G = 160; 팔들 = ["칸32", "연속정답", "단32장", "단32맞춤", "판0칸", "판0맞춤"]
+O = "G:/art2real/out/설명/캐드부품/"; 예측 = os.environ.get("PRED", "판0"); D = O + ("곡면79/" if 예측 == "판0" else "곡면79_%s/" % 예측) if not os.environ.get("SET") else O + "곡면79_%s/" % os.environ["SET"]; N = 128; G = 160; 팔들 = ["칸32", "연속정답", "단32장", "단32맞춤", "판0칸", "판0맞춤"]
 def 조각(L, 층):   # 선 그림 · 층(0~32) → 조각 번호 (0 = 통째 · 선 화소도 가까운 조각에)
     from scipy import ndimage as nd
     끊 = np.zeros(층.shape, bool); a = 층.astype(int); 끊[:-1] |= np.abs(a[1:] - a[:-1]) >= 2; 끊[:, :-1] |= np.abs(a[:, 1:] - a[:, :-1]) >= 2
@@ -79,7 +79,7 @@ def 하나(job):
     print(k, {a: [round(x, 3) for x in b] for a, b in out.items()}, flush=True); return k, out, 쓴
 if __name__ == "__main__":
     os.makedirs(D, exist_ok=True); 시 = np.load(O + "데이터.npz")["시험"]; te = np.nonzero(시)[0]; 범 = json.load(open(O + "범위46.json")); 예부 = te[범]; 거 = np.load(O + "거름62.npy")
-    ks = np.random.default_rng(79).choice(np.nonzero(거)[0], int(os.environ.get("NUM", 20)), replace=False); L = json.load(open(O + "목록.json", encoding="utf-8"))
+    ks = np.array(json.load(open(O + "복잡83.json", encoding="utf-8"))["부품"]) if os.environ.get("SET") == "어려움" else np.random.default_rng(79).choice(np.nonzero(거)[0], int(os.environ.get("NUM", 20)), replace=False); L = json.load(open(O + "목록.json", encoding="utf-8"))
     층32 = np.load(O + "층32.npy", mmap_mode="r"); P = np.load(O + "학습69_%s/예측.npy" % 예측, mmap_mode="r"); 입 = np.load(O + "입력51.npy", mmap_mode="r"); 반 = np.load(O + "데이터51.npz")["반"]
     C정 = np.load(O + "천장32/칸.npy", mmap_mode="r"); C판 = np.load(O + "학습69_%s/칸.npy" % 예측, mmap_mode="r"); X = np.load(O + "데이터.npz")["X"]; e = np.load(O + "데이터_앞옆.npz"); F, S = e["F"], e["S"]
     일 = [(int(k), int(예부[k]), L[예부[k]], np.array(층32[예부[k]]), np.array(P[범[k]]), np.array(C정[k]), np.array(C판[k]), 반[예부[k]], np.array(입[예부[k], :, 0]), (X[예부[k]], F[예부[k]], S[예부[k]])) for k in ks]
@@ -91,4 +91,4 @@ if __name__ == "__main__":
     결["판정"] = {"감사 연속정답 F ≥ 0.95 · 15° 몫 ≤ 0.05": bool(평["연속정답"][0] >= .95 and 평["연속정답"][3] <= .05),
                 "(가) 천장": bool(평["단32맞춤"][3] <= 평["칸32"][3] * .7 and 평["단32맞춤"][0] >= 평["칸32"][0] - .005),
                 "(가) 실제": bool(평["판0맞춤"][3] <= 평["판0칸"][3] * .7 and 평["판0맞춤"][0] >= 평["판0칸"][0] - .005)}
-    json.dump({"요약": 결, "부품별": {str(r[0]): r[1] for r in R_}}, open(D + "결과.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1); json.dump(결, open("결과판정79.json" if 예측 == "판0" else "결과판정79_%s.json" % 예측, "w", encoding="utf-8"), ensure_ascii=False, indent=1); print(json.dumps(결, ensure_ascii=False, indent=1))
+    json.dump({"요약": 결, "부품별": {str(r[0]): r[1] for r in R_}}, open(D + "결과.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1); json.dump(결, open("결과판정79%s.json" % ("" if 예측 == "판0" and not os.environ.get("SET") else "_" + os.environ.get("SET", 예측)), "w", encoding="utf-8"), ensure_ascii=False, indent=1); print(json.dumps(결, ensure_ascii=False, indent=1))

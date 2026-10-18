@@ -2,10 +2,10 @@
 # 사용(venv): 시트79.py → out/설명/캐드부품/곡면79/시트.png · 시트79.py 기대 → 곡면79_기대/시트.png(판정기준82)
 import json, numpy as np, matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d.art3d import Poly3DCollection; import 짓기 as J
-plt.rcParams["font.family"] = "Malgun Gothic"; O = "G:/art2real/out/설명/캐드부품/"; D = O + "곡면79/"; 빛 = matplotlib.colors.LightSource(315, 40)
+plt.rcParams["font.family"] = "Malgun Gothic"; O = "G:/art2real/out/설명/캐드부품/"; D = O + ("곡면79_%s/" % __import__("os").environ["SET"] if __import__("os").environ.get("SET") else "곡면79/"); 빛 = matplotlib.colors.LightSource(315, 40)
 r = json.load(open(D + "결과.json", encoding="utf-8")); 시 = np.load(O + "데이터.npz")["시험"]; te = np.nonzero(시)[0]; 예부 = te[json.load(open(O + "범위46.json"))]; L = json.load(open(O + "목록.json", encoding="utf-8")); 곡 = np.load(O + "곡선77.npy")
 import sys; 기 = len(sys.argv) > 1 and sys.argv[1] == "기대"
-ks = sorted(r["요약"]["부품"], key=lambda k: -곡[k])[:6]; 열 = [("정답", None, "#9bd3a8"), ("판0칸", "판0칸", "#e8c06a"), ("판0맞춤", "판0맞춤", "#d09a30"), ("기대장", "판0기대장", "#b07ad0"), ("기대맞춤", "판0기대맞춤", "#8a5ab8")] if 기 else [("정답", None, "#9bd3a8"), ("칸32", "칸32", "#7fb3e8"), ("단32맞춤", "단32맞춤", "#5a8fd0"), ("판0칸", "판0칸", "#e8c06a"), ("판0맞춤", "판0맞춤", "#d09a30")]
+ks = r["요약"]["부품"][:6] if __import__("os").environ.get("SET") else sorted(r["요약"]["부품"], key=lambda k: -곡[k])[:6]; 열 = [("정답", None, "#9bd3a8"), ("판0칸", "판0칸", "#e8c06a"), ("판0맞춤", "판0맞춤", "#d09a30"), ("기대장", "판0기대장", "#b07ad0"), ("기대맞춤", "판0기대맞춤", "#8a5ab8")] if 기 else [("정답", None, "#9bd3a8"), ("칸32", "칸32", "#7fb3e8"), ("단32맞춤", "단32맞춤", "#5a8fd0"), ("판0칸", "판0칸", "#e8c06a"), ("판0맞춤", "판0맞춤", "#d09a30")]
 f = plt.figure(figsize=(3 * len(열), 3 * len(ks)))
 for i, k in enumerate(ks):
     for j, (제, 팔, 색) in enumerate(열):
