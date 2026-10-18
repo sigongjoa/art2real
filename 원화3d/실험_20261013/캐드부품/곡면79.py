@@ -37,7 +37,7 @@ def 맞추기(lab, d, 단, u, v):   # 조각마다 가장 단순한 곡면 · �
             w = m.astype(float); s = nd.gaussian_filter(np.where(m, d, 0), 1.5) / np.maximum(nd.gaussian_filter(w, 1.5), 1e-6); 골 = ("매끈", s[m])
         out[m] = 골[1]; 쓴[골[0]] = 쓴.get(골[0], 0) + int(n)
     return out, 쓴
-def 장메시(위들, 반):   # 위들[k] = 지역 w 의 표면(N × N · nan = 통째) → 연속 장 marching cubes
+def 장메시(위들, 반, 덧=None):   # 덧 = 추가 장 함수 P(n, 3) → 값(양수 = 안) · 판정기준84 회전 몸통   # 위들[k] = 지역 w 의 표면(N × N · nan = 통째) → 연속 장 marching cubes
     import 여섯방향 as S6; from scipy.ndimage import map_coordinates; from skimage.measure import marching_cubes
     Δ = 1.1 / G; g3 = (np.arange(G) + .5) * Δ - .55; P = np.stack(np.meshgrid(g3, g3, g3, indexing="ij"), -1).reshape(-1, 3).astype(np.float32); f = np.full(len(P), np.inf, np.float32)
     for (k, 방), 위, h in zip(enumerate(S6.방향), 위들, 반):
@@ -49,6 +49,7 @@ def 장메시(위들, 반):   # 위들[k] = 지역 w 의 표면(N × N · nan = 
         sd = ((distance_transform_edt(맞) - .5) * (맞) - (distance_transform_edt(~맞) - .5) * (~맞)) * S6.칸   # 실루엣 부호 거리(테 = 화소 사이) — 밖을 −1 로 끊으면 marching cubes 가 벽을 한 격자 안으로 당긴다
         s = map_coordinates(위.astype(np.float32), [py, px], order=1, mode="nearest"); 테 = map_coordinates(sd.astype(np.float32), [py, px], order=1, mode="constant", cval=-1.)
         f = np.minimum(f, np.minimum(s - loc[:, 2], 테))
+    if 덧 is not None: f = np.minimum(f, 덧(P))
     f = f.reshape(G, G, G)
     if f.max() <= 0: return None
     vs, fs, _, _ = marching_cubes(np.pad(f, 1, constant_values=-1), 0); return (vs - 1) * Δ + g3[0], fs
