@@ -20,7 +20,7 @@ def 선손실(lo, x, h):   # 판정기준78 — lo (B, 33, N, N) · x 입력(0 �
 if __name__ == "__main__":
     import torch, torch.nn as nn, torch.nn.functional as Fn
     교차쓰기 = os.environ.get("CROSS") == "1"   # 판정기준86
-    숨쓰기 = os.environ.get("HIDDEN") == "1"   # 판정기준89 그 방향 뷰의 숨은선 1 채널(숨은입력89.npy)
+    숨쓰기 = os.environ.get("HIDDEN") == "1"; 폭 = int(os.environ.get("WIDTH", 1))   # 판정기준90 폭 배수   # 판정기준89 그 방향 뷰의 숨은선 1 채널(숨은입력89.npy)
     이름 = sys.argv[1]; 앞 = sys.argv[2] if len(sys.argv) > 2 and sys.argv[2] != "-" else None; 묶 = int(sys.argv[3]) if len(sys.argv) > 3 else -1
     D = O + "학습69_%s/" % 이름; os.makedirs(D, exist_ok=True); torch.manual_seed(31); dev = "cuda"
     입 = np.load(O + "입력51.npy", mmap_mode="r"); z = np.load(O + "데이터51.npz"); ok = z["ok"]; 층 = np.load(O + "층32.npy", mmap_mode="r"); 시 = np.load(O + "데이터.npz")["시험"]
@@ -28,10 +28,11 @@ if __name__ == "__main__":
     부 = np.arange(len(ok)); 찬 = np.load(O + "데이터51.npz")["정답"].any(1); tr = 부[~시 & ok & 찬]; 예부 = 부[시]   # 10-15 감사: 정답 칸이 빈 학습 부품 171 개(얇은 판)는 「다 비워라」를 가르쳐서 뺀다 · 예측(시험)은 그대로
     if 묶 >= 0: 예부 = tr[np.array([묶음(i) == 묶 for i in tr])]; tr = tr[np.array([묶음(i) != 묶 for i in tr])]
     if os.environ.get("QUICK"): tr, 예부, 에폭 = tr[:64], 예부[:8], 1   # 연기 시험(망 · 입출력만)
+    if os.environ.get("OVERFIT"): tr = tr[:int(os.environ["OVERFIT"])]; 예부 = tr   # 10-19 외우기 시험: 적은 부품을 오래 배워 그 부품을 맞히나(구조 검사)
     print("학습 부품", len(tr), "예측 부품", len(예부), flush=True)
     class 모(nn.Module):
         def __init__(s):
-            super().__init__(); s.u = T.U만들기(10 + 64 * 교차쓰기 + 숨쓰기)(); s.u.o = nn.Conv2d(32, 33, 1)
+            super().__init__(); s.u = T.U만들기(10 + 64 * 교차쓰기 + 숨쓰기, 폭)(); s.u.o = nn.Conv2d(32 * 폭, 33, 1)
         def forward(s, x):
             u = s.u; a = u.e1(x); b_ = u.e2(u.p(a)); c = u.e3(u.p(b_)); d = u.e4(u.p(c))
             c2 = u.d3(torch.cat([u.u3(d), c], 1)); b2 = u.d2(torch.cat([u.u2(c2), b_], 1)); a2 = u.d1(torch.cat([u.u1(b2), a], 1)); return u.o(a2)
@@ -59,8 +60,10 @@ if __name__ == "__main__":
                 c = 쌍[s:s + 64]; x, 껍 = 입력([i for _, i, _ in c], [k for _, _, k in c]); y = torch.maximum(m(x).argmax(1), 껍).cpu().numpy()
                 for (n, _, k), yy in zip(c, y): out[n, k] = yy
         m.train(); return out
-    기록 = []; t0 = time.time(); 쌍 = np.array([(i, k) for i in tr for k in range(6)])
-    for ep in range(에폭):
+    기록 = []; t0 = time.time(); 쌍 = np.array([(i, k) for i in tr for k in range(6)]); 시작 = 0
+    if os.path.exists(D + "진행.pt"):   # 10-19 세션이 끊겨 5/8 에폭을 잃음 → 에폭마다 저장 · 있으면 이어서
+        ck = torch.load(D + "진행.pt"); m.load_state_dict(ck["망"]); opt.load_state_dict(ck["opt"]); 시작 = ck["에폭"]; 기록 = ck["기록"]; print("이어서", 시작, "에폭부터", flush=True)
+    for ep in range(시작, 에폭):
         perm = np.random.default_rng(ep).permutation(len(쌍)); 합 = 0.0
         for s in range(0, len(perm), 배치):
             c = 쌍[perm[s:s + 배치]]; x, _ = 입력(c[:, 0], c[:, 1]); y = torch.tensor(np.stack([층[i, k] for i, k in c]), device=dev).long(); lo = m(x)
@@ -68,6 +71,6 @@ if __name__ == "__main__":
             loss = Fn.cross_entropy(lo, y) + .1 * (기대 - y.float()).abs().mean()
             if 선λ: loss = loss + 선λ * 선손실_(lo, x, c[:, 0], c[:, 1])
             opt.zero_grad(); loss.backward(); opt.step(); 합 += loss.item() * len(c)
-        기록.append({"에폭": ep + 1, "손실": 합 / len(perm), "초": time.time() - t0}); print("에폭 %d · 손실 %.4f · %.0f 초" % (ep + 1, 합 / len(perm), time.time() - t0), flush=True); json.dump(기록, open(D + "기록.json", "w"))
+        기록.append({"에폭": ep + 1, "손실": 합 / len(perm), "초": time.time() - t0}); print("에폭 %d · 손실 %.4f · %.0f 초" % (ep + 1, 합 / len(perm), time.time() - t0), flush=True); torch.save({"망": m.state_dict(), "opt": opt.state_dict(), "에폭": ep + 1, "기록": 기록}, D + "진행.pt"); json.dump(기록, open(D + "기록.json", "w"))
     torch.save(m.state_dict(), D + "망.pt"); P = 예측(예부); np.save(D + "예측.npy", P); np.save(D + "예측부품.npy", 예부)
     정 = np.array(층[예부]); print("예측 층 맞음 %.3f · 통째 맞음 IoU %.3f" % ((P == 정).mean(), ((P == 32) & (정 == 32)).sum() / max(((P == 32) | (정 == 32)).sum(), 1)), flush=True)
