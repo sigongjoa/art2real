@@ -60,7 +60,12 @@ if __name__ == "__main__":
                 c = 쌍[s:s + 64]; x, 껍 = 입력([i for _, i, _ in c], [k for _, _, k in c]); y = torch.maximum(m(x).argmax(1), 껍).cpu().numpy()
                 for (n, _, k), yy in zip(c, y): out[n, k] = yy
         m.train(); return out
-    기록 = []; t0 = time.time(); 쌍 = np.array([(i, k) for i in tr for k in range(6)]); 시작 = 0
+    if os.environ.get("TT"):   # 10-19 판정기준90 ① 채점만: 학습 부품 300 · 시험 부품 300 깊이 화소(정답 < 32 · 채운 윤곽 안) 층 맞음
+        m.load_state_dict(torch.load(D + "망.pt")); r = {}
+        for 꼴, 부품 in (("학습", tr[:300]), ("시험", 부[시][:300])):
+            P = 예측(부품); 정 = np.array(층[부품]); 안 = (np.array(입[부품])[:, :, 1] > 0) & (정 < 32); r[꼴] = round(float((P == 정)[안].mean()), 4)
+        print("층 맞음", r, flush=True); json.dump(r, open(D + "층맞음.json", "w", encoding="utf-8"), ensure_ascii=False); sys.exit()
+    기록 = []; t0 = time.time(); 쌍 =np.array([(i, k) for i in tr for k in range(6)]); 시작 = 0
     if os.path.exists(D + "진행.pt"):   # 10-19 세션이 끊겨 5/8 에폭을 잃음 → 에폭마다 저장 · 있으면 이어서
         ck = torch.load(D + "진행.pt"); m.load_state_dict(ck["망"]); opt.load_state_dict(ck["opt"]); 시작 = ck["에폭"]; 기록 = ck["기록"]; print("이어서", 시작, "에폭부터", flush=True)
     for ep in range(시작, 에폭):
