@@ -42,11 +42,13 @@ if __name__ == "__main__":
         if not k.any(): return lo.sum() * 0
         return 선손실(lo[k], x[k], torch.tensor(반[idx, 방], device=dev).float()[k])
     숨89 = np.load(O + "숨은입력89.npy", mmap_mode="r") if 숨쓰기 else None
+    껍32 = np.load(O + "껍질32.npy", mmap_mode="r") if os.environ.get("SHELL32") else None; 막기 = not os.environ.get("NOCLAMP")   # 판정기준94 껍질 32 단 · 출력 max(예측, 껍질) 없앰
     if 교차쓰기:
         import 교차86 as X86; _d = np.load(O + "데이터.npz")["X"]; _e = np.load(O + "데이터_앞옆.npz"); 뷰86 = X86.준비(_d, _e["F"], _e["S"], dev); del _d, _e
     m = 모().to(dev); os.environ.get("INIT") and m.load_state_dict(torch.load(O + "학습69_%s/망.pt" % os.environ["INIT"])); opt = torch.optim.Adam(m.parameters(), 1e-3); 눈 = torch.eye(6, device=dev); 칸값 = torch.arange(33, device=dev).float()
     def 입력(idx, 방):   # idx 부품 · 방 방향 → (B, 10, 128, 128)
         a = torch.tensor(np.stack([입[i, k] for i, k in zip(idx, 방)]), device=dev).float(); 껍 = torch.where(a[:, 2] == 17, 32., a[:, 2] * 2)   # 16 단계 껍질 → 32 단계 아래 한계
+        if 껍32 is not None: 껍 = torch.tensor(np.stack([껍32[i, k] for i, k in zip(idx, 방)]), device=dev).float()
         o = 눈[torch.tensor(방, device=dev)][:, :, None, None].expand(-1, -1, 128, 128)
         x = torch.cat([a[:, :1], a[:, 1:2], 껍[:, None] / 32, 껍[:, None] / 32, o], 1)
         if 교차쓰기: x = torch.cat([x, X86.교차(뷰86, np.asarray(idx), torch.tensor(방, device=dev), torch.tensor(반[np.asarray(idx), np.asarray(방)], device=dev))], 1)   # 판정기준86 다른 두 뷰 선 × 깊이 칸
@@ -57,7 +59,7 @@ if __name__ == "__main__":
         with torch.no_grad():
             쌍 = [(n, i, k) for n, i in enumerate(부품) for k in range(6)]
             for s in range(0, len(쌍), 64):
-                c = 쌍[s:s + 64]; x, 껍 = 입력([i for _, i, _ in c], [k for _, _, k in c]); y = torch.maximum(m(x).argmax(1), 껍).cpu().numpy()
+                c = 쌍[s:s + 64]; x, 껍 = 입력([i for _, i, _ in c], [k for _, _, k in c]); y = (torch.maximum(m(x).argmax(1), 껍) if 막기 else m(x).argmax(1)).cpu().numpy()
                 for (n, _, k), yy in zip(c, y): out[n, k] = yy
         m.train(); return out
     if os.environ.get("TT"):   # 10-19 판정기준90 ① 채점만: 학습 부품 300 · 시험 부품 300 깊이 화소(정답 < 32 · 채운 윤곽 안) 층 맞음
