@@ -68,14 +68,37 @@ if __name__ == "__main__":
     기록 = []; t0 = time.time(); 쌍 =np.array([(i, k) for i in tr for k in range(6)]); 시작 = 0
     if os.path.exists(D + "진행.pt"):   # 10-19 세션이 끊겨 5/8 에폭을 잃음 → 에폭마다 저장 · 있으면 이어서
         ck = torch.load(D + "진행.pt"); m.load_state_dict(ck["망"]); opt.load_state_dict(ck["opt"]); 시작 = ck["에폭"]; 기록 = ck["기록"]; print("이어서", 시작, "에폭부터", flush=True)
+    걸음수 = 에폭 * -(-len(쌍) // 배치); 줄임 = torch.optim.lr_scheduler.CosineAnnealingLR(opt, 걸음수, 1e-5) if os.environ.get("LRDECAY") else None   # 판정기준93 D1
+    tb = None; 걸음 = 시작 * -(-len(쌍) // 배치)
+    if os.environ.get("TB"):   # 판정기준93 TensorBoard 진단 — 손실 둘 · lr · 블록별 기울기 크기 · 갱신/무게 비 · 거리 칸별 층 맞음 · 히스토그램
+        from torch.utils.tensorboard import SummaryWriter; import 거리93; tb = SummaryWriter(O + "tb93/" + 이름); 블록 = ["e1", "e2", "e3", "e4", "u3", "d3", "u2", "d2", "u1", "d1", "o"]
+        def 진단(ep):
+            P = 예측(예부[:64]); s = np.zeros((5, 2))
+            for n, i in enumerate(예부[:64]):
+                for k in range(6): s += np.array(거리93.칸(입[i, k], 층[i, k].astype(int), P[n, k].astype(int)))
+            tb.add_scalars("층맞음/거리칸", {"%d-%d" % c: a / max(b, 1) for c, (a, b) in zip(거리93.칸들, s)}, ep); tb.add_scalar("층맞음/전체(껍질 어긋남 뺌)", s[:, 0].sum() / s[:, 1].sum(), ep)
+            if ep % 25 == 0:
+                for nm, p in m.named_parameters():
+                    tb.add_histogram("무게/" + nm, p, ep); p.grad is not None and tb.add_histogram("기울기/" + nm, p.grad, ep)
+            return s[:, 0].sum() / s[:, 1].sum()
     for ep in range(시작, 에폭):
         perm = np.random.default_rng(ep).permutation(len(쌍)); 합 = 0.0
         for s in range(0, len(perm), 배치):
             c = 쌍[perm[s:s + 배치]]; x, _ = 입력(c[:, 0], c[:, 1]); y = torch.tensor(np.stack([층[i, k] for i, k in c]), device=dev).long(); lo = m(x)
             기대 = (torch.softmax(lo, 1) * 칸값[None, :, None, None]).sum(1)   # 기대 층 — 가까운 층으로 틀리면 덜 벌함
-            loss = Fn.cross_entropy(lo, y) + .1 * (기대 - y.float()).abs().mean()
+            ce = Fn.cross_entropy(lo, y); l1 = (기대 - y.float()).abs().mean(); loss = ce + .1 * l1
             if 선λ: loss = loss + 선λ * 선손실_(lo, x, c[:, 0], c[:, 1])
-            opt.zero_grad(); loss.backward(); opt.step(); 합 += loss.item() * len(c)
+            opt.zero_grad(); loss.backward()
+            재기 = tb is not None and 걸음 % 10 == 0
+            if 재기:
+                전 = {b: torch.cat([p.detach().flatten() for p in getattr(m.u, b).parameters()]).clone() for b in 블록}
+                for b in 블록: tb.add_scalar("기울기크기/" + b, torch.cat([p.grad.flatten() for p in getattr(m.u, b).parameters()]).norm().item(), 걸음)
+            opt.step(); 줄임 and 줄임.step(); 합 += loss.item() * len(c)
+            if 재기:
+                for b in 블록: w = torch.cat([p.detach().flatten() for p in getattr(m.u, b).parameters()]); tb.add_scalar("갱신비/" + b, ((w - 전[b]).norm() / w.norm()).item(), 걸음)
+                tb.add_scalars("손실", {"CE": ce.item(), "L1x0.1": .1 * l1.item()}, 걸음); tb.add_scalar("lr", opt.param_groups[0]["lr"], 걸음)
+            걸음 += 1
+        if tb is not None and ((ep + 1) % 10 == 0 or ep == 0): print("에폭 %d 진단 층 맞음 %.3f" % (ep + 1, 진단(ep + 1)), flush=True)
         기록.append({"에폭": ep + 1, "손실": 합 / len(perm), "초": time.time() - t0}); print("에폭 %d · 손실 %.4f · %.0f 초" % (ep + 1, 합 / len(perm), time.time() - t0), flush=True); torch.save({"망": m.state_dict(), "opt": opt.state_dict(), "에폭": ep + 1, "기록": 기록}, D + "진행.pt"); json.dump(기록, open(D + "기록.json", "w"))
-    torch.save(m.state_dict(), D + "망.pt"); P = 예측(예부); np.save(D + "예측.npy", P); np.save(D + "예측부품.npy", 예부)
+    tb and tb.close(); torch.save(m.state_dict(), D + "망.pt"); P = 예측(예부); np.save(D + "예측.npy", P); np.save(D + "예측부품.npy", 예부)
     정 = np.array(층[예부]); print("예측 층 맞음 %.3f · 통째 맞음 IoU %.3f" % ((P == 정).mean(), ((P == 32) & (정 == 32)).sum() / max(((P == 32) | (정 == 32)).sum(), 1)), flush=True)
