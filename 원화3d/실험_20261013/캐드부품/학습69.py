@@ -20,6 +20,7 @@ def 선손실(lo, x, h):   # 판정기준78 — lo (B, 33, N, N) · x 입력(0 �
 if __name__ == "__main__":
     import torch, torch.nn as nn, torch.nn.functional as Fn
     교차쓰기 = os.environ.get("CROSS") == "1"   # 판정기준86
+    후보쓰기 = os.environ.get("CAND") == "1"; 고르기 = os.environ.get("CANDMASK") == "1"   # 판정기준95 후보96 입력 32 채널 · 출력을 허용 층으로 막음
     숨쓰기 = os.environ.get("HIDDEN") == "1"; 폭 = int(os.environ.get("WIDTH", 1))   # 판정기준90 폭 배수   # 판정기준89 그 방향 뷰의 숨은선 1 채널(숨은입력89.npy)
     이름 = sys.argv[1]; 앞 = sys.argv[2] if len(sys.argv) > 2 and sys.argv[2] != "-" else None; 묶 = int(sys.argv[3]) if len(sys.argv) > 3 else -1
     D = O + "학습69_%s/" % 이름; os.makedirs(D, exist_ok=True); torch.manual_seed(31); dev = "cuda"
@@ -32,7 +33,7 @@ if __name__ == "__main__":
     print("학습 부품", len(tr), "예측 부품", len(예부), flush=True)
     class 모(nn.Module):
         def __init__(s):
-            super().__init__(); s.u = T.U만들기(10 + 64 * 교차쓰기 + 숨쓰기, 폭)(); s.u.o = nn.Conv2d(32 * 폭, 33, 1)
+            super().__init__(); s.u = T.U만들기(10 + 64 * 교차쓰기 + 숨쓰기 + 32 * 후보쓰기, 폭)(); s.u.o = nn.Conv2d(32 * 폭, 33, 1)
         def forward(s, x):
             u = s.u; a = u.e1(x); b_ = u.e2(u.p(a)); c = u.e3(u.p(b_)); d = u.e4(u.p(c))
             c2 = u.d3(torch.cat([u.u3(d), c], 1)); b2 = u.d2(torch.cat([u.u2(c2), b_], 1)); a2 = u.d1(torch.cat([u.u1(b2), a], 1)); return u.o(a2)
@@ -43,6 +44,15 @@ if __name__ == "__main__":
         return 선손실(lo[k], x[k], torch.tensor(반[idx, 방], device=dev).float()[k])
     숨89 = np.load(O + "숨은입력89.npy", mmap_mode="r") if 숨쓰기 else None
     껍32 = np.load(O + "껍질32.npy", mmap_mode="r") if os.environ.get("SHELL32") else None; 막기 = not os.environ.get("NOCLAMP")   # 판정기준94 껍질 32 단 · 출력 max(예측, 껍질) 없앰
+    if 후보쓰기:
+        후96 = np.load(O + "후보96.npy", mmap_mode="r"); I96 = torch.tensor(np.load(O + "후보96_색인.npy").astype(np.int64), device=dev); 비트 = torch.arange(32, device=dev)
+    def 후보화소(idx, 방):   # → (B, N, N) int64 bit = 후보 층
+        C = torch.tensor(np.stack([후96[i, k] for i, k in zip(idx, 방)]).astype(np.int64), device=dev); kk = torch.tensor(np.asarray(방), device=dev); IA, IB = I96[kk, 0], I96[kk, 1]
+        return torch.gather(C[:, 0], 1, IA.flatten(1)).view_as(IA) & torch.gather(C[:, 1], 1, IB.flatten(1)).view_as(IB)
+    def 막(lo, q, 껍):   # 판정기준95 B: 허용 = 후보 ± 1 ∪ 껍질 층 ∪ 32 · 후보 없는 화소는 다 허용
+        if not 고르기: return lo
+        a = q | (q << 1) | (q >> 1) | (1 << 껍.clamp(0, 31)); 허 = ((a[:, None] >> 비트[None, :, None, None]) & 1) > 0
+        허 = torch.cat([허, torch.ones_like(허[:, :1])], 1) | (q == 0)[:, None]; return lo.masked_fill(~허, -1e4)
     if 교차쓰기:
         import 교차86 as X86; _d = np.load(O + "데이터.npz")["X"]; _e = np.load(O + "데이터_앞옆.npz"); 뷰86 = X86.준비(_d, _e["F"], _e["S"], dev); del _d, _e
     m = 모().to(dev); os.environ.get("INIT") and m.load_state_dict(torch.load(O + "학습69_%s/망.pt" % os.environ["INIT"])); opt = torch.optim.Adam(m.parameters(), 1e-3); 눈 = torch.eye(6, device=dev); 칸값 = torch.arange(33, device=dev).float()
@@ -53,13 +63,14 @@ if __name__ == "__main__":
         x = torch.cat([a[:, :1], a[:, 1:2], 껍[:, None] / 32, 껍[:, None] / 32, o], 1)
         if 교차쓰기: x = torch.cat([x, X86.교차(뷰86, np.asarray(idx), torch.tensor(방, device=dev), torch.tensor(반[np.asarray(idx), np.asarray(방)], device=dev))], 1)   # 판정기준86 다른 두 뷰 선 × 깊이 칸
         if 숨쓰기: x = torch.cat([x, torch.tensor(np.stack([숨89[i, k] for i, k in zip(idx, 방)]), device=dev).float()[:, None]], 1)
+        if 후보쓰기: 입력.q = 후보화소(idx, 방); x = torch.cat([x, ((입력.q[:, None] >> 비트[None, :, None, None]) & 1).float()], 1)
         return x, 껍.long()
     def 예측(부품):
         m.eval(); out = np.zeros((len(부품), 6, 128, 128), np.uint8)
         with torch.no_grad():
             쌍 = [(n, i, k) for n, i in enumerate(부품) for k in range(6)]
             for s in range(0, len(쌍), 64):
-                c = 쌍[s:s + 64]; x, 껍 = 입력([i for _, i, _ in c], [k for _, _, k in c]); y = (torch.maximum(m(x).argmax(1), 껍) if 막기 else m(x).argmax(1)).cpu().numpy()
+                c = 쌍[s:s + 64]; x, 껍 = 입력([i for _, i, _ in c], [k for _, _, k in c]); lo = m(x); lo = 막(lo, 입력.q, 껍) if 후보쓰기 else lo; y = (torch.maximum(lo.argmax(1), 껍) if 막기 else lo.argmax(1)).cpu().numpy()
                 for (n, _, k), yy in zip(c, y): out[n, k] = yy
         m.train(); return out
     if os.environ.get("TT"):   # 10-19 판정기준90 ① 채점만: 학습 부품 300 · 시험 부품 300 깊이 화소(정답 < 32 · 채운 윤곽 안) 층 맞음
@@ -86,9 +97,10 @@ if __name__ == "__main__":
     for ep in range(시작, 에폭):
         perm = np.random.default_rng(ep).permutation(len(쌍)); 합 = 0.0
         for s in range(0, len(perm), 배치):
-            c = 쌍[perm[s:s + 배치]]; x, _ = 입력(c[:, 0], c[:, 1]); y = torch.tensor(np.stack([층[i, k] for i, k in c]), device=dev).long(); lo = m(x)
+            c = 쌍[perm[s:s + 배치]]; x, 껍b = 입력(c[:, 0], c[:, 1]); y = torch.tensor(np.stack([층[i, k] for i, k in c]), device=dev).long(); lo = m(x); lo = 막(lo, 입력.q, 껍b) if 후보쓰기 else lo
             기대 = (torch.softmax(lo, 1) * 칸값[None, :, None, None]).sum(1)   # 기대 층 — 가까운 층으로 틀리면 덜 벌함
-            ce = Fn.cross_entropy(lo, y); l1 = (기대 - y.float()).abs().mean(); loss = ce + .1 * l1
+            유 = lo.gather(1, y[:, None])[:, 0] > -1e3   # 판정기준95 B: 허용 밖 정답 화소는 손실에서 뺌(천장 몫)
+            ce = Fn.cross_entropy(lo, y.masked_fill(~유, -100)); l1 = (기대 - y.float()).abs()[유].mean(); loss = ce + .1 * l1
             if 선λ: loss = loss + 선λ * 선손실_(lo, x, c[:, 0], c[:, 1])
             opt.zero_grad(); loss.backward()
             재기 = tb is not None and 걸음 % 10 == 0
