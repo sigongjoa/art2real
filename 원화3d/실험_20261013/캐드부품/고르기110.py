@@ -13,7 +13,7 @@ def 특징(i):   # → [(방향, 마스크 색인, 후보 층들(list of arr), �
             fs = []
             for k, (nm, v, (j, 덮, 실)) in enumerate(후):
                 맞 = float(any(abs(중[k] - 중[q]) <= 1 and 후[q][2][0] not in (j, -1, -2) for q in range(2, len(후)))) if j >= 0 else 0.   # 다른 도면에도 같은 깊이 선(교집합 증거)
-                fs.append([j == -1, j == -2, j == 0, j == 1, (중[k] - 껍중) / K, 중[k] / K, 덮, 실, 맞, 줄[k] / max(len(후) - 1, 1), np.std(v) / K, m.sum() / 크, len(후) / 20, *(np.arange(6) == n)])
+                fs.append([j == -1, j == -2, j == 0, j in (1, 2, 3), (중[k] - 껍중) / K, 중[k] / K, 덮, 실, 맞, 줄[k] / max(len(후) - 1, 1), np.std(v) / K, m.sum() / 크, len(후) / 20, *(np.arange(6) == n)])
             신 = int(np.argmin([np.abs(v - g[m]).mean() for _, v, _ in 후])); out.append((n, np.flatnonzero(m).astype(np.int32), [v.astype(np.uint8) for _, v, _ in 후], np.array(fs, np.float32), 신))
     return i, out
 if __name__ == "__main__":
