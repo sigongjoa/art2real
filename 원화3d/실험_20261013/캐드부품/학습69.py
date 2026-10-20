@@ -21,6 +21,7 @@ if __name__ == "__main__":
     import torch, torch.nn as nn, torch.nn.functional as Fn
     교차쓰기 = os.environ.get("CROSS") == "1"   # 판정기준86
     후보쓰기 = os.environ.get("CAND") == "1"; 고르기 = os.environ.get("CANDMASK") == "1"   # 판정기준95 후보96 입력 32 채널 · 출력을 허용 층으로 막음
+    부드럽게 = os.environ.get("SOFT") == "1"   # 판정기준106 부드러운 정답
     숨쓰기 = os.environ.get("HIDDEN") == "1"; 폭 = int(os.environ.get("WIDTH", 1))   # 판정기준90 폭 배수   # 판정기준89 그 방향 뷰의 숨은선 1 채널(숨은입력89.npy)
     이름 = sys.argv[1]; 앞 = sys.argv[2] if len(sys.argv) > 2 and sys.argv[2] != "-" else None; 묶 = int(sys.argv[3]) if len(sys.argv) > 3 else -1
     D = O + "학습69_%s/" % 이름; os.makedirs(D, exist_ok=True); torch.manual_seed(31); dev = "cuda"
@@ -100,7 +101,11 @@ if __name__ == "__main__":
             c = 쌍[perm[s:s + 배치]]; x, 껍b = 입력(c[:, 0], c[:, 1]); y = torch.tensor(np.stack([층[i, k] for i, k in c]), device=dev).long(); lo = m(x); lo = 막(lo, 입력.q, 껍b) if 후보쓰기 else lo
             기대 = (torch.softmax(lo, 1) * 칸값[None, :, None, None]).sum(1)   # 기대 층 — 가까운 층으로 틀리면 덜 벌함
             유 = lo.gather(1, y[:, None])[:, 0] > -1e3   # 판정기준95 B: 허용 밖 정답 화소는 손실에서 뺌(천장 몫)
-            ce = Fn.cross_entropy(lo, y.masked_fill(~유, -100)); l1 = (기대 - y.float()).abs()[유].mean(); loss = ce + .1 * l1
+            if 부드럽게:   # 판정기준106 — 정답 < 32 면 층 0~31 에 σ = 1 가우스 · 32 는 원핫
+                q = torch.exp(-.5 * (칸값[None, :, None, None] - y[:, None].float()) ** 2); q[:, 32] = 0; q = torch.where((y == 32)[:, None], Fn.one_hot(y, 33).permute(0, 3, 1, 2).float(), q / q.sum(1, keepdim=True))
+                ce = -(q * Fn.log_softmax(lo, 1)).sum(1)[유].mean()
+            else: ce = Fn.cross_entropy(lo, y.masked_fill(~유, -100))
+            l1 = (기대 - y.float()).abs()[유].mean(); loss = ce + .1 * l1
             if 선λ: loss = loss + 선λ * 선손실_(lo, x, c[:, 0], c[:, 1])
             opt.zero_grad(); loss.backward()
             재기 = tb is not None and 걸음 % 10 == 0
