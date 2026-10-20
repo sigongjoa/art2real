@@ -95,7 +95,7 @@ for (const [k, v] of Object.entries(D.부품)) {
   P[k].층칸 = v.층중심.map(row => row.map(x => x < 0 ? NaN : x));   // 층 가운데 칸 (자료에서 자르기 전 값으로 계산)
 }
 const bit3 = (b, n, u, v) => (b[(n * N * N + u * N + v) >> 3] >> (7 - ((n * N * N + u * N + v) & 7))) & 1;
-const st = { part: "2741", n: 0, p: 64, q: 64, obj: true, lines: true, heat: false };
+const st = { part: "렉스", n: 0, p: 64, q: 64, obj: true, lines: true, heat: false };
 function 빠진곳(무작위) { const p = P[st.part], c = []; for (let u = 0; u < N; u++) for (let v = 0; v < N; v++) if (bit3(p.빠, st.n, u, v)) c.push([u, v]); if (!c.length) return false; const [u, v] = c[무작위 ? Math.floor(Math.random() * c.length) : c.length >> 1]; st.p = u; st.q = v; return true; }
 function 나쁜방향() { const p = P[st.part]; let b = 0, bn = 0; for (let n = 0; n < 6; n++) { let k = 0; for (let u = 0; u < N; u++) for (let v = 0; v < N; v++) k += bit3(p.빠, n, u, v); if (k > b) { b = k; bn = n; } } st.n = bn; }
 // ── 3D ──
@@ -175,7 +175,7 @@ function buildRay() {
 // ── 미니맵 ──
 const mini = document.getElementById("mini"), mx = mini.getContext("2d");
 function partSum() { const p = P[st.part]; let k = 0, m = 0; for (let u = 0; u < N; u++) for (let v = 0; v < N; v++) { k += bit3(p.깎, st.n, u, v); m += bit3(p.빠, st.n, u, v); }
-  document.getElementById("partsum").innerHTML = p.시험 ? `이 방향에서 깎아야 할 화소 <b class="mono">${k}</b> 중 후보에 정답 없음 <b class="mono" style="color:var(--miss)">${m}</b> (${k ? Math.round(100 * m / k) : 0}%)` : "시험 300 밖 부품이라 빠짐 표시 없음"; }
+  document.getElementById("partsum").innerHTML = p.시험 ? `이 방향에서 깎아야 할 화소 <b class="mono">${k}</b> 중 후보에 정답 없음 <b class="mono" style="color:var(--miss)">${m}</b> (${k ? Math.round(100 * m / k) : 0}%)` : "빠짐 표시 없음"; }
 function drawMini() { partSum();
   const p = P[st.part], [, a] = D.방향[st.n], 판 = 축도면[a], [s, h] = p.선[판], [A, B] = p.열[a], img = mx.createImageData(N, N);
   const hex = c => [1, 3, 5].map(i => parseInt(css(c).slice(i, i + 2), 16));
@@ -196,7 +196,7 @@ function drawMini() { partSum();
 mini.addEventListener("click", e => { const r = mini.getBoundingClientRect(); st.p = Math.min(N - 1, Math.floor((e.clientX - r.left) / r.width * N)); st.q = Math.min(N - 1, N - 1 - Math.floor((e.clientY - r.top) / r.height * N)); drawMini(); buildRay(); });
 // ── 조작 ──
 const partSel = document.getElementById("part"), dirSel = document.getElementById("dir");
-Object.keys(P).forEach(k => partSel.add(new Option("부품 " + k, k))); D.방향.forEach(([k, a, s], n) => dirSel.add(new Option(`${k} (${축이름[a]} ${s > 0 ? "+" : "−"})`, n)));
+Object.keys(D.부품).forEach(k => partSel.add(new Option(/^\d+$/.test(k) ? "부품 " + k : k + " (CAD 밖 · 어려움)", k))); D.방향.forEach(([k, a, s], n) => dirSel.add(new Option(`${k} (${축이름[a]} ${s > 0 ? "+" : "−"})`, n)));
 나쁜방향(); 빠진곳(false); partSel.value = st.part; dirSel.value = st.n;
 partSel.onchange = () => { st.part = partSel.value; 나쁜방향(); dirSel.value = st.n; 빠진곳(false); buildStatic(); drawMini(); buildRay(); };
 document.getElementById("jump").onclick = () => { if (빠진곳(true)) { drawMini(); buildRay(); } };
