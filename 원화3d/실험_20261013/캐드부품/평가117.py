@@ -12,7 +12,7 @@ if __name__ == "__main__":
     import cv2
     def 다른시점(nm):   # 턴테이블 영상 5 번째 프레임(35 + 4 × 30 = 155°)
         if ("o", nm) not in 캐:
-            c = cv2.VideoCapture(D + "영상/" + nm + ".mp4"); c.set(cv2.CAP_PROP_POS_FRAMES, 4); ok, fr = c.read(); c.release(); p = D + "렌더/" + nm + "_155.png"; cv2.imwrite(p, fr)
+            c = cv2.VideoCapture(D + "영상/" + nm + ".mp4"); c.set(cv2.CAP_PROP_POS_FRAMES, 4); ok, fr = c.read(); c.release(); p = D + "렌더/" + nm + "_155.png"; cv2.imencode(".png", fr)[1].tofile(p)   # 한글 경로라 imwrite 금지
             캐[("o", nm)] = m.encode({"text": "<|image|>", "image": [p]}, normalize_embeddings=True)
         return 캐[("o", nm)]
     def 그림(nm):
