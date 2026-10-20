@@ -17,7 +17,10 @@ button[aria-pressed="true"] { border-color: var(--ink); }
 :focus-visible { outline: 2px solid var(--extra); outline-offset: 2px; }
 .lg { display: flex; gap: 14px; flex-wrap: wrap; color: var(--muted); font-size: 12.5px; }
 .sw { display: inline-block; width: 10px; height: 10px; margin-right: 5px; vertical-align: -1px; border-radius: 2px; }
-#grid { flex: 1; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; min-height: 360px; }
+#views { display: flex; gap: 10px; flex-wrap: wrap; align-items: flex-end; }
+#views figure { margin: 0; display: flex; flex-direction: column; gap: 3px; font-size: 12px; color: var(--muted); }
+#views img { width: 150px; max-width: 28vw; image-rendering: pixelated; border: 1px solid var(--rule); background: #fff; }
+#grid { flex: 1; display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 8px; min-height: 360px; }
 @media (max-width: 900px) { #grid { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 42vh; } }
 .pane { position: relative; background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; min-width: 0; }
 .pane canvas { display: block; }
@@ -31,13 +34,14 @@ button[aria-pressed="true"] { border-color: var(--ink); }
   <button id="ghost" aria-pressed="true">모자람 보이기</button>
   <div class="lg"><span><i class="sw" style="background:var(--solid)"></i>정답과 같은 칸</span><span><i class="sw" style="background:var(--extra)"></i>남음: 덜 깎았다(정답엔 빈 곳)</span><span><i class="sw" style="background:var(--miss)"></i>모자람: 더 깎거나 구멍(정답엔 있는 곳 · 반투명)</span></div>
 </header>
+<div id="views"></div>
 <div id="grid"></div>
 <script type="application/json" id="data">__DATA__</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 <script>
-const D = JSON.parse(document.getElementById("data").textContent), N = 48, 팔 = ["정답", "천장", "판0", "부드러움"];
-const 설명 = { 정답: "정답 3D", 천장: "천장 · 정답 깊이로 깎음", 판0: "판0 예측으로 깎음", 부드러움: "부드러움(106)으로 깎음" };
+const D = JSON.parse(document.getElementById("data").textContent), N = 48, 팔 = ["정답", "틀", "천장", "판0", "부드러움"];
+const 설명 = { 정답: "정답 3D", 틀: "틀 · 도면 세 장 윤곽으로 만든 덩어리", 천장: "천장 · 정답 깊이로 깎음", 판0: "판0 예측으로 깎음", 부드러움: "부드러움(106)으로 깎음" };
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const un = s => { const b = Uint8Array.from(atob(s), c => c.charCodeAt(0)), o = new Uint8Array(N * N * N); for (let k = 0; k < o.length; k++) o[k] = (b[k >> 3] >> (7 - (k & 7))) & 1; return o; };
 const cam = new THREE.PerspectiveCamera(35, 1, .1, 1000); cam.position.set(70, 55, 80);
@@ -56,6 +60,7 @@ function cubes(list, color, opacity) {
   m.count = list.length; return m;
 }
 function show(part) {
+  document.getElementById("views").innerHTML = "<span style=\"font-weight:600\">입력 3면도</span>" + ["위", "앞", "옆"].map(k => `<figure><img src="${D[part].도면[k]}" alt="${k} 도면"><figcaption>${k} (검정 실선 · 파랑 숨은선)</figcaption></figure>`).join("");
   const v = Object.fromEntries(팔.map(k => [k, un(D[part][k].칸)])), g = v.정답;
   panes.forEach(p => {
     p.s.remove(p.g); p.g.traverse(o => o.geometry && o.geometry.dispose()); p.g = new THREE.Group(); p.s.add(p.g); p.s.background = new THREE.Color(css("--panel"));
@@ -65,7 +70,7 @@ function show(part) {
     const d = D[part][p.k]; p.el.querySelector(".num").textContent = p.k === "정답" ? `칸 ${같.length}` : `IoU ${d.IoU.toFixed(3)} · 남음 ${d.남음} · 모자람 ${d.모자람}`;
   });
 }
-const sel = document.getElementById("part"); Object.keys(D).forEach(k => sel.add(new Option(`부품 ${k} · 판0 IoU ${D[k].판0.IoU.toFixed(2)} (천장 ${D[k].천장.IoU.toFixed(2)})`, k)));
+const sel = document.getElementById("part"); Object.keys(D).sort((a, b) => 0).forEach(k => sel.add(new Option(`부품 ${k} · 판0 IoU ${D[k].판0.IoU.toFixed(2)} (천장 ${D[k].천장.IoU.toFixed(2)})`, k)));
 sel.onchange = () => show(sel.value);
 document.getElementById("rot").onclick = e => { 회전 = !회전; e.target.setAttribute("aria-pressed", 회전); };
 document.getElementById("ghost").onclick = e => { 유령 = !유령; e.target.setAttribute("aria-pressed", 유령); panes.forEach(p => p.g.children.forEach(c => { if (c.userData.ghost) c.visible = 유령; })); };
