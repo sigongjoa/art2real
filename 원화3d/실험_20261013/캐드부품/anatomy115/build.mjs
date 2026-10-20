@@ -184,12 +184,18 @@ function draw(st) {
   if (readout.textContent !== text) readout.textContent = text;
 }
 function tick(now) {
-  const dt = last ? Math.min((now - last) / 1000, 1 / 30) : 1 / 60; last = now; clock = (clock + dt) % TOTAL;
+  if (window.__rec) { frame = 0; return; }
+  const dt = last ? Math.min((now - last) / 1000, 1 / 30) : 1 / 60; last = now; update(dt); frame = visible ? requestAnimationFrame(tick) : 0;
+}
+window.__step = (dt) => { window.__rec = true; update(dt); return clock; };   // 영상 녹화: 고정 dt 로 한 칸씩
+window.__total = TOTAL;
+function update(dt) {
+  clock = (clock + dt) % TOTAL;
   const [st] = stepAt(clock), ease = (a, b, tau) => a + (b - a) * (1 - Math.exp(-dt / tau));
   const i = st.kind === "learn" ? st.best : st.i;
   cur.x = ease(cur.x, CX[i], 0.16); cur.depth = ease(cur.depth, 층깊이(CANDS[i].L), 0.14); cur.mis = ease(cur.mis, st.kind === "learn" ? RUN[st.e].reads[st.best] : st.m, 0.12);
   cur.p = cur.p.map((v, j) => ease(v, (st.kind === "read" ? st.p : st.p)[j], 0.35));
-  draw(st); frame = visible ? requestAnimationFrame(tick) : 0;
+  draw(st);
 }
 const run = () => { if (!frame && visible && !still.matches) { last = 0; frame = requestAnimationFrame(tick); } };
 new IntersectionObserver((es) => { visible = es[es.length - 1].isIntersecting; if (visible) run(); }, { rootMargin: "120px 0px" }).observe(stage);
