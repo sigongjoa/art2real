@@ -6,7 +6,7 @@ from scipy.ndimage import distance_transform_edt
 import 후보96 as H, 후보101 as P
 O = "G:/art2real/out/설명/캐드부품/"; D = O + "코드110/"; N = 128; K = 32
 d = np.load(O + "데이터.npz"); X = d["X"]; e = np.load(O + "데이터_앞옆.npz"); F, S = e["F"], e["S"]; h = np.load(O + "숨은선88.npz"); HX, HF, HS = h["HX"], h["HF"], h["HS"]
-z = np.load(O + "데이터51.npz"); 반 = z["반"]; I = np.load(O + "후보96_색인.npy").astype(np.int64)
+z = np.load(O + "데이터51.npz"); 반, 틀51, 정51 = z["반"], z["틀"], z["정답"]; I = np.load(O + "후보96_색인.npy").astype(np.int64)
 입 = np.load(O + "입력51.npy", mmap_mode="r"); 껍32 = np.load(O + "껍질32.npy", mmap_mode="r"); 층32 = np.load(O + "층32.npy", mmap_mode="r")
 세 = lambda M: M[::-1].T > 0
 def 칸층표(i, n):   # 칸 → 층(후보96.하나 와 같은 내림)
@@ -24,20 +24,24 @@ def 조각들(L, 뜀=2):   # L[열, 칸] bool → 선 조각마다 (열들, 열�
             else: 사슬.append(([x], [v])); 새.append(len(사슬) - 1)
         열린 = 새
     return [(np.array(a), np.array(b)) for a, b in 사슬 if len(a) >= 3]
-def 영역후보(i, n, 열):   # → 영역 목록 [(마스크, [(이름, 층 지도 값(영역 화소 순서))...])]
+def 영역후보(i, n, 열, 실열=None):   # → 영역 목록 [(마스크, [(이름, 층 지도 값(영역 화소 순서), 덧(출처 · 덮음 · 실선 몫))...])] · 실열 = 실선만으로 만든 열 후보(실선 몫 재기)
     표 = 칸층표(i, n)
     if 표 is None: return []
     a = H.축[H.방[n]][0]; 조 = [조각들(열[a][0]), 조각들(열[a][1])]; 안 = 입[i, n, 1] > 0; 껍 = 껍32[i, n].astype(np.int64)
     m_, lab = cv2.connectedComponents(((입[i, n, 0] == 0) & 안).astype(np.uint8), connectivity=4); out = []
+    크 = np.bincount(lab.ravel(), minlength=m_); lab = np.where(크[lab] >= 30, lab, 0)   # 10-20 고침: 선 화소 · 작은 영역을 가장 가까운 큰 영역에 붙임(깎인 속의 31 % 가 선 화소였음)
+    if (lab > 0).any(): _, (yy, xx) = distance_transform_edt(lab == 0, return_indices=True); lab = np.where(안, lab[yy, xx], 0)
     for r in range(1, m_):
         m = lab == r
         if m.sum() < 30: continue
-        후 = [("껍질", 껍[m]), ("관통", np.full(m.sum(), K))]
+        후 = [("껍질", 껍[m], (-1, 1., 1.)), ("관통", np.full(m.sum(), K), (-2, 1., 1.))]
         for j in (0, 1):
             col = I[n, j][m]; 범 = np.unique(col)
             for t, (열들, 칸) in enumerate(조[j]):
-                if np.isin(범, 열들).mean() <= .5: continue
-                c = np.interp(col, 열들, 칸); 후.append((f"{'AB'[j]}{t}", np.maximum(표[np.clip(np.round(c).astype(int), 0, N - 1)], 껍[m])))
+                덮 = np.isin(범, 열들).mean()
+                if 덮 <= .5: continue
+                실 = float(실열[a][j][열들, np.clip(np.round(칸).astype(int), 0, N - 1)].mean()) if 실열 is not None else 1.
+                c = np.interp(col, 열들, 칸); 후.append((f"{'AB'[j]}{t}", np.maximum(표[np.clip(np.round(c).astype(int), 0, N - 1)], 껍[m]), (j, float(덮), 실)))
         out.append((m, 후))
     return out
 def 펴기(i, n, 영, 고름):   # 영역마다 고른 후보 → (N, N) 층 · 선 화소 · 작은 영역은 가장 가까운 영역 값 · 윤곽 밖 32
@@ -52,16 +56,16 @@ def 천장(i):   # 신탁: 영역마다 정답과 평균 |차| 최소
     선 = (세(np.maximum(X[i], HX[i])), 세(np.maximum(F[i], HF[i])), 세(np.maximum(S[i], HS[i]))); 열 = P.열후보_넓게(*선); out = np.zeros((6, N, N), np.uint8); 수 = []
     for n in range(6):
         영 = 영역후보(i, n, 열); g = 층32[i, n].astype(np.int64)
-        고름 = [int(np.argmin([np.abs(v - g[m]).mean() for _, v in 후])) for m, 후 in 영]; out[n] = 펴기(i, n, 영, 고름); 수 += [len(후) for _, 후 in 영]
+        고름 = [int(np.argmin([np.abs(v - g[m]).mean() for _, v, _ in 후])) for m, 후 in 영]; out[n] = 펴기(i, n, 영, 고름); 수 += [len(후) for _, 후 in 영]
     return out, (float(np.mean(수)) if 수 else 0.)
 def 일(job):
     k, i, p = job; import 평가69 as E
-    t, 수 = 천장(i); r, 칸 = E.하나((k, p, t, 반[i], z["틀"][i], z["정답"][i])); return t, r, 수
+    t, 수 = 천장(i); r, 칸 = E.하나((k, p, t, 반[i], 틀51[i], 정51[i])); return t, r, 수
 if __name__ == "__main__":
     os.makedirs(D, exist_ok=True); 시 = np.load(O + "데이터.npz")["시험"]; te = np.nonzero(시)[0]; 범 = json.load(open(O + "범위46.json")); 예 = te[범]; L = json.load(open(O + "목록.json", encoding="utf-8"))
     if sys.argv[1:2] == ["시험"]:   # 부품 59 하나 · 위 방향 영역 · 후보
         선 = (세(np.maximum(X[59], HX[59])), 세(np.maximum(F[59], HF[59])), 세(np.maximum(S[59], HS[59]))); 열 = P.열후보_넓게(*선)
-        for m, 후 in 영역후보(59, 0, 열): print("영역", m.sum(), "화소 · 후보", [(nm, int(np.median(v))) for nm, v in 후], "· 정답 중앙", int(np.median(층32[59, 0][m])))
+        for m, 후 in 영역후보(59, 0, 열): print("영역", m.sum(), "화소 · 후보", [(nm, int(np.median(v))) for nm, v, _ in 후], "· 정답 중앙", int(np.median(층32[59, 0][m])))
         t, 수 = 천장(59); g = 층32[59, 0]; 안 = (입[59, 0, 1] > 0) & (g < K); print("59 위 천장 층 맞음", ((t[0] == g) & 안).sum() / 안.sum()); sys.exit()
     from multiprocessing import Pool
     with Pool(int(sys.argv[2]) if len(sys.argv) > 2 else 4, maxtasksperchild=20) as pool: 출 = pool.map(일, [(k, int(i), L[i]) for k, i in enumerate(예)], chunksize=2)
