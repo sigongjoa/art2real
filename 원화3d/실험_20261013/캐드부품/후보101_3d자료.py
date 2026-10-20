@@ -14,14 +14,15 @@ for i in [int(a) for a in sys.argv[1:]] or [2741, 1588, 1034, 904, 2228, 574, 66
     선 = {"xy": (세(X[i]), 세(HX[i])), "xz": (세(F[i]), 세(HF[i])), "yz": (세(S[i]), 세(HS[i]))}
     열 = P.열후보_넓게(선["xy"][0] | 선["xy"][1], 선["xz"][0] | 선["xz"][1], 선["yz"][0] | 선["yz"][1])   # {축: (A[열, 칸], B[열, 칸])}
     빠 = np.zeros((6, N, N), bool); 깎w = np.zeros((6, N, N), bool); t = 실부.index(i) if i in 실부 else None
-    정 = np.full((6, N, N), 255, np.uint8); 칸층 = np.zeros((6, N), np.int64)
+    정 = np.full((6, N, N), 255, np.uint8); 칸층 = np.zeros((6, N), np.int64); 층중심 = np.full((6, K), np.nan)
     for n, k in enumerate(H.방):
         a, s = H.축[k]; hh = float(반[i][n]); w = s * H.g + H.칸 / 2
         칸층[n] = np.clip(np.floor((hh - w) / (2 * hh / K) + 1e-6), 0, K - 1) if hh > 0 else -1
+        if hh > 0: lf = (hh - w) / (2 * hh / K); o = np.argsort(lf); 층중심[n] = np.interp(np.arange(K) + .5, lf[o], np.arange(N)[o])   # 층 가운데 칸 · 자르기 전 값으로(층 0 · 31 에 몰린 바깥 칸 평균 쓰면 띠가 생김)
         g = 층[i, n]; m = (입[i, n, 1] > 0) & (g < K); 정[n][I[n, 0][m], I[n, 1][m]] = g[m]   # 지역 화소 → 세계 (앞 축, 뒤 축) · 축 순서 오름차순
         k2 = m & (g >= 껍[i, n]+ 2); 깎w[n][I[n, 0][k2], I[n, 1][k2]] = True
         if t is not None: 빠[n][I[n, 0][실지[t, n]], I[n, 1][실지[t, n]]] = True   # 넓은 ∪ 후보에 정답 ±1 없음 (후보101_실패)
     out["부품"][str(i)] = {"선": {k: [비트(v[0]), 비트(v[1])] for k, v in 선.items()}, "열": {str(a): [비트(v[0]), 비트(v[1])] for a, v in 열.items()},
-                         "정답": b64(정), "칸층": 칸층.tolist(), "깎": 비트(깎w), "빠": 비트(빠), "시험": t is not None}
+                         "정답": b64(정), "칸층": 칸층.tolist(), "층중심": np.nan_to_num(층중심, nan=-1).round(2).tolist(), "깎": 비트(깎w), "빠": 비트(빠), "시험": t is not None}
 json.dump(out, open(D + "자료.json", "w", encoding="utf-8"), ensure_ascii=False); print("저장", os.path.getsize(D + "자료.json"))
 틀 = open("후보3d_틀.html", encoding="utf-8").read(); open(D + "후보3d.html", "w", encoding="utf-8").write(틀.replace("__DATA__", json.dumps(out, ensure_ascii=False))); print("html")

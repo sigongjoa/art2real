@@ -92,7 +92,7 @@ for (const [k, v] of Object.entries(D.부품)) {
   P[k] = { 선: Object.fromEntries(Object.entries(v.선).map(([a, [s, h]]) => [a, [un(s), un(h)]])),
            열: Object.fromEntries(Object.entries(v.열).map(([a, [A, B]]) => [a, [un(A), un(B)]])),
            정: un(v.정답), 칸층: v.칸층, 깎: un(v.깎), 빠: un(v.빠), 시험: v.시험 };
-  P[k].층칸 = v.칸층.map(row => { const s = Array(K).fill(0), c = Array(K).fill(0); row.forEach((L, i) => { if (L >= 0) { s[L] += i; c[L]++; } }); return s.map((x, L) => c[L] ? x / c[L] : NaN); });
+  P[k].층칸 = v.층중심.map(row => row.map(x => x < 0 ? NaN : x));   // 층 가운데 칸 (자료에서 자르기 전 값으로 계산)
 }
 const bit3 = (b, n, u, v) => (b[(n * N * N + u * N + v) >> 3] >> (7 - ((n * N * N + u * N + v) & 7))) & 1;
 const st = { part: "2741", n: 0, p: 64, q: 64, obj: true, lines: true, heat: false };
