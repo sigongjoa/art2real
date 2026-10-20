@@ -1,0 +1,80 @@
+<title>깎기 실패 3D 비교</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;600&family=IBM+Plex+Mono:wght@400&display=swap">
+<style>
+/* 레이아웃: 위 조작 줄 · 아래 네 칸(정답 · 천장 · 판0 · 부드러움)이 같은 카메라로 함께 돈다 · 좁으면 두 줄 */
+:root { --bg: #f3f4f1; --panel: #ffffff; --ink: #23262b; --muted: #6b7078; --rule: #d9dbd6; --solid: #9aa3ad; --extra: #f08a24; --miss: #d8262b;
+  --f-body: "IBM Plex Sans KR", "Malgun Gothic", system-ui, sans-serif; --f-mono: "IBM Plex Mono", Consolas, monospace; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg: #16181c; --panel: #1f2227; --ink: #e6e7e3; --muted: #9aa0a8; --rule: #33373e; --solid: #7d8691; --extra: #ff9d3c; --miss: #ff4d4f; color-scheme: dark } }
+:root[data-theme="dark"] { --bg: #16181c; --panel: #1f2227; --ink: #e6e7e3; --muted: #9aa0a8; --rule: #33373e; --solid: #7d8691; --extra: #ff9d3c; --miss: #ff4d4f; color-scheme: dark }
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--ink); font-family: var(--f-body); font-size: 14px; margin: 0; box-sizing: border-box; display: flex; flex-direction: column; gap: 10px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 12px; }
+header { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; }
+h1 { font-size: 18px; margin: 0; font-weight: 600; }
+select, button { font: inherit; color: var(--ink); background: var(--panel); border: 1px solid var(--rule); border-radius: 4px; padding: 3px 8px; max-width: 100%; }
+button[aria-pressed="true"] { border-color: var(--ink); }
+:focus-visible { outline: 2px solid var(--extra); outline-offset: 2px; }
+.lg { display: flex; gap: 14px; flex-wrap: wrap; color: var(--muted); font-size: 12.5px; }
+.sw { display: inline-block; width: 10px; height: 10px; margin-right: 5px; vertical-align: -1px; border-radius: 2px; }
+#grid { flex: 1; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; min-height: 360px; }
+@media (max-width: 900px) { #grid { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-auto-rows: 42vh; } }
+.pane { position: relative; background: var(--panel); border: 1px solid var(--rule); border-radius: 6px; overflow: hidden; min-width: 0; }
+.pane canvas { display: block; }
+.cap { position: absolute; left: 10px; top: 8px; font-weight: 600; pointer-events: none; }
+.num { position: absolute; left: 10px; bottom: 8px; font-family: var(--f-mono); font-size: 12px; color: var(--muted); pointer-events: none; font-variant-numeric: tabular-nums; }
+</style>
+<header>
+  <h1>깎기 실패 3D 비교</h1>
+  <label for="part">부품</label><select id="part"></select>
+  <button id="rot" aria-pressed="true">자동 회전</button>
+  <button id="ghost" aria-pressed="true">모자람 보이기</button>
+  <div class="lg"><span><i class="sw" style="background:var(--solid)"></i>정답과 같은 칸</span><span><i class="sw" style="background:var(--extra)"></i>남음: 덜 깎았다(정답엔 빈 곳)</span><span><i class="sw" style="background:var(--miss)"></i>모자람: 더 깎거나 구멍(정답엔 있는 곳 · 반투명)</span></div>
+</header>
+<div id="grid"></div>
+<script type="application/json" id="data">__DATA__</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+<script>
+const D = JSON.parse(document.getElementById("data").textContent), N = 48, 팔 = ["정답", "천장", "판0", "부드러움"];
+const 설명 = { 정답: "정답 3D", 천장: "천장 · 정답 깊이로 깎음", 판0: "판0 예측으로 깎음", 부드러움: "부드러움(106)으로 깎음" };
+const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const un = s => { const b = Uint8Array.from(atob(s), c => c.charCodeAt(0)), o = new Uint8Array(N * N * N); for (let k = 0; k < o.length; k++) o[k] = (b[k >> 3] >> (7 - (k & 7))) & 1; return o; };
+const cam = new THREE.PerspectiveCamera(35, 1, .1, 1000); cam.position.set(70, 55, 80);
+const panes = 팔.map(k => {
+  const el = document.createElement("div"); el.className = "pane"; el.innerHTML = `<div class="cap">${설명[k]}</div><div class="num"></div>`; document.getElementById("grid").appendChild(el);
+  const r = new THREE.WebGLRenderer({ antialias: true }); el.prepend(r.domElement); const s = new THREE.Scene();
+  s.add(new THREE.HemisphereLight(0xffffff, 0x444444, .9)); const dl = new THREE.DirectionalLight(0xffffff, .7); dl.position.set(1, 2, 1.5); s.add(dl);
+  return { k, el, r, s, g: new THREE.Group() };
+});
+const ctls = panes.map(p => { const c = new THREE.OrbitControls(cam, p.r.domElement); c.enableDamping = true; return c; });   // 네 칸이 카메라 하나를 같이 씀
+let 회전 = true, 유령 = true;
+function cubes(list, color, opacity) {
+  const geo = new THREE.BoxGeometry(.96, .96, .96), mat = new THREE.MeshLambertMaterial({ color, transparent: opacity < 1, opacity, depthWrite: opacity === 1 });
+  const m = new THREE.InstancedMesh(geo, mat, Math.max(list.length, 1)), o = new THREE.Object3D();
+  list.forEach((k, j) => { const x = Math.floor(k / (N * N)), y = Math.floor(k / N) % N, z = k % N; o.position.set(x - N / 2, z - N / 2, y - N / 2); o.updateMatrix(); m.setMatrixAt(j, o.matrix); });
+  m.count = list.length; return m;
+}
+function show(part) {
+  const v = Object.fromEntries(팔.map(k => [k, un(D[part][k].칸)])), g = v.정답;
+  panes.forEach(p => {
+    p.s.remove(p.g); p.g.traverse(o => o.geometry && o.geometry.dispose()); p.g = new THREE.Group(); p.s.add(p.g); p.s.background = new THREE.Color(css("--panel"));
+    const a = v[p.k], 같 = [], 남 = [], 모 = [];
+    for (let k = 0; k < a.length; k++) { if (a[k] && g[k]) 같.push(k); else if (a[k]) 남.push(k); else if (g[k]) 모.push(k); }
+    p.g.add(cubes(같, css("--solid"), 1)); p.g.add(cubes(남, css("--extra"), 1)); const gm = cubes(모, css("--miss"), .28); gm.visible = 유령; gm.userData.ghost = true; p.g.add(gm);
+    const d = D[part][p.k]; p.el.querySelector(".num").textContent = p.k === "정답" ? `칸 ${같.length}` : `IoU ${d.IoU.toFixed(3)} · 남음 ${d.남음} · 모자람 ${d.모자람}`;
+  });
+}
+const sel = document.getElementById("part"); Object.keys(D).forEach(k => sel.add(new Option(`부품 ${k} · 판0 IoU ${D[k].판0.IoU.toFixed(2)} (천장 ${D[k].천장.IoU.toFixed(2)})`, k)));
+sel.onchange = () => show(sel.value);
+document.getElementById("rot").onclick = e => { 회전 = !회전; e.target.setAttribute("aria-pressed", 회전); };
+document.getElementById("ghost").onclick = e => { 유령 = !유령; e.target.setAttribute("aria-pressed", 유령); panes.forEach(p => p.g.children.forEach(c => { if (c.userData.ghost) c.visible = 유령; })); };
+function size() { panes.forEach(p => { const w = p.el.clientWidth, h = p.el.clientHeight; p.r.setSize(w, h); p.r.setPixelRatio(Math.min(devicePixelRatio, 2)); }); const p = panes[0].el; cam.aspect = p.clientWidth / p.clientHeight; cam.updateProjectionMatrix(); }
+new ResizeObserver(size).observe(document.getElementById("grid"));
+matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => show(sel.value));
+show(sel.value); size();
+(function loop() {
+  if (회전) { const a = .004, x = cam.position.x, z = cam.position.z; cam.position.x = x * Math.cos(a) - z * Math.sin(a); cam.position.z = x * Math.sin(a) + z * Math.cos(a); }
+  ctls.forEach(c => c.update()); panes.forEach(p => p.r.render(p.s, cam)); requestAnimationFrame(loop);
+})();
+</script>
