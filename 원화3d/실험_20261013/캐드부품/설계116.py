@@ -69,13 +69,18 @@ def 단면(v, f):   # 가운데 y = 0 평면에서 앞(x · z) 격자 점유 —
     sc = o3d.t.geometry.RaycastingScene(); sc.add_triangles(o3d.core.Tensor(np.asarray(v, np.float32)), o3d.core.Tensor(np.asarray(f, np.uint32)))
     u = (np.arange(N) + .5) / N * 1.1 - .55; A, B = np.meshgrid(u, -u); q = np.stack([A, np.zeros_like(A), B], -1).reshape(-1, 3).astype(np.float32)
     return sc.compute_occupancy(o3d.core.Tensor(q)).numpy().reshape(N, N) > 0
+def 점유(m, n=48):   # 3D 가 실제로 바뀌었나 재는 자(원 좌표 · 원본과 변형이 같은 격자를 쓰도록 고정 상자 ±80 mm)
+    import open3d as o3d
+    sc = o3d.t.geometry.RaycastingScene(); sc.add_triangles(o3d.core.Tensor(np.asarray(m.vertices, np.float32)), o3d.core.Tensor(np.asarray(m.faces, np.uint32)))
+    g = (np.arange(n) + .5) / n * 160 - 80; X, Y, Z = np.meshgrid(g, g, g, indexing="ij"); q = np.stack([X, Y, Z], -1).reshape(-1, 3).astype(np.float32)
+    return sc.compute_occupancy(o3d.core.Tensor(q)).numpy().reshape(n, n, n) > 0
 def 설계도(s):   # → dict 채널(bool N×N)
     import 숨은선88 as H88
     w = 짓기(s); m, v, c, e = 메시(w)
-    if not m.is_watertight: raise ValueError("안 닫힘")
+    if not w.val().isValid(): raise ValueError("솔리드 깨짐")   # 116b: 메시 watertight 말고 CAD 유효성(축 위 꼭짓점 회전체가 거짓 실패)
     선 = H88.그리기(v, m.faces); cl = 중심선(s, c, e); d = {}
     for j, nm in enumerate(("위", "앞", "옆")): d[nm + "실"], d[nm + "숨"], d[nm + "중심"] = 선[j][0], 선[j][1], cl[j]
-    d["단면"] = 단면(v, m.faces); return d
+    d["단면"] = 단면(v, m.faces); d["_점유"] = 점유(m); return d
 
 # ── 3. 비교기 ──
 def _F(a, b):
@@ -86,9 +91,9 @@ def 어긋남(d1, d2, 전체=True):
     ch = [nm + t for nm in ("위", "앞", "옆") for t in ("실", "숨")] + ([nm + "중심" for nm in ("위", "앞", "옆")] if 전체 else [])
     v = [1 - _F(d1[c], d2[c]) for c in ch]
     if 전체: i = (d1["단면"] & d2["단면"]).sum(); u = (d1["단면"] | d2["단면"]).sum(); v.append(1 - (i / u if u else 1))
-    return float(np.mean(v))
+    return float(np.max(v)), float(np.mean(v))   # 116b: 최댓값(판정) · 평균(116 과 맞대기)
 def 변형들(s, rng, n=5):
-    out = []; 수 = [("바탕", k) for k, x in s["바탕"].items() if isinstance(x, float)] + [("특징", i, k) for i, f in enumerate(s["특징"]) for k in ("x", "y", "크기", "깊이") if k in f]
+    out = []; 수 = [("바탕", k) for k, x in s["바탕"].items() if isinstance(x, float)] + [("특징", i, k) for i, f in enumerate(s["특징"]) for k in ("x", "y", "크기", "깊이") if k in f and not (k == "깊이" and f["종류"] == "관통")]
     for t in range(n):
         v = copy.deepcopy(s); 고 = rng.integers(0, 4) if (s["특징"] or s["기울임"]) else 0
         if 고 == 1 and s["특징"]: v["특징"].pop(int(rng.integers(len(v["특징"])))); 종 = "특징 빼기"
@@ -105,25 +110,27 @@ def 변형들(s, rng, n=5):
 
 if __name__ == "__main__":
     os.makedirs(D, exist_ok=True); n = int(sys.argv[2]) if len(sys.argv) > 2 else 200; rng = np.random.default_rng(116)
-    실행 = 0; 결정 = 0; 변 = {"전체": [], "3면도만": []}; 종류별 = {}; 예 = []
+    실행 = 0; 결정 = 0; 같음 = 0; 변 = {"전체": [], "3면도만": []}; 평균 = {"전체": [], "3면도만": []}; 종류별 = {}; 예 = []
     for t in range(n):
         s = 무작위(rng)
         try: d = 설계도(s)
         except Exception as ex: print(t, s["바탕"]["종류"], "실패", type(ex).__name__, str(ex)[:60], flush=True); continue
-        실행 += 1; d2 = 설계도(s); 결정 += all((d[c] == d2[c]).all() for c in d)
+        실행 += 1; d2 = 설계도(s); 결정 += all((d[c] == d2[c]).all() for c in d if not c.startswith("_"))
         for 종, v in 변형들(s, rng):
             try: dv = 설계도(v)
             except Exception: continue
-            for 판 in 변: a = 어긋남(d, dv, 판 == "전체"); 변[판].append(a); 종류별.setdefault((s["바탕"]["종류"], 종.split(" ×")[0]), []).append((판, a))
+            바뀜 = (d["_점유"] ^ dv["_점유"]).sum() / max(d["_점유"].sum(), 1)
+            if 바뀜 < .01: 같음 += 1; continue   # 116b: 3D 가 1 % 도 안 바뀐 변형은 변별에서 뺌
+            for 판 in 변: a, a평 = 어긋남(d, dv, 판 == "전체"); 변[판].append(a); 평균[판].append(a평); 종류별.setdefault((s["바탕"]["종류"], 종.split(" ×")[0]), []).append((판, a))
         if len(예) < 6: 예.append((s, d))
-    결 = {"코드 수": n, "실행": 실행 / n, "결정성": 결정 / max(실행, 1)}
-    for 판, a in 변.items(): a = np.array(a); 결[f"구별 못 함({판})"] = float((a < .01).mean()); 결[f"어긋남 중앙({판})"] = float(np.median(a))
+    결 = {"코드 수": n, "실행": 실행 / n, "결정성": 결정 / max(실행, 1), "3D 거의 같은 변형(뺌)": 같음, "변별에 센 변형": len(변["전체"])}
+    for 판, a in 변.items(): a = np.array(a); 결[f"구별 못 함({판})"] = float((a < .01).mean()); 결[f"어긋남 중앙({판})"] = float(np.median(a)); 결[f"구별 못 함·평균 집계({판})"] = float((np.array(평균[판]) < .01).mean())
     결["구별 못 함 종류(3면도만 · 많은 순)"] = sorted([(f"{k[0]} · {k[1]}", round(float(np.mean([x < .01 for 판, x in v if 판 == "3면도만"])), 2), round(float(np.mean([x < .01 for 판, x in v if 판 == "전체"])), 2), len(v) // 2) for k, v in 종류별.items()], key=lambda z: -z[1])[:12]
-    print(json.dumps(결, ensure_ascii=False, indent=1)); json.dump(결, open(D + "결과.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    print(json.dumps(결, ensure_ascii=False, indent=1)); json.dump(결, open(D + "결과b.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt; plt.rcParams["font.family"] = "Malgun Gothic"
     fig, ax = plt.subplots(len(예), 4, figsize=(14, 3.4 * len(예)))
     for r, (s, d) in enumerate(예):
         for j, nm in enumerate(("위", "앞", "옆")):
             im = np.ones((N, N, 3)); im[d[nm + "숨"]] = (.45, .65, 1); im[d[nm + "실"]] = 0; im[d[nm + "중심"]] = (.9, .5, .1); ax[r, j].imshow(im); ax[r, j].set_title(f"{s['바탕']['종류']} · {nm} (주황 = 중심선)"); ax[r, j].axis("off")
         ax[r, 3].imshow(d["단면"], cmap="Greys"); ax[r, 3].set_title("앞 단면"); ax[r, 3].axis("off")
-    plt.tight_layout(); plt.savefig(D + "예시.png", dpi=60)
+    plt.tight_layout(); plt.savefig(D + "예시b.png", dpi=60)
