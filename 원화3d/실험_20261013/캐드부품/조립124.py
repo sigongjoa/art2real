@@ -20,7 +20,7 @@ def _놓기(w, s):
     if s["축"] == "x": w = w.rotate((0, 0, 0), (0, 1, 0), 90)
     if s["축"] == "y": w = w.rotate((0, 0, 0), (1, 0, 0), -90)
     bb = w.val().BoundingBox(); return w.translate((-(bb.xmin + bb.xmax) / 2, -(bb.ymin + bb.ymax) / 2, -(bb.zmin + bb.zmax) / 2))   # 몸 가운데를 원점에
-def 짓기(c):   # 몸마다 짓고 → 눕히고 → 붙일 몸의 면 가운데에 반쯤 박아 합침 · 자리(가운데 좌표)를 사양에 적음
+def 짓기(c, tol=None):   # 몸마다 짓고 → 눕히고 → 붙일 몸의 면 가운데에 반쯤 박아 합침 · 자리(가운데 좌표)를 사양에 적음 · tol = OCC 퍼지 합치기(재시도용)
     ws, 상 = [], []
     for i, s in enumerate(c["몸"]):
         w = _놓기(S.짓기(s), s); bb = w.val().BoundingBox(); 반 = np.array([bb.xlen, bb.ylen, bb.zlen]) / 2
@@ -30,7 +30,7 @@ def 짓기(c):   # 몸마다 짓고 → 눕히고 → 붙일 몸의 면 가운�
             s["자리"] = [float(x) for x in p]; w = w.translate(tuple(s["자리"]))
         ws.append(w); 상.append(반)
     out = ws[0]
-    for w in ws[1:]: out = out.union(w)
+    for w in ws[1:]: out = out.union(w, tol=tol)
     return out
 def 짓기_자리(c):   # 자리를 그대로 쓰는 짓기(모델 예측용 · 몸이 없으면 오류)
     ws = [_놓기(S.짓기(s), s).translate(tuple(s["자리"])) for s in c["몸"]]
