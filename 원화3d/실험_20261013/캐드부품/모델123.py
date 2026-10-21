@@ -2,7 +2,8 @@
 # 사용: (cadrille · ART_MEM_GB=10) 모델123.py 짓기 [초] → (gemma) 모델123.py 임베딩 → (cadrille) 모델123.py 학습 → 모델123.py 평가 → out/설명/캐드부품/모델123/
 import sys, os, json, time, numpy as np
 import 모델120 as M
-D = "G:/art2real/out/설명/캐드부품/모델123/"; os.makedirs(D + "도면", exist_ok=True); 뷰 = ("위", "앞", "옆"); 팔들 = ("셋", "위", "앞", "옆")
+CL = os.environ.get("ART_CL", "1") == "1"   # 123b(ART_CL=0): 중심선 빼기 — 123 의 중심선은 정답 사양에서 그려 입력에 정답이 샜다
+D = "G:/art2real/out/설명/캐드부품/" + ("모델123/" if CL else "모델123b/"); os.makedirs(D + "도면", exist_ok=True); 뷰 = ("위", "앞", "옆"); 팔들 = ("셋", "위", "앞", "옆")
 R3 = "G:/art2real/원화3d/out/레퍼런스/CAD조립/parts/"
 def 그림(실, 숨, 중):   # bool 128 → 256 RGB · 실선 검정 · 숨은선 회색 점선 · 중심선 빨강
     n = 실.shape[0]; y, x = np.mgrid[:n, :n]; img = np.full((n, n, 3), 255, np.uint8)
@@ -11,7 +12,7 @@ def 그림(실, 숨, 중):   # bool 128 → 256 RGB · 실선 검정 · 숨은�
 def 도면(s=None, m=None):   # 사양 또는 메시 → 세 장
     import 설계116 as S, 숨은선88 as H
     if s is not None:
-        w = S.짓기(s); assert w.val().isValid(); m, v, c, e = S.메시(w); cl = S.중심선(s, c, e)
+        w = S.짓기(s); assert w.val().isValid(); m, v, c, e = S.메시(w); cl = S.중심선(s, c, e) if CL else np.zeros((3, S.N, S.N), bool)
     else:
         c = m.bounds.mean(0); e = float(m.extents.max()); v = (m.vertices - c) / e; cl = np.zeros((3, S.N, S.N), bool)
     선 = H.그리기(v, m.faces); return [그림(선[j][0], 선[j][1], cl[j]) for j in range(3)]
@@ -74,7 +75,7 @@ def 학습():
             with torch.no_grad(): net.eval(); lv = float(손실(net(E[vx]), vx)); ka = float((나눔(net(E[vx]))[0].argmax(1) == K[vx]).float().mean()); net.train()
             기록.append({"에폭": ep + 1, "학습": float(l), "시험": lv, "시험 종류": ka})
             if 팔 == "셋" and ep in (0, 2, 5, 10, 20, 40, 59): 과정[ep + 1] = 예측(E[고정])
-        print(팔, 기록[-1], flush=True); out[팔] = {"기록": 기록, "과정": 과정, "시험": 예측(E[vx]), "G": 예측(EG)}
+        torch.save(net.state_dict(), D + f"머리_{팔}.pt"); print(팔, 기록[-1], flush=True); out[팔] = {"기록": 기록, "과정": 과정, "시험": 예측(E[vx]), "G": 예측(EG)}
     out["번호"] = [색[int(i)]["i"] for i in vx]; out["정답"] = [색[int(i)]["코드"] for i in vx]; out["고정"] = [색[int(i)]["i"] for i in 고정]; out["G 이름"] = [r["이름"] for r in 입]
     json.dump(out, open(D + "학습.json", "w", encoding="utf-8"), ensure_ascii=False); print("저장")
 def 평가():
