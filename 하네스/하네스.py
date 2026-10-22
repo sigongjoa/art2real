@@ -12,12 +12,13 @@ class 관문거부(Exception): pass
 지표출처 = {"시험loss": None, "학습loss": None, "몸수맞음": None, "칸닮음4": "층보기", "빈조각주의4": "층보기", "주의엔트로피4": "층보기", "자리퍼짐": "층보기",
          "탐침_구조": "탐침", "탐침_곡률": "탐침", "탐침3_구조": "탐침", "탐침3_곡률": "탐침", "탐침4_구조": "탐침", "탐침4_곡률": "탐침",
          "쏠림4_곡선": "특징", "쏠림4_접합": "특징", "쏠림4_빈칸": "특징", "특징탐침": "특징", "특징탐침_무작위": "특징", "시험IoU": "평가", "학습IoU": "평가"}
-지표출처 |= {f"{k}{끝}": None for k in ("선_직선", "선_곡선", "선_곡면테", "선_숨음", "선_헛선", "선_자리", "선_자리헛선", "선_종류", "점_정밀", "점_재현", "점_F1") for 끝 in ("", "_화소", "_차")}   # 선지도 과제는 점검이 늘 만듦
+지표출처 |= {f"{k}{끝}": None for k in ("선_직선", "선_곡선", "선_곡면테", "선_숨음", "선_헛선", "선_자리", "선_자리헛선", "선_종류", "점_정밀", "점_재현", "점_F1") for 끝 in ("", "_화소", "_차")}
+지표출처 |= {f"층{k}_{m}": None for k in (1, 2, 3, 4) for m in ("선_자리", "선_자리헛선", "선_종류", "선_직선", "선_곡선", "점_F1")}   # 선지도 탐침층   # 선지도 과제는 점검이 늘 만듦
 식들 = {">=", "<=", ">", "<"}
 코드경로 = ["하네스", "원화3d/실험_20261013/캐드부품"]
 def 깃(*a): return subprocess.run(["git", "-C", 뿌리, "-c", "core.quotepath=off", *a], capture_output=True, text=True, encoding="utf-8").stdout.rstrip()   # 앞 공백은 남김(porcelain 첫 줄 상태 칸)
 def 관문(cfg, 설정파일, 덮어쓰기=()):
-    판 = cfg.판; 대설정 = f"{뿌리}/하네스/판/{cfg.대조.get('판')}/설정.yaml" if cfg.대조 else ""   # 대조 판이 하네스 판이면 그 설정과 손잡이를 셈(아니면 바탕)
+    판 = cfg.판; 대설정 = f"{뿌리}/하네스/판/{cfg.대조.get('손잡이판', cfg.대조.get('판'))}/설정.yaml" if cfg.대조 else ""   # 손잡이판 = 손잡이를 셀 판(에폭을 바꾸는 판은 같은 에폭 대조가 판 안에 있음)   # 대조 판이 하네스 판이면 그 설정과 손잡이를 셈(아니면 바탕)
     바탕 = OmegaConf.to_container(OmegaConf.load(대설정 if 대설정 and os.path.exists(대설정) else f"{뿌리}/하네스/conf/바탕.yaml")); 지금 = OmegaConf.to_container(cfg, resolve=True)
     a, b = (펼친({k: v for k, v in d.items() if k not in 손잡이밖}) for d in (바탕, 지금)); 바뀐 = {k: (a.get(k), b.get(k)) for k in set(a) | set(b) if a.get(k) != b.get(k)}
     문 = []
@@ -46,7 +47,7 @@ def 관문(cfg, 설정파일, 덮어쓰기=()):
     return 바뀐
 # ── 부품 등록표 ───────────────────────────────────────────
 def 망(cfg):
-    if 선지도(cfg): import 과제선지도 as G; return G.망(cfg.인코더)
+    if 선지도(cfg): import 과제선지도 as G; return G.망(cfg.인코더, 탐침=bool(cfg.선지도.get("탐침층", False)))
     if cfg.인코더 == "cnn": return M7.망()
     if cfg.인코더 == "cnn4": import 모델129 as M9; return M9.망("c")
     raise KeyError(cfg.인코더)

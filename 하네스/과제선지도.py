@@ -36,22 +36,30 @@ def 열지도(점, s=1.5, N=128):   # (n, 3, M, 2) NaN 채움 → (n, 3, 128, 12
             q = 점[i, v][~np.isnan(점[i, v, :, 0])]
             if len(q): out[i, v] = np.exp(-((xx[None] - q[:, 0, None, None]) ** 2 + (yy[None] - q[:, 1, None, None]) ** 2) / (2 * s * s)).max(0)
     return out
-def 망(인코더):
+층지표 = ("선_자리", "선_자리헛선", "선_종류", "선_직선", "선_곡선", "점_F1")
+층폭 = {1: 32, 2: 64, 3: 128}   # 블록 k 출력 채널 · 해상도 128 / 2^k
+def 망(인코더, 탐침=False):
     import torch, torch.nn as nn, torch.nn.functional as F
     torch.manual_seed(0)
     def 블(a, b): return nn.Sequential(nn.Conv2d(a, b, 3, 2, 1), nn.GroupNorm(8, b), nn.GELU(), nn.Conv2d(b, b, 3, 1, 1), nn.GroupNorm(8, b), nn.GELU())
-    class 선망(nn.Module):   # (b, 3, 128, 128) uint8 → (b, 3, 6, 128, 128)
+    class 선망(nn.Module):   # (b, 3, 128, 128) uint8 → (b, 3, 6 × (1 + 탐침 3), 128, 128) · 앞 6 = 본 머리(블록 4)
         def __init__(s):
-            super().__init__(); s.인코더 = 인코더
+            super().__init__(); s.인코더 = 인코더; s.탐침 = 탐침 and 인코더 == "cnn"
             if 인코더 == "cnn": s.cnn = nn.Sequential(블(1, 32), 블(32, 64), 블(64, 128), 블(128, 256))   # 127 과 같은 백본
             s.머리 = nn.Conv2d(256, 16 * 16 * 출, 1)
+            if s.탐침: s.탐머리 = nn.ModuleList([nn.Conv2d(층폭[k], 4 ** k * 출, 1) for k in (1, 2, 3)])   # 블록 k 를 같은 얇은 머리로 읽음
         def forward(s, x):
             b = len(x); x = x.reshape(b * 3, 1, 128, 128).float() / 255.
-            f = s.cnn(x) if s.인코더 == "cnn" else F.pixel_unshuffle(x, 16)   # 둘 다 (b·3, 256, 8, 8)
-            return F.pixel_shuffle(s.머리(f), 16).reshape(b, 3, 출, 128, 128)
+            if s.인코더 != "cnn": return F.pixel_shuffle(s.머리(F.pixel_unshuffle(x, 16)), 16).reshape(b, 3, 출, 128, 128)
+            fs = []; f = x
+            for 블록 in s.cnn: f = 블록(f); fs.append(f)
+            o = [F.pixel_shuffle(s.머리(f), 16)]
+            if s.탐침: o += [F.pixel_shuffle(h(fs[k - 1].detach()), 2 ** k) for k, h in zip((1, 2, 3), s.탐머리)]   # detach: 탐침은 본 학습을 안 바꿈
+            return torch.cat(o, 1).reshape(b, 3, 출 * len(o), 128, 128)
     return 선망()
 def 손실함수(빈가중=.05): return lambda o, Y, 쓰=None: 손실(o, Y, 빈가중=빈가중)
-def 손실(o, Y, 쓰=None, 빈가중=.05):   # Y 는 이미 배치로 잘린 dict
+def 손실(o, Y, 쓰=None, 빈가중=.05):   # Y 는 이미 배치로 잘린 dict · 탐침 머리가 붙었으면 머리마다 같은 손실을 더함(탐침은 detach 라 백본엔 본 머리 기울기만)
+    if o.shape[2] > 출: return sum(손실(o[:, :, h:h + 출], Y, 빈가중=빈가중) for h in range(0, o.shape[2], 출))
     import torch, torch.nn.functional as F
     지 = Y["지도"]; 선 = 지 > 0; w = torch.tensor([빈가중, 1., 1., 1.], device=o.device)   # 없음 화소가 97 % — 가중(130: 0.05 → 선 둘레를 덩어리째 칠함)
     l종 = F.cross_entropy(o[:, :, :K].permute(0, 1, 3, 4, 2).reshape(-1, K), 지.reshape(-1), weight=w)
@@ -59,9 +67,9 @@ def 손실(o, Y, 쓰=None, 빈가중=.05):   # Y 는 이미 배치로 잘린 dic
     t = Y["열"].float(); p = torch.sigmoid(o[:, :, K + 1]); l점 = (((p - t) ** 2) * (1 + 30 * t)).mean() * 10
     return l종 + l숨 + l점
 def 자르기(Y, ix): return {k: v[ix] for k, v in Y.items()}
-def 지표(o, Y):   # 시험 지표 — o, Y 는 같은 부품들
+def 지표(o, Y):   # 시험 지표 — o, Y 는 같은 부품들 · 본 머리(앞 6 채널)만
     import torch, torch.nn.functional as F
-    지 = Y["지도"]; 예 = o[:, :, :K].argmax(2); r = {}
+    o = o[:, :, :출].float(); 지 = Y["지도"]; 예 = o[:, :, :K].argmax(2); r = {}
     for k in (1, 2, 3): m = 지 == k; r[f"선_{종류이름[k]}"] = round(float((예[m] == k).float().mean()), 4) if m.any() else None   # 그 종류 화소를 그 종류로 맞힘(재현율)
     선 = 지 > 0; r["선_숨음"] = round(float(((o[:, :, K][선] > 0) == Y["숨"][선]).float().mean()), 4)
     r["선_헛선"] = round(float((예[~선] > 0).float().mean()), 4)   # 선 없는 화소에 선을 그림
@@ -76,11 +84,14 @@ def 지표(o, Y):   # 시험 지표 — o, Y 는 같은 부품들
 def 예측(net, X, 배=32):
     import torch
     net.eval()
-    with torch.no_grad(): return torch.cat([net(X[i:i + 배]) for i in range(0, len(X), 배)])
+    with torch.no_grad(): return torch.cat([net(X[i:i + 배]).half() for i in range(0, len(X), 배)])   # 탐침 머리까지 299 장이면 float32 로 1.4 GB
 def 점검(cfg, 폴더, net, 기록, X, Y, vx, 이, Xnp, 실행):   # 이 판 지표 + 같은 에폭으로 학습한 화소 대조 · 그림
     import torch, json
     from omegaconf import OmegaConf
     o = 예측(net, X[vx]); 지 = {"시험loss": round(기록[-1]["시험"], 4), "학습loss": round(기록[-1]["학습"], 4)} | 지표(o, 자르기(Y, vx))
+    for h, k in enumerate((1, 2, 3), 1):   # 탐침: 블록 k 를 같은 얇은 머리로 읽은 값(본 머리 = 블록 4)
+        if o.shape[2] > h * 출: 지 |= {f"층{k}_{m}": v for m, v in 지표(o[:, :, h * 출:(h + 1) * 출], 자르기(Y, vx)).items() if m in 층지표}
+    if o.shape[2] > 출: 지 |= {f"층4_{m}": 지[m] for m in 층지표}
     c2 = OmegaConf.merge(cfg, {"인코더": "화소"}); 대폴더 = 폴더 + "대조_화소/"; os.makedirs(대폴더, exist_ok=True)
     net2, 록2 = 실행(c2, 대폴더); o2 = 예측(net2, X[vx]); 대 = 지표(o2, 자르기(Y, vx)); json.dump(대, open(폴더 + "대조_화소.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     for k, v in 대.items(): 지[f"{k}_화소"] = v
