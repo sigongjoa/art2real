@@ -10,11 +10,25 @@ def 자료(dev, cfg):
     for f in sorted(os.listdir(저장)):
         if not f.endswith(".npz") or f[:5] not in 전: continue
         d = np.load(저장 + f); 이.append(f[:5]); Xs.append(전X[전[f[:5]]]); 지.append(d["지도"]); 숨.append(d["숨"]); 점.append(d["점"])
-    Xnp = np.stack(Xs); 열 = 열지도(np.stack(점)); 시 = np.array([int(n) >= B.NT for n in 이])
+    Xnp = np.stack(Xs); 열 = 열지도(np.stack(점))
+    if cfg is not None and cfg.get("선지도", {}).get("맞춤"): 지 = [맞춤(x, t) for x, t in zip(Xnp, 지)]   # 132~: 정답 선 = 입력 선 화소
+    지 = list(지); 시 = np.array([int(n) >= B.NT for n in 이])
     T = lambda a: torch.tensor(a).to(dev)
     Y = {"지도": T(np.stack(지).astype(np.int64)), "숨": T(np.stack(숨)), "열": T(열)}
     print("선지도 자료", len(이), "학습", int((~시).sum()), "시험", int(시.sum()), flush=True)
     return T(Xnp), Y, None, torch.tensor(np.nonzero(~시)[0]), torch.tensor(np.nonzero(시)[0]), 이, Xnp
+def 맞춤(x, t, 반경=2):   # 투영 정답은 입력 선과 1 화소씩 어긋남(정확히 겹침 64.5 % · 1 화소 안 98.7 % · 10-22) → 선 = 입력 선 화소 · 종류 = 가장 가까운 투영 선
+    import cv2
+    out = np.zeros_like(t)
+    for v in range(3):
+        선 = x[v] > 0
+        if not (t[v] > 0).any(): continue
+        _, 라 = cv2.distanceTransformWithLabels((t[v] == 0).astype(np.uint8), cv2.DIST_L2, 3, labelType=cv2.DIST_LABEL_PIXEL)
+        yx = np.argwhere(t[v] > 0); 표 = np.zeros(라.max() + 1, t.dtype)
+        idx = 라[yx[:, 0], yx[:, 1]]; 표[idx] = t[v][yx[:, 0], yx[:, 1]]
+        거 = cv2.distanceTransform((t[v] == 0).astype(np.uint8), cv2.DIST_L2, 3)
+        out[v] = np.where(선 & (거 <= 반경), 표[라], 0)
+    return out
 def 열지도(점, s=1.5, N=128):   # (n, 3, M, 2) NaN 채움 → (n, 3, 128, 128) float16 가우스 최대
     yy, xx = np.mgrid[:N, :N].astype(np.float32); out = np.zeros(점.shape[:2] + (N, N), np.float16)
     for i in range(점.shape[0]):
