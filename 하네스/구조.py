@@ -28,3 +28,33 @@ def md(s):
           "### 하이퍼파라미터", "| 항목 | 값 |", "|---|---|"] + [f"| {k} | {v:,} |" if isinstance(v, int) else f"| {k} | {v} |" for k, v in s["표"].items()]
     줄 += ["", "### 층 (torchinfo 꼴 · 입력 1 × 3 × 128 × 128 을 흘려 잼)", "| 층 | 종류 | 출력 모양 | 파라미터 |", "|---|---|---|---|"] + [f"| {'　' * (r['깊이'] - 1)}{r['이름']} | {r['종류']} | {r['출력']} | {r['파라미터']:,} |" for r in s["층"]]
     줄 += ["", "### 목표와 학습", f"- {s['목표']}", f"- {s['학습']}"]; return "\n".join(줄)
+
+def svg(구):   # 구조도 — 판 모델 숫자로 그림(상자 · 모양 · 파라미터) · 토큰 색은 보고서 토큰을 따름
+    층 = {r["이름"]: r for r in 구["층"]}; 표 = 구["표"]; cnn = [r for r in 구["층"] if r["이름"].startswith("cnn.")]; dec = [r for r in 구["층"] if r["이름"].startswith("dec.layers.")]
+    W, H = 1100, 430; 글 = []
+    def 상자(x, y, w, h, 제, 아래="", 색="var(--sheet)", 테="var(--rule)", 굵=False):
+        글.append(f'<rect x="{x}" y="{y}" width="{w}" height="{h}" rx="10" style="fill:{색};stroke:{테};stroke-width:{2 if 굵 else 1.2}"/>')
+        글.append(f'<text x="{x + w / 2}" y="{y + h / 2 - (8 if 아래 else -5)}" text-anchor="middle" class="제">{제}</text>')
+        if 아래: 글.append(f'<text x="{x + w / 2}" y="{y + h / 2 + 14}" text-anchor="middle" class="작">{아래}</text>')
+    def 화(x0, y0, x1, y1): 글.append(f'<line x1="{x0}" y1="{y0}" x2="{x1}" y2="{y1}" style="stroke:var(--muted);stroke-width:1.6" marker-end="url(#끝)"/>')
+    상자(10, 150, 120, 80, "3면도 × 3", "1 × 128 × 128")
+    x = 160
+    for i, r in enumerate(cnn):
+        o = r["출력"]; 상자(x, 150, 112, 80, f"블록 {i + 1}", f"{o[1]} × {o[2]}²", "var(--paper)"); 글.append(f'<text x="{x + 56}" y="{248}" text-anchor="middle" class="작">{r["파라미터"]:,}</text>')
+        화(x - 30, 190, x - 2, 190) if i == 0 else 화(x - 18, 190, x - 2, 190); x += 130
+    글.append(f'<text x="{160 + (x - 160 - 18) / 2}" y="{136}" text-anchor="middle" class="묶">CNN 백본 · 그림마다 같은 가중치 · {층["cnn"]["파라미터"]:,}</text>')
+    화(x - 18, 190, x + 10, 190); 상자(x + 10, 140, 130, 100, "조각 토큰", f"192 × {표['모델 차원 d']}", "var(--paper)"); 글.append(f'<text x="{x + 75}" y="{258}" text-anchor="middle" class="작">+ 위치 · 그림 표시</text>')
+    tx = x + 140; dx = tx + 60
+    상자(dx, 20, 300, 56, f"칸 쿼리 {표['칸 쿼리(덩어리 최대)']} 개", f"학습되는 {표['칸 쿼리(덩어리 최대)']} × {표['모델 차원 d']}", "var(--paper)")
+    화(dx + 150, 76, dx + 150, 104)
+    상자(dx, 104, 300, 172, "", "", "var(--sheet)", "var(--ink)", True)
+    글.append(f'<text x="{dx + 150}" y="{126}" text-anchor="middle" class="제">트랜스포머 디코더 × {len(dec)}</text>')
+    for k, (이름, 설) in enumerate((("① 칸끼리 주의", "6 ↔ 6"), ("② 칸 → 토큰 교차 주의", f"6 → 192 · 헤드 {표['어텐션 헤드']}"), ("③ FFN", f"{표['모델 차원 d']} → {표['FFN 크기']} → {표['모델 차원 d']}"))):
+        y = 140 + k * 42; 글.append(f'<rect x="{dx + 16}" y="{y}" width="268" height="34" rx="7" style="fill:var(--paper);stroke:var(--rule)"/><text x="{dx + 28}" y="{y + 22}" class="작진">{이름}</text><text x="{dx + 272}" y="{y + 22}" text-anchor="end" class="작">{설}</text>')
+    글.append(f'<text x="{dx + 150}" y="{296}" text-anchor="middle" class="작">층마다 {dec[0]["파라미터"]:,} · 합 {층["dec"]["파라미터"]:,}</text>')
+    화(tx, 190, dx - 2, 190)
+    화(dx + 150, 276, dx + 150, 330); 상자(dx, 330, 300, 64, f"예측 머리 {표['모델 차원 d']} → {층['출']['출력'][-1]}", f"칸마다 · {층['출']['파라미터']:,}", "var(--paper)")
+    화(dx + 300, 362, dx + 330, 362); 상자(dx + 330, 318, 200, 88, "덩어리 사양 × 6", "종류 · 치수 · 축 · 자리 · 구멍", "var(--sheet)")
+    W = dx + 545
+    return (f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="모델 구조도" class="구조도"><defs><marker id="끝" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" style="fill:var(--muted)"/></marker></defs>'
+            + "".join(글) + "</svg>")

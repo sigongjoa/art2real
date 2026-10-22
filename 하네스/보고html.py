@@ -47,7 +47,7 @@ main>*{grid-column:2}header{grid-column:1;grid-row:1/200;position:sticky;top:28p
 header h1{font-size:1.32rem;line-height:1.4;letter-spacing:-.01em;font-weight:750;margin-bottom:16px}header .lead{font-size:1rem}dl.meta{grid-template-columns:1fr 1fr;gap:12px 16px}main>h2:first-of-type{margin-top:0}
 @media (max-width:900px){main{display:block}header{position:static;margin-bottom:8px}main>h2:first-of-type{margin-top:44px}}
 nav.뒤{margin:0 0 14px}nav.뒤 a{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:.9rem;color:var(--muted);text-decoration:none}nav.뒤 a:hover{color:var(--ink)}nav.뒤 svg{width:16px;height:16px}
-td.왼{text-align:left;white-space:normal}tr.깊2 td:first-child{padding-left:30px;color:var(--muted)}.흐름{max-width:72ch}ul.목표 li{max-width:72ch;margin:6px 0}
+td.왼{text-align:left;white-space:normal}tr.깊2 td:first-child{padding-left:30px;color:var(--muted)}.흐름{max-width:72ch}ul.목표 li{max-width:72ch;margin:6px 0}.구조틀{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:12px;overflow-x:auto}.구조도{display:block;width:100%;min-width:760px;height:auto}.구조도 text{font-family:inherit;fill:var(--ink)}.구조도 .제{font-size:15px;font-weight:700}.구조도 .작{font-size:12px;fill:var(--muted)}.구조도 .작진{font-size:13px;font-weight:600}.구조도 .묶{font-size:13px;font-weight:600;fill:var(--muted)}
 @media (max-width:640px){main{padding:32px 16px 64px}th,td{padding:8px 10px}h2{margin-top:44px}}
 """
 def 수(v, n=3): return "" if v is None else (f"{v:.{n}f}" if isinstance(v, float) else E(str(v)))
@@ -117,7 +117,8 @@ def 만들기(판, d, c, j, 지, 대, 곡, 특, 해석, 다음, 모션=None, 파
         h.append(f'<tr><td>{E(k)}</td><td data-n="{수(v)}">{수(v)}</td><td>{수(b)}</td><td class="차">{차}</td></tr>')
     h.append("</tbody></table></div>")
     if 구:
-        h.append('<h2>모델 구조</h2><p class="흐름">3면도 → <b>CNN 백본</b> → 조각 토큰 192 → <b>트랜스포머 디코더</b>(칸 쿼리가 토큰에 교차 주의) → <b>예측 머리</b>(칸마다 숫자) → 덩어리 사양 → CadQuery</p>')
+        import 구조 as 구조모
+        h.append(f'<h2>모델 구조</h2><div class="구조틀">{구조모.svg(구)}</div><p class="주석">상자 아래 숫자는 파라미터 수 · 모양은 그 판 모델에 입력을 흘려 잰 값. 총 {구["표"]["총 파라미터"]:,} 개.</p>')
         h.append('<h3>하이퍼파라미터</h3><div class="표"><table><tbody>' + "".join(f'<tr><td>{E(k)}</td><td class="왼">{E(f"{v:,}" if isinstance(v, int) else str(v))}</td></tr>' for k, v in 구["표"].items()) + "</tbody></table></div>")
         h.append('<h3>층 <span class="차">입력 1 × 3 × 128 × 128 을 흘려 잼 · torchinfo 꼴</span></h3><div class="표"><table><thead><tr><th>층</th><th>종류</th><th>출력 모양</th><th>파라미터</th></tr></thead><tbody>' + "".join(f'<tr class="깊{r["깊이"]}"><td>{E(r["이름"])}</td><td class="왼">{E(r["종류"])}</td><td>{E(" × ".join(map(str, r["출력"])))}</td><td>{r["파라미터"]:,}</td></tr>' for r in 구["층"]) + "</tbody></table></div>")
         h.append(f'<h3>목표와 학습</h3><ul class="목표"><li>{E(구["목표"])}</li><li>{E(구["학습"])}</li></ul>')
