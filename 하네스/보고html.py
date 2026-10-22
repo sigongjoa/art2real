@@ -1,5 +1,5 @@
 # 하네스 보고서 HTML — 보고.md 와 같은 내용 · 한 파일(그림은 같은 폴더) · GitHub Pages 로도 나감 · 10-22
-# 시각 기준: 프로젝트 카드 화풍(흰 · 회백 바탕 + 뜻마다 강조 하나: 초록 통과 · 빨강 실패 · 금 도구) · 읽기 화면 · 판정이 첫눈에
+# 시안 C(10-22 사용자 고름 · 왼쪽 요약 고정 · 오른쪽 본문) · 시각 기준: 프로젝트 카드 화풍(흰 · 회백 바탕 + 뜻마다 강조 하나: 초록 통과 · 빨강 실패 · 금 도구) · 읽기 화면 · 판정이 첫눈에
 import html, re
 E = html.escape
 아이콘 = {True: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
@@ -42,6 +42,10 @@ figcaption{font-size:.86rem;color:var(--muted);margin-top:8px}
 code,pre{font-family:"JetBrains Mono",D2Coding,Consolas,monospace;font-size:.86rem}
 pre{background:#1d2129;color:#f3efe6;padding:16px 18px;border-radius:10px;overflow-x:auto;line-height:1.55}
 td.열{background:color-mix(in oklab,var(--line1) calc(var(--v)*1%),var(--sheet))}td.열.진{color:#fff}
+main{max-width:1240px;display:grid;grid-template-columns:300px minmax(0,1fr);column-gap:48px;align-items:start}
+main>*{grid-column:2}header{grid-column:1;grid-row:1/200;position:sticky;top:28px;border:1px solid var(--rule);border-radius:14px;background:var(--sheet);padding:24px 22px;margin:0}
+header h1{font-size:2rem}header .lead{font-size:1rem}dl.meta{grid-template-columns:1fr 1fr;gap:12px 16px}main>h2:first-of-type{margin-top:0}
+@media (max-width:900px){main{display:block}header{position:static;margin-bottom:8px}main>h2:first-of-type{margin-top:44px}}
 @media (max-width:640px){main{padding:32px 16px 64px}th,td{padding:8px 10px}h2{margin-top:44px}}
 """
 def 수(v, n=3): return "" if v is None else (f"{v:.{n}f}" if isinstance(v, float) else E(str(v)))
