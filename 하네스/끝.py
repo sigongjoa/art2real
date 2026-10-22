@@ -16,16 +16,13 @@ def 끝내기(판, 단계=("쇼츠", "커밋", "공개", "이슈")):
         try: 쇼 = 쇼츠.만들기(판); 남["쇼츠"] = 쇼; 더할 += [f"원화3d/과정/영상05/대화/{쇼['편']}", "원화3d/과정/쇼츠"]
         except Exception as e: 남["쇼츠"] = {"실패": str(e)[:300]}
         쇼츠.판에넣기(판, 남["쇼츠"])   # 웹용 사본 · 대본 → 판 폴더 · 보고서 「쇼츠」 절
-    json.dump(남, open(d + "끝.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-    import 보고; 보고.만들기(판); 목록.갱신(판)   # 쇼츠가 들어간 보고서로 다시
-    json.dump(남, open(d + "끝.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-    if "커밋" in 단계:
-        돌("git", "add", "--", *더할); 상 = 돌("git", "diff", "--cached", "--name-only")
-        if 상: 돌("git", "commit", "-q", "-m", f"판 {판} — {시도} — {j['판정']}\n\n하네스 자동 · 보고서 하네스/판/{판}/보고.html · 가지 {c.판.가지}\n\nCo-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>")
-        남["커밋"] = 돌("git", "rev-parse", "--short", "HEAD")
-    if "공개" in 단계:
-        import 공개; 주소, 쪽 = 공개.내보내기(); 남["공개"] = 주소
-    if "이슈" in 단계:
+    import 보고
+    def 기록하고_커밋(말):   # 끝.json · 보고서 · Pages 를 지금 상태로 다시 만들고 하네스가 만든 경로만 커밋(사용자가 스테이지해 둔 다른 파일은 안 건드림)
+        json.dump(남, open(d + "끝.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1); 보고.만들기(판); 목록.갱신(판)
+        if "커밋" not in 단계: return
+        돌("git", "add", "--", *더할); 상 = 돌("git", "diff", "--cached", "--name-only", "--", *더할)
+        if 상: 돌("git", "commit", "-q", "-m", f"{말}\n\n하네스 자동 · 보고서 하네스/판/{판}/보고.html · 가지 {c.판.가지}\n\nCo-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>", "--", *더할)
+    if "이슈" in 단계:   # 이슈를 커밋 전에 — 커밋 · 공개되는 보고서에 이슈 주소가 들어가게(Pages 주소는 판 이름으로 미리 앎)
         짧은 = 시도   # 시도는 관문이 괄호 · 문턱 없이 60 자 안으로 막음
         제목 = f"판 {판} — " + (짧은 if len(짧은) <= 80 else 짧은[:80].rsplit(" ", 1)[0] + "…"); 있 = 돌("gh", "issue", "list", "--repo", "sigongjoa/art2real", "--state", "all", "--search", f"판 {판} in:title", "--json", "number,title", "-q", ".[].title", 확인=False)
         if 제목 not in 있.splitlines():
@@ -33,5 +30,13 @@ def 끝내기(판, 단계=("쇼츠", "커밋", "공개", "이슈")):
             몸 = f"**시도**: {시도}\n\n**명제**: {명제}\n\n**판정**: {j['판정']} · 가지 {c.판.가지} · {c.판.종류}\n\n| 지표 | 조건 | 이 판 | 결과 |\n|---|---|---|---|\n{줄}\n\n보고서: {남['Pages']}\n\n(하네스 자동 — 판 하나 = 이슈 하나)"
             url = 돌("gh", "issue", "create", "--repo", "sigongjoa/art2real", "--title", 제목, "--body", 몸)
             돌("gh", "issue", "close", url, "--repo", "sigongjoa/art2real", "--comment", f"판정 {j['판정']} — 하네스가 판 끝에 닫음", 확인=False); 남["이슈"] = url
-    json.dump(남, open(d + "끝.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1); return 남
+    기록하고_커밋(f"판 {판} — {시도} — {j['판정']}")
+    if "공개" in 단계:
+        import 공개
+        try:
+            주소, 쪽 = 공개.내보내기(); 남["공개"] = 주소
+            기록하고_커밋(f"판 {판} 링크 — 공개 커밋 주소")   # 걸러진 사본이 생긴 뒤라 보고서의 공개 커밋 링크가 채워짐
+            if "커밋" in 단계: 공개.내보내기()
+        except Exception as e: 남["공개"] = {"실패": str(e)[:300]}; json.dump(남, open(d + "끝.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    return 남
 if __name__ == "__main__": print(json.dumps(끝내기(sys.argv[1], tuple(sys.argv[2:]) or ("쇼츠", "커밋", "공개", "이슈")), ensure_ascii=False, indent=1))

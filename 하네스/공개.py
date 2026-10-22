@@ -24,7 +24,8 @@ def 돌(*a, cwd=None, 확인=True):
     return r.stdout.strip()
 def 거르기():
     if os.path.exists(저장): shutil.rmtree(저장, onerror=lambda f, p, e: (os.chmod(p, 0o700), f(p)))
-    가지 = 돌("git", "-C", 뿌리, "rev-parse", "--abbrev-ref", "HEAD")
+    가지 = "정답세우기"   # 공개 main 은 이 가지의 거울 · 지금 HEAD 가 무엇이든(떨어진 HEAD · 다른 가지) 이 가지만 내보냄
+    if 돌("git", "-C", 뿌리, "rev-parse", "--verify", "-q", f"refs/heads/{가지}", 확인=False) == "": raise RuntimeError(f"가지 {가지} 가 없음 — 공개 안 함")
     돌("git", "clone", "--no-local", "--single-branch", "--branch", 가지, 뿌리, 저장)
     open(규칙 + "뺄경로.txt", "w", encoding="utf-8").write(뺄)
     돌(FR, "--force", "--invert-paths", "--paths-from-file", 규칙 + "뺄경로.txt", "--replace-text", 규칙 + "바꿀말.txt", "--replace-message", 규칙 + "바꿀말.txt", "--mailmap", 규칙 + "mailmap", cwd=저장)   # 작성자 메일 → GitHub noreply

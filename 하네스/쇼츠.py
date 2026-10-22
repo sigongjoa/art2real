@@ -47,6 +47,8 @@ def 대본쓰기(판, 키, 고칠말=""):
     t = 클로드(글); t = re.sub(r"^```\w*\n|\n```$", "", t.strip()); return t
 def 검사(편):
     r = subprocess.run(["python", "대본검사.py", 편], cwd=영상, capture_output=True, text=True, encoding="utf-8", errors="replace"); return r.stdout.strip() + r.stderr.strip()[-300:]
+def 훅줄빼기(t): return "\n".join(l for l in t.splitlines() if not l.startswith("적용 규칙")).strip()   # 안에서 부른 claude 에도 위키 훅이 「적용 규칙: …」 을 붙임
+def 막힘없음(t): return 훅줄빼기(t).strip(" 「」.\n") == "없음"   # 답 전체가 「없음」일 때만(앞 20 자 검사는 「해당 없음」에 속아 막힌 곳 13 줄을 건너뜀 · 10-22)
 def 만들기(판, 굽기=True):
     있 = [n for n in os.listdir(영상 + "대화") if n.endswith(f"_판{판}")]   # 같은 판은 그 편 폴더를 다시 씀
     번호 = int(있[0].split("_")[0]) if 있 else max(int(re.match(r"(\d+)", n).group(1)) for n in os.listdir(영상 + "대화") if re.match(r"\d+_", n)) + 1; 편 = f"{번호}_판{판}"
@@ -56,7 +58,8 @@ def 만들기(판, 굽기=True):
     대본 = 대본쓰기(판, 키); open(폴더 + "대본.tsv", "w", encoding="utf-8").write(대본 + "\n"); 결 = 검사(편)
     if "통과" not in 결: 대본 = 대본쓰기(판, 키, "대본검사 결과:\n" + 결); open(폴더 + "대본.tsv", "w", encoding="utf-8").write(대본 + "\n"); 결 = 검사(편)
     읽기 = 클로드("너는 이 프로젝트를 처음 보는 쇼츠 시청자다. 파일을 찾지 말고 아래 대본만 보고, 줄마다 막히는 곳(모르는 낱말 · 끊긴 곳 · 이상한 서술)을 짧게 적어라. 막힌 곳이 없으면 「없음」.\n\n" + 대본)
-    if "없음" not in 읽기[:20]:
+    읽기 = 훅줄빼기(읽기)
+    if not 막힘없음(읽기):
         대본 = 대본쓰기(판, 키, "맥락 없는 독자가 막힌 곳:\n" + 읽기); open(폴더 + "대본.tsv", "w", encoding="utf-8").write(대본 + "\n"); 결 = 검사(편)
     for _ in range(2):   # 다시 쓴 대본이 검사에 걸리면 검사 결과를 주고 고침(최대 두 번)
         if "통과" in 결: break
@@ -64,13 +67,18 @@ def 만들기(판, 굽기=True):
     기록 = {"편": 편, "대본검사": 결[-200:], "맥락없는읽기": 읽기[:1500]}
     if "통과" not in 결: 기록["굽기"] = "대본검사 실패로 안 구움"; return 기록
     if 굽기:
+        import time; 시작 = time.time()
         r = subprocess.run(["python", "대화쇼츠.py", 편], cwd=영상, capture_output=True, text=True, encoding="utf-8", errors="replace", env={**os.environ, "TTS": "chatterbox"}, timeout=7200)
         기록["굽기"] = (r.stdout.strip().splitlines() or ["?"])[-1]
         mp4 = f"{뿌리}/out/영상05/대화/{편}/{편}.mp4"
-        if os.path.exists(mp4):
+        if r.returncode or not os.path.exists(mp4) or os.path.getmtime(mp4) < 시작:   # 실패한 굽기 뒤 남은 옛 영상을 새 것으로 보지 않음
+            기록["굽기"] = f"굽기 실패(코드 {r.returncode}): " + (r.stderr.strip().splitlines() or ["?"])[-1][:200]; return 기록
+        if True:
             j = json.load(open(f"{뿌리}/하네스/판/{판}/판정.json", encoding="utf-8"))
             open(f"{뿌리}/원화3d/과정/쇼츠/대본/{번호}_업로드.txt", "w", encoding="utf-8").write(f"채널: 서재용 (쇼츠) · 파일 {mp4} · 하네스 판 {판} · 판정 {j['판정']}\n\n제목: (Claude 가 대본에서 한 줄)\n\n설명: 하네스 보고서 https://sigongjoa.github.io/art2real/판/{판}/보고.html\n")
-            with open(f"{뿌리}/원화3d/과정/쇼츠/배포.md", "a", encoding="utf-8") as f: f.write(f"| {번호} 판 {판} | 대화 쇼츠 `out/영상05/대화/{편}/{편}.mp4` | — | 서재용 업로드 대기 | 하네스 자동 · 판정 {j['판정']} |\n")
+            배포 = f"{뿌리}/원화3d/과정/쇼츠/배포.md"
+            if not re.search(rf"\| [^|]*판 {re.escape(판)} \|", open(배포, encoding="utf-8").read()):   # 같은 판 줄은 한 번만(다시 구워도 장부 줄은 그대로 · 올린 주소 보존)
+              with open(배포, "a", encoding="utf-8") as f: f.write(f"| {번호} 판 {판} | 대화 쇼츠 `out/영상05/대화/{편}/{편}.mp4` | — | 서재용 업로드 대기 | 하네스 자동 · 판정 {j['판정']} |\n")
             기록["mp4"] = mp4
     return 기록
 def 판에넣기(판, 쇼):   # 판 기록에 쇼츠: 웹용 사본(540 폭 · 원본은 out 그대로) · 대본 · 상태 → 하네스/판/<판>/쇼츠.json

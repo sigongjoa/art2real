@@ -9,7 +9,13 @@ import 모델124 as B, 조립124 as C, 모델127 as M7
 def 펼친(d, 앞=""): return {f"{앞}{k}": v for k0, v0 in d.items() for k, v in (펼친(v0, f"{k0}.").items() if isinstance(v0, dict) else [(k0, v0)])} if isinstance(d, dict) else {앞: d}
 class 관문거부(Exception): pass
 # ── ① 관문 ────────────────────────────────────────────────
-def 관문(cfg, 설정파일):
+지표출처 = {"시험loss": None, "학습loss": None, "몸수맞음": None, "칸닮음4": "층보기", "빈조각주의4": "층보기", "주의엔트로피4": "층보기", "자리퍼짐": "층보기",
+         "탐침_구조": "탐침", "탐침_곡률": "탐침", "탐침3_구조": "탐침", "탐침3_곡률": "탐침", "탐침4_구조": "탐침", "탐침4_곡률": "탐침",
+         "쏠림4_곡선": "특징", "쏠림4_접합": "특징", "쏠림4_빈칸": "특징", "특징탐침": "특징", "특징탐침_무작위": "특징", "시험IoU": "평가", "학습IoU": "평가"}
+식들 = {">=", "<=", ">", "<"}
+코드경로 = ["하네스", "원화3d/실험_20261013/캐드부품"]
+def 깃(*a): return subprocess.run(["git", "-C", 뿌리, "-c", "core.quotepath=off", *a], capture_output=True, text=True, encoding="utf-8").stdout.strip()
+def 관문(cfg, 설정파일, 덮어쓰기=()):
     판 = cfg.판; 바탕 = OmegaConf.to_container(OmegaConf.load(f"{뿌리}/하네스/conf/바탕.yaml")); 지금 = OmegaConf.to_container(cfg, resolve=True)
     a, b = (펼친({k: v for k, v in d.items() if k not in 손잡이밖}) for d in (바탕, 지금)); 바뀐 = {k: (a.get(k), b.get(k)) for k in set(a) | set(b) if a.get(k) != b.get(k)}
     문 = []
@@ -24,8 +30,16 @@ def 관문(cfg, 설정파일):
     n = len(바뀐)
     if 판.종류 == "재현" and n: 문.append(f"재현 판인데 손잡이 {n} 개를 바꿈: {sorted(바뀐)}")
     if 판.종류 == "비교" and n != 1: 문.append(f"비교 판은 손잡이 하나만 — 지금 {n} 개: {sorted(바뀐)} (여럿이면 종류: 탐색)")
-    상 = subprocess.run(["git", "-C", 뿌리, "-c", "core.quotepath=off", "status", "--porcelain", "--", 설정파일], capture_output=True, text=True, encoding="utf-8").stdout.strip()
-    if 상: 문.append(f"판 설정이 커밋 안 됨({상[:2].strip()}) — 기준은 돌리기 전에 커밋해야 사전등록")
+    for c in cfg.기준:   # 기준 식 · 지표가 이 판 점검으로 나오는가(돌린 뒤 KeyError · 조용한 실패 막기)
+        if c.식 not in 식들: 문.append(f"기준 식 「{c.식}」 은 못 씀 — {sorted(식들)}")
+        if c.지표 not in 지표출처: 문.append(f"기준 지표 「{c.지표}」 를 하네스가 만들지 않음")
+        elif 지표출처[c.지표] and 지표출처[c.지표] not in cfg.점검: 문.append(f"기준 지표 「{c.지표}」 는 점검 「{지표출처[c.지표]}」 가 있어야 나옴")
+    for 파일 in (설정파일, "하네스/conf/바탕.yaml"):
+        상 = 깃("status", "--porcelain", "--", 파일)
+        if 상: 문.append(f"{파일} 가 커밋 안 됨({상[:2].strip()}) — 설정 · 기준은 돌리기 전에 커밋해야 사전등록")
+    if 덮어쓰기: 문.append(f"명령줄 덮어쓰기 {list(덮어쓰기)} — 판 설정 파일에 적고 커밋해야 사전등록 · 재현이 됨")
+    더러 = [l for l in 깃("status", "--porcelain", "--", *코드경로).splitlines() if l[:2].strip() and not l.startswith("??") and l.rstrip().endswith((".py", ".yaml"))]
+    if 더러: 문.append(f"돌릴 코드가 커밋 안 됨 {len(더러)} 개(예: {더러[0][3:]}) — 기록할 git 해시가 실제 코드와 달라짐")
     if 문: raise 관문거부("\n  × ".join(["관문 거부:"] + 문))
     return 바뀐
 # ── 부품 등록표 ───────────────────────────────────────────
@@ -56,13 +70,19 @@ def 연기(cfg, X, Y, 쓰, idx):
     assert 값["한배치40걸음"] < 0.5 * l0, f"연기: 배치 하나를 못 외움 {값}"; assert 값["VRAM_GB"] < 7.0, f"연기: VRAM {값['VRAM_GB']} GB"
     del net, opt; torch.cuda.empty_cache(); return 값
 # ── ③ 실행 ────────────────────────────────────────────────
-def 실행(cfg, 폴더, X, Y, 쓰, idx, vx, 이):
-    import torch
+def 열쇠(cfg, 해시):   # 이어 하기는 같은 설정 · 같은 코드일 때만
+    import hashlib; d = {k: v for k, v in OmegaConf.to_container(cfg, resolve=True).items() if k not in 손잡이밖 or k == "판"}
+    d["판"] = {"이름": cfg.판.이름}; return hashlib.sha1((json.dumps(d, sort_keys=True, ensure_ascii=False) + 해시).encode()).hexdigest()[:12]
+def 실행(cfg, 폴더, X, Y, 쓰, idx, vx, 이, 해시=""):
+    import torch, shutil
     from torch.utils.tensorboard import SummaryWriter
+    키 = 열쇠(cfg, 해시)
+    if os.path.exists(폴더 + "점검/마지막.pt") and torch.load(폴더 + "점검/마지막.pt", weights_only=False).get("열쇠") != 키:   # 다른 설정 · 코드의 옛 점검점은 쓰지 않고 치워 둠
+        옛 = 폴더 + f"점검_옛_{time.strftime('%m%d_%H%M%S')}"; shutil.move(폴더 + "점검", 옛); shutil.rmtree(폴더 + "tb", ignore_errors=True); print("옛 점검점 치움 →", 옛, flush=True)
     os.makedirs(폴더 + "점검", exist_ok=True); net = 망(cfg).cuda(); opt = torch.optim.AdamW(net.parameters(), cfg.학습.학습률, weight_decay=cfg.학습.감쇠); f = 손실함수(cfg); tb = SummaryWriter(폴더 + "tb")
     기록, 시작, t0 = [], 0, time.time()
     if os.path.exists(폴더 + "점검/마지막.pt"):
-        k = torch.load(폴더 + "점검/마지막.pt"); net.load_state_dict(k["모델"]); opt.load_state_dict(k["옵티"]); 시작, 기록 = k["에폭"], k["기록"]; torch.set_rng_state(k["rng"]); print("이어 함", 시작, flush=True)
+        k = torch.load(폴더 + "점검/마지막.pt", weights_only=False); net.load_state_dict(k["모델"]); opt.load_state_dict(k["옵티"]); 시작, 기록 = k["에폭"], k["기록"]; torch.set_rng_state(k["rng"]); print("이어 함", 시작, flush=True)
     for ep in range(시작, cfg.학습.에폭):
         net.train(); perm = idx[torch.randperm(len(idx))]; ls = []
         for b in range(0, len(perm), cfg.학습.배치):
@@ -73,7 +93,7 @@ def 실행(cfg, 폴더, X, Y, 쓰, idx, vx, 이):
         with torch.no_grad(): ov = torch.cat([net(X[vx[i:i + 100]]) for i in range(0, len(vx), 100)]).reshape(-1, C.K, B.W); lv = float(f(ov, Y[vx], 쓰[vx])); 수 = float(((ov[..., 0] > 0).sum(1) == Y[vx][..., 0].sum(1)).float().mean())
         기록.append({"에폭": ep + 1, "학습": float(np.mean(ls)), "시험": lv, "몸수맞음": 수, "초": round(time.time() - t0)}); print(기록[-1], flush=True)
         for k_, v_ in 기록[-1].items(): k_ != "에폭" and tb.add_scalar(k_, v_, ep + 1)
-        torch.save(net.state_dict(), 폴더 + f"점검/{ep + 1:02d}.pt"); torch.save({"모델": net.state_dict(), "옵티": opt.state_dict(), "에폭": ep + 1, "기록": 기록, "rng": torch.get_rng_state()}, 폴더 + "점검/마지막.pt")
+        torch.save(net.state_dict(), 폴더 + f"점검/{ep + 1:02d}.pt"); torch.save({"모델": net.state_dict(), "옵티": opt.state_dict(), "에폭": ep + 1, "기록": 기록, "rng": torch.get_rng_state(), "열쇠": 키}, 폴더 + "점검/마지막.pt")
     tb.close(); json.dump(기록, open(폴더 + "학습.json", "w", encoding="utf-8"), ensure_ascii=False); return net, 기록
 # ── ④ 점검 ────────────────────────────────────────────────
 def 점검(cfg, 폴더, net, 기록, Xnp, 이):
@@ -118,8 +138,8 @@ def 판정(cfg, 지):
         v = 지.get(c.지표); ok = v is not None and {">=": v >= c.값, "<=": v <= c.값, ">": v > c.값, "<": v < c.값}[c.식]; 줄.append({"지표": c.지표, "식": c.식, "값": c.값, "이 판": v, "통과": bool(ok)})
     전 = all(r["통과"] for r in 줄); 말 = ("통과" if 전 else "실패") if cfg.판.종류 != "탐색" else ("탐색 — 이김 판정 없음 · " + ("기준 넘음" if 전 else "기준 못 넘음"))
     return {"판정": 말, "기준": 줄}
-def 기록(cfg, 폴더, 바뀐, 연, 지, 판):
-    남 = f"{뿌리}/하네스/판/{cfg.판.이름}/"; os.makedirs(남, exist_ok=True); 해시 = subprocess.run(["git", "-C", 뿌리, "rev-parse", "--short", "HEAD"], capture_output=True, text=True).stdout.strip()
+def 기록(cfg, 폴더, 바뀐, 연, 지, 판, 해시):   # 해시 = 돌리기 시작할 때의 커밋(관문이 코드 깨끗함을 확인)
+    남 = f"{뿌리}/하네스/판/{cfg.판.이름}/"; os.makedirs(남, exist_ok=True)
     OmegaConf.save(cfg, 남 + "설정.yaml"); json.dump({"바뀐 손잡이": {k: list(v) for k, v in 바뀐.items()}, "git": 해시, "날짜": time.strftime("%Y-%m-%d %H:%M"), "연기": 연, "지표": 지, **판, "산출 폴더": 폴더}, open(남 + "판정.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     import shutil
     for 파 in ("시트.png", "학습.json", "특징.json", "특징.png", "구조.json", "입력_위.png", "입력_앞.png", "입력_옆.png", "칸1.png", "칸2.png", "칸3.png", "칸4.png", "칸5.png", "칸6.png", "예측전체.png", "정답.png"):
@@ -133,14 +153,14 @@ def 기록(cfg, 폴더, 바뀐, 연, 지, 판):
 @hydra.main(version_base=None, config_path="conf")
 def 주(cfg):
     import torch
-    설정파일 = f"하네스/conf/{hydra.core.hydra_config.HydraConfig.get().job.config_name}.yaml"
-    try: 바뀐 = 관문(cfg, 설정파일)
+    hc = hydra.core.hydra_config.HydraConfig.get(); 설정파일 = f"하네스/conf/{hc.job.config_name}.yaml"
+    try: 바뀐 = 관문(cfg, 설정파일, tuple(hc.overrides.task))
     except 관문거부 as e: print(e); sys.exit(2)
-    print("관문 통과 · 바뀐 손잡이", {k: v[1] for k, v in 바뀐.items()}, flush=True)
+    해시 = 깃("rev-parse", "--short", "HEAD"); print("관문 통과 · 바뀐 손잡이", {k: v[1] for k, v in 바뀐.items()}, "· git", 해시, flush=True)
     폴더 = f"{뿌리}/out/하네스/{cfg.판.이름}/"; os.makedirs(폴더, exist_ok=True); X, Y, 쓰, idx, vx, 이, Xnp = 자료("cuda")
     연 = 연기(cfg, X, Y, 쓰, idx) if "연기" in cfg.점검 else {}; print("연기 판 통과", 연, flush=True)
-    net, 록 = 실행(cfg, 폴더, X, Y, 쓰, idx, vx, 이); del X, Y, 쓰; torch.cuda.empty_cache()
-    지 = 점검(cfg, 폴더, net, 록, Xnp, 이); 판 = 판정(cfg, 지); 기록(cfg, 폴더, 바뀐, 연, 지, 판)
+    net, 록 = 실행(cfg, 폴더, X, Y, 쓰, idx, vx, 이, 해시); del X, Y, 쓰; torch.cuda.empty_cache()
+    지 = 점검(cfg, 폴더, net, 록, Xnp, 이); 판 = 판정(cfg, 지); 기록(cfg, 폴더, 바뀐, 연, 지, 판, 해시)
     print("판정", json.dumps(판, ensure_ascii=False), flush=True)
 if __name__ == "__main__":
     주()
