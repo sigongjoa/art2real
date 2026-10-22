@@ -23,8 +23,16 @@ def 재료(판):
     c = OmegaConf.load(d + "설정.yaml"); j = json.load(open(d + "판정.json", encoding="utf-8")); 대판 = str(c.대조.get("판", "")) if c.대조 else ""
     대 = json.load(open(f"{뿌리}/하네스/판/{대판}/판정.json", encoding="utf-8"))["지표"] if os.path.exists(f"{뿌리}/하네스/판/{대판}/판정.json") else dict(c.대조.get("값", {})) if c.대조 else {}
     곡 = json.load(open(d + "학습.json", encoding="utf-8")) if os.path.exists(d + "학습.json") else []
-    기록 = {"판": 판, "가지": str(c.판.가지), "시도": str(c.판.get("시도")), "명제(사전등록)": str(c.판.get("명제")), "바뀐 손잡이": j["바뀐 손잡이"], "판정": j["판정"], "기준": j["기준"], "지표": j["지표"],
-            "대조 판": 대판, "대조 지표": 대, "학습 곡선(10 에폭마다 · 끝)": [r for r in 곡 if r["에폭"] % 10 == 0 or r is 곡[-1]], "에폭": int(c.학습.에폭)}
+    바 = OmegaConf.to_container(OmegaConf.load(f"{뿌리}/하네스/conf/바탕.yaml"))
+    def 바값(k):   # 옛 판 설정에 없던 항목(None)은 바탕 기본값 — 131 초안이 「130 기본 무게가 기록에 없다」고 씀(10-23)
+        v = 바
+        for p in k.split("."): v = v.get(p) if isinstance(v, dict) else None
+        return v
+    바뀐 = {k: [바값(k) if a is None else a, b] for k, (a, b) in j["바뀐 손잡이"].items()}
+    줄곡 = 곡 if len(곡) <= 12 else [r for r in 곡 if r["에폭"] % 5 == 0 or r is 곡[-1] or r is 곡[0]]
+    기록 = {"판": 판, "가지": str(c.판.가지), "시도": str(c.판.get("시도")), "명제(사전등록)": str(c.판.get("명제")), "바뀐 손잡이(앞 값 → 이 판 값)": 바뀐, "판정": j["판정"], "기준": j["기준"], "지표": j["지표"],
+            "대조 판": 대판, "대조 지표": 대, "학습 곡선": 줄곡, "에폭": int(c.학습.에폭),
+            "데이터": {"학습 부품": 3000 if c.get("목표") == "선지도" else int(c.데이터.학습수), "시험 부품": 299, "도면": "부품마다 위 · 앞 · 옆 세 장 · 128×128"}, "한 번만 돌림(시드 하나)": True}
     앞 = ""
     if 대판 and os.path.exists(f"{뿌리}/하네스/판/{대판}/보고.md"):
         m = re.search(r"## 분석[^\n]*\n(.*?)(?=\n## |\n명제: |\Z)", open(f"{뿌리}/하네스/판/{대판}/보고.md", encoding="utf-8").read(), re.S); 앞 = re.sub(r"<!--.*?-->", "", m.group(1)).strip() if m else ""
