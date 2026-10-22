@@ -27,13 +27,14 @@ def 거르기():
     가지 = 돌("git", "-C", 뿌리, "rev-parse", "--abbrev-ref", "HEAD")
     돌("git", "clone", "--no-local", "--single-branch", "--branch", 가지, 뿌리, 저장)
     open(규칙 + "뺄경로.txt", "w", encoding="utf-8").write(뺄)
-    돌(FR, "--force", "--invert-paths", "--paths-from-file", 규칙 + "뺄경로.txt", "--replace-text", 규칙 + "바꿀말.txt", "--replace-message", 규칙 + "바꿀말.txt", cwd=저장)
+    돌(FR, "--force", "--invert-paths", "--paths-from-file", 규칙 + "뺄경로.txt", "--replace-text", 규칙 + "바꿀말.txt", "--replace-message", 규칙 + "바꿀말.txt", "--mailmap", 규칙 + "mailmap", cwd=저장)   # 작성자 메일 → GitHub noreply
     돌("git", "branch", "-M", "main", cwd=저장)
 def 감사():   # 걸러진 이력에 남으면 안 되는 것이 0 인지 — 하나라도 있으면 밀지 않는다
     문 = []; 바꿀 = [l.split("==>")[0] for l in open(규칙 + "바꿀말.txt", encoding="utf-8").read().splitlines() if l.strip()]
     for s in 바꿀:
         if 돌("git", "log", "--all", "--oneline", "-S", s, cwd=저장): 문.append(f"내용에 남음: {s[:4]}…")
         if 돌("git", "log", "--all", "--oneline", f"--grep={re.escape(s)}", cwd=저장): 문.append(f"메시지에 남음: {s[:4]}…")
+    if "gmail.com" in 돌("git", "log", "--all", "--format=%ae%n%ce", cwd=저장): 문.append("작성자 메일이 개인 주소로 남음")
     파일 = 돌("git", "-c", "core.quotepath=off", "log", "--all", "--name-only", "--format=", cwd=저장).splitlines()
     for p in set(파일):
         if p.endswith(".md") and not (p == "README.md" or p.startswith(("docs/", "하네스/판/"))): 문.append(f"md 남음: {p}")
