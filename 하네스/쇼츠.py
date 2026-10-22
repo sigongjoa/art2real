@@ -7,15 +7,19 @@ def 클로드(글, 초=600):
     r = subprocess.run(["claude", "-p", 글], capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=초, cwd=뿌리)
     if r.returncode: raise RuntimeError("claude -p 실패: " + r.stderr[-500:])
     return r.stdout.strip()
-def 카드(판, 편):   # 화면 재료 1000×700 · 보고서 위쪽(명제 · 판정) · 시트 · 특징
-    from PIL import Image
-    s = f"{뿌리}/하네스/판/{판}/"; d = f"{뿌리}/out/영상05/대화/{편}/자료/"; os.makedirs(d, exist_ok=True); 키 = []
-    def 맞춤(im, nm):
-        im = im.convert("RGB"); im.thumbnail((980, 680)); c = Image.new("RGB", (1000, 700), "#fffdf8"); c.paste(im, ((1000 - im.width) // 2, (700 - im.height) // 2)); c.save(d + nm + ".png"); 키.append(nm)
-    if os.path.exists(s + "보고.png"): b = Image.open(s + "보고.png"); 맞춤(b.crop((0, 0, b.width, min(b.height, 900))), "명제")
-    if os.path.exists(s + "시트.png"): 맞춤(Image.open(s + "시트.png"), "시트")
-    if os.path.exists(s + "특징.png"):
-        f = Image.open(s + "특징.png"); 맞춤(f, "특징"); 맞춤(f.crop((0, 0, int(f.width * .5), f.height)), "주의")
+카드말 = {"도면": "모델에 넣은 도면(앞에서 본 것)", "주의": "빨강 = 모델이 보는 곳", "결과": "왼쪽 정답 · 오른쪽 모델이 만든 것"}
+def 카드(판, 편):   # 화면 재료 1000×700 · 폰에서 읽히게 큰 그림 하나 + 위에 큰 이름표 하나(보고서 그림을 줄여 넣지 않음 — 10-22 「무슨 말인지 모르겠다」)
+    from PIL import Image, ImageDraw, ImageFont
+    s = f"{뿌리}/하네스/판/{판}/"; d = f"{뿌리}/out/영상05/대화/{편}/자료/"; os.makedirs(d, exist_ok=True); 키 = []; 글꼴 = ImageFont.truetype("malgunbd.ttf", 54)
+    def 맞춤(ims, nm):
+        c = Image.new("RGB", (1000, 700), "#ffffff"); ImageDraw.Draw(c).text((500, 16), 카드말[nm], font=글꼴, fill="#1d2129", anchor="ma")
+        칸 = 1000 // len(ims)
+        for k, im in enumerate(ims):
+            from PIL import ImageOps; im = im.convert("RGB"); im = im.crop(ImageOps.invert(im).getbbox() or (0, 0, *im.size))   # 렌더 둘레 흰 여백을 잘라 크게
+            r = min((칸 - 20) / im.width, 600 / im.height); im = im.resize((int(im.width * r), int(im.height * r))); c.paste(im, (k * 칸 + (칸 - im.width) // 2, 90 + (610 - im.height) // 2))
+        c.save(d + nm + ".png"); 키.append(nm)
+    for nm, 파일 in (("도면", ["도면_앞.png"]), ("주의", ["주의_앞.png"]), ("결과", ["정답.png", "예측전체.png"])):
+        if all(os.path.exists(s + f) for f in 파일): 맞춤([Image.open(s + f) for f in 파일], nm)
     return 키
 화면틀 = '''# {편} 위쪽 화면 판 — 재료 out/영상05/대화/{편}/자료/*.png(하네스/쇼츠.py · 판 {판} 보고서)
 from PIL import Image, ImageDraw
@@ -39,8 +43,12 @@ def 대본쓰기(판, 키, 고칠말=""):
 - 나 칸 표정: {나표정} · AI 칸 표정: {AI표정}
 - 첫 줄 #윤문: 직접 · 날짜 · 할 말 하나 · 사실 출처(하네스/판/{판}/보고.md)
 - 숫자는 보고서에 있는 것만 · 자막은 숫자로 쓰고 읽기는 ｜ 뒤 한글
-- 12~16 줄 · 다섯 칸(이상한 장면 → 「나」의 틀린 짐작 → 증거 → 「나」의 결정 → 결과 판정) · 예고 · 약속 금지 · 말 칸 2 줄(약 30 자) 이내
-- 「나」의 결정 대사는 반드시 한 줄 이상, 물음표 없이 끝나고 이 말꼴 중 하나를 그대로 넣는다: 「해 봐」 「돌려」 「바꿔」 「넣어」 「빼」 「고쳐」 「하자」 (예: 「같은 설정으로 다시 돌려 봐.」)
+- 할 말은 하나: 이 판에서 그림으로 보이는 발견 하나(모델이 무엇을 보고 · 무엇을 만들었나). 하네스 · 재현 · 다시 돌리기 · 판 · 기준 · 통과 같은 우리 작업 방식 이야기는 쓰지 않는다(보고서 몫)
+- 숫자는 영상 전체에서 한 줄에만(결과 판정 줄) · 나머지 줄은 화면 그림을 가리키는 말(「빨간 데 봐」 「여기 모서리」)
+- 처음 보는 사람이 그림을 떠올릴 수 있는 평소 말만: 주의 → 「보는 곳」 · 재현율 → 「몇 개 중 몇 개 찾았나」 · 화소 · 탐침 · 손실 · 슬롯 · 토큰 · 임베딩 금지
+- 각 화면 키가 보여 주는 것: {"; ".join(f"{k} = {카드말[k]}" for k in 키)} — 대사는 지금 화면에 보이는 것을 말한다
+- 10~14 줄 · 다섯 칸(이상한 장면 → 「나」의 틀린 짐작 → 증거 → 「나」의 결정 → 결과 판정) · 예고 · 약속 금지 · 말 칸 2 줄(약 30 자) 이내
+- 「나」의 결정 대사는 반드시 한 줄 이상, 물음표 없이 끝나고 이 말꼴 중 하나를 그대로 넣는다: 「해 봐」 「돌려」 「바꿔」 「넣어」 「빼」 「고쳐」 「하자」 (예: 「모서리만 따로 세어 봐.」)
 {("[앞 판에서 고칠 것]" + chr(10) + 고칠말) if 고칠말 else ""}
 [이 판의 보고서]
 {보고}"""
@@ -53,7 +61,7 @@ def 만들기(판, 굽기=True):
     있 = [n for n in os.listdir(영상 + "대화") if n.endswith(f"_판{판}")]   # 같은 판은 그 편 폴더를 다시 씀
     번호 = int(있[0].split("_")[0]) if 있 else max(int(re.match(r"(\d+)", n).group(1)) for n in os.listdir(영상 + "대화") if re.match(r"\d+_", n)) + 1; 편 = f"{번호}_판{판}"
     폴더 = 영상 + f"대화/{편}/"; os.makedirs(폴더, exist_ok=True); 키 = 카드(판, 편)
-    색 = {"명제": "금", "시트": "초", "특징": "빨", "주의": "빨"}
+    색 = {"도면": "금", "주의": "빨", "결과": "초"}
     open(폴더 + "화면.py", "w", encoding="utf-8").write(화면틀.format(편=편, 판=판, 카드="{" + ", ".join(f'"{k}": {색.get(k, "금")}' for k in 키) + "}"))
     대본 = 대본쓰기(판, 키); open(폴더 + "대본.tsv", "w", encoding="utf-8").write(대본 + "\n"); 결 = 검사(편)
     if "통과" not in 결: 대본 = 대본쓰기(판, 키, "대본검사 결과:\n" + 결); open(폴더 + "대본.tsv", "w", encoding="utf-8").write(대본 + "\n"); 결 = 검사(편)

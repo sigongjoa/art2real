@@ -96,6 +96,12 @@ def 실행(cfg, 폴더, X, Y, 쓰, idx, vx, 이, 해시=""):
         torch.save(net.state_dict(), 폴더 + f"점검/{ep + 1:02d}.pt"); torch.save({"모델": net.state_dict(), "옵티": opt.state_dict(), "에폭": ep + 1, "기록": 기록, "rng": torch.get_rng_state(), "열쇠": 키}, 폴더 + "점검/마지막.pt")
     tb.close(); json.dump(기록, open(폴더 + "학습.json", "w", encoding="utf-8"), ensure_ascii=False); return net, 기록
 # ── ④ 점검 ────────────────────────────────────────────────
+def 주의그림(x, w, 폴더, 폭=640):   # 쇼츠 카드용 큰 그림: 도면(흰 바탕 검은 선) 위에 모델이 보는 칸을 빨갛게 · 뷰마다 주의_<뷰>.png · 도면만 도면_<뷰>.png
+    from PIL import Image
+    for v in range(3):
+        선 = np.kron(255 - x[v].astype(np.uint8), np.ones((폭 // 128, 폭 // 128), np.uint8)); Image.fromarray(선).save(폴더 + f"도면_{B.뷰[v]}.png")
+        a = np.kron(w[v] / w.max(), np.ones((폭 // 8, 폭 // 8)))[..., None]; 바탕 = np.repeat(선[..., None], 3, 2).astype(float)
+        Image.fromarray((바탕 * (1 - .6 * a) + np.array([230, 40, 40]) * .6 * a).astype(np.uint8)).save(폴더 + f"주의_{B.뷰[v]}.png")
 def 점검(cfg, 폴더, net, 기록, Xnp, 이):
     import torch, 층보기127 as V, 탐침128 as P
     import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt; plt.rcParams["font.family"] = "Malgun Gothic"
@@ -127,7 +133,7 @@ def 점검(cfg, 폴더, net, 기록, Xnp, 이):
     for k, (n, v) in enumerate(지.items()): a.text(0, .92 - k * .06, f"{n:12s} {v:9.3f} {대.get(n, float('nan')):9.3f}", fontsize=12, va="top")
     n = "12003"; x = torch.tensor(Xnp[[이.index(n)]])
     with torch.no_grad(): d = V.펼침(net, x)
-    w = d["주의4"][0, 0].numpy().reshape(3, 8, 8)
+    w = d["주의4"][0, 0].numpy().reshape(3, 8, 8); 주의그림(Xnp[이.index(n)], w, 폴더)
     for v in range(3):
         a = fig.add_axes([.04 + v * .21, .04, .19, .45]); a.imshow(Xnp[이.index(n), v], cmap="gray"); a.imshow(np.kron(w[v] / w.max(), np.ones((16, 16))), cmap="viridis", alpha=.6, vmin=0, vmax=1); a.axis("off"); a.set_title(f"{n} {B.뷰[v]} · 4 층 칸1 주의 {w[v].sum():.2f}", fontsize=12)
     fig.savefig(폴더 + "시트.png", dpi=60); plt.close(fig); return 지
@@ -142,7 +148,7 @@ def 기록(cfg, 폴더, 바뀐, 연, 지, 판, 해시):   # 해시 = 돌리기 �
     남 = f"{뿌리}/하네스/판/{cfg.판.이름}/"; os.makedirs(남, exist_ok=True)
     OmegaConf.save(cfg, 남 + "설정.yaml"); json.dump({"바뀐 손잡이": {k: list(v) for k, v in 바뀐.items()}, "git": 해시, "날짜": time.strftime("%Y-%m-%d %H:%M"), "연기": 연, "지표": 지, **판, "산출 폴더": 폴더}, open(남 + "판정.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     import shutil
-    for 파 in ("시트.png", "학습.json", "특징.json", "특징.png", "구조.json", "입력_위.png", "입력_앞.png", "입력_옆.png", "칸1.png", "칸2.png", "칸3.png", "칸4.png", "칸5.png", "칸6.png", "예측전체.png", "정답.png"):
+    for 파 in ("시트.png", "학습.json", "특징.json", "특징.png", "구조.json", "입력_위.png", "입력_앞.png", "입력_옆.png", "칸1.png", "칸2.png", "칸3.png", "칸4.png", "칸5.png", "칸6.png", "예측전체.png", "정답.png", *(f"{종}_{뷰}.png" for 종 in ("도면", "주의") for 뷰 in B.뷰)):
         if os.path.exists(폴더 + 파): shutil.copy(폴더 + 파, 남 + 파)
     import 보고; print("보고서", 보고.만들기(cfg.판.이름))
     표 = f"{뿌리}/하네스/results.tsv"; 새 = not os.path.exists(표)
