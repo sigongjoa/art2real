@@ -11,6 +11,10 @@ def 끝내기(판, 단계=("쇼츠", "커밋", "공개", "이슈")):
     import 목록; d = f"{뿌리}/하네스/판/{판}/"; c = OmegaConf.load(d + "설정.yaml"); j = json.load(open(d + "판정.json", encoding="utf-8")); 명제 = str(c.판.get("명제") or c.판.물음); 시도 = str(c.판.get("시도") or 명제)
     목록.갱신(판); 남 = json.load(open(d + "끝.json", encoding="utf-8")) if os.path.exists(d + "끝.json") else {}   # 일부 단계만 다시 돌려도 앞 기록(이슈 · 공개)은 남김
     남["Pages"] = f"https://sigongjoa.github.io/art2real/판/{판}/보고.html"; 더할 = [f"하네스/판/{판}", "하네스/results.tsv", "docs"]
+    if "분석" in 단계:   # 보고서 맨 앞 블로그 글 초안(분석 칸이 비었을 때만) — 쇼츠보다 먼저(대본이 이 글을 읽음)
+        import 분석
+        try: 남["분석"] = 분석.초안(판)
+        except Exception as e: 남["분석"] = {"실패": str(e)[:300]}
     if "쇼츠" in 단계:
         import 쇼츠
         try: 쇼 = 쇼츠.만들기(판); 남["쇼츠"] = 쇼; 더할 += [f"원화3d/과정/영상05/대화/{쇼['편']}", "원화3d/과정/쇼츠"]
@@ -39,4 +43,4 @@ def 끝내기(판, 단계=("쇼츠", "커밋", "공개", "이슈")):
             if "커밋" in 단계: 공개.내보내기()
         except Exception as e: 남["공개"] = {"실패": str(e)[:300]}; json.dump(남, open(d + "끝.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     return 남
-if __name__ == "__main__": print(json.dumps(끝내기(sys.argv[1], tuple(sys.argv[2:]) or ("쇼츠", "커밋", "공개", "이슈")), ensure_ascii=False, indent=1))
+if __name__ == "__main__": print(json.dumps(끝내기(sys.argv[1], tuple(sys.argv[2:]) or ("분석", "쇼츠", "커밋", "공개", "이슈")), ensure_ascii=False, indent=1))
