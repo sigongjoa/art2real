@@ -20,6 +20,9 @@ import os, sys, json, re
 |---|---|---|
 {지표표}
 
+## 모델 구조
+{구조}
+
 ## 3. 학습 곡선
 
 | 에폭 | 학습 loss | 시험 loss | 덩어리 수 맞음 |
@@ -59,6 +62,8 @@ def 만들기(판, 모션=None, 파일="보고.html"):   # 모션 = None | 도�
     c = OmegaConf.load(d + "설정.yaml"); 대 = dict(c.대조.get("값", {})) if c.대조 else {}
     곡 = json.load(open(d + "학습.json", encoding="utf-8")) if os.path.exists(d + "학습.json") else []
     특 = json.load(open(d + "특징.json", encoding="utf-8")) if os.path.exists(d + "특징.json") else None
+    구 = json.load(open(d + "구조.json", encoding="utf-8")) if os.path.exists(d + "구조.json") else None
+    import 구조 as 구조모; 구조글 = 구조모.md(구) if 구 else "(이 판은 구조를 안 잼)"
     옛 = open(d + "보고.md", encoding="utf-8").read() if os.path.exists(d + "보고.md") else ""
     def 보존(제목):
         m = re.search(rf"## {제목}[^\n]*\n(.*?)(?=\n## |\Z)", 옛, re.S); return m.group(1).strip() if m and "(비어 있음)" not in m.group(1) else 사람칸
@@ -76,7 +81,7 @@ def 만들기(판, 모션=None, 파일="보고.html"):   # 모션 = None | 도�
                   지표표="\n".join(f"| {k} | {f(v)} | {f(대.get(k))} |" for k, v in 지.items()),
                   곡선표="\n".join(f"| {r['에폭']} | {r['학습']:.3f} | {r['시험']:.3f} | {r.get('몸수맞음', r.get('몸 수 맞음', 0)):.3f} |" for r in 곡),
                   첫loss=f(연.get("첫loss")), 한배치=f(연.get("한배치40걸음")), vram=f(연.get("VRAM_GB"), 2), 칸닮음=f(지.get("칸닮음4")), 빈조각=f(지.get("빈조각주의4")), 엔트로피=f(지.get("주의엔트로피4")), 퍼짐=f(지.get("자리퍼짐")),
-                  탐구조=f(지.get("탐침_구조")), 탐곡률=f(지.get("탐침_곡률")), 탐구조3=f(지.get("탐침3_구조")), 탐곡률3=f(지.get("탐침3_곡률")), 특징=특글, 해석=보존("5. 해석"), 다음=보존("6. 다음 가지"), 산출=j.get("산출 폴더", "—"))
+                  탐구조=f(지.get("탐침_구조")), 탐곡률=f(지.get("탐침_곡률")), 탐구조3=f(지.get("탐침3_구조")), 탐곡률3=f(지.get("탐침3_곡률")), 특징=특글, 구조=구조글, 해석=보존("5. 해석"), 다음=보존("6. 다음 가지"), 산출=j.get("산출 폴더", "—"))
     open(d + "보고.md", "w", encoding="utf-8").write(글)
-    import 보고html; 보고html.만들기(판, d, c, j, 지, 대, 곡, 특, 보존("5. 해석"), 보존("6. 다음 가지"), 모션, 파일); return d + "보고.md"
+    import 보고html; 보고html.만들기(판, d, c, j, 지, 대, 곡, 특, 보존("5. 해석"), 보존("6. 다음 가지"), 모션, 파일, 구); return d + "보고.md"
 if __name__ == "__main__": print(만들기(sys.argv[1], *(sys.argv[2:4])))

@@ -88,6 +88,7 @@ def 점검(cfg, 폴더, net, 기록, Xnp, 이):
         idx = np.random.default_rng(0).permutation(len(y)); 학, 시 = idx[:2400], idx[2400:]; 곡 = y == 1
         for b in (3, 4): 지[f"탐침{b}_구조"] = P.릿지(F[f"블록 {b}"], y, 학, 시, True); 지[f"탐침{b}_곡률"] = P.릿지(F[f"블록 {b}"], np.log(rr), 학[곡[학]], 시[곡[시]], False)
         지["탐침_구조"], 지["탐침_곡률"] = 지["탐침4_구조"], 지["탐침4_곡률"]
+    import 구조 as 구; json.dump(구.재기(net, cfg), open(폴더 + "구조.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)   # 모델 구조(판마다 그 판 모델에서)
     if "특징" in cfg.점검:   # 실제 3면도에서 주의 · CNN 이 곡선 · 접합 · 겹친 곳을 찾나(하네스/특징.py)
         import 특징 as T; t = T.재기(net, Xnp, 이, 폴더); json.dump(t, open(폴더 + "특징.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
         지 |= {"쏠림4_곡선": t["쏠림4"]["곡선"], "쏠림4_접합": t["쏠림4"]["접합·교차"], "쏠림4_빈칸": t["쏠림4"]["빈칸"], "특징탐침": t["탐침_학습CNN"][0], "특징탐침_무작위": t["탐침_무작위CNN"][0]}
@@ -117,7 +118,7 @@ def 기록(cfg, 폴더, 바뀐, 연, 지, 판):
     남 = f"{뿌리}/하네스/판/{cfg.판.이름}/"; os.makedirs(남, exist_ok=True); 해시 = subprocess.run(["git", "-C", 뿌리, "rev-parse", "--short", "HEAD"], capture_output=True, text=True).stdout.strip()
     OmegaConf.save(cfg, 남 + "설정.yaml"); json.dump({"바뀐 손잡이": {k: list(v) for k, v in 바뀐.items()}, "git": 해시, "날짜": time.strftime("%Y-%m-%d %H:%M"), "연기": 연, "지표": 지, **판, "산출 폴더": 폴더}, open(남 + "판정.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     import shutil
-    for 파 in ("시트.png", "학습.json", "특징.json", "특징.png"):
+    for 파 in ("시트.png", "학습.json", "특징.json", "특징.png", "구조.json"):
         if os.path.exists(폴더 + 파): shutil.copy(폴더 + 파, 남 + 파)
     import 보고; print("보고서", 보고.만들기(cfg.판.이름))
     표 = f"{뿌리}/하네스/results.tsv"; 새 = not os.path.exists(표)

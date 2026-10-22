@@ -46,6 +46,8 @@ main{max-width:1240px;display:grid;grid-template-columns:300px minmax(0,1fr);col
 main>*{grid-column:2}header{grid-column:1;grid-row:1/200;position:sticky;top:28px;border:1px solid var(--rule);border-radius:14px;background:var(--sheet);padding:24px 22px;margin:0}
 header h1{font-size:1.32rem;line-height:1.4;letter-spacing:-.01em;font-weight:750;margin-bottom:16px}header .lead{font-size:1rem}dl.meta{grid-template-columns:1fr 1fr;gap:12px 16px}main>h2:first-of-type{margin-top:0}
 @media (max-width:900px){main{display:block}header{position:static;margin-bottom:8px}main>h2:first-of-type{margin-top:44px}}
+nav.뒤{margin:0 0 14px}nav.뒤 a{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:.9rem;color:var(--muted);text-decoration:none}nav.뒤 a:hover{color:var(--ink)}nav.뒤 svg{width:16px;height:16px}
+td.왼{text-align:left;white-space:normal}tr.깊2 td:first-child{padding-left:30px;color:var(--muted)}.흐름{max-width:72ch}ul.목표 li{max-width:72ch;margin:6px 0}
 @media (max-width:640px){main{padding:32px 16px 64px}th,td{padding:8px 10px}h2{margin-top:44px}}
 """
 def 수(v, n=3): return "" if v is None else (f"{v:.{n}f}" if isinstance(v, float) else E(str(v)))
@@ -97,13 +99,14 @@ const io=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return
 requestAnimationFrame(()=>requestAnimationFrame(()=>{document.querySelectorAll('td.열.대기').forEach(c=>c.classList.remove('대기'));
 document.querySelectorAll('td[data-n]').forEach(c=>{if(c.dataset.n==='')return;const v=parseFloat(c.dataset.n),자=(c.dataset.n.split('.')[1]||'').length,k=Math.min(1,t/900);c.textContent=(v*(1-Math.pow(2,-10*k))).toFixed(자)});
 requestAnimationFrame(()=>document.getAnimations().forEach(a=>{a.pause();a.currentTime=t}))}))})()</script>"""
-def 만들기(판, d, c, j, 지, 대, 곡, 특, 해석, 다음, 모션=None, 파일="보고.html"):
+def 만들기(판, d, c, j, 지, 대, 곡, 특, 해석, 다음, 모션=None, 파일="보고.html", 구=None):
     말 = j["판정"]; 판정꼴 = "통과" if 말 == "통과" else ("탐색" if 말.startswith("탐색") else "실패")
     바뀐 = ", ".join(f"{k}: {a} → {b}" for k, (a, b) in j["바뀐 손잡이"].items()) or "없음 (재현)"
     meta = [("판", 판), ("가지", c.판.가지), ("종류", c.판.종류), ("바뀐 손잡이", 바뀐), ("에폭", c.학습.에폭), ("대조", c.대조.get("판", "없음") if c.대조 else "없음"), ("git", j["git"]), ("날짜", j.get("날짜", ""))]
     h = [f'<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>판 {E(판)} · 하네스 보고서</title><style>{CSS}{모션CSS.get(모션, "")}</style></head><body><main style="--n:{len(j["기준"])}">']
     명제 = str(c.판.get("명제") or c.판.물음)
-    h.append(f'<header><h1>{E(명제)}</h1><span class="판정 {판정꼴}">{아이콘[판정꼴 != "실패"]}{E(말)}</span>')
+    뒤 = '<nav class="뒤"><a href="../../index.html"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3.5L5.5 8l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>판 목록</a></nav>'
+    h.append(f'<header>{뒤}<h1>{E(명제)}</h1><span class="판정 {판정꼴}">{아이콘[판정꼴 != "실패"]}{E(말)}</span>')
     h.append('<dl class="meta">' + "".join(f"<div><dt>{E(k)}</dt><dd>{E(str(v))}</dd></div>" for k, v in meta) + "</dl></header>")
     h.append('<h2>판정 기준</h2><div class="표"><table><thead><tr><th>지표</th><th>조건</th><th>이 판</th><th>대조</th><th>결과</th></tr></thead><tbody>')
     for i_, r in enumerate(j["기준"]): h.append(f'<tr class="기준줄" style="--i:{i_}"><td>{E(r["지표"])}</td><td>{E(r["식"])} {r["값"]}</td><td><strong>{수(r["이 판"])}</strong></td><td>{수(대.get(r["지표"]))}</td><td class="결과" style="--i:{i_}"><span class="{"o" if r["통과"] else "x"}" aria-label="{"통과" if r["통과"] else "실패"}">{아이콘[r["통과"]]}</span></td></tr>')
@@ -113,6 +116,11 @@ def 만들기(판, d, c, j, 지, 대, 곡, 특, 해석, 다음, 모션=None, 파
         b = 대.get(k); 차 = f"{v - b:+.3f}" if isinstance(v, (int, float)) and isinstance(b, (int, float)) else ""
         h.append(f'<tr><td>{E(k)}</td><td data-n="{수(v)}">{수(v)}</td><td>{수(b)}</td><td class="차">{차}</td></tr>')
     h.append("</tbody></table></div>")
+    if 구:
+        h.append('<h2>모델 구조</h2><p class="흐름">3면도 → <b>CNN 백본</b> → 조각 토큰 192 → <b>트랜스포머 디코더</b>(칸 쿼리가 토큰에 교차 주의) → <b>예측 머리</b>(칸마다 숫자) → 덩어리 사양 → CadQuery</p>')
+        h.append('<h3>하이퍼파라미터</h3><div class="표"><table><tbody>' + "".join(f'<tr><td>{E(k)}</td><td class="왼">{E(f"{v:,}" if isinstance(v, int) else str(v))}</td></tr>' for k, v in 구["표"].items()) + "</tbody></table></div>")
+        h.append('<h3>층 <span class="차">입력 1 × 3 × 128 × 128 을 흘려 잼 · torchinfo 꼴</span></h3><div class="표"><table><thead><tr><th>층</th><th>종류</th><th>출력 모양</th><th>파라미터</th></tr></thead><tbody>' + "".join(f'<tr class="깊{r["깊이"]}"><td>{E(r["이름"])}</td><td class="왼">{E(r["종류"])}</td><td>{E(" × ".join(map(str, r["출력"])))}</td><td>{r["파라미터"]:,}</td></tr>' for r in 구["층"]) + "</tbody></table></div>")
+        h.append(f'<h3>목표와 학습</h3><ul class="목표"><li>{E(구["목표"])}</li><li>{E(구["학습"])}</li></ul>')
     h.append("<h2>학습 곡선</h2>" + 곡선svg(곡) + '<figure><img src="시트.png" alt="학습 곡선 · 지표 · 12003 세 장 칸 1 주의"><figcaption>판 시트: 하네스가 판 끝에 만든 그림</figcaption></figure>')
     연 = j.get("연기", {})
     h.append("<h2>점검</h2><h3>연기 판</h3>" + f'<div class="줄글"><div><span>첫 loss</span> <b>{수(연.get("첫loss"))}</b></div><div><span>배치 하나 40 걸음 뒤</span> <b>{수(연.get("한배치40걸음"))}</b></div><div><span>VRAM</span> <b>{수(연.get("VRAM_GB"), 2)} GB</b></div></div>')
