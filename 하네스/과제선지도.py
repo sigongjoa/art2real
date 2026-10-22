@@ -36,9 +36,10 @@ def 망(인코더):
             f = s.cnn(x) if s.인코더 == "cnn" else F.pixel_unshuffle(x, 16)   # 둘 다 (b·3, 256, 8, 8)
             return F.pixel_shuffle(s.머리(f), 16).reshape(b, 3, 출, 128, 128)
     return 선망()
-def 손실(o, Y, 쓰=None, ix=None):   # Y 는 이미 배치로 잘린 dict
+def 손실함수(빈가중=.05): return lambda o, Y, 쓰=None: 손실(o, Y, 빈가중=빈가중)
+def 손실(o, Y, 쓰=None, 빈가중=.05):   # Y 는 이미 배치로 잘린 dict
     import torch, torch.nn.functional as F
-    지 = Y["지도"]; 선 = 지 > 0; w = torch.tensor([.05, 1., 1., 1.], device=o.device)   # 없음 화소가 97 % — 가중
+    지 = Y["지도"]; 선 = 지 > 0; w = torch.tensor([빈가중, 1., 1., 1.], device=o.device)   # 없음 화소가 97 % — 가중(130: 0.05 → 선 둘레를 덩어리째 칠함)
     l종 = F.cross_entropy(o[:, :, :K].permute(0, 1, 3, 4, 2).reshape(-1, K), 지.reshape(-1), weight=w)
     l숨 = F.binary_cross_entropy_with_logits(o[:, :, K][선], Y["숨"][선].float()) if 선.any() else o.sum() * 0
     t = Y["열"].float(); p = torch.sigmoid(o[:, :, K + 1]); l점 = (((p - t) ** 2) * (1 + 30 * t)).mean() * 10

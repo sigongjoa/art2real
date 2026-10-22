@@ -17,7 +17,8 @@ class 관문거부(Exception): pass
 코드경로 = ["하네스", "원화3d/실험_20261013/캐드부품"]
 def 깃(*a): return subprocess.run(["git", "-C", 뿌리, "-c", "core.quotepath=off", *a], capture_output=True, text=True, encoding="utf-8").stdout.rstrip()   # 앞 공백은 남김(porcelain 첫 줄 상태 칸)
 def 관문(cfg, 설정파일, 덮어쓰기=()):
-    판 = cfg.판; 바탕 = OmegaConf.to_container(OmegaConf.load(f"{뿌리}/하네스/conf/바탕.yaml")); 지금 = OmegaConf.to_container(cfg, resolve=True)
+    판 = cfg.판; 대설정 = f"{뿌리}/하네스/판/{cfg.대조.get('판')}/설정.yaml" if cfg.대조 else ""   # 대조 판이 하네스 판이면 그 설정과 손잡이를 셈(아니면 바탕)
+    바탕 = OmegaConf.to_container(OmegaConf.load(대설정 if 대설정 and os.path.exists(대설정) else f"{뿌리}/하네스/conf/바탕.yaml")); 지금 = OmegaConf.to_container(cfg, resolve=True)
     a, b = (펼친({k: v for k, v in d.items() if k not in 손잡이밖}) for d in (바탕, 지금)); 바뀐 = {k: (a.get(k), b.get(k)) for k in set(a) | set(b) if a.get(k) != b.get(k)}
     문 = []
     if not str(cfg.판.get("명제", "") or "").strip() or str(cfg.판.get("명제")) == "???": 문.append("명제가 없다 — 이 판이 맞거나 틀릴 문장 하나를 적어라(사전 예측)")
@@ -56,7 +57,7 @@ def 잘(cfg, Y, 쓰, ix):
     return Y[ix], 쓰[ix]
 def 손실함수(cfg):
     import 손실그림124 as L
-    if 선지도(cfg): import 과제선지도 as G; return G.손실
+    if 선지도(cfg): import 과제선지도 as G; return G.손실함수(cfg.선지도.빈가중)
     if cfg.짝 == "부피순": return lambda o, Y, 쓰: sum(L.항목(o, Y, 쓰).values())
     if cfg.짝 == "헝가리안":
         import 모델129 as M9
