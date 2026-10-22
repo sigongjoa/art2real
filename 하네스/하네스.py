@@ -5,7 +5,7 @@ import os, sys, json, time, subprocess, numpy as np, hydra
 from omegaconf import OmegaConf
 뿌리 = "G:/art2real"; 실험 = 뿌리 + "/원화3d/실험_20261013/캐드부품"; sys.path.insert(0, 실험)
 import 모델124 as B, 조립124 as C, 모델127 as M7
-손잡이밖 = {"판", "기준", "대조", "점검", "hydra"}
+손잡이밖 = {"판", "기준", "대조", "점검", "끝", "hydra"}
 def 펼친(d, 앞=""): return {f"{앞}{k}": v for k0, v0 in d.items() for k, v in (펼친(v0, f"{k0}.").items() if isinstance(v0, dict) else [(k0, v0)])} if isinstance(d, dict) else {앞: d}
 class 관문거부(Exception): pass
 # ── ① 관문 ────────────────────────────────────────────────
@@ -124,7 +124,7 @@ def 기록(cfg, 폴더, 바뀐, 연, 지, 판):
     with open(표, "a", encoding="utf-8") as f:
         if 새: f.write("날짜\t판\t가지\t종류\t바뀐 손잡이\t판정\t시험loss\t탐침_구조\t탐침_곡률\t칸닮음4\tgit\n")
         f.write(f"{time.strftime('%m-%d %H:%M')}\t{cfg.판.이름}\t{cfg.판.가지}\t{cfg.판.종류}\t{','.join(f'{k}={v[1]}' for k, v in 바뀐.items()) or '-'}\t{판['판정']}\t{지.get('시험loss')}\t{지.get('탐침_구조')}\t{지.get('탐침_곡률')}\t{지.get('칸닮음4')}\t{해시}\n")
-    print("gh 이슈: 건너뜀(공개 저장소 아직 없음)")
+    import 끝; print("끝 단계", json.dumps(끝.끝내기(cfg.판.이름, tuple(cfg.get("끝", []))), ensure_ascii=False)[:600])
 @hydra.main(version_base=None, config_path="conf")
 def 주(cfg):
     import torch
