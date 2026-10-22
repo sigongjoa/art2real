@@ -47,7 +47,7 @@ main>*{grid-column:2}header{grid-column:1;grid-row:1/200;position:sticky;top:28p
 header h1{font-size:1.32rem;line-height:1.4;letter-spacing:-.01em;font-weight:750;margin-bottom:16px}header .lead{font-size:1rem}dl.meta{grid-template-columns:1fr 1fr;gap:12px 16px}main>h2:first-of-type{margin-top:0}
 @media (max-width:900px){main{display:block}header{position:static;margin-bottom:8px}main>h2:first-of-type{margin-top:44px}}
 nav.뒤{margin:0 0 14px}nav.뒤 a{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:.9rem;color:var(--muted);text-decoration:none}nav.뒤 a:hover{color:var(--ink)}nav.뒤 svg{width:16px;height:16px}
-td.왼{text-align:left;white-space:normal}tr.깊2 td:first-child{padding-left:30px;color:var(--muted)}.흐름{max-width:72ch}ul.목표 li{max-width:72ch;margin:6px 0}.구조틀{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:12px;overflow-x:auto}.구조도{display:block;width:100%;min-width:720px;height:auto}.구조틀{background:#fbfaf6}.구조도 text{font-family:inherit;fill:var(--ink)}.구조도 .제{font-size:15px;font-weight:700}.구조도 .작{font-size:12px;fill:var(--muted)}.구조도 .작진{font-size:13px;font-weight:600}.구조도 .묶{font-size:13px;font-weight:600;fill:var(--muted)}
+td.왼{text-align:left;white-space:normal}tr.깊2 td:first-child{padding-left:30px;color:var(--muted)}.흐름{max-width:72ch}ul.목표 li{max-width:72ch;margin:6px 0}.쇼츠틀{display:grid;grid-template-columns:260px minmax(0,1fr);gap:20px;align-items:start}.쇼츠{width:260px;max-width:100%;border-radius:12px;border:1px solid var(--rule);background:#000}.쇼츠글 td{white-space:normal}@media (max-width:640px){.쇼츠틀{grid-template-columns:1fr}}.구조틀{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:12px;overflow-x:auto}.구조도{display:block;width:100%;min-width:720px;height:auto}.구조틀{background:#fbfaf6}.구조도 text{font-family:inherit;fill:var(--ink)}.구조도 .제{font-size:15px;font-weight:700}.구조도 .작{font-size:12px;fill:var(--muted)}.구조도 .작진{font-size:13px;font-weight:600}.구조도 .묶{font-size:13px;font-weight:600;fill:var(--muted)}
 @media (max-width:640px){main{padding:32px 16px 64px}th,td{padding:8px 10px}h2{margin-top:44px}}
 """
 def 수(v, n=3): return "" if v is None else (f"{v:.{n}f}" if isinstance(v, float) else E(str(v)))
@@ -99,7 +99,7 @@ const io=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return
 requestAnimationFrame(()=>requestAnimationFrame(()=>{document.querySelectorAll('td.열.대기').forEach(c=>c.classList.remove('대기'));
 document.querySelectorAll('td[data-n]').forEach(c=>{if(c.dataset.n==='')return;const v=parseFloat(c.dataset.n),자=(c.dataset.n.split('.')[1]||'').length,k=Math.min(1,t/900);c.textContent=(v*(1-Math.pow(2,-10*k))).toFixed(자)});
 requestAnimationFrame(()=>document.getAnimations().forEach(a=>{a.pause();a.currentTime=t}))}))})()</script>"""
-def 만들기(판, d, c, j, 지, 대, 곡, 특, 해석, 다음, 모션=None, 파일="보고.html", 구=None):
+def 만들기(판, d, c, j, 지, 대, 곡, 특, 해석, 다음, 모션=None, 파일="보고.html", 구=None, 쇼=None):
     말 = j["판정"]; 판정꼴 = "통과" if 말 == "통과" else ("탐색" if 말.startswith("탐색") else "실패")
     바뀐 = ", ".join(f"{k}: {a} → {b}" for k, (a, b) in j["바뀐 손잡이"].items()) or "없음 (재현)"
     meta = [("판", 판), ("가지", c.판.가지), ("종류", c.판.종류), ("바뀐 손잡이", 바뀐), ("에폭", c.학습.에폭), ("대조", c.대조.get("판", "없음") if c.대조 else "없음"), ("git", j["git"]), ("날짜", j.get("날짜", ""))]
@@ -135,6 +135,11 @@ def 만들기(판, d, c, j, 지, 대, 곡, 특, 해석, 다음, 모션=None, 파
             h.append(f"<tr><td>주의 쏠림 {층} 층</td>{칸}</tr>")
         for 키, 말2 in (("탐침_학습CNN", "학습 CNN"), ("탐침_무작위CNN", "무작위 CNN"), ("탐침_화소", "화소 그대로")): h.append(f'<tr><td>{말2} 재현율 <span class="차">균형 {특[키][0]:.2f}</span></td>' + "".join(f"<td>{특[키][1][k]:.2f}</td>" for k in 이름) + "</tr>")
         h.append('</tbody></table></div><p class="주석">쏠림 1× = 조각 비율만큼 고르게 봄 · 1 보다 크면 그 조각을 더 봄. 재현율 = CNN 마지막 조각 특징으로 라벨을 맞힌 몫.</p><figure><img src="특징.png" alt="조각 라벨 · 4 층 주의 · 쏠림 · 탐침"><figcaption>12003 조각 라벨(파랑 직선 · 초록 곡선 · 빨강 접합 · 금 실선×숨은선)과 4 층 칸 평균 주의</figcaption></figure>')
+    if 쇼 and 쇼.get("편"):
+        def 큰(r): t = r.get("큰글", ""); return f' <strong>[{E(t.split(":", 1)[-1])}]</strong>' if t else ""
+        대 = "".join(f'<tr><td class="왼">{E(r["누구"])}</td><td class="왼">{E(r["말"])}{큰(r)}</td></tr>' for r in 쇼["대본"])
+        영 = '<video class="쇼츠" src="쇼츠.mp4" controls preload="metadata" playsinline></video>' if 쇼.get("웹용") else '<p class="비어">웹용 영상 없음</p>'
+        h.append(f'<h2>쇼츠</h2><div class="쇼츠틀">{영}<div class="쇼츠글"><p class="주석">편 {E(쇼["편"])} · {E(쇼["길이"])} · <strong>{E(쇼["상태"])}</strong> · 하네스가 판 끝에 대본(claude -p) · 대본검사 · 맥락 없는 읽기 · 굽기까지</p><div class="표"><table><thead><tr><th>누구</th><th>말</th></tr></thead><tbody>{대}</tbody></table></div></div></div>')
     h.append(f'<h2>해석</h2><div class="사람">{글줄(해석)}</div><h2>다음 가지</h2><div class="사람">{글줄(다음)}</div>')
     h.append(f'<h2>재현</h2><pre>python 하네스/하네스.py --config-name 판_{E(판)}</pre><p class="주석"><a href="설정.yaml">설정.yaml</a> · <a href="판정.json">판정.json</a> · <a href="보고.md">보고.md</a> · 산출 <code>{E(j.get("산출 폴더", ""))}</code></p></main>{모션JS.get(모션, "")}{미리보기JS if 모션 else ""}</body></html>')
     open(d + 파일, "w", encoding="utf-8").write("".join(h)); return d + 파일

@@ -14,6 +14,9 @@ def 끝내기(판, 단계=("쇼츠", "커밋", "공개", "이슈")):
         import 쇼츠
         try: 쇼 = 쇼츠.만들기(판); 남["쇼츠"] = 쇼; 더할 += [f"원화3d/과정/영상05/대화/{쇼['편']}", "원화3d/과정/쇼츠"]
         except Exception as e: 남["쇼츠"] = {"실패": str(e)[:300]}
+        쇼츠.판에넣기(판, 남["쇼츠"])   # 웹용 사본 · 대본 → 판 폴더 · 보고서 「쇼츠」 절
+    json.dump(남, open(d + "끝.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    import 보고; 보고.만들기(판); 목록.갱신(판)   # 쇼츠가 들어간 보고서로 다시
     json.dump(남, open(d + "끝.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     if "커밋" in 단계:
         돌("git", "add", "--", *더할); 상 = 돌("git", "diff", "--cached", "--name-only")

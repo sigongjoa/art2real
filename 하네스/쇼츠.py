@@ -73,4 +73,15 @@ def 만들기(판, 굽기=True):
             with open(f"{뿌리}/원화3d/과정/쇼츠/배포.md", "a", encoding="utf-8") as f: f.write(f"| {번호} 판 {판} | 대화 쇼츠 `out/영상05/대화/{편}/{편}.mp4` | — | 서재용 업로드 대기 | 하네스 자동 · 판정 {j['판정']} |\n")
             기록["mp4"] = mp4
     return 기록
+def 판에넣기(판, 쇼):   # 판 기록에 쇼츠: 웹용 사본(540 폭 · 원본은 out 그대로) · 대본 · 상태 → 하네스/판/<판>/쇼츠.json
+    d = f"{뿌리}/하네스/판/{판}/"; 편 = 쇼.get("편") if isinstance(쇼, dict) else None
+    if not 편: json.dump({"상태": "없음", **(쇼 if isinstance(쇼, dict) else {})}, open(d + "쇼츠.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1); return
+    mp4 = 쇼.get("mp4") or f"{뿌리}/out/영상05/대화/{편}/{편}.mp4"; 웹 = d + "쇼츠.mp4"
+    if os.path.exists(mp4): subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-i", mp4, "-vf", "scale=540:-2", "-c:v", "libx264", "-crf", "28", "-preset", "veryfast", "-c:a", "aac", "-b:a", "96k", "-movflags", "+faststart", 웹], check=False)
+    줄 = []
+    for l in open(영상 + f"대화/{편}/대본.tsv", encoding="utf-8").read().splitlines()[2:]:
+        c = l.split("\t")
+        if len(c) >= 6: 줄.append({"누구": c[0], "큰글": c[4], "말": c[5].split("｜")[0]})
+    배 = open(f"{뿌리}/원화3d/과정/쇼츠/배포.md", encoding="utf-8").read(); m = re.search(rf"\| [^|]*판 {re.escape(판)} \|[^\n]*\| (서재용[^|]*?)\|", 배)
+    json.dump({"편": 편, "웹용": os.path.exists(웹), "길이": re.sub(r"^\S+\.mp4\s*", "", 쇼.get("굽기", "")), "상태": (m.group(1).strip() if m else "업로드 대기"), "대본": 줄}, open(d + "쇼츠.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 if __name__ == "__main__": print(json.dumps(만들기(sys.argv[1], "--안굽기" not in sys.argv), ensure_ascii=False, indent=1))
