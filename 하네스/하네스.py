@@ -6,6 +6,7 @@ from omegaconf import OmegaConf
 뿌리 = "G:/art2real"; 실험 = 뿌리 + "/원화3d/실험_20261013/캐드부품"; sys.path.insert(0, 실험)
 import 모델124 as B, 조립124 as C, 모델127 as M7
 손잡이밖 = {"판", "기준", "대조", "점검", "끝", "hydra"}
+계산만 = {"학습.미세"}   # 결과가 같은 계산 방식(기울기 누적 조각 · GroupNorm 은 장마다라 같음) — 손잡이로 안 셈
 def 펼친(d, 앞=""): return {f"{앞}{k}": v for k0, v0 in d.items() for k, v in (펼친(v0, f"{k0}.").items() if isinstance(v0, dict) else [(k0, v0)])} if isinstance(d, dict) else {앞: d}
 class 관문거부(Exception): pass
 # ── ① 관문 ────────────────────────────────────────────────
@@ -20,7 +21,7 @@ def 깃(*a): return subprocess.run(["git", "-C", 뿌리, "-c", "core.quotepath=o
 def 관문(cfg, 설정파일, 덮어쓰기=()):
     판 = cfg.판; 대설정 = f"{뿌리}/하네스/판/{cfg.대조.get('손잡이판', cfg.대조.get('판'))}/설정.yaml" if cfg.대조 else ""   # 손잡이판 = 손잡이를 셀 판(에폭을 바꾸는 판은 같은 에폭 대조가 판 안에 있음)   # 대조 판이 하네스 판이면 그 설정과 손잡이를 셈(아니면 바탕)
     바탕 = OmegaConf.to_container(OmegaConf.load(대설정 if 대설정 and os.path.exists(대설정) else f"{뿌리}/하네스/conf/바탕.yaml")); 지금 = OmegaConf.to_container(cfg, resolve=True)
-    a, b = (펼친({k: v for k, v in d.items() if k not in 손잡이밖}) for d in (바탕, 지금)); 바뀐 = {k: (a.get(k), b.get(k)) for k in set(a) | set(b) if a.get(k) != b.get(k)}
+    a, b = (펼친({k: v for k, v in d.items() if k not in 손잡이밖}) for d in (바탕, 지금)); 바뀐 = {k: (a.get(k), b.get(k)) for k in set(a) | set(b) if a.get(k) != b.get(k) and k not in 계산만}
     문 = []
     if not str(cfg.판.get("명제", "") or "").strip() or str(cfg.판.get("명제")) == "???": 문.append("명제가 없다 — 이 판이 맞거나 틀릴 문장 하나를 적어라(사전 예측)")
     시 = str(cfg.판.get("시도", "") or "").strip()
