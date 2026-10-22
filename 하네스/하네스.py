@@ -12,9 +12,10 @@ class 관문거부(Exception): pass
 지표출처 = {"시험loss": None, "학습loss": None, "몸수맞음": None, "칸닮음4": "층보기", "빈조각주의4": "층보기", "주의엔트로피4": "층보기", "자리퍼짐": "층보기",
          "탐침_구조": "탐침", "탐침_곡률": "탐침", "탐침3_구조": "탐침", "탐침3_곡률": "탐침", "탐침4_구조": "탐침", "탐침4_곡률": "탐침",
          "쏠림4_곡선": "특징", "쏠림4_접합": "특징", "쏠림4_빈칸": "특징", "특징탐침": "특징", "특징탐침_무작위": "특징", "시험IoU": "평가", "학습IoU": "평가"}
+지표출처 |= {f"{k}{끝}": None for k in ("선_직선", "선_곡선", "선_곡면테", "선_숨음", "선_헛선", "점_정밀", "점_재현", "점_F1") for 끝 in ("", "_화소", "_차")}   # 선지도 과제는 점검이 늘 만듦
 식들 = {">=", "<=", ">", "<"}
 코드경로 = ["하네스", "원화3d/실험_20261013/캐드부품"]
-def 깃(*a): return subprocess.run(["git", "-C", 뿌리, "-c", "core.quotepath=off", *a], capture_output=True, text=True, encoding="utf-8").stdout.strip()
+def 깃(*a): return subprocess.run(["git", "-C", 뿌리, "-c", "core.quotepath=off", *a], capture_output=True, text=True, encoding="utf-8").stdout.rstrip()   # 앞 공백은 남김(porcelain 첫 줄 상태 칸)
 def 관문(cfg, 설정파일, 덮어쓰기=()):
     판 = cfg.판; 바탕 = OmegaConf.to_container(OmegaConf.load(f"{뿌리}/하네스/conf/바탕.yaml")); 지금 = OmegaConf.to_container(cfg, resolve=True)
     a, b = (펼친({k: v for k, v in d.items() if k not in 손잡이밖}) for d in (바탕, 지금)); 바뀐 = {k: (a.get(k), b.get(k)) for k in set(a) | set(b) if a.get(k) != b.get(k)}
@@ -44,19 +45,27 @@ def 관문(cfg, 설정파일, 덮어쓰기=()):
     return 바뀐
 # ── 부품 등록표 ───────────────────────────────────────────
 def 망(cfg):
+    if 선지도(cfg): import 과제선지도 as G; return G.망(cfg.인코더)
     if cfg.인코더 == "cnn": return M7.망()
     if cfg.인코더 == "cnn4": import 모델129 as M9; return M9.망("c")
     raise KeyError(cfg.인코더)
+def 선지도(cfg): return cfg.get("목표", "CAD") == "선지도"   # 과제: CAD(덩어리 숫자) | 선지도(CNN 만 · 하네스/과제선지도.py)
+def 모(cfg, o): return o if 선지도(cfg) else o.reshape(-1, C.K, B.W)
+def 잘(cfg, Y, 쓰, ix):
+    if 선지도(cfg): import 과제선지도 as G; return G.자르기(Y, ix), None
+    return Y[ix], 쓰[ix]
 def 손실함수(cfg):
     import 손실그림124 as L
+    if 선지도(cfg): import 과제선지도 as G; return G.손실
     if cfg.짝 == "부피순": return lambda o, Y, 쓰: sum(L.항목(o, Y, 쓰).values())
     if cfg.짝 == "헝가리안":
         import 모델129 as M9
         def f(o, Y, 쓰): y, s = M9.바꾼과녁(o, Y, 쓰); return sum(L.항목(o, y, s).values())
         return f
     raise KeyError(cfg.짝)
-def 자료(dev):
+def 자료(dev, cfg=None):
     import torch
+    if cfg is not None and 선지도(cfg): import 과제선지도 as G; return G.자료(dev, cfg)
     z = np.load(M7.D + "그림.npz"); 이 = list(z["이름"]); 색 = {f"{r['i']:05d}": r for r in B.색인()}; 과 = [B.과녁(색[n]) for n in 이]
     X = torch.tensor(z["X"]).to(dev); Y = torch.tensor(np.stack([a for a, _ in 과])).to(dev); 쓰 = torch.tensor(np.stack([b for _, b in 과])).to(dev)
     시 = np.array([int(n) >= B.NT for n in 이]); return X, Y, 쓰, torch.tensor(np.nonzero(~시)[0]), torch.tensor(np.nonzero(시)[0]), 이, z["X"]
@@ -64,8 +73,8 @@ def 자료(dev):
 def 연기(cfg, X, Y, 쓰, idx):
     import torch
     torch.cuda.reset_peak_memory_stats(); net = 망(cfg).cuda(); f = 손실함수(cfg); opt = torch.optim.AdamW(net.parameters(), 1e-3); ix = idx[:cfg.학습.미세]
-    l0 = float(f(net(X[ix]).reshape(-1, C.K, B.W), Y[ix], 쓰[ix])); assert np.isfinite(l0), "연기: 첫 loss 가 수가 아님"
-    for _ in range(40): opt.zero_grad(); l = f(net(X[ix]).reshape(-1, C.K, B.W), Y[ix], 쓰[ix]); l.backward(); opt.step()
+    y, s = 잘(cfg, Y, 쓰, ix); l0 = float(f(모(cfg, net(X[ix])), y, s)); assert np.isfinite(l0), "연기: 첫 loss 가 수가 아님"
+    for _ in range(40): opt.zero_grad(); l = f(모(cfg, net(X[ix])), y, s); l.backward(); opt.step()
     값 = {"첫loss": round(l0, 3), "한배치40걸음": round(float(l), 3), "VRAM_GB": round(torch.cuda.max_memory_allocated() / 2**30, 2)}
     assert 값["한배치40걸음"] < 0.5 * l0, f"연기: 배치 하나를 못 외움 {값}"; assert 값["VRAM_GB"] < 7.0, f"연기: VRAM {값['VRAM_GB']} GB"
     del net, opt; torch.cuda.empty_cache(); return 값
@@ -87,11 +96,14 @@ def 실행(cfg, 폴더, X, Y, 쓰, idx, vx, 이, 해시=""):
         net.train(); perm = idx[torch.randperm(len(idx))]; ls = []
         for b in range(0, len(perm), cfg.학습.배치):
             ix = perm[b:b + cfg.학습.배치]; opt.zero_grad(); lt = 0.
-            for c in range(0, len(ix), cfg.학습.미세): jx = ix[c:c + cfg.학습.미세]; l = f(net(X[jx]).reshape(-1, C.K, B.W), Y[jx], 쓰[jx]) * len(jx) / len(ix); l.backward(); lt += float(l)
+            for c in range(0, len(ix), cfg.학습.미세): jx = ix[c:c + cfg.학습.미세]; l = f(모(cfg, net(X[jx])), *잘(cfg, Y, 쓰, jx)) * len(jx) / len(ix); l.backward(); lt += float(l)
             opt.step(); ls.append(lt)
         net.eval()
-        with torch.no_grad(): ov = torch.cat([net(X[vx[i:i + 100]]) for i in range(0, len(vx), 100)]).reshape(-1, C.K, B.W); lv = float(f(ov, Y[vx], 쓰[vx])); 수 = float(((ov[..., 0] > 0).sum(1) == Y[vx][..., 0].sum(1)).float().mean())
-        기록.append({"에폭": ep + 1, "학습": float(np.mean(ls)), "시험": lv, "몸수맞음": 수, "초": round(time.time() - t0)}); print(기록[-1], flush=True)
+        with torch.no_grad():
+            ov = 모(cfg, torch.cat([net(X[vx[i:i + 50]]) for i in range(0, len(vx), 50)])); yv, sv = 잘(cfg, Y, 쓰, vx); lv = float(f(ov, yv, sv))
+            if 선지도(cfg): 수 = {"선맞음": float((ov[:, :, :4].argmax(2)[yv["지도"] > 0] == yv["지도"][yv["지도"] > 0]).float().mean())}   # 선 화소 종류 맞음
+            else: 수 = {"몸수맞음": float(((ov[..., 0] > 0).sum(1) == yv[..., 0].sum(1)).float().mean())}
+        기록.append({"에폭": ep + 1, "학습": float(np.mean(ls)), "시험": lv, **수, "초": round(time.time() - t0)}); print(기록[-1], flush=True)
         for k_, v_ in 기록[-1].items(): k_ != "에폭" and tb.add_scalar(k_, v_, ep + 1)
         torch.save(net.state_dict(), 폴더 + f"점검/{ep + 1:02d}.pt"); torch.save({"모델": net.state_dict(), "옵티": opt.state_dict(), "에폭": ep + 1, "기록": 기록, "rng": torch.get_rng_state(), "열쇠": 키}, 폴더 + "점검/마지막.pt")
     tb.close(); json.dump(기록, open(폴더 + "학습.json", "w", encoding="utf-8"), ensure_ascii=False); return net, 기록
@@ -163,10 +175,14 @@ def 주(cfg):
     try: 바뀐 = 관문(cfg, 설정파일, tuple(hc.overrides.task))
     except 관문거부 as e: print(e); sys.exit(2)
     해시 = 깃("rev-parse", "--short", "HEAD"); print("관문 통과 · 바뀐 손잡이", {k: v[1] for k, v in 바뀐.items()}, "· git", 해시, flush=True)
-    폴더 = f"{뿌리}/out/하네스/{cfg.판.이름}/"; os.makedirs(폴더, exist_ok=True); X, Y, 쓰, idx, vx, 이, Xnp = 자료("cuda")
+    폴더 = f"{뿌리}/out/하네스/{cfg.판.이름}/"; os.makedirs(폴더, exist_ok=True); X, Y, 쓰, idx, vx, 이, Xnp = 자료("cuda", cfg)
     연 = 연기(cfg, X, Y, 쓰, idx) if "연기" in cfg.점검 else {}; print("연기 판 통과", 연, flush=True)
-    net, 록 = 실행(cfg, 폴더, X, Y, 쓰, idx, vx, 이, 해시); del X, Y, 쓰; torch.cuda.empty_cache()
-    지 = 점검(cfg, 폴더, net, 록, Xnp, 이); 판 = 판정(cfg, 지); 기록(cfg, 폴더, 바뀐, 연, 지, 판, 해시)
+    net, 록 = 실행(cfg, 폴더, X, Y, 쓰, idx, vx, 이, 해시)
+    if 선지도(cfg):   # 점검 = 지표 + 같은 에폭 화소 대조(같은 머리) · 그림
+        import 과제선지도 as G; 지 = G.점검(cfg, 폴더, net, 록, X, Y, vx, 이, Xnp, lambda c2, 폴: 실행(c2, 폴, X, Y, 쓰, idx, vx, 이, 해시))
+    else:
+        del X, Y, 쓰; torch.cuda.empty_cache(); 지 = 점검(cfg, 폴더, net, 록, Xnp, 이)
+    판 = 판정(cfg, 지); 기록(cfg, 폴더, 바뀐, 연, 지, 판, 해시)
     print("판정", json.dumps(판, ensure_ascii=False), flush=True)
 if __name__ == "__main__":
     주()
