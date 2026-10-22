@@ -44,7 +44,7 @@ pre{background:#1d2129;color:#f3efe6;padding:16px 18px;border-radius:10px;overfl
 td.열{background:color-mix(in oklab,var(--line1) calc(var(--v)*1%),var(--sheet))}td.열.진{color:#fff}
 main{max-width:1240px;display:grid;grid-template-columns:300px minmax(0,1fr);column-gap:48px;align-items:start}
 main>*{grid-column:2}header{grid-column:1;grid-row:1/200;position:sticky;top:28px;border:1px solid var(--rule);border-radius:14px;background:var(--sheet);padding:24px 22px;margin:0}
-header h1{font-size:2rem}header .lead{font-size:1rem}dl.meta{grid-template-columns:1fr 1fr;gap:12px 16px}main>h2:first-of-type{margin-top:0}
+header h1{font-size:1.32rem;line-height:1.4;letter-spacing:-.01em;font-weight:750;margin-bottom:16px}header .lead{font-size:1rem}dl.meta{grid-template-columns:1fr 1fr;gap:12px 16px}main>h2:first-of-type{margin-top:0}
 @media (max-width:900px){main{display:block}header{position:static;margin-bottom:8px}main>h2:first-of-type{margin-top:44px}}
 @media (max-width:640px){main{padding:32px 16px 64px}th,td{padding:8px 10px}h2{margin-top:44px}}
 """
@@ -68,20 +68,46 @@ def 곡선svg(곡):
         선 += f'<polyline points="{pts}" fill="none" stroke="{색}" stroke-width="2.4" stroke-linejoin="round"/>' + "".join(f'<circle cx="{x(r["에폭"]):.1f}" cy="{y(r[키]):.1f}" r="3" fill="{색}"/>' for r in 곡)
         선 += f'<text x="{x(끝["에폭"]) + 10:.1f}" y="{끝y[키] + 5:.1f}" style="fill:{색};font-weight:600">{이름} {끝[키]:.2f}</text>'
     return f'<div class="곡선"><svg viewBox="0 0 {W} {H}" role="img" aria-label="에폭별 학습 · 시험 loss">{눈}{선}<text x="{(L + W - R) / 2}" y="{H - 2}" text-anchor="middle">에폭</text></svg></div>'
-def 만들기(판, d, c, j, 지, 대, 곡, 특, 해석, 다음):
+모션CSS = {
+ "도장": """
+@media (prefers-reduced-motion:no-preference){
+.기준줄{animation:줄 .5s cubic-bezier(.16,1,.3,1) both;animation-delay:calc(var(--i)*120ms + 150ms)}
+@keyframes 줄{from{opacity:.15;transform:translateX(-10px)}}
+td.결과 svg path{stroke-dasharray:24;stroke-dashoffset:0;animation:긋기 .45s cubic-bezier(.16,1,.3,1) both;animation-delay:calc(var(--i)*120ms + 380ms)}
+@keyframes 긋기{from{stroke-dashoffset:24}}
+header .판정{animation:도장 .7s cubic-bezier(.16,1,.3,1) both;animation-delay:calc(var(--n)*120ms + 520ms)}
+@keyframes 도장{0%{transform:scale(1.35) rotate(-6deg);opacity:0;filter:blur(3px)}60%{transform:scale(.96) rotate(1deg);opacity:1;filter:none}100%{transform:none}}
+header .판정{box-shadow:0 6px 18px -8px currentColor}}""",
+ "그리기": """
+@media (prefers-reduced-motion:no-preference){
+.곡선 polyline{stroke-dasharray:var(--len);stroke-dashoffset:0;animation:그림 1.6s cubic-bezier(.16,1,.3,1) both .2s}
+@keyframes 그림{from{stroke-dashoffset:var(--len)}}
+.곡선 circle{animation:점 .4s ease-out both 1.4s}@keyframes 점{from{opacity:0;r:0}}
+td.열{transition:background-color 1.1s cubic-bezier(.16,1,.3,1)}td.열.대기{background:var(--sheet)!important;color:inherit!important}}"""}
+모션JS = {"도장": "", "그리기": """<script>(()=>{if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+document.querySelectorAll('.곡선 polyline').forEach(p=>p.style.setProperty('--len',p.getTotalLength()));
+const 셀=[...document.querySelectorAll('td.열')];셀.forEach(c=>c.classList.add('대기'));
+const 수=[...document.querySelectorAll('td[data-n]')].filter(t=>t.dataset.n!=='');
+const io=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return;const t=e.target;io.unobserve(t);
+ if(t.classList.contains('열')){t.classList.remove('대기');return}
+ const v=parseFloat(t.dataset.n),자=(t.dataset.n.split('.')[1]||'').length,t0=performance.now();
+ const 걸음=n=>{const k=Math.min(1,(n-t0)/900),e2=1-Math.pow(2,-10*k);t.textContent=(v*e2).toFixed(자);if(k<1)requestAnimationFrame(걸음)};requestAnimationFrame(걸음)}),{threshold:.4});
+[...셀,...수].forEach(x=>io.observe(x))})()</script>"""}
+def 만들기(판, d, c, j, 지, 대, 곡, 특, 해석, 다음, 모션=None, 파일="보고.html"):
     말 = j["판정"]; 판정꼴 = "통과" if 말 == "통과" else ("탐색" if 말.startswith("탐색") else "실패")
     바뀐 = ", ".join(f"{k}: {a} → {b}" for k, (a, b) in j["바뀐 손잡이"].items()) or "없음 (재현)"
-    meta = [("가지", c.판.가지), ("종류", c.판.종류), ("바뀐 손잡이", 바뀐), ("에폭", c.학습.에폭), ("대조", c.대조.get("판", "없음") if c.대조 else "없음"), ("git", j["git"]), ("날짜", j.get("날짜", ""))]
-    h = [f'<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>판 {E(판)} · 하네스 보고서</title><style>{CSS}</style></head><body><main>']
-    h.append(f'<header><h1>판 {E(판)}</h1><p class="lead">{E(str(c.판.물음))}</p><span class="판정 {판정꼴}">{아이콘[판정꼴 != "실패"]}{E(말)}</span>')
+    meta = [("판", 판), ("가지", c.판.가지), ("종류", c.판.종류), ("바뀐 손잡이", 바뀐), ("에폭", c.학습.에폭), ("대조", c.대조.get("판", "없음") if c.대조 else "없음"), ("git", j["git"]), ("날짜", j.get("날짜", ""))]
+    h = [f'<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>판 {E(판)} · 하네스 보고서</title><style>{CSS}{모션CSS.get(모션, "")}</style></head><body><main style="--n:{len(j["기준"])}">']
+    명제 = str(c.판.get("명제") or c.판.물음)
+    h.append(f'<header><h1>{E(명제)}</h1><span class="판정 {판정꼴}">{아이콘[판정꼴 != "실패"]}{E(말)}</span>')
     h.append('<dl class="meta">' + "".join(f"<div><dt>{E(k)}</dt><dd>{E(str(v))}</dd></div>" for k, v in meta) + "</dl></header>")
     h.append('<h2>판정 기준</h2><div class="표"><table><thead><tr><th>지표</th><th>조건</th><th>이 판</th><th>대조</th><th>결과</th></tr></thead><tbody>')
-    for r in j["기준"]: h.append(f'<tr><td>{E(r["지표"])}</td><td>{E(r["식"])} {r["값"]}</td><td><strong>{수(r["이 판"])}</strong></td><td>{수(대.get(r["지표"]))}</td><td class="결과"><span class="{"o" if r["통과"] else "x"}" aria-label="{"통과" if r["통과"] else "실패"}">{아이콘[r["통과"]]}</span></td></tr>')
+    for i_, r in enumerate(j["기준"]): h.append(f'<tr class="기준줄" style="--i:{i_}"><td>{E(r["지표"])}</td><td>{E(r["식"])} {r["값"]}</td><td><strong>{수(r["이 판"])}</strong></td><td>{수(대.get(r["지표"]))}</td><td class="결과" style="--i:{i_}"><span class="{"o" if r["통과"] else "x"}" aria-label="{"통과" if r["통과"] else "실패"}">{아이콘[r["통과"]]}</span></td></tr>')
     h.append("</tbody></table></div><p class=\"주석\">기준은 돌리기 전에 커밋됐다(하네스 관문이 확인). 대조는 같은 에폭.</p>")
     h.append('<h2>숫자: 이 판과 대조</h2><div class="표"><table><thead><tr><th>지표</th><th>이 판</th><th>대조</th><th>차</th></tr></thead><tbody>')
     for k, v in 지.items():
         b = 대.get(k); 차 = f"{v - b:+.3f}" if isinstance(v, (int, float)) and isinstance(b, (int, float)) else ""
-        h.append(f'<tr><td>{E(k)}</td><td>{수(v)}</td><td>{수(b)}</td><td class="차">{차}</td></tr>')
+        h.append(f'<tr><td>{E(k)}</td><td data-n="{수(v)}">{수(v)}</td><td>{수(b)}</td><td class="차">{차}</td></tr>')
     h.append("</tbody></table></div>")
     h.append("<h2>학습 곡선</h2>" + 곡선svg(곡) + '<figure><img src="시트.png" alt="학습 곡선 · 지표 · 12003 세 장 칸 1 주의"><figcaption>판 시트: 하네스가 판 끝에 만든 그림</figcaption></figure>')
     연 = j.get("연기", {})
@@ -97,5 +123,5 @@ def 만들기(판, d, c, j, 지, 대, 곡, 특, 해석, 다음):
         for 키, 말2 in (("탐침_학습CNN", "학습 CNN"), ("탐침_무작위CNN", "무작위 CNN"), ("탐침_화소", "화소 그대로")): h.append(f'<tr><td>{말2} 재현율 <span class="차">균형 {특[키][0]:.2f}</span></td>' + "".join(f"<td>{특[키][1][k]:.2f}</td>" for k in 이름) + "</tr>")
         h.append('</tbody></table></div><p class="주석">쏠림 1× = 조각 비율만큼 고르게 봄 · 1 보다 크면 그 조각을 더 봄. 재현율 = CNN 마지막 조각 특징으로 라벨을 맞힌 몫.</p><figure><img src="특징.png" alt="조각 라벨 · 4 층 주의 · 쏠림 · 탐침"><figcaption>12003 조각 라벨(파랑 직선 · 초록 곡선 · 빨강 접합 · 금 실선×숨은선)과 4 층 칸 평균 주의</figcaption></figure>')
     h.append(f'<h2>해석</h2><div class="사람">{글줄(해석)}</div><h2>다음 가지</h2><div class="사람">{글줄(다음)}</div>')
-    h.append(f'<h2>재현</h2><pre>python 하네스/하네스.py --config-name 판_{E(판)}</pre><p class="주석"><a href="설정.yaml">설정.yaml</a> · <a href="판정.json">판정.json</a> · <a href="보고.md">보고.md</a> · 산출 <code>{E(j.get("산출 폴더", ""))}</code></p></main></body></html>')
-    open(d + "보고.html", "w", encoding="utf-8").write("".join(h)); return d + "보고.html"
+    h.append(f'<h2>재현</h2><pre>python 하네스/하네스.py --config-name 판_{E(판)}</pre><p class="주석"><a href="설정.yaml">설정.yaml</a> · <a href="판정.json">판정.json</a> · <a href="보고.md">보고.md</a> · 산출 <code>{E(j.get("산출 폴더", ""))}</code></p></main>{모션JS.get(모션, "")}</body></html>')
+    open(d + 파일, "w", encoding="utf-8").write("".join(h)); return d + 파일

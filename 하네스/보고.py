@@ -53,7 +53,7 @@ import os, sys, json, re
 """
 사람칸 = "<!-- 사람 칸: 아래를 채운다 · 보고서를 다시 만들어도 남는다 -->\n(비어 있음)"
 def f(v, n=3): return "—" if v is None else (f"{v:.{n}f}" if isinstance(v, float) else str(v))
-def 만들기(판):
+def 만들기(판, 모션=None, 파일="보고.html"):   # 모션 = None | 도장 | 그리기 (시안 고르는 동안)
     d = f"{뿌리}/하네스/판/{판}/"; j = json.load(open(d + "판정.json", encoding="utf-8")); 지 = j["지표"]
     from omegaconf import OmegaConf
     c = OmegaConf.load(d + "설정.yaml"); 대 = dict(c.대조.get("값", {})) if c.대조 else {}
@@ -78,5 +78,5 @@ def 만들기(판):
                   첫loss=f(연.get("첫loss")), 한배치=f(연.get("한배치40걸음")), vram=f(연.get("VRAM_GB"), 2), 칸닮음=f(지.get("칸닮음4")), 빈조각=f(지.get("빈조각주의4")), 엔트로피=f(지.get("주의엔트로피4")), 퍼짐=f(지.get("자리퍼짐")),
                   탐구조=f(지.get("탐침_구조")), 탐곡률=f(지.get("탐침_곡률")), 탐구조3=f(지.get("탐침3_구조")), 탐곡률3=f(지.get("탐침3_곡률")), 특징=특글, 해석=보존("5. 해석"), 다음=보존("6. 다음 가지"), 산출=j.get("산출 폴더", "—"))
     open(d + "보고.md", "w", encoding="utf-8").write(글)
-    import 보고html; 보고html.만들기(판, d, c, j, 지, 대, 곡, 특, 보존("5. 해석"), 보존("6. 다음 가지")); return d + "보고.md"
-if __name__ == "__main__": print(만들기(sys.argv[1]))
+    import 보고html; 보고html.만들기(판, d, c, j, 지, 대, 곡, 특, 보존("5. 해석"), 보존("6. 다음 가지"), 모션, 파일); return d + "보고.md"
+if __name__ == "__main__": print(만들기(sys.argv[1], *(sys.argv[2:4])))

@@ -13,6 +13,7 @@ def 관문(cfg, 설정파일):
     판 = cfg.판; 바탕 = OmegaConf.to_container(OmegaConf.load(f"{뿌리}/하네스/conf/바탕.yaml")); 지금 = OmegaConf.to_container(cfg, resolve=True)
     a, b = (펼친({k: v for k, v in d.items() if k not in 손잡이밖}) for d in (바탕, 지금)); 바뀐 = {k: (a.get(k), b.get(k)) for k in set(a) | set(b) if a.get(k) != b.get(k)}
     문 = []
+    if not str(cfg.판.get("명제", "") or "").strip() or str(cfg.판.get("명제")) == "???": 문.append("명제가 없다 — 이 판이 맞거나 틀릴 문장 하나를 적어라(사전 예측)")
     if not cfg.기준: 문.append("기준이 없다 — 돌리기 전에 기준을 적어라")
     if cfg.대조 and cfg.대조.get("에폭") != cfg.학습.에폭: 문.append(f"대조 에폭 {cfg.대조.get('에폭')} ≠ 이 판 에폭 {cfg.학습.에폭} — 같은 시점끼리만 비교")
     if not cfg.대조: 문.append("대조가 없다")
