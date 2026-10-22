@@ -33,26 +33,27 @@ def 학습():
             with torch.no_grad(): 과정[ep + 1] = net(E[고정]).reshape(-1, C.K, B.W).cpu().numpy().tolist()
     torch.save(net.state_dict(), D + "머리.pt")
     json.dump({"기록": 기록, "과정": 과정, "고정": [이[int(i)] for i in 고정]}, open(D + "학습.json", "w", encoding="utf-8"), ensure_ascii=False); print("저장")
-def 평가():   # 확인124 와 같은 학습 300 · 시험 299 · 같은 자 + 항목별 loss + 과정 렌더
+def 평가(net=None, 입력=None, 출=D):   # 확인124 와 같은 학습 300 · 시험 299 · 같은 자 + 항목별 loss + 과정 렌더 · 모델127 은 net · 입력(이름들 → 텐서) · 출 을 넘김
     import torch, 손실그림124 as L
-    net = 망(); net.load_state_dict(torch.load(D + "머리.pt")); net.eval()
-    z = np.load(B.D + "임베딩.npz"); 색 = {f"{r['i']:05d}": r for r in B.색인()}; 이 = list(z["이름"]); 확 = json.load(open(B.D + "확인124.json", encoding="utf-8")); 결 = {}
+    z = np.load(B.D + "임베딩.npz"); 이 = list(z["이름"])
+    if net is None: net = 망(); net.load_state_dict(torch.load(D + "머리.pt")); 입력 = lambda ns: torch.tensor(z["E"][[이.index(n) for n in ns]]).reshape(len(ns), -1)
+    net.eval(); 색 = {f"{r['i']:05d}": r for r in B.색인()}; 이 = list(z["이름"]); 확 = json.load(open(B.D + "확인124.json", encoding="utf-8")); 결 = {}
     for 이름 in ("학습", "시험"):
         ns = 확[이름]["이름"]; 과 = [B.과녁(색[n]) for n in ns]; Y = torch.tensor(np.stack([a for a, _ in 과])); 쓰 = torch.tensor(np.stack([b for _, b in 과]))
-        with torch.no_grad(): o = net(torch.tensor(z["E"][[이.index(n) for n in ns]]).reshape(len(ns), -1)).reshape(-1, C.K, B.W)
+        with torch.no_grad(): o = net(입력(ns)).reshape(-1, C.K, B.W).cpu()
         항 = {k: round(float(v), 4) for k, v in L.항목(o, Y, 쓰).items()}; o = o.numpy(); 있 = Y.numpy()[..., 0] > 0
         정 = B.병렬렌더([("조립", 색[n]["코드"]) for n in ns]); 예 = B.병렬렌더([("자리", B.사양(a)) for a in o])
         assert sum(g is None for g in 정) <= 5, "정답 렌더 실패 — 일꾼 문제부터"
         iou = np.array([0. if g is None or p is None else float((g[1] & p[1]).sum() / max((g[1] | p[1]).sum(), 1)) for g, p in zip(정, 예)]); 몸1 = 있.sum(1) == 1
         for n, p in list(zip(ns, 예))[:12]:
-            if p is not None: B.M.저장(D + f"렌더/{n}_125.png", p[0])
+            if p is not None: B.M.저장(출 + f"렌더/{n}_예측.png", p[0])
         결[이름] = {"IoU 중앙": round(float(np.median(iou)), 4), "몸 1": round(float(np.median(iou[몸1])), 4), "몸 2+": round(float(np.median(iou[~몸1])), 4),
                    "몸 수 맞음": round(float(np.mean((o[..., 0] > 0).sum(1) == 있.sum(1))), 4), "종류 맞음": round(float((o[..., 1:8].argmax(-1) == Y.numpy()[..., 1:8].argmax(-1))[있].mean()), 4),
                    "항목 loss": 항, "IoU": [round(float(x), 4) for x in iou], "이름": ns}
         print(이름, {k: v for k, v in 결[이름].items() if k not in ("IoU", "이름")}, flush=True)
-    j = json.load(open(D + "학습.json", encoding="utf-8")); 키 = [(int(ep), t) for ep, os_ in j["과정"].items() for t in range(len(os_))]
+    j = json.load(open(출 + "학습.json", encoding="utf-8")); 키 = [(int(ep), t) for ep, os_ in j["과정"].items() for t in range(len(os_))]
     for (ep, t), r in zip(키, B.병렬렌더([("자리", B.사양(np.array(j["과정"][str(ep)][t]))) for ep, t in 키])):
-        if r is not None: B.M.저장(D + f"렌더/과정_{ep:02d}_{t}.png", r[0])
-    json.dump(결, open(D + "결과.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+        if r is not None: B.M.저장(출 + f"렌더/과정_{ep:02d}_{t}.png", r[0])
+    json.dump(결, open(출 + "결과.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 if __name__ == "__main__":
     {"학습": 학습, "평가": 평가}[sys.argv[1]]()
