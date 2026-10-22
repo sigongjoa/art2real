@@ -17,7 +17,7 @@ def 항목(o, Y, 쓰):   # 모델124.학습.손실 과 같은 식 · 항목마�
     L["특징 수치"] = ((f[..., 4:] - g[..., 4:]).abs().sum(-1) * g있).sum() / n * 2
     L["필렛 있음"] = (bce(o[..., 39], y[..., 39], reduction="none") * 있).sum() / n
     L["필렛 크기"] = ((o[..., 40] - y[..., 40]).abs() * y[..., 39] * 있).sum() / n
-    return {k: float(v) for k, v in L.items()}
+    return L   # 텐서 · 모델125 학습이 합을 loss 로 씀
 if __name__ == "__main__":
     import torch
     plt.rcParams["font.family"] = "Malgun Gothic"
@@ -28,7 +28,7 @@ if __name__ == "__main__":
         ns = 확[이름]["이름"]; 과 = [B.과녁(색[n]) for n in ns]
         Y = torch.tensor(np.stack([a for a, _ in 과])); 쓰 = torch.tensor(np.stack([b for _, b in 과]))
         with torch.no_grad(): o = net(torch.tensor(z["E"][[이.index(n) for n in ns]]).reshape(len(ns), -1)).reshape(-1, C.K, B.W)
-        값[이름] = 항목(o, Y, 쓰)
+        값[이름] = {k: float(v) for k, v in 항목(o, Y, 쓰).items()}
     # 예시 부품 하나(학습 · 몸 5): 정답 칸 vs 예측 칸의 종류 · 자리
     n = "08342"; Y0, _ = B.과녁(색[n])
     with torch.no_grad(): o0 = net(torch.tensor(z["E"][이.index(n)]).reshape(1, -1)).reshape(C.K, B.W).numpy()
