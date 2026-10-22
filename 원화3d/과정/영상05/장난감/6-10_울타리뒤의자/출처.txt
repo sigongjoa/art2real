@@ -1,1 +1,0 @@
-Ozguroglu, E. 외 (2024). pix2gestalt: Amodal Segmentation by Synthesizing Wholes. CVPR — 그림1 가려진 의자 완성

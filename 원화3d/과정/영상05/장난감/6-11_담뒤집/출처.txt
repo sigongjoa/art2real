@@ -1,1 +1,0 @@
-Ozguroglu, E. 외 (2024). pix2gestalt: Amodal Segmentation by Synthesizing Wholes. CVPR — 그림8 같은 입력의 여러 완성안

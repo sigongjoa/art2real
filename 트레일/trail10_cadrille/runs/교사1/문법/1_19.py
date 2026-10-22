@@ -1,7 +1,0 @@
-import cadquery as cq
-w0=cq.Workplane('ZX',origin=(0,-100,0))
-w1=cq.Workplane('XY',origin=(0,0,-65))
-w2=cq.Workplane('YZ',origin=(-75,0,0))
-w3=cq.Workplane('YZ',origin=(-60,0,0))
-w4=cq.Workplane('ZX',origin=(0,6,0))
-r=w0.sketch().segment((64,46),(64,54)).segment((55,65)).segment((18,73)).segment((-18,73)).segment((-55,65)).segment((-64,54)).segment((-64,46)).close().assemble().reset().face(w0.sketch().segment((64,-46),(64,-54)).segment((55,-65)).segment((18,-73)).segment((-18,-73)).segment((-55,-65)).segment((-64,-54)).segment((-64,-46)).close().assemble()).finalize().extrude(200).cut(w1.sketch().segment((54,-101),(74,-101)).segment((74,9)).segment((73,9)).segment((64,-91)).close().assemble().reset().face(w1.sketch().segment((-54,-101),(-74,-101)).segment((-74,9)).segment((-73,9)).segment((-64,-91)).close().assemble()).finalize().extrude(130)).cut(w2.sketch().segment((-101,14),(-100,14)).segment((-66,49)).segment((-53,64)).segment((-53,65)).segment((-101,65)).close().assemble().reset().face(w2.sketch().segment((-101,-14),(-100,-14)).segment((-66,-49)).segment((-53,-64)).segment((-53,-65)).segment((-101,-65)).close().assemble()).finalize().extrude(150)).union(w3.sketch().segment((-18,64),(-54,64)).segment((-64,54)).segment((-64,48)).segment((-34,48)).close().assemble().reset().face(w3.sketch().segment((-18,-64),(-54,-64)).segment((-64,-54)).segment((-64,-48)).segment((-34,-48)).close().assemble()).finalize().extrude(120)).cut(w4.sketch().push([(0,0)]).circle(56).finalize().extrude(96))

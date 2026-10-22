@@ -1,8 +1,0 @@
-카메라	말	큰낱말
-front,top,bottom	선을 얼마나 지워야, 컵이 안 보일까요?	얼마나?
-top,bottom,close	먼저 25퍼센트. 위는 가운데를, 아래는 모서리를 지웁니다.	25%
-bottom,top,low	45퍼센트. 아래쪽 컵이 흔들리기 시작합니다.	45%
-top,bottom,front	65퍼센트. 위는 아직 컵인데, 아래는 선 토막뿐입니다.	65%
-low,front,wide	지운 양은 똑같습니다. 다른 건 자리뿐이죠.	
-close,top,bottom	가운데가 빈 선은, 이어 붙이면 그만이지만,	
-bottom,wide,front	모서리가 사라지면, 어떤 덩어리였는지 알 길이 없습니다.	자리

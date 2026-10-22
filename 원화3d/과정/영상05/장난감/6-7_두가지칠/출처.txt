@@ -1,1 +1,0 @@
-Zhu, Y., Tian, Y., Metaxas, D. & Dollár, P. (2017). Semantic Amodal Segmentation. CVPR — 그림2 보이는 부분 vs 가려진 부분까지
