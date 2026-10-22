@@ -65,6 +65,8 @@ def 지표(o, Y):   # 시험 지표 — o, Y 는 같은 부품들
     for k in (1, 2, 3): m = 지 == k; r[f"선_{종류이름[k]}"] = round(float((예[m] == k).float().mean()), 4) if m.any() else None   # 그 종류 화소를 그 종류로 맞힘(재현율)
     선 = 지 > 0; r["선_숨음"] = round(float(((o[:, :, K][선] > 0) == Y["숨"][선]).float().mean()), 4)
     r["선_헛선"] = round(float((예[~선] > 0).float().mean()), 4)   # 선 없는 화소에 선을 그림
+    pr = o[:, :, :K].float().softmax(2); 있 = (1 - pr[:, :, 0]) > .5; 종 = pr[:, :, 1:].argmax(2) + 1   # 「선이냐」 먼저 · 종류는 그다음(132: 선이라 알아도 확률을 셋에 나눠 「없음」이 1 등)
+    r["선_자리"] = round(float(있[선].float().mean()), 4); r["선_자리헛선"] = round(float(있[~선].float().mean()), 4); r["선_종류"] = round(float((종[선] == 지[선]).float().mean()), 4)
     p = torch.sigmoid(o[:, :, K + 1]).float(); 봉 = (p == F.max_pool2d(p.reshape(-1, 1, 128, 128), 5, 1, 2).reshape(p.shape)) & (p > .3)
     t = Y["열"].float(); 참 = (t == F.max_pool2d(t.reshape(-1, 1, 128, 128), 3, 1, 1).reshape(t.shape)) & (t > .9)
     가까이 = lambda a: F.max_pool2d(a.float().reshape(-1, 1, 128, 128), 5, 1, 2).reshape(a.shape) > 0   # 2 화소 안
