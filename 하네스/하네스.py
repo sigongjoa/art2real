@@ -185,6 +185,7 @@ def 주(cfg):
     net, 록 = 실행(cfg, 폴더, X, Y, 쓰, idx, vx, 이, 해시)
     if 선지도(cfg):   # 점검 = 지표 + 같은 에폭 화소 대조(같은 머리) · 그림
         import 과제선지도 as G; 지 = G.점검(cfg, 폴더, net, 록, X, Y, vx, 이, Xnp, lambda c2, 폴: 실행(c2, 폴, X, Y, 쓰, idx, vx, 이, 해시))
+        del X, Y, net; import gc; gc.collect(); torch.cuda.empty_cache()   # 끝 단계 쇼츠 TTS 가 GPU 를 씀 — 안 비우면 130 ~ 136 쇼츠 7 편이 굽기 실패(10-22)
     else:
         del X, Y, 쓰; torch.cuda.empty_cache(); 지 = 점검(cfg, 폴더, net, 록, Xnp, 이)
     판 = 판정(cfg, 지); 기록(cfg, 폴더, 바뀐, 연, 지, 판, 해시)
