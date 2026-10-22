@@ -114,8 +114,11 @@ def 판정(cfg, 지):
     return {"판정": 말, "기준": 줄}
 def 기록(cfg, 폴더, 바뀐, 연, 지, 판):
     남 = f"{뿌리}/하네스/판/{cfg.판.이름}/"; os.makedirs(남, exist_ok=True); 해시 = subprocess.run(["git", "-C", 뿌리, "rev-parse", "--short", "HEAD"], capture_output=True, text=True).stdout.strip()
-    OmegaConf.save(cfg, 남 + "설정.yaml"); json.dump({"바뀐 손잡이": {k: list(v) for k, v in 바뀐.items()}, "git": 해시, "연기": 연, "지표": 지, **판, "산출 폴더": 폴더}, open(남 + "판정.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-    import shutil; shutil.copy(폴더 + "시트.png", 남 + "시트.png")
+    OmegaConf.save(cfg, 남 + "설정.yaml"); json.dump({"바뀐 손잡이": {k: list(v) for k, v in 바뀐.items()}, "git": 해시, "날짜": time.strftime("%Y-%m-%d %H:%M"), "연기": 연, "지표": 지, **판, "산출 폴더": 폴더}, open(남 + "판정.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    import shutil
+    for 파 in ("시트.png", "학습.json", "특징.json", "특징.png"):
+        if os.path.exists(폴더 + 파): shutil.copy(폴더 + 파, 남 + 파)
+    import 보고; print("보고서", 보고.만들기(cfg.판.이름))
     표 = f"{뿌리}/하네스/results.tsv"; 새 = not os.path.exists(표)
     with open(표, "a", encoding="utf-8") as f:
         if 새: f.write("날짜\t판\t가지\t종류\t바뀐 손잡이\t판정\t시험loss\t탐침_구조\t탐침_곡률\t칸닮음4\tgit\n")
