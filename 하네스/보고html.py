@@ -59,7 +59,7 @@ def 곡선svg(곡):
     if not 곡: return ""
     W, H, L, R, T, B = 620, 270, 52, 150, 14, 40; 값 = [r["학습"] for r in 곡] + [r["시험"] for r in 곡]; lo, hi = min(값), max(값); 에 = [r["에폭"] for r in 곡]
     x = lambda e: L + (e - 에[0]) / max(에[-1] - 에[0], 1) * (W - L - R); y = lambda v: T + (hi - v) / max(hi - lo, 1e-9) * (H - T - B)
-    눈 = "".join(f'<line x1="{L}" x2="{W - R}" y1="{y(v):.1f}" y2="{y(v):.1f}" stroke="#ece8de"/><text x="{L - 8}" y="{y(v) + 4:.1f}" text-anchor="end">{v:.1f}</text>' for v in [lo + (hi - lo) * k / 4 for k in range(5)])
+    눈 = "".join(f'<line x1="{L}" x2="{W - R}" y1="{y(v):.1f}" y2="{y(v):.1f}" style="stroke:var(--soft)"/><text x="{L - 8}" y="{y(v) + 4:.1f}" text-anchor="end">{v:.1f}</text>' for v in [lo + (hi - lo) * k / 4 for k in range(5)])
     눈 += "".join(f'<text x="{x(e):.1f}" y="{H - 20}" text-anchor="middle">{e}</text>' for e in 에 if len(에) <= 12 or e % 5 == 0 or e == 1)
     선 = ""; 끝y = {k: y(곡[-1][k]) for k in ("학습", "시험")}
     if abs(끝y["학습"] - 끝y["시험"]) < 20: 가운데 = (끝y["학습"] + 끝y["시험"]) / 2; s_ = 1 if 끝y["학습"] > 끝y["시험"] else -1; 끝y = {"학습": 가운데 + 10 * s_, "시험": 가운데 - 10 * s_}   # 끝 라벨 겹침 풀기
@@ -84,7 +84,7 @@ header .판정{box-shadow:0 6px 18px -8px currentColor}}""",
 @keyframes 그림{from{stroke-dashoffset:var(--len)}}
 .곡선 circle{animation:점 .4s ease-out both 1.4s}@keyframes 점{from{opacity:0;r:0}}
 td.열{transition:background-color 1.1s cubic-bezier(.16,1,.3,1)}td.열.대기{background:var(--sheet)!important;color:inherit!important}}"""}
-모션JS = {"도장": "", "그리기": """<script>(()=>{if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+모션JS = {"도장": "", "그리기": """<script>(()=>{if(matchMedia('(prefers-reduced-motion: reduce)').matches)return;document.querySelectorAll('.곡선 polyline').forEach(p=>p.style.setProperty('--len',p.getTotalLength()));if(/t=\d/.test(location.hash))return;
 document.querySelectorAll('.곡선 polyline').forEach(p=>p.style.setProperty('--len',p.getTotalLength()));
 const 셀=[...document.querySelectorAll('td.열')];셀.forEach(c=>c.classList.add('대기'));
 const 수=[...document.querySelectorAll('td[data-n]')].filter(t=>t.dataset.n!=='');
@@ -93,6 +93,10 @@ const io=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return
  const v=parseFloat(t.dataset.n),자=(t.dataset.n.split('.')[1]||'').length,t0=performance.now();
  const 걸음=n=>{const k=Math.min(1,(n-t0)/900),e2=1-Math.pow(2,-10*k);t.textContent=(v*e2).toFixed(자);if(k<1)requestAnimationFrame(걸음)};requestAnimationFrame(걸음)}),{threshold:.4});
 [...셀,...수].forEach(x=>io.observe(x))})()</script>"""}
+미리보기JS = """<script>(()=>{const m=location.hash.match(/t=(\d+)/);if(!m)return;const t=+m[1];   // 필름띠용: #t=밀리초 면 그 시점에 멈춘 모습
+requestAnimationFrame(()=>requestAnimationFrame(()=>{document.querySelectorAll('td.열.대기').forEach(c=>c.classList.remove('대기'));
+document.querySelectorAll('td[data-n]').forEach(c=>{if(c.dataset.n==='')return;const v=parseFloat(c.dataset.n),자=(c.dataset.n.split('.')[1]||'').length,k=Math.min(1,t/900);c.textContent=(v*(1-Math.pow(2,-10*k))).toFixed(자)});
+requestAnimationFrame(()=>document.getAnimations().forEach(a=>{a.pause();a.currentTime=t}))}))})()</script>"""
 def 만들기(판, d, c, j, 지, 대, 곡, 특, 해석, 다음, 모션=None, 파일="보고.html"):
     말 = j["판정"]; 판정꼴 = "통과" if 말 == "통과" else ("탐색" if 말.startswith("탐색") else "실패")
     바뀐 = ", ".join(f"{k}: {a} → {b}" for k, (a, b) in j["바뀐 손잡이"].items()) or "없음 (재현)"
@@ -123,5 +127,5 @@ def 만들기(판, d, c, j, 지, 대, 곡, 특, 해석, 다음, 모션=None, 파
         for 키, 말2 in (("탐침_학습CNN", "학습 CNN"), ("탐침_무작위CNN", "무작위 CNN"), ("탐침_화소", "화소 그대로")): h.append(f'<tr><td>{말2} 재현율 <span class="차">균형 {특[키][0]:.2f}</span></td>' + "".join(f"<td>{특[키][1][k]:.2f}</td>" for k in 이름) + "</tr>")
         h.append('</tbody></table></div><p class="주석">쏠림 1× = 조각 비율만큼 고르게 봄 · 1 보다 크면 그 조각을 더 봄. 재현율 = CNN 마지막 조각 특징으로 라벨을 맞힌 몫.</p><figure><img src="특징.png" alt="조각 라벨 · 4 층 주의 · 쏠림 · 탐침"><figcaption>12003 조각 라벨(파랑 직선 · 초록 곡선 · 빨강 접합 · 금 실선×숨은선)과 4 층 칸 평균 주의</figcaption></figure>')
     h.append(f'<h2>해석</h2><div class="사람">{글줄(해석)}</div><h2>다음 가지</h2><div class="사람">{글줄(다음)}</div>')
-    h.append(f'<h2>재현</h2><pre>python 하네스/하네스.py --config-name 판_{E(판)}</pre><p class="주석"><a href="설정.yaml">설정.yaml</a> · <a href="판정.json">판정.json</a> · <a href="보고.md">보고.md</a> · 산출 <code>{E(j.get("산출 폴더", ""))}</code></p></main>{모션JS.get(모션, "")}</body></html>')
+    h.append(f'<h2>재현</h2><pre>python 하네스/하네스.py --config-name 판_{E(판)}</pre><p class="주석"><a href="설정.yaml">설정.yaml</a> · <a href="판정.json">판정.json</a> · <a href="보고.md">보고.md</a> · 산출 <code>{E(j.get("산출 폴더", ""))}</code></p></main>{모션JS.get(모션, "")}{미리보기JS if 모션 else ""}</body></html>')
     open(d + 파일, "w", encoding="utf-8").write("".join(h)); return d + 파일
