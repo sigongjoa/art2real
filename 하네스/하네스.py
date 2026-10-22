@@ -48,7 +48,7 @@ def 관문(cfg, 설정파일, 덮어쓰기=()):
     return 바뀐
 # ── 부품 등록표 ───────────────────────────────────────────
 def 망(cfg):
-    if 선지도(cfg): import 과제선지도 as G; return G.망(cfg.인코더, 탐침=bool(cfg.선지도.get("탐침층", False)))
+    if 선지도(cfg): import 과제선지도 as G; return G.망(cfg.인코더, 탐침=bool(cfg.선지도.get("탐침층", False)), 합침=str(cfg.선지도.get("합침", "없음")))
     if cfg.인코더 == "cnn": return M7.망()
     if cfg.인코더 == "cnn4": import 모델129 as M9; return M9.망("c")
     raise KeyError(cfg.인코더)

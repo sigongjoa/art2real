@@ -38,7 +38,7 @@ def 열지도(점, s=1.5, N=128):   # (n, 3, M, 2) NaN 채움 → (n, 3, 128, 12
     return out
 층지표 = ("선_자리", "선_자리헛선", "선_종류", "선_직선", "선_곡선", "점_F1")
 층폭 = {1: 32, 2: 64, 3: 128}   # 블록 k 출력 채널 · 해상도 128 / 2^k
-def 망(인코더, 탐침=False):
+def 망(인코더, 탐침=False, 합침="없음"):   # 합침: 없음(블록 4 만) | 블록1(블록 4 를 8 배 키워 블록 1 과 이어 읽음 · 136 — 135 탐침: 얕은 층 = 어디 · 깊은 층 = 무엇)
     import torch, torch.nn as nn, torch.nn.functional as F
     torch.manual_seed(0)
     def 블(a, b): return nn.Sequential(nn.Conv2d(a, b, 3, 2, 1), nn.GroupNorm(8, b), nn.GELU(), nn.Conv2d(b, b, 3, 1, 1), nn.GroupNorm(8, b), nn.GELU())
@@ -46,14 +46,16 @@ def 망(인코더, 탐침=False):
         def __init__(s):
             super().__init__(); s.인코더 = 인코더; s.탐침 = 탐침 and 인코더 == "cnn"
             if 인코더 == "cnn": s.cnn = nn.Sequential(블(1, 32), 블(32, 64), 블(64, 128), 블(128, 256))   # 127 과 같은 백본
-            s.머리 = nn.Conv2d(256, 16 * 16 * 출, 1)
+            s.합침 = 합침 if 인코더 == "cnn" else "없음"
+            s.머리 = nn.Conv2d(256, 16 * 16 * 출, 1) if s.합침 == "없음" else nn.Conv2d(256 + 층폭[1], 4 * 출, 1)
             if s.탐침: s.탐머리 = nn.ModuleList([nn.Conv2d(층폭[k], 4 ** k * 출, 1) for k in (1, 2, 3)])   # 블록 k 를 같은 얇은 머리로 읽음
         def forward(s, x):
             b = len(x); x = x.reshape(b * 3, 1, 128, 128).float() / 255.
             if s.인코더 != "cnn": return F.pixel_shuffle(s.머리(F.pixel_unshuffle(x, 16)), 16).reshape(b, 3, 출, 128, 128)
             fs = []; f = x
             for 블록 in s.cnn: f = 블록(f); fs.append(f)
-            o = [F.pixel_shuffle(s.머리(f), 16)]
+            if s.합침 == "블록1": o = [F.pixel_shuffle(s.머리(torch.cat([F.interpolate(f, scale_factor=8, mode="nearest"), fs[0]], 1)), 2)]   # 64 칸에서 읽고 2 배로 펼침
+            else: o = [F.pixel_shuffle(s.머리(f), 16)]
             if s.탐침: o += [F.pixel_shuffle(h(fs[k - 1].detach()), 2 ** k) for k, h in zip((1, 2, 3), s.탐머리)]   # detach: 탐침은 본 학습을 안 바꿈
             return torch.cat(o, 1).reshape(b, 3, 출 * len(o), 128, 128)
     return 선망()
