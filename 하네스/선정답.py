@@ -82,12 +82,16 @@ def _하나(i):   # 부품 하나 → 저장/<i>.npz (지도 3×128×128 · 숨 
     except Exception as ex: open(p + ".err", "w", encoding="utf-8").write(str(ex)[:300])
 def 번호들(학습수=3000):
     import 모델124 as B; 이 = [r["i"] for r in B.색인()]; return [i for i in 이 if i < B.NT][:학습수] + [i for i in 이 if i >= B.NT]
-def 모두(학습수=3000, 일꾼=6):
-    from multiprocessing import Pool
-    os.makedirs(저장, exist_ok=True); 일 = 번호들(학습수);
-    with Pool(일꾼) as p:
-        for k, _ in enumerate(p.imap_unordered(_하나, 일, chunksize=4)):
-            if k % 200 == 0: print(k, "/", len(일), flush=True)
+def 모두(학습수=3000, 일꾼=6, 초=120):   # 부품마다 새 프로세스 · 초 넘으면 죽이고 .err(10-22: Pool 일꾼이 OCC 합치기에 30 분 넘게 멈춤 · 오래 산 일꾼은 IVtkOCC import 가 깨져 시험 271 실패)
+    import time, multiprocessing as mp
+    os.makedirs(저장, exist_ok=True); 일 = [i for i in 번호들(학습수) if not os.path.exists(저장 + f"{i:05d}.npz") and not os.path.exists(저장 + f"{i:05d}.npz.err")]; 도는 = {}; 끝낸 = 0
+    print("남음", len(일), flush=True)
+    while 일 or 도는:
+        while 일 and len(도는) < 일꾼: i = 일.pop(0); p = mp.Process(target=_하나, args=(i,)); p.start(); 도는[i] = (p, time.time())
+        for i, (p, t) in list(도는.items()):
+            if not p.is_alive(): p.join(); del 도는[i]; 끝낸 += 1; 끝낸 % 50 == 0 and print(끝낸, flush=True)
+            elif time.time() - t > 초: p.kill(); p.join(); open(저장 + f"{i:05d}.npz.err", "w", encoding="utf-8").write(f"시간 초과 {초} 초"); del 도는[i]; 끝낸 += 1
+        time.sleep(.2)
     print("끝 · 실패", len([f for f in os.listdir(저장) if f.endswith(".err")]), flush=True)
 if __name__ == "__main__" and sys.argv[1] == "모두": 모두(int(sys.argv[2]) if len(sys.argv) > 2 else 3000)
 elif __name__ == "__main__":
