@@ -58,3 +58,11 @@ claudedocs/피규어제작과정/
 # 개인 Claude 설정(허용 규칙)
 .claude/settings.local.json
 .secrets/
+
+# ── 10-22 정리(분석_코드베이스_20261022.md) — 다시 만들 수 있는 큰 것 ──
+트레일/gemma_venv/
+트레일/trail10_cadrille/runs/깊이학습/
+트레일/trail10_cadrille/runs/조각0/
+트레일/trail10_cadrille/runs/조각v2/
+트레일/trail10_cadrille/runs/실물학습/
+_workspace/
