@@ -1,6 +1,6 @@
 # 하네스 보고서 HTML — 보고.md 와 같은 내용 · 한 파일(그림은 같은 폴더) · GitHub Pages 로도 나감 · 10-22
 # 시안 C(10-22 사용자 고름 · 왼쪽 요약 고정 · 오른쪽 본문) · 시각 기준: 프로젝트 카드 화풍(흰 · 회백 바탕 + 뜻마다 강조 하나: 초록 통과 · 빨강 실패 · 금 도구) · 읽기 화면 · 판정이 첫눈에
-import html, re
+import html, re, os
 E = html.escape
 아이콘 = {True: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
           False: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 4.5l7 7m0-7l-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'}
@@ -48,6 +48,7 @@ header h1{font-size:1.32rem;line-height:1.4;letter-spacing:-.01em;font-weight:75
 @media (max-width:900px){main{display:block}header{position:static;margin-bottom:8px}main>h2:first-of-type{margin-top:44px}}
 nav.뒤{margin:0 0 14px}nav.뒤 a{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:.9rem;color:var(--muted);text-decoration:none}nav.뒤 a:hover{color:var(--ink)}nav.뒤 svg{width:16px;height:16px}
 td.왼{text-align:left;white-space:normal}tr.깊2 td:first-child{padding-left:30px;color:var(--muted)}.흐름{max-width:72ch}ul.목표 li{max-width:72ch;margin:6px 0}ul.고리{list-style:none;padding:0;margin:0;display:grid;gap:8px}ul.고리 li{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;align-items:baseline;padding:10px 14px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}ul.고리 li span{font-weight:700}ul.고리 a{overflow-wrap:anywhere}ul.고리 em{color:var(--muted);font-style:normal}
+article.분석{max-width:70ch;font-size:1.02rem;line-height:1.8}article.분석 h3{font-size:1.12rem;margin:28px 0 8px}article.분석 p{margin:0 0 14px}article.분석 ul,article.분석 ol{margin:0 0 14px;padding-left:1.3em}article.분석 li{margin:4px 0}article.분석 img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;margin:8px 0 4px}article.분석 em{color:var(--muted)}article.분석 table{border-collapse:collapse;margin:0 0 14px}article.분석 td,article.분석 th{border-bottom:1px solid var(--rule);padding:6px 12px;text-align:left}
 .명제{margin:0 0 12px;color:var(--muted);font-size:.95rem;max-width:72ch}.명제 span{font-weight:700;color:var(--ink);margin-right:6px}.쇼츠틀{display:grid;grid-template-columns:260px minmax(0,1fr);gap:20px;align-items:start}.쇼츠{width:260px;max-width:100%;border-radius:12px;border:1px solid var(--rule);background:#000}.쇼츠글 td{white-space:normal}@media (max-width:640px){.쇼츠틀{grid-template-columns:1fr}}.구조틀{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:12px;overflow-x:auto}.구조도{display:block;width:100%;min-width:720px;height:auto}.구조틀{background:#fbfaf6}.구조도 text{font-family:inherit;fill:var(--ink)}.구조도 .제{font-size:15px;font-weight:700}.구조도 .작{font-size:12px;fill:var(--muted)}.구조도 .작진{font-size:13px;font-weight:600}.구조도 .묶{font-size:13px;font-weight:600;fill:var(--muted)}
 @media (max-width:640px){main{padding:32px 16px 64px}th,td{padding:8px 10px}h2{margin-top:44px}}
 """
@@ -109,6 +110,10 @@ def 만들기(판, d, c, j, 지, 대, 곡, 특, 해석, 다음, 모션=None, 파
     뒤 = '<nav class="뒤"><a href="../../index.html"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3.5L5.5 8l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>판 목록</a></nav>'
     h.append(f'<header>{뒤}<h1>{E(시도)}</h1><span class="판정 {판정꼴}">{아이콘[판정꼴 != "실패"]}{E(말)}</span>')
     h.append('<dl class="meta">' + "".join(f"<div><dt>{E(k)}</dt><dd>{E(str(v))}</dd></div>" for k, v in meta) + "</dl></header>")
+    m = re.search(r"## 분석[^\n]*\n(.*?)(?=\n## |\n명제: |\Z)", open(d + "보고.md", encoding="utf-8").read(), re.S) if os.path.exists(d + "보고.md") else None
+    분 = re.sub(r"<!--.*?-->", "", m.group(1), flags=re.S).strip() if m else ""
+    if 분 and 분 != "(비어 있음)":   # 사람이 읽는 글(블로그) — 보고서 맨 앞 · 원래 명제 · 기준표는 아래에 그대로(사전등록 기록)
+        import markdown; h.append(f'<h2>분석</h2><article class="분석">{markdown.markdown(분, extensions=["tables"])}</article>')
     h.append(f'<h2>판정 기준</h2><p class="명제"><span>명제</span> {E(명제)}</p>')
     h.append('<div class="표"><table><thead><tr><th>지표</th><th>조건</th><th>이 판</th><th>대조</th><th>결과</th></tr></thead><tbody>')
     for i_, r in enumerate(j["기준"]): h.append(f'<tr class="기준줄" style="--i:{i_}"><td>{E(r["지표"])}</td><td>{E(r["식"])} {r["값"]}</td><td><strong>{수(r["이 판"])}</strong></td><td>{수(대.get(r["지표"]))}</td><td class="결과" style="--i:{i_}"><span class="{"o" if r["통과"] else "x"}" aria-label="{"통과" if r["통과"] else "실패"}">{아이콘[r["통과"]]}</span></td></tr>')
