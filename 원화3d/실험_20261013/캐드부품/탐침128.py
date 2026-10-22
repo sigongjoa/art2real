@@ -26,10 +26,14 @@ def 한장(종, rng, S=128):   # 가운데 c 에 구조 하나 + 멀리 방해 �
     return im, c, r
 def 특징(net, ims, cs, S, 묶=256):   # 블록마다 구조 가운데가 든 칸의 특징 · 256 장씩(256 화소 그림 3600 장 한 번에 7.5 GB)
     import torch
-    out = {}
+    out = {}; 묶 = 묶 if net.cnn[0][0].stride[0] == 2 else 64   # 보폭 1(모델129b · c)은 중간 값 4 배
     with torch.no_grad():
         for s in range(0, len(ims), 묶):
-            h = torch.tensor(np.stack(ims[s:s + 묶]))[:, None].float() / 255.; c = np.array(cs[s:s + 묶])
+            x = torch.tensor(np.stack(ims[s:s + 묶]))[:, None]; c = np.array(cs[s:s + 묶])
+            if net.cnn[0][0].in_channels == 4:   # 모델129c · b: 실선 · 숨은선 · 좌표 x · y (모델129.망 의 전처리와 같은 꼴 · 그림 크기 S 에 맞춤)
+                g = torch.linspace(-1, 1, S); yy, xx = torch.meshgrid(g, g, indexing="ij")
+                h = torch.cat([(x == 255).float(), ((x > 0) & (x < 255)).float(), xx.expand(len(x), 1, -1, -1), yy.expand(len(x), 1, -1, -1)], 1)
+            else: h = x.float() / 255.
             for i, 블 in enumerate(net.cnn):
                 h = 블(h); st = S // h.shape[-1]; ix = torch.tensor((c // st).astype(int)).clamp(0, h.shape[-1] - 1)
                 out.setdefault(f"블록 {i + 1}", []).append(h[torch.arange(len(h)), :, ix[:, 1], ix[:, 0]].numpy())
@@ -45,7 +49,15 @@ def 릿지(X, y, 학, 시, 분류):
 if __name__ == "__main__":
     import torch, 모델127 as M7
     import matplotlib; matplotlib.use("Agg"); import matplotlib.pyplot as plt; plt.rcParams["font.family"] = "Malgun Gothic"
-    nets = {"127 CNN(학습)": M7.망(), "무작위 CNN": M7.망()}; nets["127 CNN(학습)"].load_state_dict(torch.load(M7.D + "머리.pt"))   # 무작위 = 같은 구조 · 학습 전 초기값
+    # 인자 없으면 10-22 첫 판(127 60 에폭 · 무작위) · 있으면 「이름=판:에폭」 여럿(판 127 | a | b | c · 에폭 2 자리 점검 · 0 = 무작위 초기) → 결과_<이름들>.json
+    def 불러(판, ep):
+        import 모델129 as M9
+        net = M7.망() if 판 == "127" else M9.망(판); 경 = M7.D if 판 == "127" else M9.경로(판)
+        if ep: net.load_state_dict(torch.load(경 + (f"점검/{ep:02d}.pt" if ep < 60 or 판 != "127" else "머리.pt")))
+        return net
+    import sys
+    인자 = sys.argv[1:] or ["127 CNN(학습)=127:60", "무작위 CNN=127:0"]
+    nets = {k: 불러(v.split(":")[0], int(v.split(":")[1])) for k, v in (a.split("=") for a in 인자)}
     for n in nets.values(): n.eval()
     결 = {}
     for S in (128, 256):
@@ -64,5 +76,5 @@ if __name__ == "__main__":
             for b, X in F.items():
                 결.setdefault(이름 + " " + b, {})[str(S)] = {"구조 6 종": 릿지(X, y, 학, 시, True), "곡률 R²": 릿지(X, np.log(rr / (S / 128)), 학곡, 시곡, False)}
         print(S, "끝", flush=True)
-    json.dump(결, open(D + "결과.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    json.dump(결, open(D + ("결과.json" if not sys.argv[1:] else "결과_" + "_".join(k.split("=")[0] for k in 인자).replace(" ", "") + ".json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     for k, v in 결.items(): print(k, v)
