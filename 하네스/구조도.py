@@ -20,7 +20,7 @@ def 디코더(x, y, w, 쌓기=True):   # Transformer 꼴 한 층: 칸끼리 주�
     for 끝 in (y + 전 - 16 - 8 - 34 / 2, y + 전 - 16 - 8 - 34 - 8 - 16 - 8 - 34 / 2, y + 30 / 2 + 24):   # 잔차(왼쪽으로 돌아 Add&Norm 으로)
         g.append(f'<path d="M{x + 14},{끝 + 22} h-10 v-{36} h10" fill="none" stroke="#5b616b" stroke-width="1.3" marker-end="url(#화)"/>')
     return "".join(g), 전 + 24
-def 그리기(구, 꼴="s1", 판예측=None):
+def 그리기(구, 꼴="s1", 판예측=None, 촘촘=False):
     층 = {r["이름"]: r for r in 구["층"]}; cnn = [r for r in 구["층"] if r["이름"].startswith("cnn.")]; N = len([r for r in 구["층"] if r["이름"].startswith("dec.layers.")])
     판예측 = 판예측 or []; g = []; 정의 = '<defs><marker id="화" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#5b616b"/></marker></defs>'
     s모 = lambda s: 16 + s * .78; c두 = lambda c: 5 + math.log2(max(c, 1)) * 5.2
@@ -30,7 +30,7 @@ def 그리기(구, 꼴="s1", 판예측=None):
         모양 = [(1, 128)] + [(r["출력"][1], r["출력"][2]) for r in cnn]
         for i, (c, s) in enumerate(모양):
             w, h = c두(c), s모(s); d = h * .55; g.append(상자3(x, ymid - h / 2 + d * .25, w, h, d, 색["in"] if i == 0 else 색["conv"]))
-            g.append(글(x + w / 2 + d * .43, ymid + h / 2 + 34, f"{c}×{s}²", 11, 600)); x += w + d * .87 + 26
+            g.append(글(x + w / 2 + d * .43, ymid + h / 2 + 34, f"{c}×{s}²", 12, 600)); x += w + d * .87 + (16 if 촘촘 else 26)
         g.append(글(x0 + 150 + (x - x0 - 150) / 2, ymid - 98, f"CNN 백본 · 블록 {len(cnn)} · 그림마다 같은 가중치", 12.5, 700)); return x
     def 토큰(x, ymid):
         for k in range(3): g.append(격자(x + k * 14, ymid - 44 + k * 14, 8, 8, 색["뷰"][k]))
@@ -48,7 +48,19 @@ def 그리기(구, 꼴="s1", 판예측=None):
     if 꼴 == "s1":
         W, H = 1500, 470; ym = 250; x = 백본(20, ym); g.append(화(x - 14, ym, x + 6, ym)); x = 토큰(x + 10, ym); g.append(화(x, ym, x + 40, ym))
         dx = x + 40; 블, 높 = 디코더(dx, ym - 98, 190); g.append(블); g.append(글(dx + 205, ym - 98 + 12, f"× {N}", 20, 800, "start")); 쿼리(dx + 30, ym - 98 - 64); g.append(화(dx + 95, ym - 98 - 44, dx + 95, ym - 112))
-        g.append(글(dx + 95, ym + 높 - 70, "트랜스포머 디코더", 12.5, 700)); ox = dx + 270; g.append(화(dx + 190, ym, ox - 10, ym)); 출력(ox, ym - 150)
+        g.append(글(dx + 95, ym + 높 - 70, "트랜스포머 디코더", 12.5, 700)); ox = dx + 270; g.append(화(dx + 190, ym, ox - 10, ym))
+        if 촘촘:   # 출력 2 열 × 3 · 합친 예측 · 정답 세로
+            for k in range(6):
+                xx = ox + (k // 3) * 190; yy = ym - 110 + (k % 3) * 80; 있 = k < len(판예측) and 판예측[k]
+                g.append(f'<rect x="{xx}" y="{yy}" width="16" height="16" rx="3" fill="{색["q"][k]}" stroke="#3b3f46" stroke-width=".8"/>')
+                g.append(f'<rect x="{xx + 22}" y="{yy}" width="44" height="16" rx="3" fill="{색["head"]}" stroke="#3b3f46" stroke-width=".8"/>' + 글(xx + 44, yy + 12, "FFN", 10.5, 600))
+                g.append(f'<image href="칸{k + 1}.png" x="{xx + 72}" y="{yy - 22}" width="60" height="60"/>' + 글(xx + 136, yy + 13, 판예측[k], 13, 700, "start")) if 있 else g.append(글(xx + 78, yy + 13, "없음", 13, 700, "start", "#9aa0a6"))
+            px = ox + 400
+            g.append(f'<image href="예측전체.png" x="{px}" y="{ym - 150}" width="130" height="130"/>' + 글(px + 65, ym - 8, "합친 예측", 13, 700))
+            g.append(f'<image href="정답.png" x="{px}" y="{ym + 14}" width="130" height="130"/>' + 글(px + 65, ym + 160, "정답", 13, 700))
+            W = px + 150
+            return f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="모델 구조도" class="구조도" font-family="inherit">{정의}<rect width="{W}" height="{H}" fill="#fbfaf6"/>{"".join(g)}</svg>'
+        출력(ox, ym - 150)
         g.append(f'<image href="예측전체.png" x="{ox + 200}" y="{ym - 140}" width="120" height="120"/>' + 글(ox + 260, ym - 8, "합친 예측", 12, 700))
         g.append(f'<image href="정답.png" x="{ox + 200}" y="{ym + 20}" width="120" height="120"/>' + 글(ox + 260, ym + 152, "정답", 12, 700))
         W = ox + 340
@@ -63,3 +75,20 @@ def 그리기(구, 꼴="s1", 판예측=None):
         g.append(f'<image href="예측전체.png" x="{ox + 200}" y="{dy - 70}" width="130" height="130"/>' + 글(ox + 265, dy + 76, "합친 예측", 12, 700))
         g.append(f'<image href="정답.png" x="{ox + 200}" y="{dy + 100}" width="130" height="130"/>' + 글(ox + 265, dy + 246, "정답", 12, 700)); W = ox + 350; H = qy + 50
     return f'<svg viewBox="0 0 {W} {H}" role="img" aria-label="모델 구조도" class="구조도" font-family="inherit">{정의}<rect width="{W}" height="{H}" fill="#fbfaf6"/>{"".join(g)}</svg>'
+def 재료(net, 판폴더, Xnp, 이, 부품="12003"):   # 판마다: 입력 3면도 · 칸별 예측 덩어리 렌더 · 합친 예측 · 정답 → 판폴더 · 반환 = 칸별 종류(없으면 None)
+    import sys, torch, numpy as np
+    from PIL import Image
+    sys.path.insert(0, "G:/art2real/원화3d/실험_20261013/캐드부품"); import 모델124 as B, 조립124 as C, 데이터117 as Q, 모델120 as M
+    X = Xnp[이.index(부품)]
+    for v, nm in enumerate(("위", "앞", "옆")): Image.fromarray(255 - X[v]).convert("RGB").save(판폴더 + f"입력_{nm}.png")
+    net = net.cpu().eval()
+    with torch.no_grad(): o = net(torch.tensor(X[None])).reshape(6, B.W).numpy()
+    예 = [M.종류들[int(o[k, 1:8].argmax())] if o[k, 0] > 0 else None for k in range(6)]; 사 = B.사양(o)
+    for k, s in enumerate(사["몸"]):
+        try: Image.fromarray(Q.렌더(C.메시(C.짓기_자리({"몸": [s]}))[0])[0]).save(판폴더 + f"칸{k + 1}.png")
+        except Exception: pass
+    try: Image.fromarray(Q.렌더(C.메시(C.짓기_자리(사))[0])[0]).save(판폴더 + "예측전체.png")
+    except Exception: pass
+    import shutil; 정 = B.D + f"렌더/{부품}_정답.png"
+    if __import__("os").path.exists(정): shutil.copy(정, 판폴더 + "정답.png")
+    return 예
