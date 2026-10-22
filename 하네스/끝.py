@@ -1,6 +1,6 @@
 # 하네스 끝 단계 — 판 하나가 끝나면: Pages 목록 → 쇼츠(대본 · 검사 · 굽기 · 업로드 대기) → 커밋 → 공개 푸시(걸러서) → GitHub 이슈(열고 결과 달고 닫음) · 10-22
 # 사용: 하네스.py 가 판 끝에 부름 · 이미 돈 판은 python 하네스/끝.py <판> [커밋 공개 이슈 쇼츠 중 고른 것]
-import os, sys, json, subprocess
+import os, re, sys, json, subprocess
 뿌리 = "G:/art2real"; sys.path.insert(0, 뿌리 + "/하네스")
 def 돌(*a, 확인=True, cwd=뿌리):
     r = subprocess.run(list(a), cwd=cwd, capture_output=True, text=True, encoding="utf-8", errors="replace")
@@ -17,12 +17,13 @@ def 끝내기(판, 단계=("쇼츠", "커밋", "공개", "이슈")):
     json.dump(남, open(d + "끝.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     if "커밋" in 단계:
         돌("git", "add", "--", *더할); 상 = 돌("git", "diff", "--cached", "--name-only")
-        if 상: 돌("git", "commit", "-q", "-m", f"판 {판} — {명제[:70]} — {j['판정']}\n\n하네스 자동 · 보고서 하네스/판/{판}/보고.html · 가지 {c.판.가지}\n\nCo-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>")
+        if 상: 돌("git", "commit", "-q", "-m", f"판 {판} — {re.sub(r'[(（][^)）]*[)）]?', '', 명제).strip()[:70]} — {j['판정']}\n\n하네스 자동 · 보고서 하네스/판/{판}/보고.html · 가지 {c.판.가지}\n\nCo-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>")
         남["커밋"] = 돌("git", "rev-parse", "--short", "HEAD")
     if "공개" in 단계:
         import 공개; 주소, 쪽 = 공개.내보내기(); 남["공개"] = 주소
     if "이슈" in 단계:
-        제목 = f"판 {판} — {명제[:80]}"; 있 = 돌("gh", "issue", "list", "--repo", "sigongjoa/art2real", "--state", "all", "--search", f"판 {판} in:title", "--json", "number,title", "-q", ".[].title", 확인=False)
+        import re; 짧은 = re.sub(r"\s*[(（][^)）]*[)）]?", "", 명제).strip()   # 괄호 덩어리는 빼고(본문에 그대로 있음) · 자를 땐 낱말 경계
+        제목 = f"판 {판} — " + (짧은 if len(짧은) <= 80 else 짧은[:80].rsplit(" ", 1)[0] + "…"); 있 = 돌("gh", "issue", "list", "--repo", "sigongjoa/art2real", "--state", "all", "--search", f"판 {판} in:title", "--json", "number,title", "-q", ".[].title", 확인=False)
         if 제목 not in 있.splitlines():
             줄 = "\n".join(f"| {r['지표']} | {r['식']} {r['값']} | {r['이 판']} | {'✓' if r['통과'] else '✗'} |" for r in j["기준"])
             몸 = f"**명제**: {명제}\n\n**판정**: {j['판정']} · 가지 {c.판.가지} · {c.판.종류}\n\n| 지표 | 조건 | 이 판 | 결과 |\n|---|---|---|---|\n{줄}\n\n보고서: {남['Pages']}\n\n(하네스 자동 — 판 하나 = 이슈 하나)"
