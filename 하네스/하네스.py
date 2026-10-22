@@ -75,8 +75,10 @@ def 자료(dev, cfg=None):
 def 연기(cfg, X, Y, 쓰, idx):
     import torch
     torch.cuda.reset_peak_memory_stats(); net = 망(cfg).cuda(); f = 손실함수(cfg); opt = torch.optim.AdamW(net.parameters(), 1e-3); ix = idx[:cfg.학습.미세]
-    y, s = 잘(cfg, Y, 쓰, ix); l0 = float(f(모(cfg, net(X[ix])), y, s)); assert np.isfinite(l0), "연기: 첫 loss 가 수가 아님"
+    본 = (lambda o: o[:, :, :6]) if 선지도(cfg) else (lambda o: o)   # 채점은 본 머리만(134: 일부러 느린 탐침 머리 손실까지 더해 52 % 로 걸림) · 학습은 전체 손실
+    y, s = 잘(cfg, Y, 쓰, ix); l0 = float(f(본(모(cfg, net(X[ix]))), y, s)); assert np.isfinite(l0), "연기: 첫 loss 가 수가 아님"
     for _ in range(40): opt.zero_grad(); l = f(모(cfg, net(X[ix])), y, s); l.backward(); opt.step()
+    with torch.no_grad(): l = f(본(모(cfg, net(X[ix]))), y, s)
     값 = {"첫loss": round(l0, 3), "한배치40걸음": round(float(l), 3), "VRAM_GB": round(torch.cuda.max_memory_allocated() / 2**30, 2)}
     assert 값["한배치40걸음"] < 0.5 * l0, f"연기: 배치 하나를 못 외움 {값}"; assert 값["VRAM_GB"] < 7.0, f"연기: VRAM {값['VRAM_GB']} GB"
     del net, opt; torch.cuda.empty_cache(); return 값
