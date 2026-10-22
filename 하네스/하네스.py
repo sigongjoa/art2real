@@ -87,6 +87,9 @@ def 점검(cfg, 폴더, net, 기록, Xnp, 이):
         idx = np.random.default_rng(0).permutation(len(y)); 학, 시 = idx[:2400], idx[2400:]; 곡 = y == 1
         for b in (3, 4): 지[f"탐침{b}_구조"] = P.릿지(F[f"블록 {b}"], y, 학, 시, True); 지[f"탐침{b}_곡률"] = P.릿지(F[f"블록 {b}"], np.log(rr), 학[곡[학]], 시[곡[시]], False)
         지["탐침_구조"], 지["탐침_곡률"] = 지["탐침4_구조"], 지["탐침4_곡률"]
+    if "특징" in cfg.점검:   # 실제 3면도에서 주의 · CNN 이 곡선 · 접합 · 겹친 곳을 찾나(하네스/특징.py)
+        import 특징 as T; t = T.재기(net, Xnp, 이, 폴더); json.dump(t, open(폴더 + "특징.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+        지 |= {"쏠림4_곡선": t["쏠림4"]["곡선"], "쏠림4_접합": t["쏠림4"]["접합·교차"], "쏠림4_빈칸": t["쏠림4"]["빈칸"], "특징탐침": t["탐침_학습CNN"][0], "특징탐침_무작위": t["탐침_무작위CNN"][0]}
     if "평가" in cfg.점검:
         import 모델125 as T5
         T5.평가(net, lambda ns: torch.tensor(Xnp[[이.index(n) for n in ns]]), 폴더); r = json.load(open(폴더 + "결과.json", encoding="utf-8")); 지 |= {"시험IoU": r["시험"]["IoU 중앙"], "학습IoU": r["학습"]["IoU 중앙"]}
