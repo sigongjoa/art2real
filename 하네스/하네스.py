@@ -131,5 +131,4 @@ def 주(cfg):
     지 = 점검(cfg, 폴더, net, 록, Xnp, 이); 판 = 판정(cfg, 지); 기록(cfg, 폴더, 바뀐, 연, 지, 판)
     print("판정", json.dumps(판, ensure_ascii=False), flush=True)
 if __name__ == "__main__":
-    sys.argv += ["hydra.run.dir=G:/art2real/out/하네스/_hydra/${now:%m%d_%H%M%S}", "hydra.job.chdir=false"] if not any(a.startswith("hydra.run.dir") for a in sys.argv) else []
     주()
