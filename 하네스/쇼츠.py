@@ -83,5 +83,13 @@ def 판에넣기(판, 쇼):   # 판 기록에 쇼츠: 웹용 사본(540 폭 · �
         c = l.split("\t")
         if len(c) >= 6: 줄.append({"누구": c[0], "큰글": c[4], "말": c[5].split("｜")[0]})
     배 = open(f"{뿌리}/원화3d/과정/쇼츠/배포.md", encoding="utf-8").read(); m = re.search(rf"\| [^|]*판 {re.escape(판)} \|[^\n]*\| (서재용[^|]*?)\|", 배)
-    json.dump({"편": 편, "웹용": os.path.exists(웹), "길이": re.sub(r"^\S+\.mp4\s*", "", 쇼.get("굽기", "")), "상태": (m.group(1).strip() if m else "업로드 대기"), "대본": 줄}, open(d + "쇼츠.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    상 = m.group(1).strip() if m else "업로드 대기"; 주 = re.search(r"\((https://(?:www\.)?youtube\.com/shorts/[\w-]+)\)", 상)   # 장부에 올린 주소가 있으면
+    json.dump({"편": 편, "웹용": os.path.exists(웹), "길이": re.sub(r"^\S+\.mp4\s*", "", 쇼.get("굽기", "")), "상태": re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", 상).replace("**", ""), "주소": 주.group(1) if 주 else None, "대본": 줄}, open(d + "쇼츠.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+def 주소갱신(판):   # 올린 뒤: 장부(배포.md)를 다시 읽어 쇼츠.json 의 상태 · 주소만 고침(웹용 사본 · 대본은 그대로)
+    d = f"{뿌리}/하네스/판/{판}/"; j = json.load(open(d + "쇼츠.json", encoding="utf-8")); 배 = open(f"{뿌리}/원화3d/과정/쇼츠/배포.md", encoding="utf-8").read()
+    m = re.search(rf"\| [^|]*판 {re.escape(판)} \|[^\n]*\| (서재용[^|]*?)\|", 배)
+    if m:
+        상 = m.group(1).strip(); 주 = re.search(r"\((https://(?:www\.)?youtube\.com/shorts/[\w-]+)\)", 상)
+        j["상태"] = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", 상).replace("**", ""); j["주소"] = 주.group(1) if 주 else None
+    json.dump(j, open(d + "쇼츠.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1); return j
 if __name__ == "__main__": print(json.dumps(만들기(sys.argv[1], "--안굽기" not in sys.argv), ensure_ascii=False, indent=1))
