@@ -47,7 +47,7 @@ main>*{grid-column:2}header{grid-column:1;grid-row:1/200;position:sticky;top:28p
 header h1{font-size:1.32rem;line-height:1.4;letter-spacing:-.01em;font-weight:750;margin-bottom:16px}header .lead{font-size:1rem}dl.meta{grid-template-columns:1fr 1fr;gap:12px 16px}main>h2:first-of-type{margin-top:0}
 @media (max-width:900px){main{display:block}header{position:static;margin-bottom:8px}main>h2:first-of-type{margin-top:44px}}
 nav.뒤{margin:0 0 14px}nav.뒤 a{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:.9rem;color:var(--muted);text-decoration:none}nav.뒤 a:hover{color:var(--ink)}nav.뒤 svg{width:16px;height:16px}
-td.왼{text-align:left;white-space:normal}tr.깊2 td:first-child{padding-left:30px;color:var(--muted)}.흐름{max-width:72ch}ul.목표 li{max-width:72ch;margin:6px 0}.쇼츠틀{display:grid;grid-template-columns:260px minmax(0,1fr);gap:20px;align-items:start}.쇼츠{width:260px;max-width:100%;border-radius:12px;border:1px solid var(--rule);background:#000}.쇼츠글 td{white-space:normal}@media (max-width:640px){.쇼츠틀{grid-template-columns:1fr}}.구조틀{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:12px;overflow-x:auto}.구조도{display:block;width:100%;min-width:720px;height:auto}.구조틀{background:#fbfaf6}.구조도 text{font-family:inherit;fill:var(--ink)}.구조도 .제{font-size:15px;font-weight:700}.구조도 .작{font-size:12px;fill:var(--muted)}.구조도 .작진{font-size:13px;font-weight:600}.구조도 .묶{font-size:13px;font-weight:600;fill:var(--muted)}
+td.왼{text-align:left;white-space:normal}tr.깊2 td:first-child{padding-left:30px;color:var(--muted)}.흐름{max-width:72ch}ul.목표 li{max-width:72ch;margin:6px 0}.명제{margin:0 0 12px;color:var(--muted);font-size:.95rem;max-width:72ch}.명제 span{font-weight:700;color:var(--ink);margin-right:6px}.쇼츠틀{display:grid;grid-template-columns:260px minmax(0,1fr);gap:20px;align-items:start}.쇼츠{width:260px;max-width:100%;border-radius:12px;border:1px solid var(--rule);background:#000}.쇼츠글 td{white-space:normal}@media (max-width:640px){.쇼츠틀{grid-template-columns:1fr}}.구조틀{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:12px;overflow-x:auto}.구조도{display:block;width:100%;min-width:720px;height:auto}.구조틀{background:#fbfaf6}.구조도 text{font-family:inherit;fill:var(--ink)}.구조도 .제{font-size:15px;font-weight:700}.구조도 .작{font-size:12px;fill:var(--muted)}.구조도 .작진{font-size:13px;font-weight:600}.구조도 .묶{font-size:13px;font-weight:600;fill:var(--muted)}
 @media (max-width:640px){main{padding:32px 16px 64px}th,td{padding:8px 10px}h2{margin-top:44px}}
 """
 def 수(v, n=3): return "" if v is None else (f"{v:.{n}f}" if isinstance(v, float) else E(str(v)))
@@ -104,11 +104,12 @@ def 만들기(판, d, c, j, 지, 대, 곡, 특, 해석, 다음, 모션=None, 파
     바뀐 = ", ".join(f"{k}: {a} → {b}" for k, (a, b) in j["바뀐 손잡이"].items()) or "없음 (재현)"
     meta = [("판", 판), ("가지", c.판.가지), ("종류", c.판.종류), ("바뀐 손잡이", 바뀐), ("에폭", c.학습.에폭), ("대조", c.대조.get("판", "없음") if c.대조 else "없음"), ("git", j["git"]), ("날짜", j.get("날짜", ""))]
     h = [f'<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>판 {E(판)} · 하네스 보고서</title><style>{CSS}{모션CSS.get(모션, "")}</style></head><body><main style="--n:{len(j["기준"])}">']
-    명제 = str(c.판.get("명제") or c.판.물음)
+    명제 = str(c.판.get("명제") or c.판.물음); 시도 = str(c.판.get("시도") or 명제)
     뒤 = '<nav class="뒤"><a href="../../index.html"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3.5L5.5 8l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>판 목록</a></nav>'
-    h.append(f'<header>{뒤}<h1>{E(명제)}</h1><span class="판정 {판정꼴}">{아이콘[판정꼴 != "실패"]}{E(말)}</span>')
+    h.append(f'<header>{뒤}<h1>{E(시도)}</h1><span class="판정 {판정꼴}">{아이콘[판정꼴 != "실패"]}{E(말)}</span>')
     h.append('<dl class="meta">' + "".join(f"<div><dt>{E(k)}</dt><dd>{E(str(v))}</dd></div>" for k, v in meta) + "</dl></header>")
-    h.append('<h2>판정 기준</h2><div class="표"><table><thead><tr><th>지표</th><th>조건</th><th>이 판</th><th>대조</th><th>결과</th></tr></thead><tbody>')
+    h.append(f'<h2>판정 기준</h2><p class="명제"><span>명제</span> {E(명제)}</p>')
+    h.append('<div class="표"><table><thead><tr><th>지표</th><th>조건</th><th>이 판</th><th>대조</th><th>결과</th></tr></thead><tbody>')
     for i_, r in enumerate(j["기준"]): h.append(f'<tr class="기준줄" style="--i:{i_}"><td>{E(r["지표"])}</td><td>{E(r["식"])} {r["값"]}</td><td><strong>{수(r["이 판"])}</strong></td><td>{수(대.get(r["지표"]))}</td><td class="결과" style="--i:{i_}"><span class="{"o" if r["통과"] else "x"}" aria-label="{"통과" if r["통과"] else "실패"}">{아이콘[r["통과"]]}</span></td></tr>')
     h.append("</tbody></table></div><p class=\"주석\">기준은 돌리기 전에 커밋됐다(하네스 관문이 확인). 대조는 같은 에폭.</p>")
     h.append('<h2>숫자: 이 판과 대조</h2><div class="표"><table><thead><tr><th>지표</th><th>이 판</th><th>대조</th><th>차</th></tr></thead><tbody>')

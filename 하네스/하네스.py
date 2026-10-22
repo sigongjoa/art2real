@@ -1,7 +1,7 @@
 # 하네스 v0 — 판 하나를 코드가 끌고 감: 관문 → 연기 판 → 실행 → 점검 → 판정 → 기록 · 근거 claudedocs/research_실험하네스_20261022.md · 10-22
 # 사용(cadrille venv): python 하네스/하네스.py --config-name 판_127재현   (판 설정은 하네스/conf/판_*.yaml · 바탕.yaml 에서 손잡이 하나만 바꿈)
 # 산출: out/하네스/<판>/ (점검점 · tb · 그림) + 하네스/판/<판>/ (설정 · 바뀐 것 · 지표 · 판정 — git 에 남김) + 하네스/results.tsv 한 줄
-import os, sys, json, time, subprocess, numpy as np, hydra
+import os, re, sys, json, time, subprocess, numpy as np, hydra
 from omegaconf import OmegaConf
 뿌리 = "G:/art2real"; 실험 = 뿌리 + "/원화3d/실험_20261013/캐드부품"; sys.path.insert(0, 실험)
 import 모델124 as B, 조립124 as C, 모델127 as M7
@@ -14,6 +14,9 @@ def 관문(cfg, 설정파일):
     a, b = (펼친({k: v for k, v in d.items() if k not in 손잡이밖}) for d in (바탕, 지금)); 바뀐 = {k: (a.get(k), b.get(k)) for k in set(a) | set(b) if a.get(k) != b.get(k)}
     문 = []
     if not str(cfg.판.get("명제", "") or "").strip() or str(cfg.판.get("명제")) == "???": 문.append("명제가 없다 — 이 판이 맞거나 틀릴 문장 하나를 적어라(사전 예측)")
+    시 = str(cfg.판.get("시도", "") or "").strip()
+    if not 시 or 시 == "???": 문.append("시도가 없다 — 이 판에서 해 보는 일을 한 문장으로 적어라")
+    elif re.search(r"[()（）]|[<>≤≥±]|\d+\.\d", 시) or len(시) > 60: 문.append(f"시도는 괄호 · 숫자 문턱 없이 60 자 안의 한 문장 — 지금: {시[:70]}")
     if not cfg.기준: 문.append("기준이 없다 — 돌리기 전에 기준을 적어라")
     if cfg.대조 and cfg.대조.get("에폭") != cfg.학습.에폭: 문.append(f"대조 에폭 {cfg.대조.get('에폭')} ≠ 이 판 에폭 {cfg.학습.에폭} — 같은 시점끼리만 비교")
     if not cfg.대조: 문.append("대조가 없다")

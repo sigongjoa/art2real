@@ -10,7 +10,7 @@ def 목록():
     줄 = []
     for p in glob.glob(f"{뿌리}/하네스/판/*/판정.json"):
         판 = os.path.basename(os.path.dirname(p)); j = json.load(open(p, encoding="utf-8")); c = OmegaConf.load(os.path.dirname(p) + "/설정.yaml")
-        줄.append((j.get("날짜", ""), 판, str(c.판.get("명제") or c.판.물음), j["판정"], c.판.가지, c.판.종류))
+        줄.append((j.get("날짜", ""), 판, str(c.판.get("시도") or c.판.get("명제") or c.판.물음), j["판정"], c.판.가지, c.판.종류))
     줄.sort(reverse=True)
     행 = "".join(f'<li><a href="판/{E(판)}/보고.html"><span class="판정 {("통과" if 말 == "통과" else "탐색" if 말.startswith("탐색") else "실패")}">{E(말)}</span><strong>{E(명)}</strong><span class="곁">판 {E(판)} · 가지 {E(str(가))} · {E(str(종))} · {E(날)}</span></a></li>' for 날, 판, 명, 말, 가, 종 in 줄)
     글 = f"""<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>art2real 판 목록</title>

@@ -16,7 +16,7 @@ def 읽기():
     for p in glob.glob(f"{뿌리}/하네스/판/*/판정.json"):
         from omegaconf import OmegaConf
         판 = os.path.basename(os.path.dirname(p)); j = json.load(open(p, encoding="utf-8")); c = OmegaConf.load(os.path.dirname(p) + "/설정.yaml")
-        판들.append({"판": 판, "가지": str(c.판.가지), "판정": j["판정"], "명제": str(c.판.get("명제") or c.판.물음), "날짜": j.get("날짜", "")})
+        판들.append({"판": 판, "가지": str(c.판.가지), "판정": j["판정"], "명제": str(c.판.get("시도") or c.판.get("명제") or c.판.물음), "날짜": j.get("날짜", "")})
     for 판 in 판들:
         for 줄 in 줄기:
             for 잎 in 줄["잎"]:
