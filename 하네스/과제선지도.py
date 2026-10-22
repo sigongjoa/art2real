@@ -6,10 +6,10 @@ import os, sys, numpy as np
 종류이름 = ["없음", "직선", "곡선", "곡면테"]
 def 자료(dev, cfg):
     import torch, 모델124 as B, 모델127 as M7
-    z = np.load(M7.D + "그림.npz"); 전 = {n: k for k, n in enumerate(z["이름"])}; 이, Xs, 지, 숨, 점 = [], [], [], [], []
+    z = np.load(M7.D + "그림.npz"); 전 = {n: k for k, n in enumerate(z["이름"])}; 전X = z["X"]; 이, Xs, 지, 숨, 점 = [], [], [], [], []   # z["X"] 는 꺼낼 때마다 600 MB 를 다시 읽음 — 한 번만
     for f in sorted(os.listdir(저장)):
         if not f.endswith(".npz") or f[:5] not in 전: continue
-        d = np.load(저장 + f); 이.append(f[:5]); Xs.append(z["X"][전[f[:5]]]); 지.append(d["지도"]); 숨.append(d["숨"]); 점.append(d["점"])
+        d = np.load(저장 + f); 이.append(f[:5]); Xs.append(전X[전[f[:5]]]); 지.append(d["지도"]); 숨.append(d["숨"]); 점.append(d["점"])
     Xnp = np.stack(Xs); 열 = 열지도(np.stack(점)); 시 = np.array([int(n) >= B.NT for n in 이])
     T = lambda a: torch.tensor(a).to(dev)
     Y = {"지도": T(np.stack(지).astype(np.int64)), "숨": T(np.stack(숨)), "열": T(열)}
