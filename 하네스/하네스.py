@@ -60,7 +60,7 @@ def 잘(cfg, Y, 쓰, ix):
     return Y[ix], 쓰[ix]
 def 손실함수(cfg):
     import 손실그림124 as L
-    if 선지도(cfg): import 과제선지도 as G; return G.손실함수(cfg.선지도.빈가중)
+    if 선지도(cfg): import 과제선지도 as G; return G.손실함수(cfg.선지도.빈가중, str(cfg.선지도.get("테", "구분")))
     if cfg.짝 == "부피순": return lambda o, Y, 쓰: sum(L.항목(o, Y, 쓰).values())
     if cfg.짝 == "헝가리안":
         import 모델129 as M9

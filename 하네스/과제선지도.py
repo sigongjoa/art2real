@@ -60,12 +60,16 @@ def 망(인코더, 탐침=False, 합침="없음"):   # 합침: 없음(블록 4 �
             if s.탐침: o += [F.pixel_shuffle(h(fs[k - 1].detach()), 2 ** k) for k, h in zip((1, 2, 3), s.탐머리)]   # detach: 탐침은 본 학습을 안 바꿈
             return torch.cat(o, 1).reshape(b, 3, 출 * len(o), 128, 128)
     return 선망()
-def 손실함수(빈가중=.05): return lambda o, Y, 쓰=None: 손실(o, Y, 빈가중=빈가중)
-def 손실(o, Y, 쓰=None, 빈가중=.05):   # Y 는 이미 배치로 잘린 dict · 탐침 머리가 붙었으면 머리마다 같은 손실을 더함(탐침은 detach 라 백본엔 본 머리 기울기만)
-    if o.shape[2] > 출: return sum(손실(o[:, :, h:h + 출], Y, 빈가중=빈가중) for h in range(0, o.shape[2], 출))
+def 손실함수(빈가중=.05, 테="구분"): return lambda o, Y, 쓰=None: 손실(o, Y, 빈가중=빈가중, 테=테)
+def 손실(o, Y, 쓰=None, 빈가중=.05, 테="구분"):   # Y 는 이미 배치로 잘린 dict · 탐침 머리가 붙었으면 머리마다 같은 손실을 더함(탐침은 detach 라 백본엔 본 머리 기울기만)
+    if o.shape[2] > 출: return sum(손실(o[:, :, h:h + 출], Y, 빈가중=빈가중, 테=테) for h in range(0, o.shape[2], 출))
     import torch, torch.nn.functional as F
     지 = Y["지도"]; 선 = 지 > 0; w = torch.tensor([빈가중, 1., 1., 1.], device=o.device)   # 없음 화소가 97 % — 가중(130: 0.05 → 선 둘레를 덩어리째 칠함)
-    l종 = F.cross_entropy(o[:, :, :K].permute(0, 1, 3, 4, 2).reshape(-1, K), 지.reshape(-1), weight=w)
+    로 = o[:, :, :K].permute(0, 1, 3, 4, 2).reshape(-1, K); 정 = 지.reshape(-1)
+    if 테 == "뭉침":   # 138: 곡면 테 화소는 「선이기만 하면 정답」(직선 · 곡선 · 테 확률의 합) — 도면 한 장으로는 사람도 못 가르는 칸을 고르라고 강요하지 않음
+        lp = F.log_softmax(로.float(), 1); 테칸 = 정 == 3; ww = w[정]
+        l = torch.where(테칸, -torch.logsumexp(lp[:, 1:], 1), -lp.gather(1, 정[:, None])[:, 0]); l종 = (l * ww).sum() / ww.sum()
+    else: l종 = F.cross_entropy(로, 정, weight=w)
     l숨 = F.binary_cross_entropy_with_logits(o[:, :, K][선], Y["숨"][선].float()) if 선.any() else o.sum() * 0
     t = Y["열"].float(); p = torch.sigmoid(o[:, :, K + 1]); l점 = (((p - t) ** 2) * (1 + 30 * t)).mean() * 10
     return l종 + l숨 + l점
