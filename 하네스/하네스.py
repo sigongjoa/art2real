@@ -106,7 +106,7 @@ def 실행(cfg, 폴더, X, Y, 쓰, idx, vx, 이, 해시=""):
             opt.step(); ls.append(lt)
         net.eval()
         with torch.no_grad():
-            ov = 모(cfg, torch.cat([net(X[vx[i:i + 16]]) for i in range(0, len(vx), 16)])   # 16 개씩(137 네 층 합침은 50 개면 1.1 GB · 결과는 같음)); yv, sv = 잘(cfg, Y, 쓰, vx); lv = float(f(ov, yv, sv))
+            ov = 모(cfg, torch.cat([net(X[vx[i:i + 16]]) for i in range(0, len(vx), 16)])); yv, sv = 잘(cfg, Y, 쓰, vx); lv = float(f(ov, yv, sv))   # 16 개씩(137 네 층 합침은 50 개면 1.1 GB · 결과는 같음)
             if 선지도(cfg): 수 = {"선맞음": float((ov[:, :, :4].argmax(2)[yv["지도"] > 0] == yv["지도"][yv["지도"] > 0]).float().mean())}   # 선 화소 종류 맞음
             else: 수 = {"몸수맞음": float(((ov[..., 0] > 0).sum(1) == yv[..., 0].sum(1)).float().mean())}
         기록.append({"에폭": ep + 1, "학습": float(np.mean(ls)), "시험": lv, **수, "초": round(time.time() - t0)}); print(기록[-1], flush=True)
