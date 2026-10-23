@@ -65,7 +65,9 @@ def 페이지(c, 값, 판정, 폴더):
         카드.append(f'<div class="card"><b>{E(p.이름)}</b>{f"<video src={n}.mp4 autoplay loop muted playsinline></video>" if mp4 else ""}'
                   + (f'<img src="보기_{E(p.판)}.png" alt="부품 12050 앞 뷰 — {E(p.이름)} 의 답">' if os.path.exists(폴더 + f"보기_{p.판}.png") else "")
                   + f'<span class="note">{E(str(pc.판.get("시도", "")))}</span><a href="../../판/{E(p.판)}/보고.html">판 보고서 →</a></div>')
-    if os.path.exists(f"{뿌리}/하네스/판/137전부합침/정답.png"): shutil.copy(f"{뿌리}/하네스/판/137전부합침/정답.png", 폴더 + "정답.png")
+    import 과제선지도 as G, 하네스 as H   # 정답 칸 = 카드들과 같은 부품(12050) 앞 뷰 · 입력 선에 맞춘 정답 지도
+    z = np.load(H.M7.D + "그림.npz"); x = z["X"][list(z["이름"]).index("12050")]; d = np.load(f"{뿌리}/out/하네스/선정답/12050.npz")
+    보기그림(G.맞춤(x, d["지도"])[1], 폴더 + "정답.png")
     css = """:root{--bg:#f7f6f2;--sheet:#fffefb;--ink:#1d2228;--muted:#5d6570;--rule:#dcd8ce;--good:#1f7a3e;--bad:#b3261e;--warn:#8a5f00;--chip:#eef2f6}
 @media (prefers-color-scheme:dark){:root{--bg:#15181c;--sheet:#1c2026;--ink:#e7e4dc;--muted:#a1a8b2;--rule:#333a43;--good:#6fcf8f;--bad:#f08a7e;--warn:#e3b54f;--chip:#232a33;color-scheme:dark}}
 body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 "IBM Plex Sans KR","Malgun Gothic",sans-serif;word-break:keep-all}
