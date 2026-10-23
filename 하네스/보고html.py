@@ -116,6 +116,9 @@ def 만들기(판, d, c, j, 지, 대, 곡, 특, 해석, 다음, 모션=None, 파
         import markdown; 글 = markdown.markdown(분, extensions=["tables", "nl2br"])
         글 = re.sub(r'<p>\s*<img alt="([^"]*)" src="([^"]*)"\s*/?>\s*</p>', r'<figure><img alt="\1" src="\2"><figcaption>\1</figcaption></figure>', 글)   # 그림 설명 = 결론 캡션(보이게)
         h.append(f'<h2>분석</h2><article class="분석">{글}</article>')
+    if os.path.exists(d + "개념.mp4"):   # 모델이 어떻게 동작하는지 — /anatomy 개념 그림(하네스/개념그림 · 관문이 필수로 막음)
+        이름 = open(d + "개념.txt", encoding="utf-8").read().strip() if os.path.exists(d + "개념.txt") else ""
+        h.append(f'<h2>모델 동작</h2><figure class="개념"><video src="개념.mp4" autoplay loop muted playsinline style="width:100%;max-width:880px;border:1px solid var(--rule);border-radius:10px"></video><figcaption class="주석">이 판 모델이 화소 하나를 판정하는 과정을 기계로 그린 그림(하네스/개념그림/{E(이름)}) · <a href="개념.gif">gif</a></figcaption></figure>')
     h.append(f'<h2>판정 기준</h2><p class="명제"><span>명제</span> {E(명제)}</p>')
     h.append('<div class="표"><table><thead><tr><th>지표</th><th>조건</th><th>이 판</th><th>대조</th><th>결과</th></tr></thead><tbody>')
     for i_, r in enumerate(j["기준"]): h.append(f'<tr class="기준줄" style="--i:{i_}"><td>{E(r["지표"])}</td><td>{E(r["식"])} {r["값"]}</td><td><strong>{수(r["이 판"])}</strong></td><td>{수(대.get(r["지표"]))}</td><td class="결과" style="--i:{i_}"><span class="{"o" if r["통과"] else "x"}" aria-label="{"통과" if r["통과"] else "실패"}">{아이콘[r["통과"]]}</span></td></tr>')

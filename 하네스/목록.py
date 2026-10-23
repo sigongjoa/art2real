@@ -4,7 +4,7 @@ from omegaconf import OmegaConf
 뿌리 = "G:/art2real"; 문서 = 뿌리 + "/docs/"; E = html.escape
 def 복사(판):
     s, d = f"{뿌리}/하네스/판/{판}/", f"{문서}판/{판}/"; os.makedirs(d, exist_ok=True)
-    for f in ("보고.html", "비교.png", "시트.png", "특징.png", "보고.png", "설정.yaml", "판정.json", "입력_위.png", "입력_앞.png", "입력_옆.png", "칸1.png", "칸2.png", "칸3.png", "칸4.png", "칸5.png", "칸6.png", "예측전체.png", "정답.png", "쇼츠.mp4"):
+    for f in ("보고.html", "개념.mp4", "개념.gif", "비교.png", "시트.png", "특징.png", "보고.png", "설정.yaml", "판정.json", "입력_위.png", "입력_앞.png", "입력_옆.png", "칸1.png", "칸2.png", "칸3.png", "칸4.png", "칸5.png", "칸6.png", "예측전체.png", "정답.png", "쇼츠.mp4"):
         if os.path.exists(s + f): shutil.copy(s + f, d + f)
 def 목록():
     줄 = []
