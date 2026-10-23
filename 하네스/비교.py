@@ -98,6 +98,5 @@ def 주(이름):
     json.dump({"설정": 이름, "판정": 판정, "값": {k: {a: b for a, b in v.items() if not a.startswith("_")} for k, v in 값.items()}, "날짜": time.strftime("%Y-%m-%d %H:%M")}, open(폴더 + "비교.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     페이지(c, 값, 판정, 폴더)
     문서 = f"{뿌리}/docs/비교/{c.비교.이름}/"
-    if os.path.exists(문서): shutil.rmtree(문서)
-    shutil.copytree(폴더, 문서); print("비교판", 판정, 문서 + "index.html")
+    shutil.copytree(폴더, 문서, dirs_exist_ok=True);   # 지우지 않고 덮어씀(지우기는 열린 파일 탓에 WinError 32 로 실패한 적 있음) print("비교판", 판정, 문서 + "index.html")
 if __name__ == "__main__": 주(sys.argv[1])
