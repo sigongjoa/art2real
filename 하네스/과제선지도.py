@@ -47,7 +47,7 @@ def 망(인코더, 탐침=False, 합침="없음"):   # 합침: 없음(블록 4 �
             super().__init__(); s.인코더 = 인코더; s.탐침 = 탐침 and 인코더 == "cnn"
             if 인코더 == "cnn": s.cnn = nn.Sequential(블(1, 32), 블(32, 64), 블(64, 128), 블(128, 256))   # 127 과 같은 백본
             s.합침 = 합침 if 인코더 == "cnn" else "없음"
-            s.머리 = nn.Conv2d(256, 16 * 16 * 출, 1) if s.합침 == "없음" else nn.Conv2d(256 + 층폭[1], 4 * 출, 1)
+            s.머리 = nn.Conv2d(256, 16 * 16 * 출, 1) if s.합침 == "없음" else nn.Conv2d(256 + 층폭[1] + (층폭[2] + 층폭[3] if s.합침 == "전부" else 0), 4 * 출, 1)   # 전부(137): 블록 1 ~ 4 를 64 칸에 모아 읽음(FPN 꼴 · 136 곡선 옆 직선을 곡선으로 번짐)
             if s.탐침: s.탐머리 = nn.ModuleList([nn.Conv2d(층폭[k], 4 ** k * 출, 1) for k in (1, 2, 3)])   # 블록 k 를 같은 얇은 머리로 읽음
         def forward(s, x):
             b = len(x); x = x.reshape(b * 3, 1, 128, 128).float() / 255.
@@ -55,6 +55,7 @@ def 망(인코더, 탐침=False, 합침="없음"):   # 합침: 없음(블록 4 �
             fs = []; f = x
             for 블록 in s.cnn: f = 블록(f); fs.append(f)
             if s.합침 == "블록1": o = [F.pixel_shuffle(s.머리(torch.cat([F.interpolate(f, scale_factor=8, mode="nearest"), fs[0]], 1)), 2)]   # 64 칸에서 읽고 2 배로 펼침
+            elif s.합침 == "전부": o = [F.pixel_shuffle(s.머리(torch.cat([F.interpolate(f, scale_factor=8, mode="nearest"), F.interpolate(fs[2], scale_factor=4, mode="nearest"), F.interpolate(fs[1], scale_factor=2, mode="nearest"), fs[0]], 1)), 2)]
             else: o = [F.pixel_shuffle(s.머리(f), 16)]
             if s.탐침: o += [F.pixel_shuffle(h(fs[k - 1].detach()), 2 ** k) for k, h in zip((1, 2, 3), s.탐머리)]   # detach: 탐침은 본 학습을 안 바꿈
             return torch.cat(o, 1).reshape(b, 3, 출 * len(o), 128, 128)
@@ -76,6 +77,8 @@ def 지표(o, Y):   # 시험 지표 — o, Y 는 같은 부품들 · 본 머리(
     선 = 지 > 0; r["선_숨음"] = round(float(((o[:, :, K][선] > 0) == Y["숨"][선]).float().mean()), 4)
     r["선_헛선"] = round(float((예[~선] > 0).float().mean()), 4)   # 선 없는 화소에 선을 그림
     pr = o[:, :, :K].float().softmax(2); 있 = (1 - pr[:, :, 0]) > .5; 종 = pr[:, :, 1:].argmax(2) + 1   # 「선이냐」 먼저 · 종류는 그다음(132: 선이라 알아도 확률을 셋에 나눠 「없음」이 1 등)
+    곡곁 = F.max_pool2d((지 == 2).float().reshape(-1, 1, 128, 128), 7, 1, 3).reshape(지.shape) > 0; 직곁 = (지 == 1) & 곡곁   # 곡선 3 화소 안의 직선(136 진단: 틀린 직선의 56 %)
+    r["선_곡선옆직선오류"] = round(float((종[직곁] == 2).float().mean()), 4) if 직곁.any() else None
     r["선_자리"] = round(float(있[선].float().mean()), 4); r["선_자리헛선"] = round(float(있[~선].float().mean()), 4); r["선_종류"] = round(float((종[선] == 지[선]).float().mean()), 4)
     p = torch.sigmoid(o[:, :, K + 1]).float(); 봉 = (p == F.max_pool2d(p.reshape(-1, 1, 128, 128), 5, 1, 2).reshape(p.shape)) & (p > .3)
     t = Y["열"].float(); 참 = (t == F.max_pool2d(t.reshape(-1, 1, 128, 128), 3, 1, 1).reshape(t.shape)) & (t > .9)
