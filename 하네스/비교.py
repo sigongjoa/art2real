@@ -36,7 +36,7 @@ def 한번(c, 판, 시드):   # 참가자 하나 · 시드 하나의 공통 자 
     if 시드:   # 같은 판 설정에서 시드만 바꿔 다시 학습(점검 · 보고서 없이 · 이어 하기 됨)
         import 하네스 as H, 과제선지도 as G
         pc = OmegaConf.load(f"{뿌리}/하네스/판/{판}/설정.yaml"); pc.학습.시드 = 시드; X, Y, _, idx, vx, 이, _ = G.자료("cuda", pc)
-        net, _ = H.실행(pc, os.path.dirname(경로) + "/", X, Y, None, idx, vx, 이, 해시="비교"); del X, Y
+        net, _ = H.실행(pc, os.path.dirname(경로) + "/", X, Y, None, idx, vx, 이, 해시="비교"); del X, Y; import gc; gc.collect()   # 안 비우면 다시 읽을 때 메모리 상한(10-23)
     r, 예, 부품들 = getattr(공통자, 어댑터["선지도"])(판, net)
     if "12050" in 부품들: r["_보기"] = 예[부품들.index("12050"), 1].tolist()
     r["자"] = 자해시(); os.makedirs(os.path.dirname(경로), exist_ok=True); json.dump(r, open(경로, "w", encoding="utf-8"), ensure_ascii=False)
