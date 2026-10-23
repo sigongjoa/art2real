@@ -36,11 +36,11 @@ def 모음(결과들):   # 모서리 결과 목록 → 공통 지표
         m = a[:, 2] == s; r[f"틀림_{n}"] = round(float(1 - a[m, 1].mean()), 4) if m.any() else None; r[f"수_{n}"] = int(m.sum())
     m = a[:, 2] == 3; r["모서리_종류_직곡"] = round(float(a[m, 1].mean()), 4) if m.any() else None
     return r
-def 선지도판(판, net=None):   # 선지도(화소) 판 어댑터: 시험 부품마다 모델 예측 → 모서리 채점 · net 을 주면 그 망(비교판 시드 반복)
+def 선지도판(판, net=None, 자료=None):   # 자료 = (X, vx, 이) 를 주면 다시 읽지 않음(시드 반복에서 다시 읽다 메모리 상한 두 번)   # 선지도(화소) 판 어댑터: 시험 부품마다 모델 예측 → 모서리 채점 · net 을 주면 그 망(비교판 시드 반복)
     import torch, 과제선지도 as G, 분석그림 as A
     from omegaconf import OmegaConf
     import 겹침그림 as Q
-    c = OmegaConf.load(f"{뿌리}/하네스/판/{판}/설정.yaml"); X, Y, _, idx, vx, 이, Xnp = G.자료("cuda", c)
+    c = OmegaConf.load(f"{뿌리}/하네스/판/{판}/설정.yaml"); X, vx, 이 = 자료 or (lambda t: (t[0], t[4], t[5]))(G.자료("cuda", c))
     n = (net or A.불러(판)).cuda(); pr = G.예측(n, X[vx])[:, :, :4].float().softmax(2)   # 다중 판은 예측이 이미 같은 꼴로 읽음
     있 = (1 - pr[:, :, 0] > .5).cpu().numpy(); p = pr[:, :, 1:3].cpu().numpy(); 예 = np.where(있, p.argmax(2) + 1, 0)
     결과 = []; 부품들 = [이[int(j)] for j in vx.tolist()]
