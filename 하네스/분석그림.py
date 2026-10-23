@@ -6,7 +6,7 @@ def 불러(판):
     import torch, 과제선지도 as G
     from omegaconf import OmegaConf
     c = OmegaConf.load(f"{뿌리}/하네스/판/{판}/설정.yaml"); s = c.get("선지도", {})
-    n = G.망(c.인코더, 탐침=bool(s.get("탐침층", False)), 합침=str(s.get("합침", "없음")))
+    n = G.망(c.인코더, 탐침=bool(s.get("탐침층", False)), 합침=str(s.get("합침", "없음")), 다중=bool(s.get("다중", False)))
     n.load_state_dict(torch.load(f"{뿌리}/out/하네스/{판}/점검/{c.학습.에폭:02d}.pt", weights_only=False)); return n.eval()
 def 칠(o):   # (6, 128, 128) → RGB · 「선이냐 먼저 · 종류는 다음」 읽기
     import torch

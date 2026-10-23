@@ -38,13 +38,13 @@ def 열지도(점, s=1.5, N=128):   # (n, 3, M, 2) NaN 채움 → (n, 3, 128, 12
     return out
 층지표 = ("선_자리", "선_자리헛선", "선_종류", "선_직선", "선_곡선", "점_F1")
 층폭 = {1: 32, 2: 64, 3: 128}   # 블록 k 출력 채널 · 해상도 128 / 2^k
-def 망(인코더, 탐침=False, 합침="없음"):   # 합침: 없음(블록 4 만) | 블록1(블록 4 를 8 배 키워 블록 1 과 이어 읽음 · 136 — 135 탐침: 얕은 층 = 어디 · 깊은 층 = 무엇)
+def 망(인코더, 탐침=False, 합침="없음", 다중=False, 시드=0):   # 다중(139): 앞 4 채널 = 선 있음 · 직선 · 곡선 · 테 각각 시그모이드(붙은 화소는 둘 다 정답) · 시드 = 초기값 · 섞는 순서(비교판 흔들림 폭)   # 합침: 없음(블록 4 만) | 블록1(블록 4 를 8 배 키워 블록 1 과 이어 읽음 · 136 — 135 탐침: 얕은 층 = 어디 · 깊은 층 = 무엇)
     import torch, torch.nn as nn, torch.nn.functional as F
-    torch.manual_seed(0)
+    torch.manual_seed(시드)
     def 블(a, b): return nn.Sequential(nn.Conv2d(a, b, 3, 2, 1), nn.GroupNorm(8, b), nn.GELU(), nn.Conv2d(b, b, 3, 1, 1), nn.GroupNorm(8, b), nn.GELU())
     class 선망(nn.Module):   # (b, 3, 128, 128) uint8 → (b, 3, 6 × (1 + 탐침 3), 128, 128) · 앞 6 = 본 머리(블록 4)
         def __init__(s):
-            super().__init__(); s.인코더 = 인코더; s.탐침 = 탐침 and 인코더 == "cnn"
+            super().__init__(); s.인코더 = 인코더; s.다중 = 다중; s.탐침 = 탐침 and 인코더 == "cnn"
             if 인코더 == "cnn": s.cnn = nn.Sequential(블(1, 32), 블(32, 64), 블(64, 128), 블(128, 256))   # 127 과 같은 백본
             s.합침 = 합침 if 인코더 == "cnn" else "없음"
             s.머리 = nn.Conv2d(256, 16 * 16 * 출, 1) if s.합침 == "없음" else nn.Conv2d(256 + 층폭[1] + (층폭[2] + 층폭[3] if s.합침 == "전부" else 0), 4 * 출, 1)   # 전부(137): 블록 1 ~ 4 를 64 칸에 모아 읽음(FPN 꼴 · 136 곡선 옆 직선을 곡선으로 번짐)
@@ -60,7 +60,26 @@ def 망(인코더, 탐침=False, 합침="없음"):   # 합침: 없음(블록 4 �
             if s.탐침: o += [F.pixel_shuffle(h(fs[k - 1].detach()), 2 ** k) for k, h in zip((1, 2, 3), s.탐머리)]   # detach: 탐침은 본 학습을 안 바꿈
             return torch.cat(o, 1).reshape(b, 3, 출 * len(o), 128, 128)
     return 선망()
-def 손실함수(빈가중=.05, 테="구분"): return lambda o, Y, 쓰=None: 손실(o, Y, 빈가중=빈가중, 테=테)
+def 손실함수(빈가중=.05, 테="구분", 다중=False): return lambda o, Y, 쓰=None: (다중손실 if 다중 else 손실)(o, Y, 빈가중=빈가중, 테=테)
+def 다중표적(지):   # 화소마다 (직선, 곡선, 테) 0/1 — 자기 종류 + 1 화소 안에 닿은 다른 종류도 정답(선 화소에서만)
+    import torch.nn.functional as F
+    선 = 지 > 0; return [(F.max_pool2d((지 == k).float().reshape(-1, 1, 128, 128), 3, 1, 1).reshape(지.shape) > 0) & 선 for k in (1, 2, 3)]
+def 다중손실(o, Y, 쓰=None, 빈가중=.05, 테="구분"):   # 139: 선 있음 BCE(없음 화소 가중 빈가중) + 선 화소에서 종류 셋 각각 BCE
+    if o.shape[2] > 출: return sum(다중손실(o[:, :, h:h + 출], Y, 빈가중=빈가중) for h in range(0, o.shape[2], 출))
+    import torch, torch.nn.functional as F
+    지 = Y["지도"]; 선 = 지 > 0; w = torch.where(선, 1., 빈가중)
+    l있 = (F.binary_cross_entropy_with_logits(o[:, :, 0].float(), 선.float(), reduction="none") * w).sum() / w.sum()
+    l종 = sum(F.binary_cross_entropy_with_logits(o[:, :, k + 1][선].float(), t[선].float()) for k, t in enumerate(다중표적(지))) if 선.any() else o.sum() * 0
+    l숨 = F.binary_cross_entropy_with_logits(o[:, :, K][선], Y["숨"][선].float()) if 선.any() else o.sum() * 0
+    t = Y["열"].float(); p = torch.sigmoid(o[:, :, K + 1]); l점 = (((p - t) ** 2) * (1 + 30 * t)).mean() * 10
+    return l있 + l종 + l숨 + l점
+def 읽기(o):   # 다중 출력 → 소프트맥스 출력과 같은 꼴의 로그 확률(없음 = 1 − 있음 · 종류 k = 있음 × 몫 k) · 지표 · 그림 · 공통 자가 그대로 씀
+    import torch, torch.nn.functional as F
+    o = o.float().clone()
+    for h in range(0, o.shape[2], 출):
+        a = o[:, :, h]; s = torch.sigmoid(o[:, :, h + 1:h + K]); 몫 = s / s.sum(2, keepdim=True).clamp(min=1e-6)
+        o[:, :, h + 1:h + K] = F.logsigmoid(a)[:, :, None] + 몫.clamp(min=1e-6).log(); o[:, :, h] = F.logsigmoid(-a)
+    return o
 def 손실(o, Y, 쓰=None, 빈가중=.05, 테="구분"):   # Y 는 이미 배치로 잘린 dict · 탐침 머리가 붙었으면 머리마다 같은 손실을 더함(탐침은 detach 라 백본엔 본 머리 기울기만)
     if o.shape[2] > 출: return sum(손실(o[:, :, h:h + 출], Y, 빈가중=빈가중, 테=테) for h in range(0, o.shape[2], 출))
     import torch, torch.nn.functional as F
@@ -93,7 +112,8 @@ def 지표(o, Y):   # 시험 지표 — o, Y 는 같은 부품들 · 본 머리(
 def 예측(net, X, 배=32):
     import torch
     net.eval()
-    with torch.no_grad(): return torch.cat([net(X[i:i + 배]).half() for i in range(0, len(X), 배)])   # 탐침 머리까지 299 장이면 float32 로 1.4 GB
+    with torch.no_grad(): o = torch.cat([net(X[i:i + 배]).half() for i in range(0, len(X), 배)])
+    return 읽기(o).half() if getattr(net, "다중", False) else o   # 탐침 머리까지 299 장이면 float32 로 1.4 GB
 def 점검(cfg, 폴더, net, 기록, X, Y, vx, 이, Xnp, 실행):   # 이 판 지표 + 같은 에폭으로 학습한 화소 대조 · 그림
     import torch, json
     from omegaconf import OmegaConf
@@ -132,4 +152,8 @@ if __name__ == "__main__":   # 자체 시험: 모양 · 손실 유한 · 지표 
         l = 손실(o, Y); assert torch.isfinite(l), l
         완 = torch.full((2, 3, 출, 128, 128), -9.); 완[:, :, :K] = torch.nn.functional.one_hot(지, K).permute(0, 1, 4, 2, 3) * 18 - 9; 완[:, :, K] = 숨.float() * 18 - 9; 완[:, :, K + 1] = torch.logit(Y["열"].float().clamp(1e-4, 1 - 1e-4))
         r = 지표(완, Y); assert r["선_직선"] == 1 and r["선_곡선"] == 1 and r["선_숨음"] == 1 and r["선_헛선"] == 0 and r["점_F1"] == 1, r
+    n = 망("cnn", 다중=True); o = n(x); l = 다중손실(o, Y); assert torch.isfinite(l), l   # 다중: 직선 · 곡선이 닿은 화소는 둘 다 정답 · 완벽 출력을 읽으면 지표 1
+    지2 = 지.clone(); 지2[:, :, 41, 70] = 2; 직, 곡, _ = 다중표적(지2); assert (직 & 곡).any() and not (직 & 곡)[:, :, 40, 10:60].any()
+    완 = torch.full((2, 3, 출, 128, 128), -9.); 완[:, :, 0] = (지 > 0).float() * 18 - 9; 완[:, :, 1] = (지 == 1).float() * 18 - 9; 완[:, :, 2] = (지 == 2).float() * 18 - 9; 완[:, :, K + 1] = torch.logit(Y["열"].float().clamp(1e-4, 1 - 1e-4))
+    r = 지표(읽기(완), Y); assert r["선_직선"] == 1 and r["선_곡선"] == 1 and r["선_헛선"] == 0, r
     print("과제선지도 시험 통과", r)

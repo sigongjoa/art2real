@@ -25,20 +25,37 @@ def 관문(c, 이름):
     상 = subprocess.run(["git", "-C", 뿌리, "status", "--porcelain", "--", f"하네스/conf/{이름}.yaml"], capture_output=True, text=True).stdout.strip()
     if 상: 문.append(f"비교 설정이 커밋 안 됨 — 결정 규칙은 돌리기 전에 커밋(사전등록)")
     if 문: raise 비교거부("\n  × ".join(["비교판 관문 거부:"] + 문))
-def 재기(c):
-    import 공통자, 분석그림 as A, numpy as np
-    out = {}
+def 자해시():
+    import hashlib; return hashlib.md5(open(f"{뿌리}/하네스/공통자.py", "rb").read()).hexdigest()[:10]
+def 한번(c, 판, 시드):   # 참가자 하나 · 시드 하나의 공통 자 값 — 저장된 값이 같은 자(공통자.py 해시)로 잰 것이면 읽기만
+    import 공통자
+    from omegaconf import OmegaConf
+    경로 = f"{뿌리}/하네스/판/{판}/공통자.json" if 시드 == 0 else f"{뿌리}/out/하네스/비교/{c.비교.이름}/{판}_s{시드}/공통자.json"
+    if os.path.exists(경로) and json.load(open(경로, encoding="utf-8")).get("자") == 자해시(): return json.load(open(경로, encoding="utf-8"))
+    net = None
+    if 시드:   # 같은 판 설정에서 시드만 바꿔 다시 학습(점검 · 보고서 없이 · 이어 하기 됨)
+        import 하네스 as H, 과제선지도 as G
+        pc = OmegaConf.load(f"{뿌리}/하네스/판/{판}/설정.yaml"); pc.학습.시드 = 시드; X, Y, _, idx, vx, 이, _ = G.자료("cuda", pc)
+        net, _ = H.실행(pc, os.path.dirname(경로) + "/", X, Y, None, idx, vx, 이, 해시="비교"); del X, Y
+    r, 예, 부품들 = getattr(공통자, 어댑터["선지도"])(판, net)
+    if "12050" in 부품들: r["_보기"] = 예[부품들.index("12050"), 1].tolist()
+    r["자"] = 자해시(); os.makedirs(os.path.dirname(경로), exist_ok=True); json.dump(r, open(경로, "w", encoding="utf-8"), ensure_ascii=False)
+    print(판, "시드", 시드, {k: v for k, v in r.items() if not k.startswith("_")}, flush=True)
+    import gc, torch; del net; gc.collect(); torch.cuda.empty_cache(); return r
+def 재기(c):   # 참가자마다 시드 0(판 그대로) ~ 시드 n-1 → 평균 · 시드별 주지표
+    키 = c.비교.공통자.주지표; out = {}
     for p in c.참가자:
-        r, 예, 부품들 = getattr(공통자, 어댑터["선지도"])(p.판); out[p.판] = r
-        if "12050" in 부품들: out[p.판]["_보기"] = 예[부품들.index("12050"), 1].tolist()
-        print(p.판, {k: v for k, v in r.items() if not k.startswith("_")}, flush=True)
+        rs = [한번(c, p.판, s) for s in range(int(c.비교.get("시드", 1)))]
+        r = {k: (round(float(sum(x[k] for x in rs) / len(rs)), 4) if isinstance(v, float) else v) for k, v in rs[0].items()}
+        r["_시드"] = [x.get(키) for x in rs]; 학 = f"{뿌리}/out/하네스/{p.판}/학습.json"
+        r["학습_분"] = round(json.load(open(학, encoding="utf-8"))[-1]["초"] / 60) if os.path.exists(학) else None; out[p.판] = r
     return out
-def 결정(c, 값):
-    키 = c.비교.공통자.주지표; 줄 = sorted(((값[p.판].get(키) or 0, p.판) for p in c.참가자), reverse=True)
-    if c.비교.get("시드", 1) > 1 and True:   # 시드 반복 결과가 아직 없음 → 흔들림 폭을 모르니 이김 판정 보류
-        return {"판정": "보류", "까닭": f"시드를 1 번씩만 돌림(설정은 {c.비교.시드} 번) — 흔들림 폭을 몰라 이김을 정하지 않음", "순위": [b for _, b in 줄]}
-    차 = 줄[0][0] - 줄[1][0]
-    return {"판정": "이김" if 차 >= c.비교.결정.문턱 else "비김", "까닭": f"1 위 − 2 위 = {차:+.3f}", "순위": [b for _, b in 줄]}
+def 결정(c, 값):   # 사전등록 규칙: 1 위 평균 − 2 위 평균 ≥ 문턱 이고 1 위 시드 최저 > 2 위 시드 최고 → 이김 · 아니면 비김(둘 중 학습이 짧은 쪽)
+    키 = c.비교.공통자.주지표; 줄 = sorted(((값[p.판].get(키) or 0, p.판) for p in c.참가자), reverse=True); 순 = [b for _, b in 줄]
+    (m1, a), (m2, b) = 줄[0], 줄[1]; 차 = m1 - m2
+    if min(값[a]["_시드"]) > max(값[b]["_시드"]) and 차 >= c.비교.결정.문턱: return {"판정": "이김", "까닭": f"{a} 평균이 {b} 보다 {차:+.3f} · 시드 {len(값[a]['_시드'])} 번 폭이 안 겹침", "순위": 순, "고름": a}
+    싼 = min((a, b), key=lambda k: 값[k].get("학습_분") or 1e9)
+    return {"판정": "비김", "까닭": f"1 · 2 위 차 {차:+.3f} · 문턱 {c.비교.결정.문턱} 또는 시드 폭 겹침 → 학습이 짧은 {싼}", "순위": 순, "고름": 싼}
 def 보기그림(예지도, 경로):
     import numpy as np
     from PIL import Image
@@ -55,7 +72,7 @@ def 페이지(c, 값, 판정, 폴더):
     for p in c.참가자:
         r = 값[p.판]; 줄.append(f'<tr><td><a href="../../판/{E(p.판)}/보고.html">{E(p.이름)}</a>{" <span class=tag>대조</span>" if p.get("역할") == "대조" else ""}</td>'
             + "".join(칸(r.get("틀림_" + s)) for s in 상황)
-            + f'<td><b>{r.get(키, 0):.3f}</b></td><td>{r["모서리_종류"]:.3f}</td><td>{r["모서리_찾음"]:.3f}</td></tr>')
+            + f'<td><b>{r.get(키, 0):.3f}</b><br><span class=note>시드 {" · ".join(f"{v:.3f}" for v in r["_시드"])}</span></td><td>{r["모서리_종류"]:.3f}</td><td>{r["모서리_찾음"]:.3f}</td></tr>')
     수 = 값[c.참가자[0].판]; 머리 = "".join(f"<th>{E(s)}<br><span class=note>{수.get('수_' + s, 0):,} 모서리</span></th>" for s in 상황)
     카드 = []
     for p in c.참가자:
@@ -95,7 +112,7 @@ def 주(이름):
     except 비교거부 as e: print(e); sys.exit(2)
     폴더 = f"{뿌리}/하네스/비교/{c.비교.이름}/"; os.makedirs(폴더, exist_ok=True)
     값 = 재기(c); 판정 = 결정(c, 값)
-    json.dump({"설정": 이름, "판정": 판정, "값": {k: {a: b for a, b in v.items() if not a.startswith("_")} for k, v in 값.items()}, "날짜": time.strftime("%Y-%m-%d %H:%M")}, open(폴더 + "비교.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    json.dump({"설정": 이름, "판정": 판정, "값": {k: {a: b for a, b in v.items() if not a.startswith("_") or a == "_시드"} for k, v in 값.items()}, "날짜": time.strftime("%Y-%m-%d %H:%M")}, open(폴더 + "비교.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     페이지(c, 값, 판정, 폴더)
     문서 = f"{뿌리}/docs/비교/{c.비교.이름}/"
     shutil.copytree(폴더, 문서, dirs_exist_ok=True);   # 지우지 않고 덮어씀(지우기는 열린 파일 탓에 WinError 32 로 실패한 적 있음) print("비교판", 판정, 문서 + "index.html")

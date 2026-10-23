@@ -6,7 +6,7 @@ from omegaconf import OmegaConf
 뿌리 = "G:/art2real"; 실험 = 뿌리 + "/원화3d/실험_20261013/캐드부품"; sys.path.insert(0, 실험)
 import 모델124 as B, 조립124 as C, 모델127 as M7
 손잡이밖 = {"판", "기준", "대조", "점검", "끝", "hydra"}
-계산만 = {"학습.미세"}   # 결과가 같은 계산 방식(기울기 누적 조각 · GroupNorm 은 장마다라 같음) — 손잡이로 안 셈
+계산만 = {"학습.미세", "학습.시드"}   # 시드: 판 하나는 늘 0 · 바꾸는 건 비교판의 흔들림 재기뿐(옛 판 설정엔 칸이 없어 None 대 0 이 손잡이로 세지던 것 막음) ·   # 결과가 같은 계산 방식(기울기 누적 조각 · GroupNorm 은 장마다라 같음) — 손잡이로 안 셈
 def 펼친(d, 앞=""): return {f"{앞}{k}": v for k0, v0 in d.items() for k, v in (펼친(v0, f"{k0}.").items() if isinstance(v0, dict) else [(k0, v0)])} if isinstance(d, dict) else {앞: d}
 class 관문거부(Exception): pass
 # ── ① 관문 ────────────────────────────────────────────────
@@ -51,7 +51,7 @@ def 관문(cfg, 설정파일, 덮어쓰기=()):
     return 바뀐
 # ── 부품 등록표 ───────────────────────────────────────────
 def 망(cfg):
-    if 선지도(cfg): import 과제선지도 as G; return G.망(cfg.인코더, 탐침=bool(cfg.선지도.get("탐침층", False)), 합침=str(cfg.선지도.get("합침", "없음")))
+    if 선지도(cfg): import 과제선지도 as G; return G.망(cfg.인코더, 탐침=bool(cfg.선지도.get("탐침층", False)), 합침=str(cfg.선지도.get("합침", "없음")), 다중=bool(cfg.선지도.get("다중", False)), 시드=int(cfg.학습.get("시드", 0)))
     if cfg.인코더 == "cnn": return M7.망()
     if cfg.인코더 == "cnn4": import 모델129 as M9; return M9.망("c")
     raise KeyError(cfg.인코더)
@@ -62,7 +62,7 @@ def 잘(cfg, Y, 쓰, ix):
     return Y[ix], 쓰[ix]
 def 손실함수(cfg):
     import 손실그림124 as L
-    if 선지도(cfg): import 과제선지도 as G; return G.손실함수(cfg.선지도.빈가중, str(cfg.선지도.get("테", "구분")))
+    if 선지도(cfg): import 과제선지도 as G; return G.손실함수(cfg.선지도.빈가중, str(cfg.선지도.get("테", "구분")), bool(cfg.선지도.get("다중", False)))
     if cfg.짝 == "부피순": return lambda o, Y, 쓰: sum(L.항목(o, Y, 쓰).values())
     if cfg.짝 == "헝가리안":
         import 모델129 as M9
@@ -109,7 +109,7 @@ def 실행(cfg, 폴더, X, Y, 쓰, idx, vx, 이, 해시=""):
         net.eval()
         with torch.no_grad():
             ov = 모(cfg, torch.cat([net(X[vx[i:i + 16]]) for i in range(0, len(vx), 16)])); yv, sv = 잘(cfg, Y, 쓰, vx); lv = float(f(ov, yv, sv))   # 16 개씩(137 네 층 합침은 50 개면 1.1 GB · 결과는 같음)
-            if 선지도(cfg): 수 = {"선맞음": float((ov[:, :, :4].argmax(2)[yv["지도"] > 0] == yv["지도"][yv["지도"] > 0]).float().mean())}   # 선 화소 종류 맞음
+            if 선지도(cfg): ov = __import__("과제선지도").읽기(ov) if net.다중 else ov; 수 = {"선맞음": float((ov[:, :, :4].argmax(2)[yv["지도"] > 0] == yv["지도"][yv["지도"] > 0]).float().mean())}   # 선 화소 종류 맞음
             else: 수 = {"몸수맞음": float(((ov[..., 0] > 0).sum(1) == yv[..., 0].sum(1)).float().mean())}
         기록.append({"에폭": ep + 1, "학습": float(np.mean(ls)), "시험": lv, **수, "초": round(time.time() - t0)}); print(기록[-1], flush=True)
         for k_, v_ in 기록[-1].items(): k_ != "에폭" and tb.add_scalar(k_, v_, ep + 1)
