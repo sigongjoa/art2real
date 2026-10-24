@@ -5,9 +5,11 @@ import os, shutil
 구조표 = {   # 구조 키 → 그림 이름(하네스/개념그림/<이름>/<이름>.mp4)
     "선지도/cnn/합침=전부": "ours137",
     "선지도/cnn/합침=전부/다중": "ours139",   # 139 다중 라벨 머리
+    "벡터화": "vec140",   # 140 칠한 화소 → 선 목록(계산)
 }
 논문표 = {"L-CNN": "lcnn", "PPGNet": "ppgnet", "PICASSO": "picasso", "GAT-CADNet": "gatcadnet"}   # 분석 글이 이 방법을 말하면 그림을 붙임
 def 키(cfg):
+    if cfg.get("목표", "CAD") == "벡터화": return "벡터화"
     if cfg.get("목표", "CAD") != "선지도": return None   # CAD 과제(127 계열)는 아직 그림 없음 — 관문 대상 아님
     s = cfg.get('선지도', {}); return f"선지도/{cfg.인코더}/합침={s.get('합침', '없음')}" + ("/다중" if s.get("다중") else "")
 def 찾기(cfg):

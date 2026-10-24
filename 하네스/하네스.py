@@ -15,6 +15,7 @@ class 관문거부(Exception): pass
          "쏠림4_곡선": "특징", "쏠림4_접합": "특징", "쏠림4_빈칸": "특징", "특징탐침": "특징", "특징탐침_무작위": "특징", "시험IoU": "평가", "학습IoU": "평가"}
 지표출처 |= {f"{k}{끝}": None for k in ("선_직선", "선_곡선", "선_곡면테", "선_숨음", "선_헛선", "선_자리", "선_자리헛선", "선_종류", "점_정밀", "점_재현", "점_F1") for 끝 in ("", "_화소", "_차")}
 지표출처 |= {"선_곡선옆직선오류": None, "선_곡선옆직선오류_화소": None}   # 137~
+지표출처 |= {f"벡_{k}{끝}": None for k in ("재현", "정밀", "F1", "종류", "조각") for 끝 in ("", "_정답")}   # 140~ 벡터화(학습 없음)
 지표출처 |= {f"층{k}_{m}": None for k in (1, 2, 3, 4) for m in ("선_자리", "선_자리헛선", "선_종류", "선_직선", "선_곡선", "점_F1")}   # 선지도 탐침층   # 선지도 과제는 점검이 늘 만듦
 식들 = {">=", "<=", ">", "<"}
 코드경로 = ["하네스", "원화3d/실험_20261013/캐드부품"]
@@ -29,7 +30,7 @@ def 관문(cfg, 설정파일, 덮어쓰기=()):
     if not 시 or 시 == "???": 문.append("시도가 없다 — 이 판에서 해 보는 일을 한 문장으로 적어라")
     elif re.search(r"[()（）]|[<>≤≥±]|\d+\.\d", 시) or len(시) > 60: 문.append(f"시도는 괄호 · 숫자 문턱 없이 60 자 안의 한 문장 — 지금: {시[:70]}")
     if not cfg.기준: 문.append("기준이 없다 — 돌리기 전에 기준을 적어라")
-    if cfg.대조 and cfg.대조.get("에폭") != cfg.학습.에폭: 문.append(f"대조 에폭 {cfg.대조.get('에폭')} ≠ 이 판 에폭 {cfg.학습.에폭} — 같은 시점끼리만 비교")
+    if cfg.대조 and 학습함(cfg) and cfg.대조.get("에폭") != cfg.학습.에폭: 문.append(f"대조 에폭 {cfg.대조.get('에폭')} ≠ 이 판 에폭 {cfg.학습.에폭} — 같은 시점끼리만 비교")
     if not cfg.대조: 문.append("대조가 없다")
     if f"| {판.가지} " not in open(f"{뿌리}/claudedocs/문제트리.md", encoding="utf-8").read(): 문.append(f"가지 {판.가지} 가 문제 트리에 없다")
     n = len(바뀐)
@@ -55,6 +56,7 @@ def 망(cfg):
     if cfg.인코더 == "cnn": return M7.망()
     if cfg.인코더 == "cnn4": import 모델129 as M9; return M9.망("c")
     raise KeyError(cfg.인코더)
+def 학습함(cfg): return cfg.get("목표", "CAD") != "벡터화"   # 벡터화(140~)는 계산만 — 자료 · 연기 · 학습 없이 점검만
 def 선지도(cfg): return cfg.get("목표", "CAD") == "선지도"   # 과제: CAD(덩어리 숫자) | 선지도(CNN 만 · 하네스/과제선지도.py)
 def 모(cfg, o): return o if 선지도(cfg) else o.reshape(-1, C.K, B.W)
 def 잘(cfg, Y, 쓰, ix):
@@ -184,7 +186,11 @@ def 주(cfg):
     try: 바뀐 = 관문(cfg, 설정파일, tuple(hc.overrides.task))
     except 관문거부 as e: print(e); sys.exit(2)
     해시 = 깃("rev-parse", "--short", "HEAD"); print("관문 통과 · 바뀐 손잡이", {k: v[1] for k, v in 바뀐.items()}, "· git", 해시, flush=True)
-    폴더 = f"{뿌리}/out/하네스/{cfg.판.이름}/"; os.makedirs(폴더, exist_ok=True); X, Y, 쓰, idx, vx, 이, Xnp = 자료("cuda", cfg)
+    폴더 = f"{뿌리}/out/하네스/{cfg.판.이름}/"; os.makedirs(폴더, exist_ok=True)
+    if not 학습함(cfg):   # 계산만 하는 판: 점검(입력 판 모델 예측 → 계산 → 정답과 맞춤 · 대조는 판 안에서) → 판정 · 기록 · 끝 단계는 같음
+        import 과제벡터화 as V; 지 = V.점검(cfg, 폴더); torch.cuda.empty_cache(); 판 = 판정(cfg, 지); 기록(cfg, 폴더, 바뀐, {}, 지, 판, 해시)
+        print("판정", json.dumps(판, ensure_ascii=False), flush=True); return
+    X, Y, 쓰, idx, vx, 이, Xnp = 자료("cuda", cfg)
     연 = 연기(cfg, X, Y, 쓰, idx) if "연기" in cfg.점검 else {}; print("연기 판 통과", 연, flush=True)
     net, 록 = 실행(cfg, 폴더, X, Y, 쓰, idx, vx, 이, 해시)
     if 선지도(cfg):   # 점검 = 지표 + 같은 에폭 화소 대조(같은 머리) · 그림
