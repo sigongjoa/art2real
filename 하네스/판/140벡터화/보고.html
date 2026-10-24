@@ -1,0 +1,116 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>판 140벡터화 · 하네스 보고서</title><style>
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap");
+:root{--paper:#f6f4ef;--sheet:#fffdf8;--ink:#1d2129;--muted:#585e68;--rule:#dcd7cc;--soft:#ece8de;--pass:#1f7a3e;--pass-bg:#e3f1e6;--fail:#b3261e;--fail-bg:#f7e2de;--tool:#8a5f00;--tool-bg:#f6ecd4;--line1:#2d5fa8;--line2:#c0661b}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 "Pretendard Variable",Pretendard,"Malgun Gothic",system-ui,sans-serif;font-variant-numeric:tabular-nums;word-break:keep-all}
+::selection{background:#1d2129;color:#fffdf8}
+a{color:var(--line1);text-underline-offset:3px}a:focus-visible{outline:2px solid var(--line1);outline-offset:2px;border-radius:2px}
+main{max-width:1040px;margin:0 auto;padding:56px 32px 96px}
+header{padding-bottom:28px;border-bottom:1px solid var(--rule);margin-bottom:8px}
+h1{font-size:clamp(1.9rem,4vw,2.7rem);line-height:1.15;letter-spacing:-.025em;margin:0 0 10px;font-weight:800;text-wrap:balance}
+.lead{font-size:1.15rem;color:var(--muted);margin:0 0 22px;max-width:62ch;text-wrap:pretty}
+.판정{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.05rem;padding:7px 14px 7px 11px;border-radius:999px}
+.판정 svg{width:18px;height:18px}.통과{color:var(--pass);background:var(--pass-bg)}.실패{color:var(--fail);background:var(--fail-bg)}.탐색{color:var(--tool);background:var(--tool-bg)}
+dl.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px 28px;margin:26px 0 0}
+dl.meta div{min-width:0}dl.meta dt{font-size:.82rem;color:var(--muted)}dl.meta dd{margin:2px 0 0;font-weight:600;overflow-wrap:anywhere}
+h2{font-size:1.35rem;letter-spacing:-.015em;margin:56px 0 14px;font-weight:750}
+h3{font-size:1.02rem;margin:30px 0 8px;font-weight:700}
+p,li{max-width:72ch}
+.표{overflow-x:auto;margin:6px 0 4px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{padding:9px 14px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--soft)}
+th:first-child,td:first-child{text-align:left}tr:last-child td{border-bottom:0}
+thead th{font-size:.8rem;font-weight:600;color:var(--muted);background:var(--paper);border-bottom:1px solid var(--rule)}
+td.결과{text-align:center}td.결과 span{display:inline-flex;width:24px;height:24px;border-radius:50%;align-items:center;justify-content:center}td.결과 svg{width:15px;height:15px}
+td.결과 .o{color:var(--pass);background:var(--pass-bg)}td.결과 .x{color:var(--fail);background:var(--fail-bg)}
+.차{color:var(--muted);font-size:.88rem}
+.주석{font-size:.88rem;color:var(--muted);margin:8px 2px 0}.주석 code{overflow-wrap:anywhere}
+.줄글{display:flex;flex-wrap:wrap;gap:6px 26px;margin:4px 0}.줄글 b{font-weight:700}.줄글 span{color:var(--muted)}
+figure{margin:18px 0 0}figure img{display:block;width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;background:#fff}
+figcaption{font-size:.86rem;color:var(--muted);margin-top:8px}
+.곡선{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:14px 12px 6px}
+.곡선 svg{display:block;width:100%;height:auto}.곡선 text{font:15px "Pretendard Variable",Pretendard,sans-serif;fill:var(--muted)}
+.사람{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:6px 22px}
+.사람 ul{padding-left:1.1em}.사람 li{margin:8px 0}.비어{color:var(--muted);font-style:italic;padding:12px 0}
+code,pre{font-family:"JetBrains Mono",D2Coding,Consolas,monospace;font-size:.86rem}
+pre{background:#1d2129;color:#f3efe6;padding:16px 18px;border-radius:10px;overflow-x:auto;line-height:1.55}
+td.열{background:color-mix(in oklab,var(--line1) calc(var(--v)*1%),var(--sheet))}td.열.진{color:#fff}
+main{max-width:1240px;display:grid;grid-template-columns:300px minmax(0,1fr);column-gap:48px;align-items:start}
+main>*{grid-column:2}header{grid-column:1;grid-row:1/200;position:sticky;top:28px;border:1px solid var(--rule);border-radius:14px;background:var(--sheet);padding:24px 22px;margin:0}
+header h1{font-size:1.32rem;line-height:1.4;letter-spacing:-.01em;font-weight:750;margin-bottom:16px}header .lead{font-size:1rem}dl.meta{grid-template-columns:1fr 1fr;gap:12px 16px}main>h2:first-of-type{margin-top:0}
+@media (max-width:900px){main{display:block}header{position:static;margin-bottom:8px}main>h2:first-of-type{margin-top:44px}}
+nav.뒤{margin:0 0 14px}nav.뒤 a{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:.9rem;color:var(--muted);text-decoration:none}nav.뒤 a:hover{color:var(--ink)}nav.뒤 svg{width:16px;height:16px}
+td.왼{text-align:left;white-space:normal}tr.깊2 td:first-child{padding-left:30px;color:var(--muted)}.흐름{max-width:72ch}ul.목표 li{max-width:72ch;margin:6px 0}ul.고리{list-style:none;padding:0;margin:0;display:grid;gap:8px}ul.고리 li{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;align-items:baseline;padding:10px 14px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}ul.고리 li span{font-weight:700}ul.고리 a{overflow-wrap:anywhere}ul.고리 em{color:var(--muted);font-style:normal}
+article.분석{max-width:70ch;font-size:1.02rem;line-height:1.8}article.분석 h3{font-size:1.12rem;margin:28px 0 8px}article.분석 p{margin:0 0 14px}article.분석 ul,article.분석 ol{margin:0 0 14px;padding-left:1.3em}article.분석 li{margin:4px 0}article.분석 img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;margin:8px 0 4px}article.분석 em{color:var(--muted)}article.분석 figure{margin:8px 0 18px}article.분석 figcaption{font-size:.95rem;color:var(--ink);font-weight:600;margin-top:6px;padding-left:10px;border-left:3px solid var(--rule)}article.분석 table{border-collapse:collapse;margin:0 0 14px}article.분석 td,article.분석 th{border-bottom:1px solid var(--rule);padding:6px 12px;text-align:left}
+.명제{margin:0 0 12px;color:var(--muted);font-size:.95rem;max-width:72ch}.명제 span{font-weight:700;color:var(--ink);margin-right:6px}.쇼츠틀{display:grid;grid-template-columns:260px minmax(0,1fr);gap:20px;align-items:start}.쇼츠{width:260px;max-width:100%;border-radius:12px;border:1px solid var(--rule);background:#000}.쇼츠글 td{white-space:normal}@media (max-width:640px){.쇼츠틀{grid-template-columns:1fr}}.구조틀{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:12px;overflow-x:auto}.구조도{display:block;width:100%;min-width:720px;height:auto}.구조틀{background:#fbfaf6}.구조도 text{font-family:inherit;fill:var(--ink)}.구조도 .제{font-size:15px;font-weight:700}.구조도 .작{font-size:12px;fill:var(--muted)}.구조도 .작진{font-size:13px;font-weight:600}.구조도 .묶{font-size:13px;font-weight:600;fill:var(--muted)}
+@media (max-width:640px){main{padding:32px 16px 64px}th,td{padding:8px 10px}h2{margin-top:44px}}
+</style></head><body><main style="--n:4"><header><nav class="뒤"><a href="../../index.html"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3.5L5.5 8l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>판 목록</a></nav><h1>칠한 선 화소를 꼭짓점에서 끊어 선 목록으로 바꾼다</h1><span class="판정 탐색"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>탐색 — 이김 판정 없음 · 기준 못 넘음</span><dl class="meta"><div><dt>판</dt><dd>140벡터화</dd></div><div><dt>가지</dt><dd>A4</dd></div><div><dt>종류</dt><dd>탐색</dd></div><div><dt>바뀐 손잡이</dt><dd>목표: CAD → 벡터화, 벡터화.휨문턱: None → 2.0, 벡터화.입력판: None → 137전부합침</dd></div><div><dt>에폭</dt><dd>10</dd></div><div><dt>대조</dt><dd>정답선지도</dd></div><div><dt>git</dt><dd>1f22833</dd></div><div><dt>날짜</dt><dd>2026-10-24 10:34</dd></div></dl></header><h2>분석</h2><article class="분석"><h3>한 줄로</h3>
+<p><strong>물음</strong>: 칠한 선 화소를 갈림길과 끝점에서 끊는 계산만으로, 도면을 선 목록으로 바꿀 수 있을까?</p>
+<p><strong>답</strong>: 바꾸지 못했다. 정답 모서리를 여섯에 하나꼴로만 찾았다. 정답 선지도를 넣어도 결과가 거의 같았다. 그러니 지금은 계산이 걸림돌이다. 판 137의 칠이 괜찮은지는 아직 모른다. 기준 넷 중 둘을 못 넘었고, 판정은 실패다.</p>
+<h3>왜 이 판을 했나</h3>
+<p>정답 모서리는 CAD 부품의 모서리를 도면에 비춘 선이다. 이 모서리를 화소로 칠한 그림이 정답 선지도이고, 판 137이 칠해야 할 답이 바로 이것이다. 하지만 CAD 설계를 짜려면 화소로는 부족하다. 「여기서 저기까지 직선 하나」 같은 선 목록이 필요하다. 이 변환에는 정답이 있다. 그래서 학습 없이 계산만으로 해 보기로 했다.</p>
+<h3>바꾼 것 하나</h3>
+<p>학습 모델 대신 <strong>계산만 하는 변환기</strong>를 붙였다. 칠한 선을 한 화소 두께의 뼈대로 깎는다. 그다음 선이 갈라지거나 끝나는 곳에서 끊는다. 끊은 조각이 곧은 선에서 2화소 넘게 휘었으면 원호로, 아니면 직선으로 본다. 정답 모서리와 2화소 안에 있는 조각은 짝으로 친다. 입력은 판 137이 칠한 시험 부품 299개다. 같은 계산을 정답 선지도에도 돌렸다.</p>
+<h3>결과</h3>
+<figure><img alt="칠한 선을 넣든 정답 선지도를 넣든 선 목록이 정답 모서리를 대부분 놓친다 — 걸림돌은 변환 계산이다" src="비교.png"><figcaption>칠한 선을 넣든 정답 선지도를 넣든 선 목록이 정답 모서리를 대부분 놓친다 — 걸림돌은 변환 계산이다</figcaption></figure>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>이 판 (137의 칠)</th>
+<th>대조 (정답 선지도)</th>
+<th>목표</th>
+<th>넘었나</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>정답 모서리와 짝 맞음 (F1)</td>
+<td>0.19</td>
+<td>0.20</td>
+<td>0.90 · 대조는 0.95</td>
+<td>✗ · ✗</td>
+</tr>
+<tr>
+<td>짝 맞은 선의 종류</td>
+<td>0.98</td>
+<td>0.97</td>
+<td>0.90</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>한 모서리를 쪼갠 조각 수</td>
+<td>0.63</td>
+<td>0.55</td>
+<td>1.2 아래</td>
+<td>✓</td>
+</tr>
+</tbody>
+</table>
+<p><em>F1은 「찾은 선 중 맞은 비율」과 「정답 선 중 찾은 비율」을 함께 본 점수다. 1이면 완벽하다. 못 넘은 기준 둘은 같은 F1을 두 입력에서 각각 잰 것이다.</em></p>
+<h3>왜 이렇게 나왔나</h3>
+<p><strong>확인한 것</strong></p>
+<ul>
+<li>정답을 넣어도 짝이 0.20에 그친다. 그러니 계산이 천장이다.</li>
+<li>놓친 것이 잘못 그린 것보다 많다. 정답 모서리 중 찾은 비율은 0.16이고, 찾은 선 중 맞은 비율은 0.25다.</li>
+<li>종류 0.98은 짝이 맞은 선만 놓고 잰 값이라 겉으로만 좋다.</li>
+</ul>
+<p><strong>짐작 (아직 확인 안 함)</strong></p>
+<ul>
+<li>뼈대로 깎으면서 선이 1~2화소 밀려 짝 거리를 벗어났을 수 있다.</li>
+<li>ㄱ자로 꺾이는 꼭짓점에서는 끊지 않아 모서리 둘이 한 조각으로 붙었을 수 있다.</li>
+</ul>
+<h3>한계</h3>
+<ul>
+<li>시험 부품 299개로, 한 번만 돌렸다. 휨 문턱과 짝 거리는 2화소 하나씩만 썼다.</li>
+<li>조각 수 0.63이 무엇으로 나눈 평균인지 기록에 없다. 찾은 비율 0.16과도 맞지 않는다. 이 기준은 아래 한계가 없어서 아무것도 못 찾아도 통과한다.</li>
+<li>정답 선지도에서 0.20이 나온 이유를 아직 설명하지 못했다.</li>
+</ul>
+<h3>배운 것과 다음</h3>
+<p>계산이 정답 입력에서도 0.20이면, 그 위에 무엇을 올려도 그보다 높게 나오기 어렵다. <strong>변환기를 먼저 정답 선지도에서 0.95까지 올려야 한다.</strong> 판 137의 칠은 그다음에야 잴 수 있다.</p>
+<ol>
+<li>정답 선지도 몇 장에 뼈대, 끊은 자리, 정답 모서리를 겹쳐 그려 어디서 놓치는지 본다.</li>
+<li>짝 거리를 넓혀 다시 재서 선이 밀린 탓인지 확인하고, 꺾이는 꼭짓점에서도 끊어 본다.</li>
+<li>조각 수 평균을 무엇으로 나누는지 확인하고, 아래 한계를 둔다.</li>
+</ol></article><h2>모델 동작</h2><figure class="개념"><video src="개념.mp4" autoplay loop muted playsinline style="width:100%;max-width:880px;border:1px solid var(--rule);border-radius:10px"></video><figcaption class="주석">이 판 모델이 화소 하나를 판정하는 과정을 기계로 그린 그림(하네스/개념그림/vec140) · <a href="개념.gif">gif</a></figcaption></figure><h2>판정 기준</h2><p class="명제"><span>명제</span> 판 137 이 칠한 시험 부품 299 개의 선 화소를 뼈대 · 꼭짓점 · 가지 · 휨 계산만으로 선 목록으로 바꾸면, 정답 모서리(CAD 투영)의 90 % 이상과 2 화소 안에서 짝이 맞고(정밀도 함께 F1 0.90) 짝 맞은 선의 종류(눈 기준 · 2 화소 이상 휨 = 원호)가 90 % 이상 맞으며 한 모서리를 1.2 조각 넘게 쪼개지 않는다. 같은 계산을 정답 선지도에 돌리면 F1 0.95 를 넘어 계산 자체는 믿을 만하다</p><div class="표"><table><thead><tr><th>지표</th><th>조건</th><th>이 판</th><th>대조</th><th>결과</th></tr></thead><tbody><tr class="기준줄" style="--i:0"><td>벡_F1</td><td>&gt;= 0.9</td><td><strong>0.191</strong></td><td></td><td class="결과" style="--i:0"><span class="x" aria-label="실패"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 4.5l7 7m0-7l-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span></td></tr><tr class="기준줄" style="--i:1"><td>벡_종류</td><td>&gt;= 0.9</td><td><strong>0.979</strong></td><td></td><td class="결과" style="--i:1"><span class="o" aria-label="통과"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td></tr><tr class="기준줄" style="--i:2"><td>벡_조각</td><td>&lt;= 1.2</td><td><strong>0.633</strong></td><td></td><td class="결과" style="--i:2"><span class="o" aria-label="통과"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td></tr><tr class="기준줄" style="--i:3"><td>벡_F1_정답</td><td>&gt;= 0.95</td><td><strong>0.202</strong></td><td></td><td class="결과" style="--i:3"><span class="x" aria-label="실패"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 4.5l7 7m0-7l-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span></td></tr></tbody></table></div><p class="주석">기준은 돌리기 전에 커밋됐다(하네스 관문이 확인). 대조는 같은 에폭.</p><h2>숫자: 이 판과 대조</h2><div class="표"><table><thead><tr><th>지표</th><th>이 판</th><th>대조</th><th>차</th></tr></thead><tbody><tr><td>벡_재현</td><td data-n="0.156">0.156</td><td></td><td class="차"></td></tr><tr><td>벡_정밀</td><td data-n="0.246">0.246</td><td></td><td class="차"></td></tr><tr><td>벡_F1</td><td data-n="0.191">0.191</td><td></td><td class="차"></td></tr><tr><td>벡_종류</td><td data-n="0.979">0.979</td><td></td><td class="차"></td></tr><tr><td>벡_조각</td><td data-n="0.633">0.633</td><td></td><td class="차"></td></tr><tr><td>벡_재현_정답</td><td data-n="0.157">0.157</td><td></td><td class="차"></td></tr><tr><td>벡_정밀_정답</td><td data-n="0.285">0.285</td><td></td><td class="차"></td></tr><tr><td>벡_F1_정답</td><td data-n="0.202">0.202</td><td></td><td class="차"></td></tr><tr><td>벡_종류_정답</td><td data-n="0.975">0.975</td><td></td><td class="차"></td></tr><tr><td>벡_조각_정답</td><td data-n="0.550">0.550</td><td></td><td class="차"></td></tr></tbody></table></div><h2>학습 곡선</h2><figure><img src="시트.png" alt="학습 곡선 · 지표 · 12003 세 장 칸 1 주의"><figcaption>판 시트: 하네스가 판 끝에 만든 그림</figcaption></figure><h2>점검</h2><h3>연기 판</h3><div class="줄글"><div><span>첫 loss</span> <b></b></div><div><span>배치 하나 40 걸음 뒤</span> <b></b></div><div><span>VRAM</span> <b> GB</b></div></div><h3>층보기 (시험 64 부품 · 4 층)</h3><div class="줄글"><div><span>칸끼리 닮음</span> <b></b></div><div><span>빈 조각 주의 몫</span> <b></b> <span>(빈 조각 0.54)</span></div><div><span>주의 엔트로피</span> <b></b></div><div><span>출력 자리 퍼짐</span> <b></b> <span>(정답 0.148)</span></div></div><h3>탐침 (합성 그림)</h3><div class="줄글"><div><span>블록 4 구조 6 종</span> <b></b></div><div><span>블록 4 곡률 R²</span> <b></b></div><div><span>블록 3</span> <b> · </b></div></div><h2>쇼츠</h2><div class="쇼츠틀"><p class="비어">웹용 영상 없음</p><div class="쇼츠글"><p class="주석">편 101_판140벡터화 · 굽기 실패(코드 1): subprocess.CalledProcessError: Command &#x27;[&#x27;G:/art2real/out/tts/chatterbox/Scripts/python.exe&#x27;, &#x27;G:\\art2real\\원화3d\\과정\\영상05\\tts\\굽기_chatterbox.py&#x27;, &#x27;G:/art2real/out/영상05/대화/101_판140벡터화/_cb일감.json&#x27;]&#x27;  · <strong>업로드 대기</strong> · 하네스가 판 끝에 대본(claude -p) · 대본검사 · 맥락 없는 읽기 · 굽기까지</p><div class="표"><table><thead><tr><th>누구</th><th>말</th></tr></thead><tbody><tr><td class="왼">AI</td><td class="왼">오른쪽 선이 왼쪽 정답보다 훨씬 듬성듬성해요.</td></tr><tr><td class="왼">AI</td><td class="왼">부품 도면에서 CAD 설계에 쓸 선을 뽑는 중이에요.</td></tr><tr><td class="왼">AI</td><td class="왼">먼저 모델이 도면에서 모서리를 찾아 색을 칠해요.</td></tr><tr><td class="왼">AI</td><td class="왼">그 칠을 갈림길과 끝에서 끊어서 직선과 원호로 바꿔요.</td></tr><tr><td class="왼">AI</td><td class="왼">그렇게 바꾼 선이 오른쪽이에요.</td></tr><tr><td class="왼">나</td><td class="왼">모델이 모서리를 군데군데 안 칠했네.</td></tr><tr><td class="왼">나</td><td class="왼">그럼 정답 모서리를 칠해서 끊는 계산에 넣어 봐. <strong>[정답 칠로]</strong></td></tr><tr><td class="왼">AI</td><td class="왼">도면 위 정답 모서리를 빈틈없이 칠해서 똑같이 끊었어요.</td></tr><tr><td class="왼">AI</td><td class="왼">빈틈없는 칠인데도 모서리가 거의 다 빠져요.</td></tr><tr><td class="왼">AI</td><td class="왼">1이 만점인데 모델 칠은 0.19, 정답 칠도 0.20이에요. <strong>[정답도 0.20]</strong></td></tr><tr><td class="왼">나</td><td class="왼">칠이 아니라 끊는 계산이 막혔던 거네.</td></tr><tr><td class="왼">AI</td><td class="왼">이번엔 실패예요. 끊는 계산이 모서리를 놓쳐요. <strong>[끊는 계산 실패]</strong></td></tr><tr><td class="왼">AI</td><td class="왼">계산이 이러니 모델 칠이 괜찮은지는 아직 잴 수 없어요.</td></tr></tbody></table></div></div></div><h2>해석</h2><div class="사람"><p class="비어">아직 비어 있음. 보고.md 의 이 칸을 채우면 다시 만들 때 들어온다</p></div><h2>다음 가지</h2><div class="사람"><p class="비어">아직 비어 있음. 보고.md 의 이 칸을 채우면 다시 만들 때 들어온다</p></div><h2>재현</h2><pre>python 하네스/하네스.py --config-name 판_140벡터화</pre><p class="주석"><a href="설정.yaml">설정.yaml</a> · <a href="판정.json">판정.json</a> · <a href="보고.md">보고.md</a> · 산출 <code>G:/art2real/out/하네스/140벡터화/</code></p><h2>링크</h2><ul class="고리"><li><span>쇼츠</span><em>업로드 대기</em></li><li><span>GitHub 이슈</span><a href="https://github.com/sigongjoa/art2real/issues/12">https://github.com/sigongjoa/art2real/issues/12</a></li><li><span>커밋</span><em>아직 공개 안 됨</em></li><li><span>판 목록</span><a href="../../index.html">../../index.html</a></li></ul></main></body></html>
