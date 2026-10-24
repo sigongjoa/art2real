@@ -16,6 +16,7 @@ class 관문거부(Exception): pass
 지표출처 |= {f"{k}{끝}": None for k in ("선_직선", "선_곡선", "선_곡면테", "선_숨음", "선_헛선", "선_자리", "선_자리헛선", "선_종류", "점_정밀", "점_재현", "점_F1") for 끝 in ("", "_화소", "_차")}
 지표출처 |= {"선_곡선옆직선오류": None, "선_곡선옆직선오류_화소": None}   # 137~
 지표출처 |= {f"벡_{k}{끝}": None for k in ("재현", "정밀", "F1", "종류", "조각", "한선") for 끝 in ("", "_정답")}   # 140~ 벡터화(학습 없음)
+지표출처 |= {f"세뷰_{k}": None for k in ("부품", "실패", "겹침몫", "가름", "겹침당모서리")}   # 142~ 세 뷰 짝(학습 없음)
 지표출처 |= {f"층{k}_{m}": None for k in (1, 2, 3, 4) for m in ("선_자리", "선_자리헛선", "선_종류", "선_직선", "선_곡선", "점_F1")}   # 선지도 탐침층   # 선지도 과제는 점검이 늘 만듦
 식들 = {">=", "<=", ">", "<"}
 코드경로 = ["하네스", "원화3d/실험_20261013/캐드부품"]
@@ -56,7 +57,8 @@ def 망(cfg):
     if cfg.인코더 == "cnn": return M7.망()
     if cfg.인코더 == "cnn4": import 모델129 as M9; return M9.망("c")
     raise KeyError(cfg.인코더)
-def 학습함(cfg): return cfg.get("목표", "CAD") != "벡터화"   # 벡터화(140~)는 계산만 — 자료 · 연기 · 학습 없이 점검만
+계산과제 = {"벡터화": "과제벡터화", "세뷰": "과제세뷰"}   # 계산만 하는 과제(140~) — 자료 · 연기 · 학습 없이 점검만
+def 학습함(cfg): return cfg.get("목표", "CAD") not in 계산과제
 def 선지도(cfg): return cfg.get("목표", "CAD") == "선지도"   # 과제: CAD(덩어리 숫자) | 선지도(CNN 만 · 하네스/과제선지도.py)
 def 모(cfg, o): return o if 선지도(cfg) else o.reshape(-1, C.K, B.W)
 def 잘(cfg, Y, 쓰, ix):
@@ -188,7 +190,7 @@ def 주(cfg):
     해시 = 깃("rev-parse", "--short", "HEAD"); print("관문 통과 · 바뀐 손잡이", {k: v[1] for k, v in 바뀐.items()}, "· git", 해시, flush=True)
     폴더 = f"{뿌리}/out/하네스/{cfg.판.이름}/"; os.makedirs(폴더, exist_ok=True)
     if not 학습함(cfg):   # 계산만 하는 판: 점검(입력 판 모델 예측 → 계산 → 정답과 맞춤 · 대조는 판 안에서) → 판정 · 기록 · 끝 단계는 같음
-        import 과제벡터화 as V; 지 = V.점검(cfg, 폴더); torch.cuda.empty_cache(); 판 = 판정(cfg, 지); 기록(cfg, 폴더, 바뀐, {}, 지, 판, 해시)
+        V = __import__(계산과제[cfg.목표]); 지 = V.점검(cfg, 폴더); torch.cuda.empty_cache(); 판 = 판정(cfg, 지); 기록(cfg, 폴더, 바뀐, {}, 지, 판, 해시)
         print("판정", json.dumps(판, ensure_ascii=False), flush=True); return
     X, Y, 쓰, idx, vx, 이, Xnp = 자료("cuda", cfg)
     연 = 연기(cfg, X, Y, 쓰, idx) if "연기" in cfg.점검 else {}; print("연기 판 통과", 연, flush=True)
