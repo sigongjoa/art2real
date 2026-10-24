@@ -61,6 +61,8 @@ def 초안(판, 덮어쓰기=False):
     if m and "(비어 있음)" not in m.group(1) and not 덮어쓰기: return {"건너뜀": "분석 칸에 이미 글이 있음(사람 글 보호)"}
     if c.get("목표", "CAD") == "선지도":
         import 분석그림; 분석그림.비교(판, 기록["대조 판"] if os.path.exists(f"{뿌리}/out/하네스/{기록['대조 판']}/점검") else None)
+    if not os.path.exists(d + "비교.png") and os.path.exists(d + "시트.png"):   # 계산 판(140~)은 비교 그림을 안 만듦 → 글이 가리키는 비교.png 가 깨졌음(10-24 사용자 「이미지 첨부 안 되는 거 있어」) → 시트를 씀
+        import shutil; shutil.copy(d + "시트.png", d + "비교.png")
     본보기 = re.search(r"## 분석[^\n]*\n(.*?)(?=\n명제: )", open(f"{뿌리}/하네스/판/136합침/보고.md", encoding="utf-8").read(), re.S).group(1)
     본보기 = re.sub(r"<!--.*?-->", "", 본보기).strip()
     글감 = f"[규칙]\n{규칙}\n\n[본보기 — 판 136 의 분석(틀 · 말투만 따르고 내용은 이 판 기록으로)]\n{본보기}\n\n[이 판 기록]\n{json.dumps(기록, ensure_ascii=False, indent=1)}\n\n[대조 판의 분석(맥락)]\n{앞 or '(없음)'}"

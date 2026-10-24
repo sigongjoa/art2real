@@ -27,6 +27,17 @@ a:hover{{border-color:var(--ink)}}a:focus-visible{{outline:2px solid var(--ink);
 .판정{{grid-row:1/3;font-weight:700;font-size:.85rem;padding:4px 10px;border-radius:999px;white-space:nowrap}}.통과{{color:var(--pass);background:var(--pass-bg)}}.실패{{color:var(--fail);background:var(--fail-bg)}}.탐색{{color:var(--tool);background:var(--tool-bg)}}
 </style></head><body><main><h1>art2real 판 목록</h1><p class="lead">목표: 임의의 이미지로부터 CAD 코드를 만든다. 판(실험) 하나마다 명제를 먼저 적고, 하네스가 돌려서 판정과 보고서를 남긴다.</p>{f"<h2>비교판</h2><ul>{비교행}</ul><h2>판</h2>" if 비교행 else ""}<ul>{행}</ul></main></body></html>"""
     os.makedirs(문서, exist_ok=True); open(문서 + "index.html", "w", encoding="utf-8").write(글); open(문서 + ".nojekyll", "w").close(); return 문서 + "index.html"
-def 갱신(판): 복사(판); return 목록()
+def 빠진그림():   # 공개 쪽마다 <img src> 가 가리키는 파일이 있나(10-24: 계산 판 보고서 셋에서 비교.png 가 깨진 채 공개됨)
+    import re
+    빠짐 = []
+    for f in glob.glob(f"{문서}판/*/보고.html") + glob.glob(f"{문서}비교/*/index.html"):
+        d = os.path.dirname(f)
+        for s in set(re.findall(r'src="([^"]+)"', open(f, encoding="utf-8").read())):
+            if not s.startswith(("http", "data:")) and not os.path.exists(os.path.join(d, s)): 빠짐.append(f"{os.path.relpath(f, 문서)} → {s}")
+    return 빠짐
+def 갱신(판):
+    복사(판); 쪽 = 목록()
+    for x in 빠진그림(): print("⚠ 빠진 그림:", x, flush=True)
+    return 쪽
 if __name__ == "__main__":
     import sys; [복사(os.path.basename(os.path.dirname(p))) for p in glob.glob(f"{뿌리}/하네스/판/*/판정.json")]; print(목록())
