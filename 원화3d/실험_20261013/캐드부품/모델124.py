@@ -92,7 +92,8 @@ def 학습():
 def _렌더잡(a):   # (짓기 종류, 사양) → (그림, 실루엣) · 일꾼에서 돎(OCC 가 걸려도 본 프로세스는 안 멈춤)
     import 설계116 as S, 데이터117 as Q
     k, s = a
-    try: return Q.렌더(C.메시({"조립": C.짓기, "자리": C.짓기_자리, "단일": S.짓기}[k](s))[0])
+    if k == "글": sys.path.insert(0, "G:/art2real/하네스"); import 코드글   # 145~: 언어 모델이 쓴 CadQuery 글(일꾼에서 실행 · 시간 상한은 병렬렌더)
+    try: return Q.렌더(C.메시({"조립": C.짓기, "자리": C.짓기_자리, "단일": S.짓기, "글": lambda g: 코드글.실행(g)}[k](s))[0])
     except Exception: return None
 def _묶음(잡파일, ks, 칸):   # 일꾼 프로세스 하나 = 잡 여러 개 · 결과를 하나씩 파일로(죽어도 끝낸 것은 남음)
     import pickle

@@ -4,7 +4,7 @@
 import os, sys, json, html, shutil, subprocess, time
 뿌리 = "G:/art2real"; sys.path.insert(0, 뿌리 + "/하네스"); sys.path.insert(0, 뿌리 + "/원화3d/실험_20261013/캐드부품")
 E = html.escape
-어댑터 = {"선지도": "선지도판"}   # 과제(목표) → 공통자 어댑터 함수 이름
+어댑터 = {"선지도": "선지도판", "코드생성": "판지표"}   # 과제(목표) → 공통자 어댑터 · 판지표 = 판이 이미 같은 자(실루엣 IoU · 시험 299)로 잰 지표를 그대로 읽음
 class 비교거부(Exception): pass
 def 설정(이름):
     from omegaconf import OmegaConf
@@ -30,6 +30,9 @@ def 자해시():
 def 한번(c, 판, 시드):   # 참가자 하나 · 시드 하나의 공통 자 값 — 저장된 값이 같은 자(공통자.py 해시)로 잰 것이면 읽기만
     import 공통자
     from omegaconf import OmegaConf
+    if OmegaConf.load(f"{뿌리}/하네스/판/{판}/설정.yaml").get("목표") == "코드생성":   # 145~: 판 지표를 그대로(시드 반복은 아직 — 판 하나가 학습 · 생성 · 실행에 몇 시간)
+        if 시드: raise 비교거부(f"{판}: 코드생성 판의 시드 반복은 아직 없다 — 비교 설정 시드를 1 로")
+        return dict(json.load(open(f"{뿌리}/하네스/판/{판}/판정.json", encoding="utf-8"))["지표"])
     경로 = f"{뿌리}/하네스/판/{판}/공통자.json" if 시드 == 0 else f"{뿌리}/out/하네스/비교/{c.비교.이름}/{판}_s{시드}/공통자.json"
     if os.path.exists(경로) and json.load(open(경로, encoding="utf-8")).get("자") == 자해시(): return json.load(open(경로, encoding="utf-8"))
     net = 자료 = None
@@ -53,6 +56,7 @@ def 재기(c):   # 참가자마다 시드 0(판 그대로) ~ 시드 n-1 → 평�
 def 결정(c, 값):   # 사전등록 규칙: 1 위 평균 − 2 위 평균 ≥ 문턱 이고 1 위 시드 최저 > 2 위 시드 최고 → 이김 · 아니면 비김(둘 중 학습이 짧은 쪽)
     키 = c.비교.공통자.주지표; 줄 = sorted(((값[p.판].get(키) or 0, p.판) for p in c.참가자), reverse=True); 순 = [b for _, b in 줄]
     (m1, a), (m2, b) = 줄[0], 줄[1]; 차 = m1 - m2
+    if len(값[a]["_시드"]) < 2: return {"판정": "보류", "까닭": f"시드 1 번 — 흔들림 폭을 몰라 이김을 정하지 않음 · 1 위 {a} · 2 위와 차 {차:+.3f}", "순위": 순, "고름": None}
     if min(값[a]["_시드"]) > max(값[b]["_시드"]) and 차 >= c.비교.결정.문턱: return {"판정": "이김", "까닭": f"{a} 평균이 {b} 보다 {차:+.3f} · 시드 {len(값[a]['_시드'])} 번 폭이 안 겹침", "순위": 순, "고름": a}
     싼 = min((a, b), key=lambda k: 값[k].get("학습_분") or 1e9)
     return {"판정": "비김", "까닭": f"1 · 2 위 차 {차:+.3f} · 문턱 {c.비교.결정.문턱} 또는 시드 폭 겹침 → 학습이 짧은 {싼}", "순위": 순, "고름": 싼}
@@ -66,6 +70,7 @@ def 페이지(c, 값, 판정, 폴더):
     from omegaconf import OmegaConf
     import numpy as np
     상황 = 공통자.상황이름; 키 = c.비교.공통자.주지표
+    if OmegaConf.load(f"{뿌리}/하네스/판/{c.참가자[0].판}/설정.yaml").get("목표") == "코드생성": return 코드페이지(c, 값, 판정, 폴더)
     def 칸색(v): return "" if v is None else ("h0" if v < .12 else "h1" if v < .25 else "h2")
     def 칸(v): return f'<td class="h {칸색(v)}">' + ("—" if v is None else f"{v:.2f}") + "</td>"
     줄 = []
@@ -106,6 +111,30 @@ h1{margin:0;font-size:clamp(1.6rem,3.4vw,2.2rem)}a{color:inherit}.note{color:var
 <p class="note">비교 설정: 하네스/conf/{E(c.비교.이름)} · 결정 규칙(돌리기 전에 커밋): 1 위가 2 위보다 주지표 +{c.비교.결정.문턱} 이상이고 시드 {c.비교.시드} 번의 폭이 안 겹치면 이김 · 아니면 비김 → 싼 쪽.</p>
 </main></body></html>"""
     open(폴더 + "index.html", "w", encoding="utf-8").write(글)
+def 코드페이지(c, 값, 판정, 폴더):   # 145~ 코드 생성 비교 — 표(실행률 · IoU 중앙 · 평균) → 방법 카드(개념 그림 · 생성 코드를 실행한 모양)
+    import 개념그림
+    from omegaconf import OmegaConf
+    키 = c.비교.공통자.주지표; 줄, 카드 = [], []
+    for p in c.참가자:
+        r = 값[p.판]; d = f"{뿌리}/하네스/판/{p.판}/"; pc = OmegaConf.load(d + "설정.yaml"); n, mp4 = 개념그림.찾기(pc)
+        줄.append(f'<tr><td><a href="../../판/{E(p.판)}/보고.html">{E(p.이름)}</a></td><td><b>{r.get(키, 0):.3f}</b></td><td>{r.get("코드_IoU평균", 0):.3f}</td><td>{r.get("코드_실행률", 0):.3f}</td></tr>')
+        if mp4: shutil.copy(mp4, 폴더 + f"{n}.mp4")
+        if os.path.exists(d + "시트.png"): shutil.copy(d + "시트.png", 폴더 + f"보기_{p.판}.png")
+        카드.append(f'<div class="card"><b>{E(p.이름)}</b>{f"<video src={n}.mp4 autoplay loop muted playsinline></video>" if mp4 else ""}'
+                  + (f'<img src="보기_{E(p.판)}.png" alt="{E(p.이름)} — 입력 · 정답 · 생성 코드를 실행한 모양">' if os.path.exists(폴더 + f"보기_{p.판}.png") else "")
+                  + f'<span class="note">{E(str(pc.판.get("시도", "")))}</span><a href="../../판/{E(p.판)}/보고.html">판 보고서 →</a></div>')
+    for k, v in c.get("참고", {}).items(): 줄.append(f'<tr><td>{E(str(k))} <span class=tag>참고 · 다른 판 기록</span></td><td>{float(v):.3f}</td><td>—</td><td>—</td></tr>')
+    글 = f"""<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>비교판 {E(c.비교.이름)}</title>
+<style>:root{{--bg:#f7f6f2;--sheet:#fffefb;--ink:#1d2228;--muted:#5d6570;--rule:#dcd8ce;--chip:#eef2f6}}@media (prefers-color-scheme:dark){{:root{{--bg:#15181c;--sheet:#1c2026;--ink:#e7e4dc;--muted:#a1a8b2;--rule:#333a43;--chip:#232a33;color-scheme:dark}}}}
+body{{margin:0;background:var(--bg);color:var(--ink);font:15px/1.6 "Malgun Gothic",sans-serif;word-break:keep-all}}main{{max-width:1080px;margin:0 auto;padding:40px max(16px,env(safe-area-inset-left,0px)) 80px;display:grid;gap:24px}}a{{color:inherit}}.note{{color:var(--muted);font-size:12.5px}}.tag{{font-size:11px;padding:2px 7px;border-radius:999px;background:var(--chip);color:var(--muted)}}
+.box{{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:18px 20px}}table{{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}}th,td{{text-align:left;padding:8px 10px;border-bottom:1px solid var(--rule)}}th{{color:var(--muted)}}.pill{{font-weight:700;padding:4px 12px;border-radius:999px;background:var(--chip)}}
+.cards{{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px}}.card{{border:1px solid var(--rule);border-radius:10px;padding:12px;display:grid;gap:8px}}.card video,.card img{{width:100%;border-radius:8px}}</style></head><body><main>
+<nav><a href="../../index.html">← 판 목록</a></nav><header><span class="tag">비교판 · {time.strftime('%Y-%m-%d')}</span><h1>{E(c.비교.물음)}</h1></header>
+<div><span class="pill">{E(판정['판정'])}</span> {E(판정['까닭'])}</div>
+<section class="box"><table><thead><tr><th>방법</th><th>실루엣 IoU 중앙(주지표)</th><th>IoU 평균</th><th>코드 실행률</th></tr></thead><tbody>{"".join(줄)}</tbody></table>
+<p class="note">시험 부품 299 · 생성 코드를 실행 → 실루엣 IoU · 실행 실패 = 0</p></section>
+<section><div class="cards">{"".join(카드)}</div></section></main></body></html>"""
+    open(폴더 + "index.html", "w", encoding="utf-8").write(글)
 def 주(이름):
     c = 설정(이름)
     try: 관문(c, 이름)
@@ -115,5 +144,5 @@ def 주(이름):
     json.dump({"설정": 이름, "판정": 판정, "값": {k: {a: b for a, b in v.items() if not a.startswith("_") or a == "_시드"} for k, v in 값.items()}, "날짜": time.strftime("%Y-%m-%d %H:%M")}, open(폴더 + "비교.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     페이지(c, 값, 판정, 폴더)
     문서 = f"{뿌리}/docs/비교/{c.비교.이름}/"
-    shutil.copytree(폴더, 문서, dirs_exist_ok=True);   # 지우지 않고 덮어씀(지우기는 열린 파일 탓에 WinError 32 로 실패한 적 있음) print("비교판", 판정, 문서 + "index.html")
+    shutil.copytree(폴더, 문서, dirs_exist_ok=True); print("비교판", 판정, 문서 + "index.html")   # 지우지 않고 덮어씀(지우기는 열린 파일 탓에 WinError 32 로 실패한 적 있음)
 if __name__ == "__main__": 주(sys.argv[1])
