@@ -23,9 +23,12 @@ def 원맞춤(yx):   # 대수 원 맞춤 → (잔차 RMS, 반지름)
     y, x = yx[:, 0].astype(float), yx[:, 1].astype(float); A = np.c_[x, y, np.ones_like(x)]; b = -(x ** 2 + y ** 2)
     c = np.linalg.lstsq(A, b, rcond=None)[0]; cx, cy = -c[0] / 2, -c[1] / 2; r = np.sqrt(max(cx ** 2 + cy ** 2 - c[2], 1e-9))
     return float(np.sqrt(((np.hypot(x - cx, y - cy) - r) ** 2).mean())), float(r)
-def 벡터화(있, 열=None, 숨=None, 휨문턱=2., 최소=3, 이음=False):   # 있: (128, 128) bool · 열: 꼭짓점 열지도 · 숨: 숨은선 확률/여부 → [선] · 이음(141): 마디를 봉우리 한 화소로 · 짧은 조각 남겨 잇기 · 끝에 잇기()
+def 벡터화(있, 열=None, 숨=None, 휨문턱=2., 최소=3, 이음=False, 숨메움=False):   # 있: (128, 128) bool · 열: 꼭짓점 열지도 · 숨: 숨은선 확률/여부 → [선] · 이음(141): 마디를 봉우리 한 화소로 · 짧은 조각 남겨 잇기 · 끝에 잇기()
     import cv2
     from skimage.morphology import skeletonize
+    if 숨메움 and 숨 is not None:   # 143: 도면 점선이 화면 대각 줄무늬((x + y) // 3 % 2 · 모델123.그림)로 잘려 붙은 숨은선 띠가 빗금(/) 기둥이 됨 → 숨은선 화소만 5×5 로 메워 띠 하나로 · 실선 곁 1 화소엔 안 메움
+        숨선 = (있 & (숨 > .5)).astype(np.uint8); 실곁 = cv2.dilate((있 & ~(숨 > .5)).astype(np.uint8), np.ones((3, 3), np.uint8)) > 0
+        더 = (cv2.morphologyEx(숨선, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8)) > 0) & ~있 & ~실곁; 있 = 있 | 더; 숨 = (숨 > .5) | 더
     sk = skeletonize(있).astype(np.uint8); 이 = cv2.filter2D(sk, -1, np.ones((3, 3), np.float32), borderType=cv2.BORDER_CONSTANT) - sk
     마 = (sk > 0) & (이 != 2)
     if 열 is not None:
@@ -105,30 +108,44 @@ def 맞추기(정, 예, 거리=2., 덮음=.7):   # 정답 모서리 · 예측 �
     for s, i, j in sorted(후보, reverse=True):
         if i not in 쓴i and j not in 쓴j: 짝.append((i, j)); 쓴i.add(i); 쓴j.add(j)
     return 짝
-def 재기(쌍들, 거리=2., 덮음=.7):   # [(정답 선들, 예측 선들, 곡면 테 마스크)] → 지표 · 덮음으로 셈(10-24: 일대일 짝은 투영에서 포개진 모서리 · 한 줄로 이어진 여러 모서리를 놓침으로 셌다 — F1 정답 0.20)
+def 재기(쌍들, 거리=2., 덮음=.7):   # [(정답 선들, 예측 선들, 곡면 테, 정답 숨은선 지도)] → 지표 · 덮음으로 셈(10-24: 일대일 짝은 포갠 모서리를 놓침으로 셌다 — F1 정답 0.20)
+    # 끊김(143~): 찾은 정답 모서리가 선 여럿으로 덮였고 그 선 끝 하나가 모서리 가운데(양 끝 3 화소 밖)에 있는데 2 화소 안에 다른 정답 모서리가 없음 = 갈림목 아닌 데서 끊김(141 「한선」은 갈림목 끊김까지 셌음)
     import cv2
-    정수 = 재 = 예수 = 정밀 = 종 = 조 = 한 = 0
+    합 = {k: 0 for k in ("정수", "재", "예수", "정밀", "종", "조", "한", "끊김", "재_보임", "정_보임", "종_보임", "재_숨", "정_숨", "끊김_숨")}
     for 쌍 in 쌍들:
-        정, 예, 테 = 쌍 if len(쌍) == 3 else (*쌍, None)
-        정수 += len(정); 예수 += len(예)
+        정, 예, 테, 숨지 = (list(쌍) + [None, None])[:4]
+        합["정수"] += len(정); 합["예수"] += len(예)
+        숨들 = [bool(숨지[e["_m"]].mean() > .5) if 숨지 is not None else False for e in 정]
+        for h in 숨들: 합["정_숨" if h else "정_보임"] += 1
         if not 예 or not 정: continue
         거예 = [cv2.distanceTransform((~l["_m"]).astype(np.uint8), cv2.DIST_L2, 3) <= 거리 for l in 예]
         모정 = np.zeros((128, 128), bool)
         for e in 정: 모정 |= e["_m"]
         if 테 is not None: 모정 |= 테
         곁정 = cv2.distanceTransform((~모정).astype(np.uint8), cv2.DIST_L2, 3) <= 거리
-        정밀 += sum(곁정[l["_m"]].mean() >= 덮음 for l in 예)
-        for e in 정:
-            n = e["_m"].sum(); 몫 = np.array([g[e["_m"]].sum() for g in 거예]); 합 = np.zeros((128, 128), bool)
+        합["정밀"] += sum(곁정[l["_m"]].mean() >= 덮음 for l in 예)
+        for i, e in enumerate(정):
+            m = e["_m"]; n = m.sum(); 몫 = np.array([g[m].sum() for g in 거예]); 덮 = np.zeros((128, 128), bool)
             for g, c in zip(거예, 몫):
-                if c >= 3: 합 |= g
-            if (합[e["_m"]].sum() / n) < 덮음: continue
-            재 += 1; 쓴 = 몫 >= 3; 조 += int(쓴.sum()); 한 += 몫.max() / n >= 덮음
+                if c >= 3: 덮 |= g
+            if (덮[m].sum() / n) < 덮음: continue
+            꼬 = "_숨" if 숨들[i] else "_보임"; 합["재"] += 1; 합["재" + 꼬] += 1; 쓴 = 몫 >= 3; 합["조"] += int(쓴.sum()); 한선 = 몫.max() / n >= 덮음; 합["한"] += 한선
             표 = {"직선": 0, "원호": 0}
             for l, c in zip(예, 몫): 표[l["종류"]] += c
-            종 += max(표, key=표.get) == e["종류"]
-    r재, r정 = 재 / max(정수, 1), 정밀 / max(예수, 1)
-    return {"벡_재현": round(r재, 4), "벡_정밀": round(r정, 4), "벡_F1": round(2 * r재 * r정 / max(r재 + r정, 1e-9), 4), "벡_종류": round(종 / max(재, 1), 4), "벡_조각": round(조 / max(재, 1), 4), "벡_한선": round(한 / max(재, 1), 4)}
+            맞 = max(표, key=표.get) == e["종류"]; 합["종"] += 맞; 합["종" + 꼬] += 맞
+            if 한선 or 쓴.sum() < 2: continue
+            남 = np.zeros((128, 128), bool)
+            for j, f in enumerate(정):
+                if j != i: 남 |= f["_m"]
+            곁남 = cv2.distanceTransform((~남).astype(np.uint8), cv2.DIST_L2, 3) <= 2; yx = np.argwhere(m); 양끝 = [yx[d] for d in 먼쌍(yx)]
+            끊 = any(not 곁남[tuple(q)] and min(np.abs(q - t).sum() for t in 양끝) > 3 and m[max(q[0] - 2, 0):q[0] + 3, max(q[1] - 2, 0):q[1] + 3].any()
+                    for l, c in zip(예, 몫) if c >= 3 for q in (l["_p"][0], l["_p"][-1]) if "_p" in l)
+            합["끊김"] += 끊; 합["끊김" + 꼬] += 끊 and 꼬 == "_숨"
+    r재, r정 = 합["재"] / max(합["정수"], 1), 합["정밀"] / max(합["예수"], 1)
+    return {"벡_재현": round(r재, 4), "벡_정밀": round(float(r정), 4), "벡_F1": round(float(2 * r재 * r정 / max(r재 + r정, 1e-9)), 4), "벡_종류": round(합["종"] / max(합["재"], 1), 4),
+            "벡_조각": round(합["조"] / max(합["재"], 1), 4), "벡_한선": round(float(합["한"] / max(합["재"], 1)), 4), "벡_끊김": round(float(합["끊김"] / max(합["재"], 1)), 4),
+            "벡_재현_보임": round(합["재_보임"] / max(합["정_보임"], 1), 4), "벡_종류_보임": round(합["종_보임"] / max(합["재_보임"], 1), 4),
+            "벡_재현_숨": round(합["재_숨"] / max(합["정_숨"], 1), 4), "벡_끊김_숨": round(float(합["끊김_숨"] / max(합["재_숨"], 1)), 4)}
 def 점검(cfg, 폴더):   # 하네스가 부름(학습 없음) — 입력 판 모델로 시험 부품 예측 → 벡터화 → 정답과 맞춤 · 같은 벡터화를 정답 선지도에(대조 · 천장)
     import torch, 과제선지도 as G, 분석그림 as A, 겹침그림 as Q
     from omegaconf import OmegaConf
@@ -136,14 +153,18 @@ def 점검(cfg, 폴더):   # 하네스가 부름(학습 없음) — 입력 판 �
     o = G.예측(A.불러(판).cuda(), X[vx])[:, :, :G.출].float(); pr = o[:, :, :G.K].softmax(2)
     있 = (1 - pr[:, :, 0] > .5).cpu().numpy(); 열 = torch.sigmoid(o[:, :, G.K + 1]).cpu().numpy(); 숨 = (o[:, :, G.K] > 0).cpu().numpy()
     정지 = Y["지도"][vx].cpu().numpy(); 정열 = Y["열"][vx].float().cpu().numpy(); 정숨 = Y["숨"][vx].cpu().numpy(); 부품들 = [이[int(j)] for j in vx.tolist()]
-    예쌍, 천쌍, 보기 = [], [], []
+    예쌍, 천쌍, 보기, 대쌍 = [], [], [], []
     for k, 부품 in enumerate(부품들):
         if not os.path.exists(Q.저장 + f"{부품}.npz"): continue
         for v in range(3):
-            이음 = bool(s.get("이음", False)); 정 = 정답선(부품, v, s.휨문턱); 예 = 벡터화(있[k, v], 열[k, v], 숨[k, v], s.휨문턱, 이음=이음); 천 = 벡터화(정지[k, v] > 0, 정열[k, v], 정숨[k, v], s.휨문턱, 이음=이음)
-            테 = 정지[k, v] == 3; 예쌍.append((정, 예, 테)); 천쌍.append((정, 천, 테))
+            손 = {"이음": bool(s.get("이음", False)), "숨메움": bool(s.get("숨메움", False))}; 정 = 정답선(부품, v, s.휨문턱)
+            예 = 벡터화(있[k, v], 열[k, v], 숨[k, v], s.휨문턱, **손); 천 = 벡터화(정지[k, v] > 0, 정열[k, v], 정숨[k, v], s.휨문턱, **손)
+            테 = 정지[k, v] == 3; 예쌍.append((정, 예, 테, 정숨[k, v])); 천쌍.append((정, 천, 테, 정숨[k, v]))
+            if s.get("대조손잡이"): 대쌍.append((정, 벡터화(있[k, v], 열[k, v], 숨[k, v], s.휨문턱, **(손 | {str(s.대조손잡이): False})), 테, 정숨[k, v]))
             if 부품 == "12050": 보기.append((v, 정, 예, Xnp[이.index(부품), v], 테))
     지 = 재기(예쌍) | {f"{k}_정답": v for k, v in 재기(천쌍).items()}
+    if 대쌍:   # 판 안 대조: 같은 입력 · 대조손잡이만 끈 계산 → _대조 · _차(이 판 − 대조) · 끊김_숨 비(이 판 / 대조)
+        대 = 재기(대쌍); 지 |= {f"{k}_대조": v for k, v in 대.items()} | {f"{k}_차": round(지[k] - 대[k], 4) for k in 대}; 지["벡_끊김_숨_비"] = round(지["벡_끊김_숨"] / max(대["벡_끊김_숨"], 1e-9), 4)
     토큰 = [[뷰이름[v], l["종류"], *l["시작"], *l["끝"], l["휨"], "예" if l["숨음"] else "아니오"] for v, _, 예, _, _ in 보기 for l in 예]
     json.dump(토큰, open(폴더 + "토큰_12050.json", "w", encoding="utf-8"), ensure_ascii=False)
     그림(폴더, 보기); return 지
@@ -184,4 +205,7 @@ if __name__ == "__main__":   # 자체 시험: ㄱ 자(직선 둘) · 반원(원�
     assert len(벡터화(점 > 0)) > 1   # 이음 없으면 토막
     반 = np.zeros((128, 128), np.uint8); cv2.ellipse(반, (60, 60), (30, 30), 0, 0, 180, 1, 1); 열2 = np.zeros((128, 128), np.float32); 열2[90, 60] = 1.
     예3 = 벡터화(반 > 0, 열2, 이음=True); assert len(예3) == 1 and 예3[0]["종류"] == "원호", [(l["종류"], l["시작"], l["끝"]) for l in 예3]
+    yy, xx = np.mgrid[:128, :128]; 띠 = np.zeros((128, 128), bool); 띠[10:110, 60:63] = True; 띠 &= ((xx + yy) // 3) % 2 == 0   # 143: 도면과 같은 대각 줄무늬로 자른 숨은선 띠
+    예4 = 벡터화(띠, 숨=띠.astype(float), 이음=True, 숨메움=True); assert len(예4) == 1 and 예4[0]["종류"] == "직선", [(l["시작"], l["끝"]) for l in 예4]
+    assert len(벡터화(띠, 숨=띠.astype(float), 이음=True)) > 5   # 메움 없으면 빗금 토막
     print("과제벡터화 시험 통과", 재기([(정, 예)]))
