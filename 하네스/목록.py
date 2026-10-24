@@ -4,8 +4,9 @@ from omegaconf import OmegaConf
 뿌리 = "G:/art2real"; 문서 = 뿌리 + "/docs/"; E = html.escape
 def 복사(판):
     s, d = f"{뿌리}/하네스/판/{판}/", f"{문서}판/{판}/"; os.makedirs(d, exist_ok=True)
-    for f in ("보고.html", "개념.mp4", "개념.gif", "비교.png", "시트.png", "특징.png", "보고.png", "설정.yaml", "판정.json", "입력_위.png", "입력_앞.png", "입력_옆.png", "칸1.png", "칸2.png", "칸3.png", "칸4.png", "칸5.png", "칸6.png", "예측전체.png", "정답.png", "쇼츠.mp4"):
+    for f in ("보고.html", "개념.mp4", "개념.gif", "비교.png", "시트.png", "특징.png", "보고.png", "설정.yaml", "판정.json", "입력_위.png", "입력_앞.png", "입력_옆.png", "칸1.png", "칸2.png", "칸3.png", "칸4.png", "칸5.png", "칸6.png", "예측전체.png", "정답.png", "쇼츠.mp4", "검증.png"):
         if os.path.exists(s + f): shutil.copy(s + f, d + f)
+    if os.path.isdir(s + "검증"): shutil.copytree(s + "검증", d + "검증", dirs_exist_ok=True, ignore=shutil.ignore_patterns("*.py", "*.err"))   # 보고서는 글을 html 안에 넣으니 렌더만
 def 목록():
     줄 = []
     for p in glob.glob(f"{뿌리}/하네스/판/*/판정.json"):

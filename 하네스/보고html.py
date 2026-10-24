@@ -1,6 +1,6 @@
 # 하네스 보고서 HTML — 보고.md 와 같은 내용 · 한 파일(그림은 같은 폴더) · GitHub Pages 로도 나감 · 10-22
 # 시안 C(10-22 사용자 고름 · 왼쪽 요약 고정 · 오른쪽 본문) · 시각 기준: 프로젝트 카드 화풍(흰 · 회백 바탕 + 뜻마다 강조 하나: 초록 통과 · 빨강 실패 · 금 도구) · 읽기 화면 · 판정이 첫눈에
-import html, re, os
+import html, re, os, json
 E = html.escape
 아이콘 = {True: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
           False: '<svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 4.5l7 7m0-7l-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>'}
@@ -101,6 +101,16 @@ const io=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return
 requestAnimationFrame(()=>requestAnimationFrame(()=>{document.querySelectorAll('td.열.대기').forEach(c=>c.classList.remove('대기'));
 document.querySelectorAll('td[data-n]').forEach(c=>{if(c.dataset.n==='')return;const v=parseFloat(c.dataset.n),자=(c.dataset.n.split('.')[1]||'').length,k=Math.min(1,t/900);c.textContent=(v*(1-Math.pow(2,-10*k))).toFixed(자)});
 requestAnimationFrame(()=>document.getAnimations().forEach(a=>{a.pause();a.currentTime=t}))}))})()</script>"""
+def 검증칸(d):   # 코드생성 판: 스텝별 검증 — 부품마다 표(스텝 · 렌더 · IoU/오류 · 생성 코드) · 10-24 사용자 「코드랑 렌더 둘 다 보여야 원인이 파악된다」
+    if not os.path.exists(d + "검증.json"): return ""
+    줄 = json.load(open(d + "검증.json", encoding="utf-8")); h = ['<h2>스텝별 검증 <span class="차">같은 시험 부품 넷 · 250 스텝마다 탐욕 생성 → 실행 → 렌더</span></h2>', '<figure><img src="검증.png" alt="스텝별 검증 렌더 격자"><figcaption>행 = 스텝, 열 = 부품, 맨 위 = 정답. 분홍 = 코드가 실행되지 않음</figcaption></figure>']
+    for k, n in enumerate(dict.fromkeys(r["부품"] for r in 줄)):
+        h.append(f'<details{" open" if k == 0 else ""}><summary>부품 {E(n)} — 스텝별 코드</summary><div class="표"><table><thead><tr><th>스텝</th><th>렌더</th><th>결과</th><th>생성 코드</th></tr></thead><tbody><tr><td>정답</td><td><img src="검증/정답_{E(n)}.png" width="140" alt=""></td><td></td><td></td></tr>')
+        for r in sorted((r for r in 줄 if r["부품"] == n), key=lambda r: r["스텝"]):
+            그 = f'<img src="검증/{r["스텝"]:05d}_{E(n)}.png" width="140" alt="">' if r["실행"] else "—"; 결 = f'IoU {r["IoU"]:.2f}' if r["실행"] else f'<strong>실행 실패</strong><br>{E(r["오류"])}'
+            h.append(f'<tr><td>{r["스텝"]}</td><td>{그}</td><td class="왼">{결}</td><td class="왼"><pre style="max-height:220px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">{E(r["글"])}</pre></td></tr>')
+        h.append("</tbody></table></div></details>")
+    return "".join(h)
 def 만들기(판, d, c, j, 지, 대, 곡, 특, 해석, 다음, 모션=None, 파일="보고.html", 구=None, 쇼=None):
     말 = j["판정"]; 판정꼴 = "통과" if 말 == "통과" else ("탐색" if 말.startswith("탐색") else "실패")
     바뀐 = ", ".join(f"{k}: {a} → {b}" for k, (a, b) in j["바뀐 손잡이"].items()) or "없음 (재현)"
@@ -134,6 +144,7 @@ def 만들기(판, d, c, j, 지, 대, 곡, 특, 해석, 다음, 모션=None, 파
         h.append('<h3>하이퍼파라미터</h3><div class="표"><table><tbody>' + "".join(f'<tr><td>{E(k)}</td><td class="왼">{E(f"{v:,}" if isinstance(v, int) else str(v))}</td></tr>' for k, v in 구["표"].items()) + "</tbody></table></div>")
         h.append('<h3>층 <span class="차">입력 1 × 3 × 128 × 128 을 흘려 잼 · torchinfo 꼴</span></h3><div class="표"><table><thead><tr><th>층</th><th>종류</th><th>출력 모양</th><th>파라미터</th></tr></thead><tbody>' + "".join(f'<tr class="깊{r["깊이"]}"><td>{E(r["이름"])}</td><td class="왼">{E(r["종류"])}</td><td>{E(" × ".join(map(str, r["출력"])))}</td><td>{r["파라미터"]:,}</td></tr>' for r in 구["층"]) + "</tbody></table></div>")
         h.append(f'<h3>목표와 학습</h3><ul class="목표"><li>{E(구["목표"])}</li><li>{E(구["학습"])}</li></ul>')
+    h.append(검증칸(d))
     h.append("<h2>학습 곡선</h2>" + 곡선svg(곡) + '<figure><img src="시트.png" alt="학습 곡선 · 지표 · 12003 세 장 칸 1 주의"><figcaption>판 시트: 하네스가 판 끝에 만든 그림</figcaption></figure>')
     연 = j.get("연기", {})
     h.append("<h2>점검</h2><h3>연기 판</h3>" + f'<div class="줄글"><div><span>첫 loss</span> <b>{수(연.get("첫loss"))}</b></div><div><span>배치 하나 40 걸음 뒤</span> <b>{수(연.get("한배치40걸음"))}</b></div><div><span>VRAM</span> <b>{수(연.get("VRAM_GB"), 2)} GB</b></div></div>')
