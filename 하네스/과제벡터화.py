@@ -88,12 +88,58 @@ def 쪼개기(길, 닫힘, 휨문턱):   # 휜 가지: 원에 잘 맞으면 원�
     꼭 = cv2.approxPolyDP(길[:, None, ::-1].astype(np.int32), 1.5, 닫힘)[:, 0, ::-1]
     자리 = sorted({int(np.argmin(np.abs(길 - q).sum(1))) for q in 꼭} | {0, len(길) - 1})
     return [길[i:j + 1] for i, j in zip(자리[:-1], 자리[1:]) if j - i >= 2] or [길]
-def 정답선(부품, v, 휨문턱=2.):   # 겹침 npz 모서리 마스크 → 눈 기준 종류
+윤곽저장 = f"{뿌리}/out/하네스/윤곽/"
+def _윤곽(i):   # 144: 둥근 면의 윤곽선(곡면 테) — CAD 모서리가 아니라 정답에서 빠졌음(12050 앞 · 옆 입력 선의 약 20 %) · 메시에서 뷰 방향으로 앞면 · 뒷면이 바뀌는 매끈한 이음(이면각 < 40°) → 이어진 무리마다 마스크
+    p = 윤곽저장 + f"{i:05d}.npz"
+    if os.path.exists(p): return
+    try:
+        import cv2, 선정답 as S, 모델124 as B, 조립124 as C, 숨은선88 as H
+        sys.path.insert(0, 뿌리 + "/원화3d/실험_20261013/캐드부품")
+        s = json.load(open(B.D + f"사양/{i:05d}.json", encoding="utf-8")); w = C.짓기(s["코드"]); m = C.메시(w)[0]
+        c = m.bounds.mean(0); e = float(m.extents.max()); V = (m.vertices - c) / e; 래 = H.그리기(V, m.faces)
+        adj, ae, ang, N = m.face_adjacency, m.face_adjacency_edges, m.face_adjacency_angles, m.face_normals; 짐 = {}
+        for j, (a, b) in enumerate(S.축):
+            d = 3 - a - b; sn = N[:, d]; 뒤 = (sn[adj[:, 0]] * sn[adj[:, 1]] < 0) & (ang < np.radians(40)); E = ae[뒤]
+            보, 숨 = 래[j]; 선 = cv2.dilate((보 | 숨).astype(np.uint8), np.ones((3, 3), np.uint8)) > 0; ms = []
+            if len(E):   # 꼭짓점을 공유하는 이음끼리 한 무리
+                부 = {}
+                def 뿌(k):
+                    while 부.setdefault(k, k) != k: 부[k] = 부[부[k]]; k = 부[k]
+                    return k
+                for u, v in E: 부[뿌(u)] = 뿌(v)
+                무 = {}
+                for u, v in E: 무.setdefault(뿌(u), []).append((u, v))
+                for 이음들 in 무.values():
+                    img = np.zeros((128, 128), np.uint8)
+                    for u, v in 이음들:
+                        x, y = S.화소(V[[u, v]][:, [a, b]]); cv2.line(img, (int(round(x[0])), int(round(y[0]))), (int(round(x[1])), int(round(y[1]))), 1, 1)
+                    화 = img > 0
+                    if 화.sum() >= 3 and 선[화].mean() >= .8: ms.append(np.packbits(화))
+            짐[f"m{j}"] = np.array(ms) if ms else np.zeros((0, 2048), np.uint8)
+        np.savez_compressed(p, **짐)
+    except Exception as ex: open(p + ".err", "w", encoding="utf-8").write(str(ex)[:300])
+def 윤곽들(일꾼=6, 초=120):   # 시험 부품 전부 · 부품마다 프로세스 · 시간 상한
+    import time, multiprocessing as mp
+    sys.path.insert(0, 뿌리 + "/원화3d/실험_20261013/캐드부품"); import 모델124 as B
+    os.makedirs(윤곽저장, exist_ok=True); 일 = [r["i"] for r in B.색인() if r["i"] >= B.NT]; 일 = [i for i in 일 if not os.path.exists(윤곽저장 + f"{i:05d}.npz")]; 도는 = {}
+    while 일 or 도는:
+        while 일 and len(도는) < 일꾼: i = 일.pop(); pr = mp.Process(target=_윤곽, args=(i,)); pr.start(); 도는[i] = (pr, time.time())
+        for i, (pr, t) in list(도는.items()):
+            if not pr.is_alive(): 도는.pop(i)
+            elif time.time() - t > 초: pr.kill(); 도는.pop(i); open(윤곽저장 + f"{i:05d}.npz.err", "w", encoding="utf-8").write("시간 넘음")
+        time.sleep(.2)
+def 정답선(부품, v, 휨문턱=2., 윤곽=False):   # 겹침 npz 모서리 마스크 → 눈 기준 종류 · 윤곽(144~): 곡면 테 윤곽선도 정답 선으로(「윤곽」 표시)
     import 공통자
     out = []
     for m, _, 상 in 공통자.모서리(부품, v):
         yx = np.argwhere(m); h = 휨(yx, *먼쌍(yx)) if len(yx) > 1 else 0
         out.append({"종류": "원호" if h >= 휨문턱 else "직선", "_m": m, "상황": 상})
+    if 윤곽 and os.path.exists(윤곽저장 + f"{부품}.npz"):
+        z = np.load(윤곽저장 + f"{부품}.npz")
+        if len(z[f"m{v}"]):
+            for m in np.unpackbits(z[f"m{v}"], axis=1)[:, :128 * 128].reshape(-1, 128, 128).astype(bool):
+                yx = np.argwhere(m); h = 휨(yx, *먼쌍(yx)) if len(yx) > 1 else 0
+                out.append({"종류": "원호" if h >= 휨문턱 else "직선", "_m": m, "상황": 0 if h < 휨문턱 else 1, "윤곽": True})
     return out
 def 맞추기(정, 예, 거리=2., 덮음=.7):   # 정답 모서리 · 예측 선을 화소 덮음으로 짝(둘 다 서로를 70 % 이상 2 화소 안에서 덮음) · 욕심 짝
     import cv2
@@ -117,6 +163,7 @@ def 재기(쌍들, 거리=2., 덮음=.7):   # [(정답 선들, 예측 선들, �
         합["정수"] += len(정); 합["예수"] += len(예)
         숨들 = [bool(숨지[e["_m"]].mean() > .5) if 숨지 is not None else False for e in 정]
         for h in 숨들: 합["정_숨" if h else "정_보임"] += 1
+        합["정_윤곽"] += sum(bool(e.get("윤곽")) for e in 정)
         if not 예 or not 정: continue
         거예 = [cv2.distanceTransform((~l["_m"]).astype(np.uint8), cv2.DIST_L2, 3) <= 거리 for l in 예]
         모정 = np.zeros((128, 128), bool)
@@ -133,6 +180,7 @@ def 재기(쌍들, 거리=2., 덮음=.7):   # [(정답 선들, 예측 선들, �
             표 = {"직선": 0, "원호": 0}
             for l, c in zip(예, 몫): 표[l["종류"]] += c
             맞 = max(표, key=표.get) == e["종류"]; 합["종"] += 맞; 합["종" + 꼬] += 맞
+            if e.get("윤곽"): 합["재_윤곽"] += 1; 합["종_윤곽"] += 맞
             if 한선 or 쓴.sum() < 2: continue
             남 = np.zeros((128, 128), bool)
             for j, f in enumerate(정):
@@ -145,11 +193,14 @@ def 재기(쌍들, 거리=2., 덮음=.7):   # [(정답 선들, 예측 선들, �
     return {"벡_재현": round(r재, 4), "벡_정밀": round(float(r정), 4), "벡_F1": round(float(2 * r재 * r정 / max(r재 + r정, 1e-9)), 4), "벡_종류": round(합["종"] / max(합["재"], 1), 4),
             "벡_조각": round(합["조"] / max(합["재"], 1), 4), "벡_한선": round(float(합["한"] / max(합["재"], 1)), 4), "벡_끊김": round(float(합["끊김"] / max(합["재"], 1)), 4),
             "벡_재현_보임": round(합["재_보임"] / max(합["정_보임"], 1), 4), "벡_종류_보임": round(합["종_보임"] / max(합["재_보임"], 1), 4),
-            "벡_재현_숨": round(합["재_숨"] / max(합["정_숨"], 1), 4), "벡_끊김_숨": round(float(합["끊김_숨"] / max(합["재_숨"], 1)), 4)}
+            "벡_재현_숨": round(합["재_숨"] / max(합["정_숨"], 1), 4), "벡_끊김_숨": round(float(합["끊김_숨"] / max(합["재_숨"], 1)), 4),
+            "벡_재현_윤곽": round(합["재_윤곽"] / max(합["정_윤곽"], 1), 4), "벡_종류_윤곽": round(합["종_윤곽"] / max(합["재_윤곽"], 1), 4), "벡_윤곽수": int(합["정_윤곽"])}
 def 점검(cfg, 폴더):   # 하네스가 부름(학습 없음) — 입력 판 모델로 시험 부품 예측 → 벡터화 → 정답과 맞춤 · 같은 벡터화를 정답 선지도에(대조 · 천장)
     import torch, 과제선지도 as G, 분석그림 as A, 겹침그림 as Q
     from omegaconf import OmegaConf
-    s = cfg.벡터화; 판 = str(s.입력판); c = OmegaConf.load(f"{뿌리}/하네스/판/{판}/설정.yaml"); X, Y, _, idx, vx, 이, Xnp = G.자료("cuda", c)
+    s = cfg.벡터화
+    if s.get("윤곽정답"): 윤곽들()
+    판 = str(s.입력판); c = OmegaConf.load(f"{뿌리}/하네스/판/{판}/설정.yaml"); X, Y, _, idx, vx, 이, Xnp = G.자료("cuda", c)
     o = G.예측(A.불러(판).cuda(), X[vx])[:, :, :G.출].float(); pr = o[:, :, :G.K].softmax(2)
     있 = (1 - pr[:, :, 0] > .5).cpu().numpy(); 열 = torch.sigmoid(o[:, :, G.K + 1]).cpu().numpy(); 숨 = (o[:, :, G.K] > 0).cpu().numpy()
     정지 = Y["지도"][vx].cpu().numpy(); 정열 = Y["열"][vx].float().cpu().numpy(); 정숨 = Y["숨"][vx].cpu().numpy(); 부품들 = [이[int(j)] for j in vx.tolist()]
@@ -157,7 +208,7 @@ def 점검(cfg, 폴더):   # 하네스가 부름(학습 없음) — 입력 판 �
     for k, 부품 in enumerate(부품들):
         if not os.path.exists(Q.저장 + f"{부품}.npz"): continue
         for v in range(3):
-            손 = {"이음": bool(s.get("이음", False)), "숨메움": bool(s.get("숨메움", False))}; 정 = 정답선(부품, v, s.휨문턱)
+            손 = {"이음": bool(s.get("이음", False)), "숨메움": bool(s.get("숨메움", False))}; 정 = 정답선(부품, v, s.휨문턱, 윤곽=bool(s.get("윤곽정답", False)))
             예 = 벡터화(있[k, v], 열[k, v], 숨[k, v], s.휨문턱, **손); 천 = 벡터화(정지[k, v] > 0, 정열[k, v], 정숨[k, v], s.휨문턱, **손)
             테 = 정지[k, v] == 3; 예쌍.append((정, 예, 테, 정숨[k, v])); 천쌍.append((정, 천, 테, 정숨[k, v]))
             if s.get("대조손잡이"): 대쌍.append((정, 벡터화(있[k, v], 열[k, v], 숨[k, v], s.휨문턱, **(손 | {str(s.대조손잡이): False})), 테, 정숨[k, v]))
