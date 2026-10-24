@@ -81,6 +81,12 @@ def 모델(rank=16):
 def 묶(items, proc, eval=False):
     import torch; sys.path.insert(0, 캐); from cadrille import collate
     b = collate(items, processor=proc, n_points=256, eval=eval); return {k: (v.cuda() if torch.is_tensor(v) else v) for k, v in b.items()}
+def 손실(model, b):   # 답(코드) 자리만 lm_head → CE · 10-24 선 글 입력 중앙 1829 토큰에 전체 자리 float logits(151k 어휘)가 8 GB 를 넘어 공유 메모리 19.8 GB 로 샘
+    import torch, torch.nn.functional as F
+    base = model.get_base_model(); head = base.lm_head; base.lm_head = torch.nn.Identity()
+    try: h = base(**{k: v for k, v in b.items() if k != "labels"}).logits
+    finally: base.lm_head = head
+    y = b["labels"][:, 1:]; m = y != -100; return F.cross_entropy(head(h[:, :-1][m]).float(), y[m])
 def 생성(model, proc, items, 배=4, 최대=1024):
     import torch
     model.eval(); out = []
@@ -109,11 +115,11 @@ def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.
     sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda t: min(1., (t + 1) / 20) * .5 * (1 + math.cos(math.pi * min(t, 스텝 // 누적) / max(스텝 // 누적, 1))))
     고정 = [항목(n, l, g, 입력) for n, _, l, g in 시[:16]]; 기록 = []; 묶음손 = []; t0 = time.time(); model.train()
     for step in range(1, 스텝 + 1):
-        n, _, l, g = random.choice(학); loss = model(**묶([항목(n, l, g, 입력)], proc)).loss; (loss / 누적).backward(); 묶음손.append(float(loss))
+        n, _, l, g = random.choice(학); loss = 손실(model, 묶([항목(n, l, g, 입력)], proc)); (loss / 누적).backward(); 묶음손.append(float(loss))
         if step % 누적 == 0: torch.nn.utils.clip_grad_norm_([p for p in model.parameters() if p.requires_grad], 1.); opt.step(); sched.step(); opt.zero_grad()
         if step % 250 == 0 or step == 스텝:
             model.eval()
-            with torch.no_grad(): 시손 = float(np.mean([float(model(**묶([it], proc)).loss) for it in 고정]))
+            with torch.no_grad(): 시손 = float(np.mean([float(손실(model, 묶([it], proc))) for it in 고정]))
             model.train(); 기록.append({"에폭": step, "학습": float(np.mean(묶음손[-250:])), "시험": 시손, "초": round(time.time() - t0), "GPU": round(torch.cuda.max_memory_allocated() / 1e9, 2)}); print(기록[-1], flush=True)
     model.save_pretrained(폴더 + "lora"); json.dump(기록, open(폴더 + "학습.json", "w", encoding="utf-8"), ensure_ascii=False)
     글들 = 생성(model, proc, [항목(n, l, g, 입력, 정답=False) for n, _, l, g in 시]); os.makedirs(폴더 + "생성", exist_ok=True)
