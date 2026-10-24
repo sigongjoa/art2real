@@ -1,0 +1,110 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>판 142세뷰 · 하네스 보고서</title><style>
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap");
+:root{--paper:#f6f4ef;--sheet:#fffdf8;--ink:#1d2129;--muted:#585e68;--rule:#dcd7cc;--soft:#ece8de;--pass:#1f7a3e;--pass-bg:#e3f1e6;--fail:#b3261e;--fail-bg:#f7e2de;--tool:#8a5f00;--tool-bg:#f6ecd4;--line1:#2d5fa8;--line2:#c0661b}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 "Pretendard Variable",Pretendard,"Malgun Gothic",system-ui,sans-serif;font-variant-numeric:tabular-nums;word-break:keep-all}
+::selection{background:#1d2129;color:#fffdf8}
+a{color:var(--line1);text-underline-offset:3px}a:focus-visible{outline:2px solid var(--line1);outline-offset:2px;border-radius:2px}
+main{max-width:1040px;margin:0 auto;padding:56px 32px 96px}
+header{padding-bottom:28px;border-bottom:1px solid var(--rule);margin-bottom:8px}
+h1{font-size:clamp(1.9rem,4vw,2.7rem);line-height:1.15;letter-spacing:-.025em;margin:0 0 10px;font-weight:800;text-wrap:balance}
+.lead{font-size:1.15rem;color:var(--muted);margin:0 0 22px;max-width:62ch;text-wrap:pretty}
+.판정{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.05rem;padding:7px 14px 7px 11px;border-radius:999px}
+.판정 svg{width:18px;height:18px}.통과{color:var(--pass);background:var(--pass-bg)}.실패{color:var(--fail);background:var(--fail-bg)}.탐색{color:var(--tool);background:var(--tool-bg)}
+dl.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px 28px;margin:26px 0 0}
+dl.meta div{min-width:0}dl.meta dt{font-size:.82rem;color:var(--muted)}dl.meta dd{margin:2px 0 0;font-weight:600;overflow-wrap:anywhere}
+h2{font-size:1.35rem;letter-spacing:-.015em;margin:56px 0 14px;font-weight:750}
+h3{font-size:1.02rem;margin:30px 0 8px;font-weight:700}
+p,li{max-width:72ch}
+.표{overflow-x:auto;margin:6px 0 4px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{padding:9px 14px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--soft)}
+th:first-child,td:first-child{text-align:left}tr:last-child td{border-bottom:0}
+thead th{font-size:.8rem;font-weight:600;color:var(--muted);background:var(--paper);border-bottom:1px solid var(--rule)}
+td.결과{text-align:center}td.결과 span{display:inline-flex;width:24px;height:24px;border-radius:50%;align-items:center;justify-content:center}td.결과 svg{width:15px;height:15px}
+td.결과 .o{color:var(--pass);background:var(--pass-bg)}td.결과 .x{color:var(--fail);background:var(--fail-bg)}
+.차{color:var(--muted);font-size:.88rem}
+.주석{font-size:.88rem;color:var(--muted);margin:8px 2px 0}.주석 code{overflow-wrap:anywhere}
+.줄글{display:flex;flex-wrap:wrap;gap:6px 26px;margin:4px 0}.줄글 b{font-weight:700}.줄글 span{color:var(--muted)}
+figure{margin:18px 0 0}figure img{display:block;width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;background:#fff}
+figcaption{font-size:.86rem;color:var(--muted);margin-top:8px}
+.곡선{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:14px 12px 6px}
+.곡선 svg{display:block;width:100%;height:auto}.곡선 text{font:15px "Pretendard Variable",Pretendard,sans-serif;fill:var(--muted)}
+.사람{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:6px 22px}
+.사람 ul{padding-left:1.1em}.사람 li{margin:8px 0}.비어{color:var(--muted);font-style:italic;padding:12px 0}
+code,pre{font-family:"JetBrains Mono",D2Coding,Consolas,monospace;font-size:.86rem}
+pre{background:#1d2129;color:#f3efe6;padding:16px 18px;border-radius:10px;overflow-x:auto;line-height:1.55}
+td.열{background:color-mix(in oklab,var(--line1) calc(var(--v)*1%),var(--sheet))}td.열.진{color:#fff}
+main{max-width:1240px;display:grid;grid-template-columns:300px minmax(0,1fr);column-gap:48px;align-items:start}
+main>*{grid-column:2}header{grid-column:1;grid-row:1/200;position:sticky;top:28px;border:1px solid var(--rule);border-radius:14px;background:var(--sheet);padding:24px 22px;margin:0}
+header h1{font-size:1.32rem;line-height:1.4;letter-spacing:-.01em;font-weight:750;margin-bottom:16px}header .lead{font-size:1rem}dl.meta{grid-template-columns:1fr 1fr;gap:12px 16px}main>h2:first-of-type{margin-top:0}
+@media (max-width:900px){main{display:block}header{position:static;margin-bottom:8px}main>h2:first-of-type{margin-top:44px}}
+nav.뒤{margin:0 0 14px}nav.뒤 a{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:.9rem;color:var(--muted);text-decoration:none}nav.뒤 a:hover{color:var(--ink)}nav.뒤 svg{width:16px;height:16px}
+td.왼{text-align:left;white-space:normal}tr.깊2 td:first-child{padding-left:30px;color:var(--muted)}.흐름{max-width:72ch}ul.목표 li{max-width:72ch;margin:6px 0}ul.고리{list-style:none;padding:0;margin:0;display:grid;gap:8px}ul.고리 li{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;align-items:baseline;padding:10px 14px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}ul.고리 li span{font-weight:700}ul.고리 a{overflow-wrap:anywhere}ul.고리 em{color:var(--muted);font-style:normal}
+article.분석{max-width:70ch;font-size:1.02rem;line-height:1.8}article.분석 h3{font-size:1.12rem;margin:28px 0 8px}article.분석 p{margin:0 0 14px}article.분석 ul,article.분석 ol{margin:0 0 14px;padding-left:1.3em}article.분석 li{margin:4px 0}article.분석 img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;margin:8px 0 4px}article.분석 em{color:var(--muted)}article.분석 figure{margin:8px 0 18px}article.분석 figcaption{font-size:.95rem;color:var(--ink);font-weight:600;margin-top:6px;padding-left:10px;border-left:3px solid var(--rule)}article.분석 table{border-collapse:collapse;margin:0 0 14px}article.분석 td,article.분석 th{border-bottom:1px solid var(--rule);padding:6px 12px;text-align:left}
+.명제{margin:0 0 12px;color:var(--muted);font-size:.95rem;max-width:72ch}.명제 span{font-weight:700;color:var(--ink);margin-right:6px}.쇼츠틀{display:grid;grid-template-columns:260px minmax(0,1fr);gap:20px;align-items:start}.쇼츠{width:260px;max-width:100%;border-radius:12px;border:1px solid var(--rule);background:#000}.쇼츠글 td{white-space:normal}@media (max-width:640px){.쇼츠틀{grid-template-columns:1fr}}.구조틀{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:12px;overflow-x:auto}.구조도{display:block;width:100%;min-width:720px;height:auto}.구조틀{background:#fbfaf6}.구조도 text{font-family:inherit;fill:var(--ink)}.구조도 .제{font-size:15px;font-weight:700}.구조도 .작{font-size:12px;fill:var(--muted)}.구조도 .작진{font-size:13px;font-weight:600}.구조도 .묶{font-size:13px;font-weight:600;fill:var(--muted)}
+@media (max-width:640px){main{padding:32px 16px 64px}th,td{padding:8px 10px}h2{margin-top:44px}}
+</style></head><body><main style="--n:2"><header><nav class="뒤"><a href="../../index.html"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3.5L5.5 8l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>판 목록</a></nav><h1>한 장에서 포개진 선을 나머지 두 장으로 가른다</h1><span class="판정 탐색"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>탐색 — 이김 판정 없음 · 기준 못 넘음</span><dl class="meta"><div><dt>판</dt><dd>142세뷰</dd></div><div><dt>가지</dt><dd>A4</dd></div><div><dt>종류</dt><dd>탐색</dd></div><div><dt>바뀐 손잡이</dt><dd>목표: CAD → 세뷰</dd></div><div><dt>에폭</dt><dd>10</dd></div><div><dt>대조</dt><dd>한뷰만</dd></div><div><dt>git</dt><dd>f22034b</dd></div><div><dt>날짜</dt><dd>2026-10-24 11:57</dd></div></dl></header><h2>분석</h2><article class="분석"><h3>한 줄로</h3>
+<p><strong>물음</strong>: 한 장의 도면에서 서로 포개진 선을, 나머지 두 장으로 가를 수 있을까?</p>
+<p><strong>답</strong>: 넷에 셋은 가를 수 있다. 목표는 열에 아홉이었으니 판정은 실패다. 겹침을 전부 세 장 맞추기 단계에 맡길 수는 없다.</p>
+<h3>왜 이 판을 했나</h3>
+<p>부품 도면은 위 · 앞 · 옆 세 장이다. 한 장에서는 선 하나로 보여도, 실제로는 깊이가 다른 3D 모서리 여러 개가 겹쳐 있을 수 있다. 이런 겹침은 그 한 장만 봐서는 풀 수 없다.</p>
+<p>그래서 이 일은 다음 단계에 넘기려 했다. 세 장의 선을 서로 짝지어 3D 모서리로 세우는 단계다. 이 계획은 다른 두 장이 겹침을 실제로 갈라 줄 때만 성립한다. 그 상한을 학습도 모델도 없이, CAD 정답 모서리만으로 먼저 쟀다.</p>
+<h3>바꾼 것 하나</h3>
+<p>포갠 선을 <strong>한 장으로만 보던 것을 세 장으로 보게</strong> 했다. 시험 부품 299개의 CAD 모서리를 세 장에 투영했다. 한 장에서 선 하나로 포개 보이는 모서리 묶음을 「무리」라 부른다. 무리 안의 짝마다 다른 두 장 중 한 곳에서라도 떨어지는지 봤다. 짝마다 갈리는 장이 달라도 된다. 모든 짝이 갈려야 그 무리를 갈린 것으로 셌다.</p>
+<h3>결과</h3>
+<figure><img alt="무리 넷 중 셋은 모든 짝이 다른 장에서 떨어진다. 나머지 하나는 적어도 한 짝이 두 장 어디서도 안 떨어진다" src="비교.png"><figcaption>무리 넷 중 셋은 모든 짝이 다른 장에서 떨어진다. 나머지 하나는 적어도 한 짝이 두 장 어디서도 안 떨어진다</figcaption></figure>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>이 판 (세 장)</th>
+<th>대조 (한 장만)</th>
+<th>목표</th>
+<th>넘었나</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>모든 짝이 갈린 무리의 몫</td>
+<td>0.76</td>
+<td>0.00</td>
+<td>0.90 이상</td>
+<td>✗</td>
+</tr>
+<tr>
+<td>투영에 실패한 부품</td>
+<td>0개</td>
+<td>—</td>
+<td>15개 이하</td>
+<td>✓</td>
+</tr>
+</tbody>
+</table>
+<p>대조는 바닥값이다. 한 장만 보면 정의상 아무것도 못 가른다. 그래서 0.76은 전부 다른 두 장이 보탠 몫이다. 투영 실패는 CAD 파일을 못 읽거나 못 그리는 경우다. 299개 중 5 % 정도까지는 빠져도 된다고 미리 정했다.</p>
+<h3>왜 이렇게 나왔나</h3>
+<p><strong>확인한 것</strong></p>
+<ul>
+<li>겹침은 드물지 않다. 그려진 선의 38 %가 무리다.</li>
+<li>무리 하나에는 모서리가 평균 4.12개 들어 있다. 그만큼 짝이 많아서 한 짝만 안 갈려도 무리가 실패로 셌다.</li>
+</ul>
+<p><strong>짐작 (아직 확인 안 함)</strong></p>
+<ul>
+<li>깊이만 다른 두 모서리라면 다른 장에서는 떨어져야 맞다. 그런데도 안 갈렸다면 깊이 차이가 128×128 도면에서 한두 화소 안이라 붙어 보였을 수 있다.</li>
+<li>다른 장에서 점으로 줄어드는 모서리를 우리 셈이 「안 갈림」으로 쳤을 수도 있다. 셈 코드를 다시 봐야 한다.</li>
+<li>모서리가 많은 무리일수록 실패가 몰릴 것으로 본다.</li>
+</ul>
+<h3>한계</h3>
+<ul>
+<li>시험 부품 299개로 한 번만 쟀다. 계산이라 같은 부품에서는 흔들림이 없겠지만, 다른 부품 묶음에서는 모른다.</li>
+<li>몇 화소 떨어져야 갈렸다고 볼지는 이 글에 적지 않았다. 38 %가 선 개수 기준인지 길이 기준인지도 기록에 없다.</li>
+<li>실패한 무리가 한 짝만 남은 것인지, 통째로 붙은 것인지는 나눠 세지 않았다. 그림으로 하나하나 보지도 않았다.</li>
+</ul>
+<h3>배운 것과 다음</h3>
+<p>다른 장은 겹침을 꽤 풀어 준다. 하지만 <strong>세 장 맞추기에 통째로 맡기면 넷에 하나꼴로 풀리지 않는 무리가 남는다.</strong></p>
+<ol>
+<li>안 갈린 무리를 그림으로 모으고, 셈이 점이 된 모서리를 어떻게 다루는지 확인한다.</li>
+<li>짝 단위와 무리 크기별로 다시 세어 실패가 어디 몰리는지 본다.</li>
+<li>남은 몫을 한 장 안에서 풀지, 이 숫자를 보고 정한다.</li>
+</ol></article><h2>모델 동작</h2><figure class="개념"><video src="개념.mp4" autoplay loop muted playsinline style="width:100%;max-width:880px;border:1px solid var(--rule);border-radius:10px"></video><figcaption class="주석">이 판 모델이 화소 하나를 판정하는 과정을 기계로 그린 그림(하네스/개념그림/threeview142) · <a href="개념.gif">gif</a></figcaption></figure><h2>판정 기준</h2><p class="명제"><span>명제</span> 시험 부품 299 개의 CAD 모서리를 위 · 앞 · 옆에 투영하면 그려진 2D 선의 일부는 깊이가 다른 3D 모서리 둘 이상이 포갠 것이고, 그런 포갠 선의 90 % 이상은 무리 안 모든 모서리 짝이 다른 두 뷰 가운데 하나에서 갈라진다. 그래서 겹침은 한 장에서 풀지 않고 세 뷰 짝 맞추기 단계로 넘겨도 된다. 투영에 실패한 부품은 15 개 이하</p><div class="표"><table><thead><tr><th>지표</th><th>조건</th><th>이 판</th><th>대조</th><th>결과</th></tr></thead><tbody><tr class="기준줄" style="--i:0"><td>세뷰_가름</td><td>&gt;= 0.9</td><td><strong>0.759</strong></td><td>0.000</td><td class="결과" style="--i:0"><span class="x" aria-label="실패"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 4.5l7 7m0-7l-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span></td></tr><tr class="기준줄" style="--i:1"><td>세뷰_실패</td><td>&lt;= 15</td><td><strong>0</strong></td><td></td><td class="결과" style="--i:1"><span class="o" aria-label="통과"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td></tr></tbody></table></div><p class="주석">기준은 돌리기 전에 커밋됐다(하네스 관문이 확인). 대조는 같은 에폭.</p><h2>숫자: 이 판과 대조</h2><div class="표"><table><thead><tr><th>지표</th><th>이 판</th><th>대조</th><th>차</th></tr></thead><tbody><tr><td>세뷰_부품</td><td data-n="299">299</td><td></td><td class="차"></td></tr><tr><td>세뷰_실패</td><td data-n="0">0</td><td></td><td class="차"></td></tr><tr><td>세뷰_겹침몫</td><td data-n="0.384">0.384</td><td></td><td class="차"></td></tr><tr><td>세뷰_가름</td><td data-n="0.759">0.759</td><td>0.000</td><td class="차">+0.759</td></tr><tr><td>세뷰_겹침당모서리</td><td data-n="4.120">4.120</td><td></td><td class="차"></td></tr></tbody></table></div><h2>학습 곡선</h2><figure><img src="시트.png" alt="학습 곡선 · 지표 · 12003 세 장 칸 1 주의"><figcaption>판 시트: 하네스가 판 끝에 만든 그림</figcaption></figure><h2>점검</h2><h3>연기 판</h3><div class="줄글"><div><span>첫 loss</span> <b></b></div><div><span>배치 하나 40 걸음 뒤</span> <b></b></div><div><span>VRAM</span> <b> GB</b></div></div><h3>층보기 (시험 64 부품 · 4 층)</h3><div class="줄글"><div><span>칸끼리 닮음</span> <b></b></div><div><span>빈 조각 주의 몫</span> <b></b> <span>(빈 조각 0.54)</span></div><div><span>주의 엔트로피</span> <b></b></div><div><span>출력 자리 퍼짐</span> <b></b> <span>(정답 0.148)</span></div></div><h3>탐침 (합성 그림)</h3><div class="줄글"><div><span>블록 4 구조 6 종</span> <b></b></div><div><span>블록 4 곡률 R²</span> <b></b></div><div><span>블록 3</span> <b> · </b></div></div><h2>쇼츠</h2><div class="쇼츠틀"><p class="비어">웹용 영상 없음</p><div class="쇼츠글"><p class="주석">편 103_판142세뷰 · 대본검사 실패로 안 구움 · <strong>업로드 대기</strong> · 하네스가 판 끝에 대본(claude -p) · 대본검사 · 맥락 없는 읽기 · 굽기까지</p><div class="표"><table><thead><tr><th>누구</th><th>말</th></tr></thead><tbody><tr><td class="왼">AI</td><td class="왼">기계 부품을 위에서 본 도면이에요.</td></tr><tr><td class="왼">AI</td><td class="왼">이 선 하나가 사실 모서리 여러 개예요.</td></tr><tr><td class="왼">AI</td><td class="왼">높이만 다른 모서리들이 위에서 보면 딱 포개져요.</td></tr><tr><td class="왼">AI</td><td class="왼">3D로 세우려면 이 선을 모서리마다 떼어 내야 해요.</td></tr><tr><td class="왼">AI</td><td class="왼">이렇게 포개진 모서리 무리를 묶음이라 할게요.</td></tr><tr><td class="왼">AI</td><td class="왼">묶음은 도면 곳곳에 있어요.</td></tr><tr><td class="왼">나</td><td class="왼">위에서만 봐서 그렇지. 앞이랑 옆 도면 보면 다 갈리잖아.</td></tr><tr><td class="왼">AI</td><td class="왼">앞에서 보니 초록 묶음은 쫙 갈라져요.</td></tr><tr><td class="왼">AI</td><td class="왼">그런데 빨간 묶음은 앞에서도 옆에서도 붙어 있어요.</td></tr><tr><td class="왼">나</td><td class="왼">세 장 다 봐도 안 떨어지는 게 있어?</td></tr><tr><td class="왼">나</td><td class="왼">그럼 부품 전부, 위 앞 옆 세 장을 같이 놓고 확인해 봐. <strong>[세 장 같이]</strong></td></tr><tr><td class="왼">AI</td><td class="왼">묶음 안 모서리를 둘씩 짝 지었어요.</td></tr><tr><td class="왼">AI</td><td class="왼">짝마다 앞이나 옆에서 떨어지는지 봤어요.</td></tr><tr><td class="왼">AI</td><td class="왼">짝 하나라도 끝까지 붙어 있으면 그 묶음은 못 가른 거예요.</td></tr><tr><td class="왼">AI</td><td class="왼">묶음 4개 중 3개꼴로 갈렸어요. 목표는 10개 중 9개였어요. <strong>[4개 중 3개]</strong></td></tr><tr><td class="왼">나</td><td class="왼">세 장을 다 봐도 못 푸는 게 남는구나.</td></tr><tr><td class="왼">AI</td><td class="왼">이번엔 실패예요. 남은 묶음은 끝까지 선 하나로 붙어 있어요. <strong>[이번엔 실패]</strong></td></tr></tbody></table></div></div></div><h2>해석</h2><div class="사람"><p class="비어">아직 비어 있음. 보고.md 의 이 칸을 채우면 다시 만들 때 들어온다</p></div><h2>다음 가지</h2><div class="사람"><p class="비어">아직 비어 있음. 보고.md 의 이 칸을 채우면 다시 만들 때 들어온다</p></div><h2>재현</h2><pre>python 하네스/하네스.py --config-name 판_142세뷰</pre><p class="주석"><a href="설정.yaml">설정.yaml</a> · <a href="판정.json">판정.json</a> · <a href="보고.md">보고.md</a> · 산출 <code>G:/art2real/out/하네스/142세뷰/</code></p><h2>링크</h2><ul class="고리"><li><span>쇼츠</span><em>업로드 대기</em></li><li><span>GitHub 이슈</span><a href="https://github.com/sigongjoa/art2real/issues/14">https://github.com/sigongjoa/art2real/issues/14</a></li><li><span>커밋</span><em>아직 공개 안 됨</em></li><li><span>판 목록</span><a href="../../index.html">../../index.html</a></li></ul></main></body></html>
