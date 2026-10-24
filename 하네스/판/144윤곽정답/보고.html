@@ -1,0 +1,159 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>판 144윤곽정답 · 하네스 보고서</title><style>
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap");
+:root{--paper:#f6f4ef;--sheet:#fffdf8;--ink:#1d2129;--muted:#585e68;--rule:#dcd7cc;--soft:#ece8de;--pass:#1f7a3e;--pass-bg:#e3f1e6;--fail:#b3261e;--fail-bg:#f7e2de;--tool:#8a5f00;--tool-bg:#f6ecd4;--line1:#2d5fa8;--line2:#c0661b}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 "Pretendard Variable",Pretendard,"Malgun Gothic",system-ui,sans-serif;font-variant-numeric:tabular-nums;word-break:keep-all}
+::selection{background:#1d2129;color:#fffdf8}
+a{color:var(--line1);text-underline-offset:3px}a:focus-visible{outline:2px solid var(--line1);outline-offset:2px;border-radius:2px}
+main{max-width:1040px;margin:0 auto;padding:56px 32px 96px}
+header{padding-bottom:28px;border-bottom:1px solid var(--rule);margin-bottom:8px}
+h1{font-size:clamp(1.9rem,4vw,2.7rem);line-height:1.15;letter-spacing:-.025em;margin:0 0 10px;font-weight:800;text-wrap:balance}
+.lead{font-size:1.15rem;color:var(--muted);margin:0 0 22px;max-width:62ch;text-wrap:pretty}
+.판정{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.05rem;padding:7px 14px 7px 11px;border-radius:999px}
+.판정 svg{width:18px;height:18px}.통과{color:var(--pass);background:var(--pass-bg)}.실패{color:var(--fail);background:var(--fail-bg)}.탐색{color:var(--tool);background:var(--tool-bg)}
+dl.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px 28px;margin:26px 0 0}
+dl.meta div{min-width:0}dl.meta dt{font-size:.82rem;color:var(--muted)}dl.meta dd{margin:2px 0 0;font-weight:600;overflow-wrap:anywhere}
+h2{font-size:1.35rem;letter-spacing:-.015em;margin:56px 0 14px;font-weight:750}
+h3{font-size:1.02rem;margin:30px 0 8px;font-weight:700}
+p,li{max-width:72ch}
+.표{overflow-x:auto;margin:6px 0 4px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{padding:9px 14px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--soft)}
+th:first-child,td:first-child{text-align:left}tr:last-child td{border-bottom:0}
+thead th{font-size:.8rem;font-weight:600;color:var(--muted);background:var(--paper);border-bottom:1px solid var(--rule)}
+td.결과{text-align:center}td.결과 span{display:inline-flex;width:24px;height:24px;border-radius:50%;align-items:center;justify-content:center}td.결과 svg{width:15px;height:15px}
+td.결과 .o{color:var(--pass);background:var(--pass-bg)}td.결과 .x{color:var(--fail);background:var(--fail-bg)}
+.차{color:var(--muted);font-size:.88rem}
+.주석{font-size:.88rem;color:var(--muted);margin:8px 2px 0}.주석 code{overflow-wrap:anywhere}
+.줄글{display:flex;flex-wrap:wrap;gap:6px 26px;margin:4px 0}.줄글 b{font-weight:700}.줄글 span{color:var(--muted)}
+figure{margin:18px 0 0}figure img{display:block;width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;background:#fff}
+figcaption{font-size:.86rem;color:var(--muted);margin-top:8px}
+.곡선{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:14px 12px 6px}
+.곡선 svg{display:block;width:100%;height:auto}.곡선 text{font:15px "Pretendard Variable",Pretendard,sans-serif;fill:var(--muted)}
+.사람{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:6px 22px}
+.사람 ul{padding-left:1.1em}.사람 li{margin:8px 0}.비어{color:var(--muted);font-style:italic;padding:12px 0}
+code,pre{font-family:"JetBrains Mono",D2Coding,Consolas,monospace;font-size:.86rem}
+pre{background:#1d2129;color:#f3efe6;padding:16px 18px;border-radius:10px;overflow-x:auto;line-height:1.55}
+td.열{background:color-mix(in oklab,var(--line1) calc(var(--v)*1%),var(--sheet))}td.열.진{color:#fff}
+main{max-width:1240px;display:grid;grid-template-columns:300px minmax(0,1fr);column-gap:48px;align-items:start}
+main>*{grid-column:2}header{grid-column:1;grid-row:1/200;position:sticky;top:28px;border:1px solid var(--rule);border-radius:14px;background:var(--sheet);padding:24px 22px;margin:0}
+header h1{font-size:1.32rem;line-height:1.4;letter-spacing:-.01em;font-weight:750;margin-bottom:16px}header .lead{font-size:1rem}dl.meta{grid-template-columns:1fr 1fr;gap:12px 16px}main>h2:first-of-type{margin-top:0}
+@media (max-width:900px){main{display:block}header{position:static;margin-bottom:8px}main>h2:first-of-type{margin-top:44px}}
+nav.뒤{margin:0 0 14px}nav.뒤 a{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:.9rem;color:var(--muted);text-decoration:none}nav.뒤 a:hover{color:var(--ink)}nav.뒤 svg{width:16px;height:16px}
+td.왼{text-align:left;white-space:normal}tr.깊2 td:first-child{padding-left:30px;color:var(--muted)}.흐름{max-width:72ch}ul.목표 li{max-width:72ch;margin:6px 0}ul.고리{list-style:none;padding:0;margin:0;display:grid;gap:8px}ul.고리 li{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;align-items:baseline;padding:10px 14px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}ul.고리 li span{font-weight:700}ul.고리 a{overflow-wrap:anywhere}ul.고리 em{color:var(--muted);font-style:normal}
+article.분석{max-width:70ch;font-size:1.02rem;line-height:1.8}article.분석 h3{font-size:1.12rem;margin:28px 0 8px}article.분석 p{margin:0 0 14px}article.분석 ul,article.분석 ol{margin:0 0 14px;padding-left:1.3em}article.분석 li{margin:4px 0}article.분석 img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;margin:8px 0 4px}article.분석 em{color:var(--muted)}article.분석 figure{margin:8px 0 18px}article.분석 figcaption{font-size:.95rem;color:var(--ink);font-weight:600;margin-top:6px;padding-left:10px;border-left:3px solid var(--rule)}article.분석 table{border-collapse:collapse;margin:0 0 14px}article.분석 td,article.분석 th{border-bottom:1px solid var(--rule);padding:6px 12px;text-align:left}
+.명제{margin:0 0 12px;color:var(--muted);font-size:.95rem;max-width:72ch}.명제 span{font-weight:700;color:var(--ink);margin-right:6px}.쇼츠틀{display:grid;grid-template-columns:260px minmax(0,1fr);gap:20px;align-items:start}.쇼츠{width:260px;max-width:100%;border-radius:12px;border:1px solid var(--rule);background:#000}.쇼츠글 td{white-space:normal}@media (max-width:640px){.쇼츠틀{grid-template-columns:1fr}}.구조틀{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:12px;overflow-x:auto}.구조도{display:block;width:100%;min-width:720px;height:auto}.구조틀{background:#fbfaf6}.구조도 text{font-family:inherit;fill:var(--ink)}.구조도 .제{font-size:15px;font-weight:700}.구조도 .작{font-size:12px;fill:var(--muted)}.구조도 .작진{font-size:13px;font-weight:600}.구조도 .묶{font-size:13px;font-weight:600;fill:var(--muted)}
+@media (max-width:640px){main{padding:32px 16px 64px}th,td{padding:8px 10px}h2{margin-top:44px}}
+</style></head><body><main style="--n:4"><header><nav class="뒤"><a href="../../index.html"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3.5L5.5 8l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>판 목록</a></nav><h1>둥근 면의 윤곽선까지 정답에 넣고 다시 잰다</h1><span class="판정 탐색"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>탐색 — 이김 판정 없음 · 기준 못 넘음</span><dl class="meta"><div><dt>판</dt><dd>144윤곽정답</dd></div><div><dt>가지</dt><dd>A4</dd></div><div><dt>종류</dt><dd>탐색</dd></div><div><dt>바뀐 손잡이</dt><dd>벡터화.윤곽정답: None → True</dd></div><div><dt>에폭</dt><dd>10</dd></div><div><dt>대조</dt><dd>143숨메움</dd></div><div><dt>git</dt><dd>9baec8a</dd></div><div><dt>날짜</dt><dd>2026-10-24 13:55</dd></div></dl></header><h2>분석</h2><article class="분석"><h3>한 줄로</h3>
+<p><strong>물음</strong>: 둥근 면의 윤곽선까지 정답에 넣고 다시 재면, 지금의 선 뽑기가 그 윤곽선을 찾고 종류까지 맞게 가를까?</p>
+<p><strong>답</strong>: 찾기는 한다. 윤곽선의 0.88을 찾았다. 하지만 찾은 윤곽선의 종류는 0.77만 맞아 목표 0.85에 못 미쳤다. 기준 넷 가운데 하나를 못 넘어 판정은 실패다.</p>
+<h3>왜 이 판을 했나</h3>
+<p>선 목록은 두 지도에서 뽑는다. <strong>칠한 지도</strong>는 판 137 모델이 화소마다 선 종류를 찍은 것이다. <strong>정답 지도</strong>는 부품 모양에서 바로 그린 것이다. 지금까지 정답 선은 CAD 모서리뿐이었다. 원통 옆면처럼 둥근 면이 앞쪽에서 뒤쪽으로 넘어가며 생기는 윤곽선은 정답에 없었다. 도면에는 이 선이 그려져 있다. 그래서 맞게 뽑은 윤곽선은 헛선으로 세거나 아예 세지 않았다. 143까지 세 판 연달아 정답 지도로 뽑아도 칠한 지도보다 나을 게 없었는데, 이 빈칸도 원인으로 의심했다.</p>
+<h3>바꾼 것 하나</h3>
+<p><strong>정답에 곡면 윤곽선을 더했다.</strong> 입력과 선을 뽑는 계산은 143과 같다. 시험 부품 299개에서 윤곽선이 16,440개 나왔다.</p>
+<h3>결과</h3>
+<figure><img alt="둥근 면 테두리의 윤곽선이 이제 정답에 들어가 찾은 선으로 잡힌다. 종류는 아직 틀린다" src="비교.png"><figcaption>둥근 면 테두리의 윤곽선이 이제 정답에 들어가 찾은 선으로 잡힌다. 종류는 아직 틀린다</figcaption></figure>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>이 판 (144)</th>
+<th>대조 (143)</th>
+<th>목표</th>
+<th>넘었나</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>윤곽선 중 찾은 비율</td>
+<td><strong>0.88</strong></td>
+<td>—</td>
+<td>0.80</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>찾은 윤곽선의 종류가 맞음</td>
+<td>0.77</td>
+<td>—</td>
+<td>0.85</td>
+<td>✗</td>
+</tr>
+<tr>
+<td>정답 선과 맞음 (F1)</td>
+<td>0.92</td>
+<td>0.91</td>
+<td>0.90</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>정답 지도로 뽑았을 때 (F1)</td>
+<td>0.92</td>
+<td>0.91</td>
+<td>0.90</td>
+<td>✓</td>
+</tr>
+<tr>
+<td>정답 선 중 찾은 비율</td>
+<td>0.85</td>
+<td>0.84</td>
+<td>—</td>
+<td></td>
+</tr>
+<tr>
+<td>그린 선 중 맞은 비율</td>
+<td>0.99</td>
+<td>0.99</td>
+<td>—</td>
+<td></td>
+</tr>
+<tr>
+<td>선 종류 전체</td>
+<td>0.85</td>
+<td>0.87</td>
+<td>—</td>
+<td></td>
+</tr>
+<tr>
+<td>보이는 선의 종류</td>
+<td>0.83</td>
+<td>0.85</td>
+<td>—</td>
+<td></td>
+</tr>
+<tr>
+<td>한 선으로 뽑힌 모서리</td>
+<td>0.76</td>
+<td>0.75</td>
+<td>—</td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<p><em>143은 정답에 윤곽선이 없어서 윤곽선 칸을 잴 수 없다(—). 종류는 선이 직선인지 곡선인지 같은 모양 갈래이고, 보이는 선과 숨은선은 따로 센다. 「한 선으로」는 정답 모서리 하나가 토막 나지 않고 한 선으로 나온 비율이다. F1은 찾은 비율과 맞은 비율을 함께 본 점수로, 1이면 완벽하다.</em></p>
+<h3>왜 이렇게 나왔나</h3>
+<p><strong>확인한 것</strong></p>
+<ul>
+<li>종류가 틀리는 건 칠한 지도 탓이 아니다. 정답 지도로 뽑아도 윤곽선 종류는 0.73으로, 칠한 지도의 0.77보다 오히려 낮다. 문제는 뽑은 선에 종류를 붙이는 계산에 있다.</li>
+<li>선 종류 전체가 0.87에서 0.85로 내려간 것은 새로 넣은 윤곽선 몫이다. 윤곽선 종류가 0.77이라 평균을 깎았다.</li>
+<li>정답 선이 늘었는데도 찾은 비율은 0.84에서 0.85로 올랐다. 윤곽선 대부분이 이미 뽑히고 있었다는 뜻이다.</li>
+</ul>
+<p><strong>짐작 (아직 확인 안 함)</strong></p>
+<ul>
+<li>보이는 선의 종류가 0.85에서 0.83으로 내려간 것은 윤곽선이 보이는 선으로 세어지기 때문일 것 같다.</li>
+<li>정답의 종류는 도면에 보이는 모양으로 정했다. 원통 옆면의 윤곽선은 곧게 보이고, 구의 윤곽선은 원으로 보인다. 계산이 이 둘을 곡면에서 나왔다는 이유로 한데 묶어 틀렸을 수 있다.</li>
+<li>그린 선 중 맞은 비율이 0.99 그대로다. 전에 헛선으로 세던 윤곽선은 많지 않았던 것 같다.</li>
+</ul>
+<h3>한계</h3>
+<ul>
+<li>시험 부품 299개로, 한 번만 돌렸다.</li>
+<li>정답 지도와 칠한 지도의 F1이 이번에도 둘 다 0.92다. 정답을 고쳐도 그대로라서, 네 판째 그 까닭을 모른다.</li>
+<li>윤곽선 종류를 어떤 종류와 헷갈렸는지는 세지 않았다.</li>
+</ul>
+<h3>배운 것과 다음</h3>
+<p>선 뽑기는 둥근 면의 윤곽선을 이미 거의 찾고 있었다. <strong>모자란 건 찾기가 아니라 종류를 붙이는 계산이다.</strong> 정답 지도로 뽑아도 틀리니, 137 모델을 고쳐서 될 일이 아니다.</p>
+<ol>
+<li>종류가 틀린 윤곽선을 그림으로 모으고, 어떤 종류로 붙었는지 센다.</li>
+<li>윤곽선을 직선과 곡선으로 가르는 규칙이 맞는지 정답 지도에서 먼저 확인한다.</li>
+<li>정답 지도와 칠한 지도의 F1이 왜 같은지 부품별로 나눠 본다.</li>
+</ol></article><h2>모델 동작</h2><figure class="개념"><video src="개념.mp4" autoplay loop muted playsinline style="width:100%;max-width:880px;border:1px solid var(--rule);border-radius:10px"></video><figcaption class="주석">이 판 모델이 화소 하나를 판정하는 과정을 기계로 그린 그림(하네스/개념그림/vec140) · <a href="개념.gif">gif</a></figcaption></figure><h2>판정 기준</h2><p class="명제"><span>명제</span> 143 과 같은 입력 · 벡터화를, CAD 모서리에 곡면 테 윤곽선을 더한 정답으로 재면 윤곽선의 80 % 이상을 찾고 찾은 윤곽선의 종류(눈 기준)가 0.85 이상 맞으며, 전체 F1 은 0.90 을 지킨다. 같은 계산을 정답 선지도에 돌린 천장 F1 도 0.90 을 넘는다</p><div class="표"><table><thead><tr><th>지표</th><th>조건</th><th>이 판</th><th>대조</th><th>결과</th></tr></thead><tbody><tr class="기준줄" style="--i:0"><td>벡_재현_윤곽</td><td>&gt;= 0.8</td><td><strong>0.882</strong></td><td></td><td class="결과" style="--i:0"><span class="o" aria-label="통과"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td></tr><tr class="기준줄" style="--i:1"><td>벡_종류_윤곽</td><td>&gt;= 0.85</td><td><strong>0.765</strong></td><td></td><td class="결과" style="--i:1"><span class="x" aria-label="실패"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 4.5l7 7m0-7l-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span></td></tr><tr class="기준줄" style="--i:2"><td>벡_F1</td><td>&gt;= 0.9</td><td><strong>0.917</strong></td><td>0.913</td><td class="결과" style="--i:2"><span class="o" aria-label="통과"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td></tr><tr class="기준줄" style="--i:3"><td>벡_F1_정답</td><td>&gt;= 0.9</td><td><strong>0.916</strong></td><td></td><td class="결과" style="--i:3"><span class="o" aria-label="통과"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td></tr></tbody></table></div><p class="주석">기준은 돌리기 전에 커밋됐다(하네스 관문이 확인). 대조는 같은 에폭.</p><h2>숫자: 이 판과 대조</h2><div class="표"><table><thead><tr><th>지표</th><th>이 판</th><th>대조</th><th>차</th></tr></thead><tbody><tr><td>벡_재현</td><td data-n="0.850">0.850</td><td>0.844</td><td class="차">+0.006</td></tr><tr><td>벡_정밀</td><td data-n="0.995">0.995</td><td></td><td class="차"></td></tr><tr><td>벡_F1</td><td data-n="0.917">0.917</td><td>0.913</td><td class="차">+0.004</td></tr><tr><td>벡_종류</td><td data-n="0.848">0.848</td><td>0.866</td><td class="차">-0.018</td></tr><tr><td>벡_조각</td><td data-n="2.951">2.951</td><td></td><td class="차"></td></tr><tr><td>벡_한선</td><td data-n="0.756">0.756</td><td></td><td class="차"></td></tr><tr><td>벡_끊김</td><td data-n="0.013">0.013</td><td></td><td class="차"></td></tr><tr><td>벡_재현_보임</td><td data-n="0.913">0.913</td><td></td><td class="차"></td></tr><tr><td>벡_종류_보임</td><td data-n="0.828">0.828</td><td></td><td class="차"></td></tr><tr><td>벡_재현_숨</td><td data-n="0.737">0.737</td><td></td><td class="차"></td></tr><tr><td>벡_끊김_숨</td><td data-n="0.019">0.019</td><td></td><td class="차"></td></tr><tr><td>벡_재현_윤곽</td><td data-n="0.882">0.882</td><td></td><td class="차"></td></tr><tr><td>벡_종류_윤곽</td><td data-n="0.765">0.765</td><td></td><td class="차"></td></tr><tr><td>벡_윤곽수</td><td data-n="16440">16440</td><td></td><td class="차"></td></tr><tr><td>벡_재현_정답</td><td data-n="0.847">0.847</td><td></td><td class="차"></td></tr><tr><td>벡_정밀_정답</td><td data-n="0.997">0.997</td><td></td><td class="차"></td></tr><tr><td>벡_F1_정답</td><td data-n="0.916">0.916</td><td></td><td class="차"></td></tr><tr><td>벡_종류_정답</td><td data-n="0.830">0.830</td><td></td><td class="차"></td></tr><tr><td>벡_조각_정답</td><td data-n="2.815">2.815</td><td></td><td class="차"></td></tr><tr><td>벡_한선_정답</td><td data-n="0.769">0.769</td><td></td><td class="차"></td></tr><tr><td>벡_끊김_정답</td><td data-n="0.011">0.011</td><td></td><td class="차"></td></tr><tr><td>벡_재현_보임_정답</td><td data-n="0.909">0.909</td><td></td><td class="차"></td></tr><tr><td>벡_종류_보임_정답</td><td data-n="0.816">0.816</td><td></td><td class="차"></td></tr><tr><td>벡_재현_숨_정답</td><td data-n="0.736">0.736</td><td></td><td class="차"></td></tr><tr><td>벡_끊김_숨_정답</td><td data-n="0.015">0.015</td><td></td><td class="차"></td></tr><tr><td>벡_재현_윤곽_정답</td><td data-n="0.879">0.879</td><td></td><td class="차"></td></tr><tr><td>벡_종류_윤곽_정답</td><td data-n="0.731">0.731</td><td></td><td class="차"></td></tr><tr><td>벡_윤곽수_정답</td><td data-n="16440">16440</td><td></td><td class="차"></td></tr></tbody></table></div><h2>학습 곡선</h2><figure><img src="시트.png" alt="학습 곡선 · 지표 · 12003 세 장 칸 1 주의"><figcaption>판 시트: 하네스가 판 끝에 만든 그림</figcaption></figure><h2>점검</h2><h3>연기 판</h3><div class="줄글"><div><span>첫 loss</span> <b></b></div><div><span>배치 하나 40 걸음 뒤</span> <b></b></div><div><span>VRAM</span> <b> GB</b></div></div><h3>층보기 (시험 64 부품 · 4 층)</h3><div class="줄글"><div><span>칸끼리 닮음</span> <b></b></div><div><span>빈 조각 주의 몫</span> <b></b> <span>(빈 조각 0.54)</span></div><div><span>주의 엔트로피</span> <b></b></div><div><span>출력 자리 퍼짐</span> <b></b> <span>(정답 0.148)</span></div></div><h3>탐침 (합성 그림)</h3><div class="줄글"><div><span>블록 4 구조 6 종</span> <b></b></div><div><span>블록 4 곡률 R²</span> <b></b></div><div><span>블록 3</span> <b> · </b></div></div><h2>쇼츠</h2><div class="쇼츠틀"><p class="비어">웹용 영상 없음</p><div class="쇼츠글"><p class="주석">편 105_판144윤곽정답 · 굽기 실패(코드 1): subprocess.CalledProcessError: Command &#x27;[&#x27;G:/art2real/out/tts/chatterbox/Scripts/python.exe&#x27;, &#x27;G:\\art2real\\원화3d\\과정\\영상05\\tts\\굽기_chatterbox.py&#x27;, &#x27;G:/art2real/out/영상05/대화/105_판144윤곽정답/_cb일감.json&#x27;]&#x27; · <strong>업로드 대기</strong> · 하네스가 판 끝에 대본(claude -p) · 대본검사 · 맥락 없는 읽기 · 굽기까지</p><div class="표"><table><thead><tr><th>누구</th><th>말</th></tr></thead><tbody><tr><td class="왼">AI</td><td class="왼">원통 옆 테두리 선, 오른쪽은 종류가 틀렸어요.</td></tr><tr><td class="왼">AI</td><td class="왼">이 모델은 부품을 앞에서 본 도면을 받아요.</td></tr><tr><td class="왼">AI</td><td class="왼">도면의 선을 하나씩 따서 CAD 설계도로 옮겨요.</td></tr><tr><td class="왼">AI</td><td class="왼">여기 원통 옆 테두리는 모서리가 아니라 둥근 면 끝이에요.</td></tr><tr><td class="왼">나</td><td class="왼">모델이 둥근 면 끝을 제대로 못 본 거네.</td></tr><tr><td class="왼">AI</td><td class="왼">빨간 데 봐요. 테두리 선은 거의 다 찾았어요.</td></tr><tr><td class="왼">AI</td><td class="왼">선을 찾은 뒤 종류는 모델이 아니라 계산이 붙여요.</td></tr><tr><td class="왼">나</td><td class="왼">그럼 모델 말고, 부품 모양에서 바로 그린 선을 넣어 봐. <strong>[바로 그린 선]</strong></td></tr><tr><td class="왼">AI</td><td class="왼">바로 그린 선을 넣어도 종류가 또 틀려요.</td></tr><tr><td class="왼">나</td><td class="왼">모델이 아니라 종류 붙이는 계산 탓이었네.</td></tr><tr><td class="왼">AI</td><td class="왼">테두리는 88 % 찾았어요.</td></tr><tr><td class="왼">AI</td><td class="왼">찾은 것 중 종류는 77 %만 맞아요. 목표는 85 %예요. <strong>[종류 77 %]</strong></td></tr><tr><td class="왼">AI</td><td class="왼">목표에 못 미쳐서 이번엔 실패예요. <strong>[이번엔 실패]</strong></td></tr><tr><td class="왼">AI</td><td class="왼">테두리 선까지 함께 세니 전체 종류 맞힘도 조금 내려갔어요.</td></tr></tbody></table></div></div></div><h2>해석</h2><div class="사람"><p class="비어">아직 비어 있음. 보고.md 의 이 칸을 채우면 다시 만들 때 들어온다</p></div><h2>다음 가지</h2><div class="사람"><p class="비어">아직 비어 있음. 보고.md 의 이 칸을 채우면 다시 만들 때 들어온다</p></div><h2>재현</h2><pre>python 하네스/하네스.py --config-name 판_144윤곽정답</pre><p class="주석"><a href="설정.yaml">설정.yaml</a> · <a href="판정.json">판정.json</a> · <a href="보고.md">보고.md</a> · 산출 <code>G:/art2real/out/하네스/144윤곽정답/</code></p><h2>링크</h2><ul class="고리"><li><span>쇼츠</span><em>업로드 대기</em></li><li><span>GitHub 이슈</span><a href="https://github.com/sigongjoa/art2real/issues/16">https://github.com/sigongjoa/art2real/issues/16</a></li><li><span>커밋</span><em>아직 공개 안 됨</em></li><li><span>판 목록</span><a href="../../index.html">../../index.html</a></li></ul></main></body></html>

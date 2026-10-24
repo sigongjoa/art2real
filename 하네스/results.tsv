@@ -15,3 +15,4 @@
 10-24 11:27	141이음	A4	비교	벡터화.이음=True	실패	None	None	None	None	412c00c
 10-24 11:57	142세뷰	A4	탐색	목표=세뷰	탐색 — 이김 판정 없음 · 기준 못 넘음	None	None	None	None	f22034b
 10-24 13:08	143숨메움	A4	비교	벡터화.숨메움=True	통과	None	None	None	None	cb3f500
+10-24 13:55	144윤곽정답	A4	탐색	벡터화.윤곽정답=True	탐색 — 이김 판정 없음 · 기준 못 넘음	None	None	None	None	9baec8a
