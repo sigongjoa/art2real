@@ -23,24 +23,59 @@ def 원맞춤(yx):   # 대수 원 맞춤 → (잔차 RMS, 반지름)
     y, x = yx[:, 0].astype(float), yx[:, 1].astype(float); A = np.c_[x, y, np.ones_like(x)]; b = -(x ** 2 + y ** 2)
     c = np.linalg.lstsq(A, b, rcond=None)[0]; cx, cy = -c[0] / 2, -c[1] / 2; r = np.sqrt(max(cx ** 2 + cy ** 2 - c[2], 1e-9))
     return float(np.sqrt(((np.hypot(x - cx, y - cy) - r) ** 2).mean())), float(r)
-def 벡터화(있, 열=None, 숨=None, 휨문턱=2., 최소=3):   # 있: (128, 128) bool · 열: 꼭짓점 열지도 · 숨: 숨은선 확률/여부 → [선]
+def 벡터화(있, 열=None, 숨=None, 휨문턱=2., 최소=3, 이음=False):   # 있: (128, 128) bool · 열: 꼭짓점 열지도 · 숨: 숨은선 확률/여부 → [선] · 이음(141): 마디를 봉우리 한 화소로 · 짧은 조각 남겨 잇기 · 끝에 잇기()
     import cv2
     from skimage.morphology import skeletonize
     sk = skeletonize(있).astype(np.uint8); 이 = cv2.filter2D(sk, -1, np.ones((3, 3), np.float32), borderType=cv2.BORDER_CONSTANT) - sk
     마 = (sk > 0) & (이 != 2)
     if 열 is not None:
-        봉 = (열 == cv2.dilate(열, np.ones((5, 5), np.uint8))) & (열 > .3); 마 |= (cv2.dilate(봉.astype(np.uint8), np.ones((3, 3), np.uint8)) > 0) & (sk > 0)
+        봉 = (열 == cv2.dilate(열, np.ones((5, 5), np.uint8))) & (열 > .3)
+        if 이음:   # 140: 봉우리 둘레 3×3 을 다 마디로 → 가까운 꼭짓점 사이 짧은 모서리가 마디에 먹혀 사라짐(놓친 것 59 % 가 6 화소 이하) → 봉우리에서 가장 가까운 뼈대 한 화소만
+            뼈 = np.argwhere(sk > 0)
+            for q in np.argwhere(봉):
+                if len(뼈): d = np.abs(뼈 - q).max(1); i = d.argmin(); 마[tuple(뼈[i])] |= d[i] <= 2
+        else: 마 |= (cv2.dilate(봉.astype(np.uint8), np.ones((3, 3), np.uint8)) > 0) & (sk > 0)
     가 = (sk > 0) & ~마; n, 라 = cv2.connectedComponents(가.astype(np.uint8), connectivity=8); 선들 = []
     for k in range(1, n):
         px = np.argwhere(라 == k)
         곁마 = np.argwhere((cv2.dilate((라 == k).astype(np.uint8), np.ones((3, 3), np.uint8)) > 0) & 마)   # 붙은 마디 화소를 다시 붙여 선이 꼭짓점까지 닿게
-        if len(px) + len(곁마) < 최소: continue
+        if len(px) + len(곁마) < (2 if 이음 else 최소): continue
         길, 닫힘 = 줄세우기(np.r_[px, 곁마] if len(곁마) <= 2 else px)
         for 조각 in 쪼개기(길, 닫힘, 휨문턱):
             a, b = (0, len(조각) - 1); h = 휨(조각, a, b) if not 닫힘 else 휨(조각, *먼쌍(조각))
             m = np.zeros((128, 128), bool); m[조각[:, 0], 조각[:, 1]] = True
             숨음 = bool(숨[m].mean() > .5) if 숨 is not None else False
-            선들.append({"종류": "원호" if h >= 휨문턱 else "직선", "시작": 조각[0][::-1].tolist(), "끝": 조각[-1][::-1].tolist(), "휨": round(h, 1), "숨음": 숨음, "중간": 조각[len(조각) // 2][::-1].tolist(), "_m": m})
+            선들.append({"종류": "원호" if h >= 휨문턱 else "직선", "시작": 조각[0][::-1].tolist(), "끝": 조각[-1][::-1].tolist(), "휨": round(h, 1), "숨음": 숨음, "중간": 조각[len(조각) // 2][::-1].tolist(), "_m": m, "_p": 조각})
+    if 이음: 선들 = [l for l in 잇기(선들, 휨문턱, 숨) if l["_m"].sum() >= 최소]
+    return 선들
+def 선만들기(p, 휨문턱, 숨):
+    m = np.zeros((128, 128), bool); m[p[:, 0], p[:, 1]] = True; h = 휨(p, 0, len(p) - 1)
+    return {"종류": "원호" if h >= 휨문턱 else "직선", "시작": p[0][::-1].tolist(), "끝": p[-1][::-1].tolist(), "휨": round(h, 1), "숨음": bool(숨[m].mean() > .5) if 숨 is not None else False, "중간": p[len(p) // 2][::-1].tolist(), "_m": m, "_p": p}
+def 잇기(선들, 휨문턱, 숨, 점선틈=4., 닿음=2.):   # 141: ① 같은 방향 직선 토막(점선 · 마디로 잘린 직선)은 틈 4 화소까지 한 선으로 ② 끝이 닿은 두 조각이 원 하나에 맞으면(잔차 0.8) 한 원호로
+    import cv2
+    def 선채움(a, b):   # 틈을 화소로 메움
+        m = np.zeros((128, 128), np.uint8); cv2.line(m, tuple(int(v) for v in a[::-1]), tuple(int(v) for v in b[::-1]), 1, 1); return np.argwhere(m > 0)
+    바뀜 = True
+    while 바뀜:
+        바뀜 = False
+        for i in range(len(선들)):
+            for j in range(i + 1, len(선들)):
+                A, B = 선들[i]["_p"], 선들[j]["_p"]
+                짝 = min(((np.hypot(*(A[ia] - B[ib])), ia, ib) for ia in (0, -1) for ib in (0, -1)), key=lambda t: t[0]); d, ia, ib = 짝
+                if d > 점선틈: continue
+                a = A[::-1] if ia == 0 else A; b = B if ib == 0 else B[::-1]   # a 끝 → b 시작
+                새 = None
+                if 선들[i]["종류"] == "직선" and 선들[j]["종류"] == "직선" and len(a) >= 2 and len(b) >= 2:
+                    u = (a[-1] - a[0]) / max(np.hypot(*(a[-1] - a[0])), 1e-6); w = (b[-1] - b[0]) / max(np.hypot(*(b[-1] - b[0])), 1e-6)
+                    옆 = abs(u[0] * (b[-1] - a[0])[1] - u[1] * (b[-1] - a[0])[0])
+                    if u @ w > np.cos(np.radians(10)) and 옆 < 1.5: 새 = np.r_[a, 선채움(a[-1], b[0]), b]
+                if 새 is None and d <= 닿음 and "원호" in (선들[i]["종류"], 선들[j]["종류"]) and len(a) + len(b) >= 6:
+                    합 = np.r_[a, b]; rms, r = 원맞춤(합)
+                    if rms < .8 and r < 200: 새 = np.r_[a, 선채움(a[-1], b[0]), b]
+                if 새 is not None:
+                    _, 순 = np.unique(새, axis=0, return_index=True); 새 = 새[np.sort(순)]
+                    선들[i] = 선만들기(새, 휨문턱, 숨); 선들.pop(j); 바뀜 = True; break
+            if 바뀜: break
     return 선들
 def 쪼개기(길, 닫힘, 휨문턱):   # 휜 가지: 원에 잘 맞으면 원호 하나 · 아니면 꺾은 점(Douglas-Peucker 1.5 화소)에서 직선들로
     import cv2
@@ -105,7 +140,7 @@ def 점검(cfg, 폴더):   # 하네스가 부름(학습 없음) — 입력 판 �
     for k, 부품 in enumerate(부품들):
         if not os.path.exists(Q.저장 + f"{부품}.npz"): continue
         for v in range(3):
-            정 = 정답선(부품, v, s.휨문턱); 예 = 벡터화(있[k, v], 열[k, v], 숨[k, v], s.휨문턱); 천 = 벡터화(정지[k, v] > 0, 정열[k, v], 정숨[k, v], s.휨문턱)
+            이음 = bool(s.get("이음", False)); 정 = 정답선(부품, v, s.휨문턱); 예 = 벡터화(있[k, v], 열[k, v], 숨[k, v], s.휨문턱, 이음=이음); 천 = 벡터화(정지[k, v] > 0, 정열[k, v], 정숨[k, v], s.휨문턱, 이음=이음)
             테 = 정지[k, v] == 3; 예쌍.append((정, 예, 테)); 천쌍.append((정, 천, 테))
             if 부품 == "12050": 보기.append((v, 정, 예, Xnp[이.index(부품), v], 테))
     지 = 재기(예쌍) | {f"{k}_정답": v for k, v in 재기(천쌍).items()}
@@ -143,4 +178,10 @@ if __name__ == "__main__":   # 자체 시험: ㄱ 자(직선 둘) · 반원(원�
     정 = [{"종류": l["종류"], "_m": l["_m"]} for l in 예]; r = 재기([(정, 예)]); assert r["벡_F1"] == 1 and r["벡_종류"] == 1, r
     r = 재기([(정, 예[:2])]); assert r["벡_재현"] == .5 and r["벡_정밀"] == 1, r
     r = 재기([(정 + 정, 예)]); assert r["벡_재현"] == 1 and r["벡_F1"] == 1, r   # 투영에서 포갠 모서리 둘 = 선 하나로 다 덮임
+    점 = np.zeros((128, 128), np.uint8)   # 141 이음: 점선(3 화소 선 · 2 화소 틈) → 한 선 · 마디로 둘이 된 반원 → 한 원호
+    for x0 in range(10, 100, 5): cv2.line(점, (x0, 110), (x0 + 2, 110), 1, 1)
+    예2 = 벡터화(점 > 0, 이음=True); assert len(예2) == 1 and 예2[0]["종류"] == "직선", [(l["시작"], l["끝"]) for l in 예2]
+    assert len(벡터화(점 > 0)) > 1   # 이음 없으면 토막
+    반 = np.zeros((128, 128), np.uint8); cv2.ellipse(반, (60, 60), (30, 30), 0, 0, 180, 1, 1); 열2 = np.zeros((128, 128), np.float32); 열2[90, 60] = 1.
+    예3 = 벡터화(반 > 0, 열2, 이음=True); assert len(예3) == 1 and 예3[0]["종류"] == "원호", [(l["종류"], l["시작"], l["끝"]) for l in 예3]
     print("과제벡터화 시험 통과", 재기([(정, 예)]))
