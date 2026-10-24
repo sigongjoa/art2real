@@ -34,31 +34,36 @@ def 투영들(일꾼=6, 초=120):   # 시험 부품 전부(겹침그림.모서�
             if not pr.is_alive(): 도는.pop(i)
             elif time.time() - t > 초: pr.kill(); 도는.pop(i); open(저장 + f"{i:05d}.npz.err", "w", encoding="utf-8").write("시간 넘음")
         time.sleep(.2)
-def 포갬(a, b, 거리=1.5, 덮음=.7):   # 두 마스크가 서로를 덮나(점처럼 보이는 모서리는 화소 하나)
+def 곁(m, 거리=1.5):   # 마스크 → 거리 1.5 화소 안 영역 · 박스(포갬 검사 전에 한 번만)
     import cv2
-    da = cv2.distanceTransform((~a).astype(np.uint8), cv2.DIST_L2, 3); db = cv2.distanceTransform((~b).astype(np.uint8), cv2.DIST_L2, 3)
-    return (db[a] <= 거리).mean() >= 덮음 and (da[b] <= 거리).mean() >= 덮음
-def 무리(ms):   # 포갠 것끼리 이음(합집합-찾기)
-    부 = list(range(len(ms)))
+    return cv2.distanceTransform((~m).astype(np.uint8), cv2.DIST_L2, 3) <= 거리
+def 포갬(a, b, 덮음=.7, 곁a=None, 곁b=None):   # 두 마스크가 서로를 덮나(점처럼 보이는 모서리는 화소 하나) · 곁 은 미리 만든 것을 받음(142 첫 판: 짝마다 다시 만들어 20 분 넘게 돎)
+    곁a = 곁(a) if 곁a is None else 곁a; 곁b = 곁(b) if 곁b is None else 곁b
+    return 곁b[a].mean() >= 덮음 and 곁a[b].mean() >= 덮음
+def 박스(m):
+    yx = np.argwhere(m); return (yx.min(0) - 2, yx.max(0) + 2) if len(yx) else (np.array([999, 999]), np.array([-999, -999]))
+def 무리(ms, 곁들=None):   # 포갠 것끼리 이음(합집합-찾기) · 박스가 안 겹치는 짝은 건너뜀
+    부 = list(range(len(ms))); 곁들 = 곁들 or [곁(m) for m in ms]; 박 = [박스(m) for m in ms]
     def 뿌(k):
         while 부[k] != k: 부[k] = 부[부[k]]; k = 부[k]
         return k
     for i in range(len(ms)):
         for j in range(i + 1, len(ms)):
-            if 뿌(i) != 뿌(j) and 포갬(ms[i], ms[j]): 부[뿌(i)] = 뿌(j)
+            if (박[i][0] > 박[j][1]).any() or (박[j][0] > 박[i][1]).any(): continue
+            if 뿌(i) != 뿌(j) and 포갬(ms[i], ms[j], 곁a=곁들[i], 곁b=곁들[j]): 부[뿌(i)] = 뿌(j)
     g = {}
     for k in range(len(ms)): g.setdefault(뿌(k), []).append(k)
     return list(g.values())
 def 부품재기(z):   # → (선 수, 겹친 선 수, 가른 겹친 선 수, 겹친 선에 숨은 모서리 수)
     풀 = lambda v: np.unpackbits(z[f"m{v}"], axis=1)[:, :128 * 128].reshape(-1, 128, 128).astype(bool) if len(z[f"m{v}"]) else np.zeros((0, 128, 128), bool)
-    ms = [풀(v) for v in range(3)]; 선 = 겹 = 가 = 숨 = 0
+    ms = [풀(v) for v in range(3)]; 선 = 겹 = 가 = 숨 = 0; 곁들 = [[곁(m) for m in mv] for mv in ms]
     for v in range(3):
         쓴 = np.nonzero(z[f"그림{v}"] & (ms[v].reshape(len(ms[v]), -1).sum(1) > 0))[0]
-        for g in 무리([ms[v][k] for k in 쓴]):
+        for g in 무리([ms[v][k] for k in 쓴], [곁들[v][k] for k in 쓴]):
             선 += 1
             if len(g) < 2: continue
             겹 += 1; 숨 += len(g); 모 = [쓴[k] for k in g]
-            가 += all(any(not 포갬(ms[u][e], ms[u][f]) for u in range(3) if u != v) for i, e in enumerate(모) for f in 모[i + 1:])
+            가 += all(any(not 포갬(ms[u][e], ms[u][f], 곁a=곁들[u][e], 곁b=곁들[u][f]) for u in range(3) if u != v) for i, e in enumerate(모) for f in 모[i + 1:])
     return 선, 겹, 가, 숨
 def 점검(cfg, 폴더):   # 하네스가 부름(학습 · 모델 없음 — 정답 형상으로 잰 천장)
     import 모델124 as B
