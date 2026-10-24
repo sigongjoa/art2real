@@ -41,7 +41,7 @@ def 자료(입력판="137전부합침"):   # 글(정답) · 선(입력) 을 부�
     import torch, 과제선지도 as G, 분석그림 as A, 모델124 as B
     from omegaconf import OmegaConf
     for d in ("글", "선"): os.makedirs(자료폴더 + d, exist_ok=True)
-    이름들 = [f"{r['i']:05d}" for r in B.색인()]
+    이름들 = sorted(os.path.basename(f)[:5] for f in glob.glob(f"{뿌리}/out/하네스/선정답/*.npz"))   # 선지도가 있는 3299 개만(색인 전체 12000+ 로 돌려 쓸데없이 길었음 · 10-24)
     일꾼(_글하나, [n for n in 이름들 if not os.path.exists(자료폴더 + f"글/{n}.py") and not os.path.exists(자료폴더 + f"글/{n}.py.err")])
     if not os.path.exists(자료폴더 + "선지도.npz"):
         c = OmegaConf.load(f"{뿌리}/하네스/판/{입력판}/설정.yaml"); X, Y, _, idx, vx, 이, Xnp = G.자료("cuda", c); net = A.불러(입력판).cuda(); 있, 열, 숨 = [], [], []
