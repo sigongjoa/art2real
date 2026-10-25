@@ -165,13 +165,14 @@ def 점검(cfg, 폴더, net, 기록, Xnp, 이):
         a = fig.add_axes([.04 + v * .21, .04, .19, .45]); a.imshow(Xnp[이.index(n), v], cmap="gray"); a.imshow(np.kron(w[v] / w.max(), np.ones((16, 16))), cmap="viridis", alpha=.6, vmin=0, vmax=1); a.axis("off"); a.set_title(f"{n} {B.뷰[v]} · 4 층 칸1 주의 {w[v].sum():.2f}", fontsize=12)
     fig.savefig(폴더 + "시트.png", dpi=60); plt.close(fig); return 지
 # ── ⑤ 판정 · ⑥ 기록 ──────────────────────────────────────
-여유 = 0.03   # 시드 0 값이 기준 ± 이 안이면 시드 1 · 2 를 더 돎(최대 3 번 · 10-25 사용자) · 같은 판 다시 돌려 실행률 ±0.02 흔들림(146 0.870 → 0.890) · 기준마다 「여유:」 로 바꿈
-def 가까움(cfg, 지): return any(isinstance(v := 지.get(c.지표), (int, float)) and abs(v - c.값) <= float(c.get("여유", 여유)) for c in cfg.기준)
+여유들 = {"코드생성": 0.12}; 여유 = 0.05   # 시드 0 값이 기준 ± 이 안이면 시드 1 · 2 를 더 돎(최대 3 번 · 10-25 사용자) · 기준마다 「여유:」 로 바꿈
+# 근거(시드 사이 폭): 146 시드 0 → 1 실행률 0.890 → 0.776 · IoU 0.500 → 0.441(같은 시드 재실행 ±0.02 와 다름 · 10-25 147 세션) · 선판정 비교판 시드 셋 폭 약 0.04 · ponytail: 시드 둘 · 셋에서 잰 폭 — 시드가 쌓이면 다시 잼
+def 가까움(cfg, 지): return any(isinstance(v := 지.get(c.지표), (int, float)) and abs(v - c.값) <= float(c.get("여유", 여유들.get(cfg.get("목표"), 여유))) for c in cfg.기준)
 def 시드돌기(cfg, 폴더, 한판):   # 한판(설정, 폴더) → 지표 · 시드 0 이 기준에 가까울 때만 시드 1 · 2(폴더/시드<n>/) · 학습 없는 계산 판은 부르지 않음
     지들 = [한판(cfg, 폴더)]
     if 가까움(cfg, 지들[0]):
         for s in (1, 2):
-            print(f"시드 0 이 기준 ±{여유} 안 — 시드 {s} 도 돎", flush=True); c = OmegaConf.create(OmegaConf.to_container(cfg, resolve=True)); c.학습.시드 = s; 지들.append(한판(c, 폴더 + f"시드{s}/"))
+            print(f"시드 0 이 기준 여유 안 — 시드 {s} 도 돎", flush=True); c = OmegaConf.create(OmegaConf.to_container(cfg, resolve=True)); c.학습.시드 = s; 지들.append(한판(c, 폴더 + f"시드{s}/"))
     return 지들
 def 평균(지들): return {k: (round(float(np.mean([d[k] for d in 지들])), 4) if all(isinstance(d.get(k), (int, float)) and not isinstance(d.get(k), bool) for d in 지들) else v) for k, v in 지들[0].items()}
 def 판정(cfg, 지들):   # 지들 = 시드마다 지표(하나면 dict 도 됨) · 모든 시드 통과 = 통과 · 모두 못 넘음 = 실패 · 갈리면 흔들림(이김 · 짐을 말하지 않음)
