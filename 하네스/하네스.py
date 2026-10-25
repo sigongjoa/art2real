@@ -214,7 +214,7 @@ def 주(cfg):
     if not 학습함(cfg):   # 계산만 하는 판: 점검(입력 판 모델 예측 → 계산 → 정답과 맞춤 · 대조는 판 안에서) → 판정 · 기록 · 끝 단계는 같음
         V = __import__(계산과제[cfg.목표])
         def 한판(c, 폴): os.makedirs(폴, exist_ok=True); 지 = V.점검(c, 폴); torch.cuda.empty_cache(); return 지
-        지들 = 시드돌기(cfg, 폴더, 한판) if cfg.목표 == "코드생성" else [한판(cfg, 폴더)]   # 코드생성은 안에서 학습함(시드가 결과를 바꿈) · 벡터화 · 세뷰는 결정적
+        지들 = 시드돌기(cfg, 폴더, 한판) if cfg.목표 == "코드생성" and not cfg.get("코드", {}).get("LoRA") else [한판(cfg, 폴더)]   # 다른 판 LoRA 를 읽는 판(149~)은 학습 없음 · 탐욕이라 결정적 · 코드생성은 안에서 학습함(시드가 결과를 바꿈) · 벡터화 · 세뷰는 결정적
         판 = 판정(cfg, 지들); 기록(cfg, 폴더, 바뀐, {}, 평균(지들), 판, 해시)
         print("판정", json.dumps(판, ensure_ascii=False), flush=True); return
     X, Y, 쓰, idx, vx, 이, Xnp = 자료("cuda", cfg)

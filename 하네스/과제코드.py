@@ -126,20 +126,97 @@ def 코드해시():   # 학습 · 생성 결과를 바꾸는 코드(설정 yaml 
     return h.hexdigest()[:10]
 def 원자저장(쓰기, 경로):   # 쓰는 도중 꺼져도 반쯤 쓴 파일이 안 남게(모델124 와 같은 꼴)
     쓰기(경로 + ".tmp"); os.replace(경로 + ".tmp", 경로)
-def 생성(model, proc, items, 배=4, 최대=1024):
+class 문법제약:   # 149 · 탐욕 생성에서 맨 위 후보부터 「글 앞부분이 될 수 있나」 보고 처음 되는 것만 남김(나머지 위 후보는 -inf) · 10-25 145~147 실패: 괄호 안 닫힘 · 정의 안 된 b4 · cq.Workplane.Solid
+    # 막는 것: 짝 안 맞는 닫는 괄호 · 괄호 · 따옴표 안 줄 바꿈과 끝(EOS) · 앞 줄에서 정의 안 된 bN · result 전 끝 · CadQuery 부분 문법 밖 이름(학습 정답 8562 개에 나온 cq 경로 둘 · 메서드 16 개만 · .add( 뒤는 cq.Solid.makeCone( 만)
+    # 고침: 괄호가 열린 채 줄(글)을 끝내려 하면 닫는 괄호를 다 닫고 줄 바꿈까지 넣음 · ponytail: 인자 개수 · 꼴은 안 봄(그래서 「.add( 를 안 닫음」은 줄 끝에서 닫혀 실행 오류로 남을 수 있음)
+    경로 = ("cq.Workplane", "cq.Solid.makeCone"); 메서드 = ("workplane", "faces", "center", "revolve", "polyline", "close", "hole", "box", "rect", "cutBlind", "extrude", "circle", "add", "fillet", "edges", "union"); 첫인자 = {"add": "cq.Solid.makeCone("}
+    def __init__(s, tok, n입력, 끝들, k=20):
+        import re; s.tok, s.n, s.끝, s.k, s.re = tok, n입력, set(끝들), k, re; s.조각들, s.상태, s.본 = {}, None, 0
+    def 조각(s, i):
+        if i not in s.조각들: s.조각들[i] = s.tok.decode([i])
+        return s.조각들[i]
+    def 이름됨(s, 줄, 정, 완):   # 줄 끝 이름 사슬이 될 수 있나 · 완 = 그 이름이 방금 끝남
+        m = s.re.search(r"(?<![\w.])([A-Za-z_]\w*(?:\.\w*)*)$", 줄)
+        if not m: return True
+        조 = m.group(1).split(".")
+        if len(조) == 1 and s.re.fullmatch(r"b\d+", 조[0]) and m.start(1) > 0: return 조[0] in 정 if 완 else any(d.startswith(조[0]) for d in 정)
+        if 조[0] == "cq": 사 = m.group(1); return 사 in s.경로 if 완 else any(x.startswith(사) for x in s.경로)
+        return True
+    def 메서드됨(s, 줄, 완):   # 「).이름」 · 「b0.이름」 의 이름이 부분 문법 메서드인가 · 「.add(」 뒤 글이 cq.Solid.makeCone( 로 가는가
+        if m := s.re.search(r"(?:\)|\bb\d+)\.([A-Za-z_]\w*)$", 줄):
+            이 = m.group(1)
+            if not (이 in s.메서드 if 완 else any(x.startswith(이) for x in s.메서드)): return False
+        if m := s.re.search(r"\.(\w+)\(([^()]*)$", 줄):
+            앞 = s.첫인자.get(m.group(1)); 뒤 = m.group(2)
+            if 앞 and not (앞.startswith(뒤) or 뒤.startswith(앞)): return False
+        return True
+    def 글자(s, st, ch):   # 상태 (괄호 쌓임, 따옴표, 이 줄, 정의된 bN) + 글자 → 새 상태 | None(안 됨)
+        쌓, 따, 줄, 정 = st
+        if 따:
+            if ch == "\n": return None
+            return (쌓, None if ch == 따 else 따, 줄 + ch, 정)
+        if not (ch.isalnum() or ch in "_.") and not (s.이름됨(줄, 정, True) and s.메서드됨(줄, True)): return None   # 「.」 은 사슬이 이어짐(cq 다음) — 끝남 아님
+        if ch in "\"'": return (쌓, ch, 줄 + ch, 정)
+        if ch in "([{": 쌓 += ch
+        elif ch in ")]}":
+            if not 쌓 or "([{"[")]}".index(ch)] != 쌓[-1]: return None
+            쌓 = 쌓[:-1]
+        if ch == "\n":
+            if 쌓: return None
+            m = s.re.match(r"(b\d+|result)\s*=", 줄); return (쌓, None, "", 정 | {m.group(1)} if m else 정)
+        줄 += ch
+        if not (s.이름됨(줄, 정, False) and s.메서드됨(줄, False)): return None
+        return (쌓, 따, 줄, 정)
+    def 된다(s, st, t):
+        if t in s.끝: return not st[0] and not st[1] and s.이름됨(st[2], st[3], True) and ("result" in st[3] or st[2].startswith("result"))   # 끝은 result 줄 뒤에만(10-25 연기: 닫고 바로 끝내 result 없음)
+        for ch in s.조각(t):
+            st = s.글자(st, ch)
+            if st is None: return False
+        return True
+    def 먹기(s, st, ids):   # 확정된 토큰들로 상태를 밀기(안 되는 글이 이미 들어왔어도 멈추지 않게 그 글자는 건너뜀)
+        for t in ids:
+            for ch in s.조각(t): st = s.글자(st, ch) or st
+        return st
+    def __call__(s, input_ids, scores):
+        import torch
+        B, L = input_ids.shape
+        if s.상태 is None: s.상태 = [("", None, "", frozenset())] * B; s.끝남 = [False] * B; s.닫기 = [False] * B
+        for r in range(B):
+            새 = input_ids[r, s.n + s.본:].tolist()
+            if any(t in s.끝 for t in 새): s.끝남[r] = True
+            if s.끝남[r]: continue
+            s.상태[r] = s.먹기(s.상태[r], 새)
+            위 = scores[r].topk(s.k).indices.tolist(); st = s.상태[r]
+            if s.닫기[r] and not st[0]:   # 다 닫았으면 줄 바꿈까지(닫고 나서 모델이 줄을 못 끝내고 「 19.9, 0.0, …」로 샘 · 10-25 연기)
+                s.닫기[r] = False; scores[r, :] = -float("inf"); scores[r, s.tok("\n", add_special_tokens=False).input_ids[0]] = 0.; continue
+            s.닫기[r] = bool(st[0]) and not st[1] and (s.닫기[r] or (not s.된다(st, 위[0]) and (위[0] in s.끝 or "\n" in s.조각(위[0]))))
+            if s.닫기[r]:   # 줄(글)을 끝내려는데 괄호가 열림 → 다 닫힐 때까지 닫는 괄호만(막기만 하면 「0.0, 0.0, …」 되풀이로 빠짐 · 10-25 연기)
+                t = s.tok.convert_tokens_to_ids(")]}"["([{".index(st[0][-1])]); scores[r, :] = -float("inf"); scores[r, t] = 0.; continue
+            for j, t in enumerate(위):
+                if s.된다(st, t):
+                    if j: scores[r, 위[:j]] = -float("inf")
+                    break
+            else:   # 위 20 개가 다 안 되면 2000 개까지
+                위 = scores[r].topk(2000).indices.tolist()
+                for j, t in enumerate(위):
+                    if s.된다(st, t): scores[r, 위[:j]] = -float("inf"); break
+        s.본 = L - s.n; return scores
+def 생성(model, proc, items, 배=4, 최대=1024, 제약=False):
     import torch
     model.eval(); out = []
     for s in range(0, len(items), 배):
         b = 묶(items[s:s + 배], proc, eval=True); 인 = {k: b[k] for k in ("input_ids", "attention_mask", "point_clouds", "is_pc", "is_img") if k in b}
         if b.get("pixel_values_videos") is not None: 인 |= {"pixel_values_videos": b["pixel_values_videos"], "video_grid_thw": b["video_grid_thw"]}
         막 = list(range(151657, len(proc.tokenizer)))   # 좌표 토큰은 입력 전용 — 생성 금지
+        추 = {}
+        if 제약: from transformers import LogitsProcessorList; 추["logits_processor"] = LogitsProcessorList([문법제약(proc.tokenizer, b["input_ids"].shape[1], {proc.tokenizer.eos_token_id, proc.tokenizer.pad_token_id, *([model.generation_config.eos_token_id] if isinstance(model.generation_config.eos_token_id, int) else (model.generation_config.eos_token_id or []))} - {None})])
         try:
-            with torch.no_grad(): g = model.generate(**인, max_new_tokens=최대, do_sample=False, use_cache=True, **({"suppress_tokens": 막} if 막 else {}))
+            with torch.no_grad(): g = model.generate(**인, max_new_tokens=최대, do_sample=False, use_cache=True, **({"suppress_tokens": 막} if 막 else {}), **추)
         except RuntimeError as ex:   # 10-25 147 은 torch.OutOfMemoryError 가 아니라 「RuntimeError: CUDA error: out of memory」로 죽음 · OOM 만 잡고 나머지는 다시 던짐
             if "out of memory" not in str(ex): raise
             g = None
         if g is None:   # except 밖에서 다시(traceback 이 텐서를 잡고 있지 않게) · 하나씩도 넘치면 OOM 표시 — 실행 실패(모델 탓)와 따로 셈
-            del 인, b; torch.cuda.empty_cache(); out += 생성(model, proc, items[s:s + 배], 1, 최대) if 배 > 1 else [OOM]; model.eval(); continue
+            del 인, b; torch.cuda.empty_cache(); out += 생성(model, proc, items[s:s + 배], 1, 최대, 제약) if 배 > 1 else [OOM]; model.eval(); continue
         out += proc.batch_decode([o[len(i):] for i, o in zip(b["input_ids"], g)], skip_special_tokens=True)
         if len(items) > 8 and (s // 배) % 10 == 0: print(f"생성 {len(out)}/{len(items)}", flush=True)   # 10-24 145 생성 1 시간을 못 봤음
     model.train(); return out
@@ -154,7 +231,7 @@ def 평가(이름들, 글들):   # 생성 글 · 정답 사양 → 실루엣 IoU
     return 줄, 렌
 def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.스텝 · 4 스텝마다 갱신) → 시험 생성 → 실행 · IoU → 그림
     import torch
-    s = cfg.코드; 입력 = str(s.입력); 토큰 = str(s.get("토큰", "기존")); 목 = 자료()
+    s = cfg.코드; 입력 = str(s.입력); 토큰 = str(s.get("토큰", "기존")); 제 = str(s.get("디코딩", "탐욕")) == "제약"; 목 = 자료()
     if 토큰 == "좌표": 목 = [(n, t, 좌표글(l), g) for n, t, l, g in 목]
     학 = [x for x in 목 if not x[1]]; 시 = [x for x in 목 if x[1]]
     if s.get("시험수"): 시 = 시[:int(s.시험수)]
@@ -165,11 +242,18 @@ def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.
     고정 = [항목(n, l, g, 입력) for n, _, l, g in 시[:16]]; 기록 = []; 묶음손 = []; t0 = time.time()
     검 = 검증부품(시); 검폴더 = 폴더 + "검증/"; os.makedirs(검폴더, exist_ok=True)
     def 검증생성(step):   # 10-24 사용자 「스텝별 validation 결과가 어떻게 바뀌는지 코드랑 렌더 둘 다」 · 고정 시험 부품 넷 · 탐욕 생성
-        for (n, _, l, g), 글 in zip(검, 생성(model, proc, [항목(n, l, g, 입력, 정답=False) for n, _, l, g in 검])):
+        for (n, _, l, g), 글 in zip(검, 생성(model, proc, [항목(n, l, g, 입력, 정답=False) for n, _, l, g in 검], 제약=제)):
             p = 검폴더 + f"{step:05d}_{n}.py"; open(p, "w", encoding="utf-8").write(글); os.path.exists(p + ".err") and os.remove(p + ".err")   # 옛 판 오류 말이 남지 않게
     from omegaconf import OmegaConf; 이어 = 폴더 + "이어.pt"; 설정 = OmegaConf.to_yaml(cfg) + f"# 코드 {코드해시()}\n"; 시작 = 0   # 10-25 PC 꺼짐(1000/3000 에서) → 500 스텝마다 이어 두기 · 설정 · 코드가 같을 때만 잇기
     다 = 폴더 + "lora/"; 다했 = os.path.exists(다 + "설정.yaml") and open(다 + "설정.yaml", encoding="utf-8").read() == 설정 and os.path.exists(폴더 + "학습.json")
-    if 다했:   # 10-25 학습은 끝났는데 생성에서 죽은 판: 같은 설정의 LoRA(+ 좌표 임베딩)를 읽고 생성부터
+    if s.get("LoRA"):   # 149~: 다른 판이 학습한 LoRA 를 그대로(학습 없음 · 생성 방식만 바꾸는 판) · 입력 · 토큰 · 랭크가 그 판과 같아야
+        from peft import set_peft_model_state_dict; from safetensors.torch import load_file; 원 = f"{뿌리}/out/하네스/{s.LoRA}/"; 원설 = OmegaConf.load(f"{뿌리}/하네스/판/{s.LoRA}/설정.yaml").코드
+        assert all(str(원설.get(k, d)) == str(s.get(k, d)) for k, d in (("입력", ""), ("토큰", "기존"), ("랭크", 16))), f"{s.LoRA} 와 입력 · 토큰 · 랭크가 다르다"
+        set_peft_model_state_dict(model, load_file(원 + "lora/adapter_model.safetensors", device="cuda")); 기록 = json.load(open(원 + "학습.json", encoding="utf-8")); 시작 = 스텝; 다했 = True
+        if 토큰 == "좌표":
+            with torch.no_grad(): model.get_base_model().model.embed_tokens.새.copy_(torch.load(원 + "lora/좌표임베딩.pt"))
+        print(f"{s.LoRA} LoRA 읽음 · 학습 없음 · 디코딩 {'제약' if 제 else '탐욕'}", flush=True); 검증생성(스텝)
+    elif 다했:   # 10-25 학습은 끝났는데 생성에서 죽은 판: 같은 설정의 LoRA(+ 좌표 임베딩)를 읽고 생성부터
         from peft import set_peft_model_state_dict; from safetensors.torch import load_file
         set_peft_model_state_dict(model, load_file(다 + "adapter_model.safetensors", device="cuda")); 기록 = json.load(open(폴더 + "학습.json", encoding="utf-8")); 시작 = 스텝; print("학습 끝난 LoRA 읽음 · 생성부터", flush=True)
         if 토큰 == "좌표":
@@ -195,7 +279,7 @@ def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.
     남은 = [x for x in 시 if x[0] not in 생["글"]]; len(남은) < len(시) and print("생성 이어 함", len(시) - len(남은), "/", len(시), flush=True)
     for s0 in range(0, len(남은), 8):
         조 = 남은[s0:s0 + 8]
-        for (n, *_), 글 in zip(조, 생성(model, proc, [항목(n, l, g, 입력, 정답=False) for n, _, l, g in 조])): 생["글"][n] = 글
+        for (n, *_), 글 in zip(조, 생성(model, proc, [항목(n, l, g, 입력, 정답=False) for n, _, l, g in 조], 제약=제)): 생["글"][n] = 글
         원자저장(lambda p: json.dump(생, open(p, "w", encoding="utf-8"), ensure_ascii=False), 생경); print(f"생성 {len(시) - len(남은) + s0 + len(조)}/{len(시)}", flush=True)
     글들 = [생["글"][x[0]] for x in 시]; os.makedirs(폴더 + "생성", exist_ok=True)
     for (n, *_), 글 in zip(시, 글들):
@@ -264,6 +348,18 @@ if __name__ == "__main__":   # 자체 시험(가벼움): 줄글 꼴 · 도면그
     assert 생성(가짜("CUDA error: out of memory"), 프, [{}] * 3, 배=2) == [OOM] * 3
     try: 생성(가짜("shape mismatch"), 프, [{}]); raise AssertionError("다른 오류를 삼킴")
     except RuntimeError: pass
+    if "--제약" in sys.argv:   # 문법제약: 정답 글 전부가 글자마다 통과 + 끝(EOS) 됨 · 145~147 실패 꼴은 막힘
+        제 = 문법제약(None, 0, {-1})
+        def 통(글):
+            st = ("", None, "", frozenset())
+            for ch in 글:
+                st = 제.글자(st, ch)
+                if st is None: return False
+            return 제.된다(st, -1)
+        for f in sorted(glob.glob(자료폴더 + "글/*.py"))[:400]: assert 통(open(f, encoding="utf-8").read().rstrip("\n")), f
+        for 나쁜 in ('b0 = place(cq.Workplane.Solid(1, 2, 3), "z", (0, 0, 0))', 'b0 = place(cq.Workplane("XY").add(cq.Workplane("XZ")', 'b0 = cq.Workplane("XY").sphere(3)', 'b0 = cq.Workplane("XY").box(1, 1, 1)\nresult = b0.union(b4)', 'b0 = place(cq.Workplane("XY").add(\nb1 = 2', 'b0 = (1, 2]', 'b0 = place(cq.Workplane("XY").box(1, 1, 1)'):
+            assert not 통(나쁜), 나쁜
+        print("문법제약 통과 · 정답 글 400 개 · 나쁜 꼴 7 개 막힘")
     if "--토큰" in sys.argv:   # 왕복: 자료 선 글 전부 → 좌표 토큰 → 숫자가 모두 <0>~<127> 한 토큰 · 디코드가 원문 · 길이 줄어듦
         from transformers import AutoTokenizer; import re
         tok = AutoTokenizer.from_pretrained(캐 + "/weights/qwen2vl2b"); 전 = [len(tok(l).input_ids) for _, _, l, _ in 목록()[:300]]; tok.add_tokens([f"<{i}>" for i in range(좌표수)]); 후 = []
