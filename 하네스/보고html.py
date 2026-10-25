@@ -122,6 +122,14 @@ def 검증칸(d):   # 코드생성 판: 스텝별 검증 — 부품마다 표(�
             h.append(f'<tr><td>{r["스텝"]}</td><td>{그}</td><td class="왼">{결}</td><td class="왼">{코드틀(r["글"], 행, 열)}</td></tr>')
         h.append("</tbody></table></div></details>")
     return "".join(h)
+def 원인칸(d):   # 코드생성 판: 원인 쪼개기(코드원인.py) — 몸 개수 · 바꿔 끼우기 사다리 · 10-25 사용자 「스크립트로 잰 것도 하네스에」
+    if not os.path.exists(d + "원인쪼개기.json"): return ""
+    요 = json.load(open(d + "원인쪼개기.json", encoding="utf-8"))["요약"]; m = 요["몸개수"]; 사 = 요["사다리"]
+    줄 = "".join(f"<tr><td>{E(k)}</td><td>{'' if v is None else f'{v:.3f}'}</td></tr>" for k, v in 사.items())
+    return (f'<h2>원인 쪼개기 <span class="차">실행된 {요["실행된것"]} 개 · 생성 코드의 몸을 정답 것으로 바꿔 끼움</span></h2>'
+            f'<p>몸 개수가 정답과 같음 {m["같음"]:.0%} · 모자람 {m["모자람"]:.0%} · 넘침 {m["넘침"]:.0%} · 종류 순서까지 같음 {요["종류순서같음"]:.0%}</p>'
+            f'<div class="표"><table><thead><tr><th>개수가 같은 {요["개수같은수"]} 개</th><th>IoU 중앙</th></tr></thead><tbody>{줄}</tbody></table></div>'
+            '<figure><img src="원인쪼개기.png" alt="원인 쪼개기: 몸 개수 · 바꿔 끼우기 사다리 · 예시"><figcaption>「둘 다 정답」이 1 에 가까우면 채점기는 맞다 · 위치만 바꿔 크게 오르면 배치가, 모양식만 바꿔 오르면 몸 모양이 범인</figcaption></figure>')
 def 만들기(판, d, c, j, 지, 대, 곡, 특, 해석, 다음, 모션=None, 파일="보고.html", 구=None, 쇼=None):
     말 = j["판정"]; 판정꼴 = "통과" if 말.startswith("통과") else ("탐색" if 말.startswith(("탐색", "흔들림")) else "실패")   # 「통과 · 목표선 n/m」 · 흔들림은 중립 색(10-25)
     바뀐 = ", ".join(f"{k}: {a} → {b}" for k, (a, b) in j["바뀐 손잡이"].items()) or "없음 (재현)"
@@ -155,7 +163,7 @@ def 만들기(판, d, c, j, 지, 대, 곡, 특, 해석, 다음, 모션=None, 파
         h.append('<h3>하이퍼파라미터</h3><div class="표"><table><tbody>' + "".join(f'<tr><td>{E(k)}</td><td class="왼">{E(f"{v:,}" if isinstance(v, int) else str(v))}</td></tr>' for k, v in 구["표"].items()) + "</tbody></table></div>")
         h.append('<h3>층 <span class="차">입력 1 × 3 × 128 × 128 을 흘려 잼 · torchinfo 꼴</span></h3><div class="표"><table><thead><tr><th>층</th><th>종류</th><th>출력 모양</th><th>파라미터</th></tr></thead><tbody>' + "".join(f'<tr class="깊{r["깊이"]}"><td>{E(r["이름"])}</td><td class="왼">{E(r["종류"])}</td><td>{E(" × ".join(map(str, r["출력"])))}</td><td>{r["파라미터"]:,}</td></tr>' for r in 구["층"]) + "</tbody></table></div>")
         h.append(f'<h3>목표와 학습</h3><ul class="목표"><li>{E(구["목표"])}</li><li>{E(구["학습"])}</li></ul>')
-    h.append(검증칸(d))
+    h.append(원인칸(d)); h.append(검증칸(d))
     h.append("<h2>학습 곡선</h2>" + 곡선svg(곡) + '<figure><img src="시트.png" alt="학습 곡선 · 지표 · 12003 세 장 칸 1 주의"><figcaption>판 시트: 하네스가 판 끝에 만든 그림</figcaption></figure>')
     연 = j.get("연기", {})
     h.append("<h2>점검</h2><h3>연기 판</h3>" + f'<div class="줄글"><div><span>첫 loss</span> <b>{수(연.get("첫loss"))}</b></div><div><span>배치 하나 40 걸음 뒤</span> <b>{수(연.get("한배치40걸음"))}</b></div><div><span>VRAM</span> <b>{수(연.get("VRAM_GB"), 2)} GB</b></div></div>')

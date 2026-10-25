@@ -190,7 +190,7 @@ def 기록(cfg, 폴더, 바뀐, 연, 지, 판, 해시):   # 해시 = 돌리기 �
     남 = f"{뿌리}/하네스/판/{cfg.판.이름}/"; os.makedirs(남, exist_ok=True)
     OmegaConf.save(cfg, 남 + "설정.yaml"); json.dump({"바뀐 손잡이": {k: list(v) for k, v in 바뀐.items()}, "git": 해시, "날짜": time.strftime("%Y-%m-%d %H:%M"), "연기": 연, "지표": 지, **판, "산출 폴더": 폴더}, open(남 + "판정.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     import shutil
-    for 파 in ("시트.png", "학습.json", "특징.json", "특징.png", "구조.json", "입력_위.png", "입력_앞.png", "입력_옆.png", "칸1.png", "칸2.png", "칸3.png", "칸4.png", "칸5.png", "칸6.png", "예측전체.png", "정답.png", "검증.json", "검증.png", *(f"{종}_{뷰}.png" for 종 in ("도면", "주의") for 뷰 in B.뷰)):
+    for 파 in ("시트.png", "학습.json", "특징.json", "특징.png", "구조.json", "입력_위.png", "입력_앞.png", "입력_옆.png", "칸1.png", "칸2.png", "칸3.png", "칸4.png", "칸5.png", "칸6.png", "예측전체.png", "정답.png", "검증.json", "검증.png", "원인쪼개기.json", "원인쪼개기.png", *(f"{종}_{뷰}.png" for 종 in ("도면", "주의") for 뷰 in B.뷰)):
         if os.path.exists(폴더 + 파) and os.path.getmtime(폴더 + 파) >= 시작시각: shutil.copy(폴더 + 파, 남 + 파)   # 이번 실행이 만든 것만 — 앞 판의 특징.json 등이 새 보고서에 섞였음(10-25 감사)
     if os.path.isdir(폴더 + "검증"): shutil.copytree(폴더 + "검증", 남 + "검증", dirs_exist_ok=True, ignore=shutil.ignore_patterns("*.err"))   # 코드생성 스텝별 검증(글 · 렌더)
     import 개념그림; 개념그림.넣기(cfg, 남)   # 개념.mp4 · 개념.gif → 판 폴더(보고서 「모델 동작」)

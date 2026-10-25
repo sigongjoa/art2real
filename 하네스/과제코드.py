@@ -291,7 +291,9 @@ def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.
     for r in 줄: r["오류"] = "OOM — 메모리가 넘쳐 못 씀" if r["OOM"] else 오.get(폴더 + f"생성/{r['부품']}.py", "")
     json.dump(줄, open(폴더 + "평가.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     그림(폴더, 시, 글들, 렌, 줄, 입력); 검증정리(폴더, 검, {x[0]: 렌[len(글들) + t] for t, x in enumerate(시)}, {0} | {r["에폭"] for r in 기록})
-    쓸 = [r for r in 줄 if not r["OOM"] and not r["정답실패"]]; iou = np.array([r["IoU"] for r in 쓸]); 된 = np.array([r["IoU"] for r in 쓸 if r["실행"]])   # 모델 탓이 아닌 칸은 뺌
+    try: import 코드원인; print("원인 쪼개기", 코드원인.재기(폴더), flush=True)   # 몸 개수 · 바꿔 끼우기 사다리 → 원인쪼개기.json · png(보고서 칸) · 실패해도 판은 계속
+    except Exception as ex: print("⚠ 원인 쪼개기 실패", type(ex).__name__, ex, flush=True)
+    쓸 =[r for r in 줄 if not r["OOM"] and not r["정답실패"]]; iou = np.array([r["IoU"] for r in 쓸]); 된 = np.array([r["IoU"] for r in 쓸 if r["실행"]])   # 모델 탓이 아닌 칸은 뺌
     if len(쓸) < len(줄): print(f"⚠ 집계에서 뺌 — OOM {sum(r['OOM'] for r in 줄)} · 정답 렌더 실패 {sum(r['정답실패'] for r in 줄)}", flush=True)
     return {"코드_실행률": round(float(np.mean([r["실행"] for r in 쓸])), 4), "코드_IoU": round(float(np.median(iou)), 4), "코드_IoU평균": round(float(iou.mean()), 4),
             "코드_IoU실행": round(float(np.median(된)), 4) if len(된) else None,   # 실행된 것만의 모양 — 코드_IoU(실패 = 0 중앙)는 실행률 < 0.5 면 늘 0 이라 모양을 못 봄(10-25 감사: 145 0.000 인데 이것은 0.53)
