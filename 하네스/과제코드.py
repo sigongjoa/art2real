@@ -126,7 +126,10 @@ def 생성(model, proc, items, 배=4, 최대=1024):
         b = 묶(items[s:s + 배], proc, eval=True); 인 = {k: b[k] for k in ("input_ids", "attention_mask", "point_clouds", "is_pc", "is_img") if k in b}
         if b.get("pixel_values_videos") is not None: 인 |= {"pixel_values_videos": b["pixel_values_videos"], "video_grid_thw": b["video_grid_thw"]}
         막 = list(range(151657, len(proc.tokenizer)))   # 좌표 토큰은 입력 전용 — 생성 금지
-        with torch.no_grad(): g = model.generate(**인, max_new_tokens=최대, do_sample=False, use_cache=True, **({"suppress_tokens": 막} if 막 else {}))
+        try:
+            with torch.no_grad(): g = model.generate(**인, max_new_tokens=최대, do_sample=False, use_cache=True, **({"suppress_tokens": 막} if 막 else {}))
+        except torch.OutOfMemoryError:   # 10-25 147 시험 생성 첫 묶음에서 넘침 → 그 묶음만 하나씩
+            del 인; torch.cuda.empty_cache(); out += 생성(model, proc, items[s:s + 배], 1, 최대) if 배 > 1 else [""]; model.eval(); continue
         out += proc.batch_decode([o[len(i):] for i, o in zip(b["input_ids"], g)], skip_special_tokens=True)
         if len(items) > 8 and (s // 배) % 10 == 0: print(f"생성 {len(out)}/{len(items)}", flush=True)   # 10-24 145 생성 1 시간을 못 봤음
     model.train(); return out
@@ -154,7 +157,13 @@ def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.
     def 검증생성(step):   # 10-24 사용자 「스텝별 validation 결과가 어떻게 바뀌는지 코드랑 렌더 둘 다」 · 고정 시험 부품 넷 · 탐욕 생성
         for (n, _, l, g), 글 in zip(검, 생성(model, proc, [항목(n, l, g, 입력, 정답=False) for n, _, l, g in 검])): open(검폴더 + f"{step:05d}_{n}.py", "w", encoding="utf-8").write(글)
     from omegaconf import OmegaConf; 이어 = 폴더 + "이어.pt"; 설정 = OmegaConf.to_yaml(cfg); 시작 = 0   # 10-25 PC 꺼짐(1000/3000 에서) → 500 스텝마다 이어 두기 · 설정이 같을 때만 잇기
-    if os.path.exists(이어) and (st := torch.load(이어, weights_only=False))["설정"] == 설정:
+    다 = 폴더 + "lora/"; 다했 = os.path.exists(다 + "설정.yaml") and open(다 + "설정.yaml", encoding="utf-8").read() == 설정 and os.path.exists(폴더 + "학습.json")
+    if 다했:   # 10-25 학습은 끝났는데 생성에서 죽은 판: 같은 설정의 LoRA(+ 좌표 임베딩)를 읽고 생성부터
+        from peft import set_peft_model_state_dict; from safetensors.torch import load_file
+        set_peft_model_state_dict(model, load_file(다 + "adapter_model.safetensors", device="cuda")); 기록 = json.load(open(폴더 + "학습.json", encoding="utf-8")); 시작 = 스텝; print("학습 끝난 LoRA 읽음 · 생성부터", flush=True)
+        if 토큰 == "좌표":
+            with torch.no_grad(): model.get_base_model().model.embed_tokens.새.copy_(torch.load(다 + "좌표임베딩.pt"))
+    elif os.path.exists(이어) and (st := torch.load(이어, weights_only=False))["설정"] == 설정:
         model.load_state_dict(st["가중"], strict=False); opt.load_state_dict(st["opt"]); sched.load_state_dict(st["sched"]); random.setstate(st["random"]); torch.set_rng_state(st["torch"]); torch.cuda.set_rng_state(st["cuda"])
         시작, 기록, 묶음손 = st["스텝"], st["기록"], st["묶음손"]; t0 -= 기록[-1]["초"]; print("이어 하기", 시작, flush=True)
     else: 검증생성(0)
@@ -167,7 +176,9 @@ def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.
             with torch.no_grad(): 시손 = float(np.mean([float(손실(model, 묶([it], proc))) for it in 고정]))
             model.train(); 검증생성(step); 기록.append({"에폭": step, "학습": float(np.mean(묶음손[-250:])), "시험": 시손, "초": round(time.time() - t0), "GPU": round(torch.cuda.max_memory_allocated() / 1e9, 2)}); print(기록[-1], flush=True)
             if step % 500 == 0 and step < 스텝: torch.save({"설정": 설정, "스텝": step, "기록": 기록, "묶음손": 묶음손, "가중": {k: v for k, v in model.named_parameters() if v.requires_grad}, "opt": opt.state_dict(), "sched": sched.state_dict(), "random": random.getstate(), "torch": torch.get_rng_state(), "cuda": torch.cuda.get_rng_state()}, 이어)   # 500 = 누적 4 의 배수(쌓인 기울기 없음)
-    model.save_pretrained(폴더 + "lora"); 토큰 == "좌표" and torch.save(model.get_base_model().model.embed_tokens.새.detach().cpu(), 폴더 + "lora/좌표임베딩.pt"); os.path.exists(이어) and os.remove(이어); json.dump(기록, open(폴더 + "학습.json", "w", encoding="utf-8"), ensure_ascii=False)
+    del opt, sched; torch.cuda.empty_cache()   # 옵티마이저 상태(GPU)를 비우고 생성 · 10-25 147 시험 생성 OOM
+    if not 다했: model.save_pretrained(폴더 + "lora"); open(다 + "설정.yaml", "w", encoding="utf-8").write(설정)
+    not 다했 and 토큰 == "좌표" and torch.save(model.get_base_model().model.embed_tokens.새.detach().cpu(), 폴더 + "lora/좌표임베딩.pt"); os.path.exists(이어) and os.remove(이어); json.dump(기록, open(폴더 + "학습.json", "w", encoding="utf-8"), ensure_ascii=False)
     글들 = 생성(model, proc, [항목(n, l, g, 입력, 정답=False) for n, _, l, g in 시]); os.makedirs(폴더 + "생성", exist_ok=True)
     for (n, *_), 글 in zip(시, 글들): open(폴더 + f"생성/{n}.py", "w", encoding="utf-8").write(글)
     del model; torch.cuda.empty_cache()
