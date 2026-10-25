@@ -176,6 +176,9 @@ def 시드돌기(cfg, 폴더, 한판):   # 한판(설정, 폴더) → 지표 · 
             print(f"시드 0 이 기준 여유 안 — 시드 {s} 도 돎", flush=True); c = OmegaConf.create(OmegaConf.to_container(cfg, resolve=True)); c.학습.시드 = s; 지들.append(한판(c, 폴더 + f"시드{s}/"))
     return 지들
 def 평균(지들): return {k: (round(float(np.mean([d[k] for d in 지들])), 4) if all(isinstance(d.get(k), (int, float)) and not isinstance(d.get(k), bool) for d in 지들) else v) for k, v in 지들[0].items()}
+def 세션():   # 이 판을 돌린 Claude 대화 — 줄 하나에서 「왜 이렇게 했나」로 되짚기 · 커밋 Claude-Session 줄과 같은 주소 · 로컬 id 는 ~/.claude/projects 기록 이름
+    원격, 로컬 = os.environ.get("CLAUDE_CODE_BRIDGE_SESSION_ID"), os.environ.get("CLAUDE_CODE_SESSION_ID")
+    return {"주소": f"https://claude.ai/code/{원격}" if 원격 else None, "로컬": 로컬}
 def 판정(cfg, 지들):   # 지들 = 시드마다 지표(하나면 dict 도 됨) · 모든 시드 통과 = 통과 · 모두 못 넘음 = 실패 · 갈리면 흔들림(이김 · 짐을 말하지 않음)
     지들 = [지들] if isinstance(지들, dict) else 지들; 줄 = []
     for c in cfg.기준:
@@ -188,7 +191,7 @@ def 판정(cfg, 지들):   # 지들 = 시드마다 지표(하나면 dict 도 됨
     return {"판정": 말, "기준": 줄, **({"시드지표": 지들} if len(지들) > 1 else {})}
 def 기록(cfg, 폴더, 바뀐, 연, 지, 판, 해시):   # 해시 = 돌리기 시작할 때의 커밋(관문이 코드 깨끗함을 확인)
     남 = f"{뿌리}/하네스/판/{cfg.판.이름}/"; os.makedirs(남, exist_ok=True)
-    OmegaConf.save(cfg, 남 + "설정.yaml"); json.dump({"바뀐 손잡이": {k: list(v) for k, v in 바뀐.items()}, "git": 해시, "날짜": time.strftime("%Y-%m-%d %H:%M"), "연기": 연, "지표": 지, **판, "산출 폴더": 폴더}, open(남 + "판정.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    OmegaConf.save(cfg, 남 + "설정.yaml"); json.dump({"바뀐 손잡이": {k: list(v) for k, v in 바뀐.items()}, "git": 해시, "날짜": time.strftime("%Y-%m-%d %H:%M"), "연기": 연, "지표": 지, **판, "산출 폴더": 폴더, "세션": 세션()}, open(남 + "판정.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     import shutil
     for 파 in ("시트.png", "학습.json", "특징.json", "특징.png", "구조.json", "입력_위.png", "입력_앞.png", "입력_옆.png", "칸1.png", "칸2.png", "칸3.png", "칸4.png", "칸5.png", "칸6.png", "예측전체.png", "정답.png", "검증.json", "검증.png", "원인쪼개기.json", "원인쪼개기.png", *(f"{종}_{뷰}.png" for 종 in ("도면", "주의") for 뷰 in B.뷰)):
         if os.path.exists(폴더 + 파) and os.path.getmtime(폴더 + 파) >= 시작시각: shutil.copy(폴더 + 파, 남 + 파)   # 이번 실행이 만든 것만 — 앞 판의 특징.json 등이 새 보고서에 섞였음(10-25 감사)
