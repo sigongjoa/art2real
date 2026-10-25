@@ -126,15 +126,21 @@ def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.
     검 = 검증부품(시); 검폴더 = 폴더 + "검증/"; os.makedirs(검폴더, exist_ok=True)
     def 검증생성(step):   # 10-24 사용자 「스텝별 validation 결과가 어떻게 바뀌는지 코드랑 렌더 둘 다」 · 고정 시험 부품 넷 · 탐욕 생성
         for (n, _, l, g), 글 in zip(검, 생성(model, proc, [항목(n, l, g, 입력, 정답=False) for n, _, l, g in 검])): open(검폴더 + f"{step:05d}_{n}.py", "w", encoding="utf-8").write(글)
-    검증생성(0); model.train()
-    for step in range(1, 스텝 + 1):
+    from omegaconf import OmegaConf; 이어 = 폴더 + "이어.pt"; 설정 = OmegaConf.to_yaml(cfg); 시작 = 0   # 10-25 PC 꺼짐(1000/3000 에서) → 500 스텝마다 이어 두기 · 설정이 같을 때만 잇기
+    if os.path.exists(이어) and (st := torch.load(이어, weights_only=False))["설정"] == 설정:
+        model.load_state_dict(st["가중"], strict=False); opt.load_state_dict(st["opt"]); sched.load_state_dict(st["sched"]); random.setstate(st["random"]); torch.set_rng_state(st["torch"]); torch.cuda.set_rng_state(st["cuda"])
+        시작, 기록, 묶음손 = st["스텝"], st["기록"], st["묶음손"]; t0 -= 기록[-1]["초"]; print("이어 하기", 시작, flush=True)
+    else: 검증생성(0)
+    model.train()
+    for step in range(시작 + 1, 스텝 + 1):
         n, _, l, g = random.choice(학); loss = 손실(model, 묶([항목(n, l, g, 입력)], proc)); (loss / 누적).backward(); 묶음손.append(float(loss))
         if step % 누적 == 0: torch.nn.utils.clip_grad_norm_([p for p in model.parameters() if p.requires_grad], 1.); opt.step(); sched.step(); opt.zero_grad()
         if step % 250 == 0 or step == 스텝:
             model.eval()
             with torch.no_grad(): 시손 = float(np.mean([float(손실(model, 묶([it], proc))) for it in 고정]))
             model.train(); 검증생성(step); 기록.append({"에폭": step, "학습": float(np.mean(묶음손[-250:])), "시험": 시손, "초": round(time.time() - t0), "GPU": round(torch.cuda.max_memory_allocated() / 1e9, 2)}); print(기록[-1], flush=True)
-    model.save_pretrained(폴더 + "lora"); json.dump(기록, open(폴더 + "학습.json", "w", encoding="utf-8"), ensure_ascii=False)
+            if step % 500 == 0 and step < 스텝: torch.save({"설정": 설정, "스텝": step, "기록": 기록, "묶음손": 묶음손, "가중": {k: v for k, v in model.named_parameters() if v.requires_grad}, "opt": opt.state_dict(), "sched": sched.state_dict(), "random": random.getstate(), "torch": torch.get_rng_state(), "cuda": torch.cuda.get_rng_state()}, 이어)   # 500 = 누적 4 의 배수(쌓인 기울기 없음)
+    model.save_pretrained(폴더 + "lora"); os.path.exists(이어) and os.remove(이어); json.dump(기록, open(폴더 + "학습.json", "w", encoding="utf-8"), ensure_ascii=False)
     글들 = 생성(model, proc, [항목(n, l, g, 입력, 정답=False) for n, _, l, g in 시]); os.makedirs(폴더 + "생성", exist_ok=True)
     for (n, *_), 글 in zip(시, 글들): open(폴더 + f"생성/{n}.py", "w", encoding="utf-8").write(글)
     del model; torch.cuda.empty_cache()
