@@ -15,7 +15,7 @@ def 목록():
     줄.sort(reverse=True)
     비교들 = sorted(glob.glob(f"{뿌리}/하네스/비교/*/비교.json"))   # 비교판(여러 방법을 같은 자로) — 판 목록 위에 따로
     비교행 = "".join(f'<li><a href="비교/{E(os.path.basename(os.path.dirname(p)))}/index.html"><span class="판정 탐색">비교판</span><strong>{E(json.load(open(p, encoding="utf-8"))["판정"]["판정"])} · {E(os.path.basename(os.path.dirname(p)))}</strong><span class="곁">참가 {len(json.load(open(p, encoding="utf-8"))["값"])} · {E(json.load(open(p, encoding="utf-8")).get("날짜", ""))}</span></a></li>' for p in 비교들)
-    행 = "".join(f'<li><a href="판/{E(판)}/보고.html"><span class="판정 {("통과" if 말 == "통과" else "탐색" if 말.startswith("탐색") else "실패")}">{E(말)}</span><strong>{E(명)}</strong><span class="곁">판 {E(판)} · 가지 {E(str(가))} · {E(str(종))} · {E(날)}</span></a></li>' for 날, 판, 명, 말, 가, 종 in 줄)
+    행 = "".join(f'<li><a href="판/{E(판)}/보고.html"><span class="판정 {("통과" if 말.startswith("통과") else "탐색" if 말.startswith(("탐색", "흔들림")) else "실패")}">{E(말)}</span><strong>{E(명)}</strong><span class="곁">판 {E(판)} · 가지 {E(str(가))} · {E(str(종))} · {E(날)}</span></a></li>' for 날, 판, 명, 말, 가, 종 in 줄)
     글 = f"""<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>art2real 판 목록</title>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;600;700&display=swap"><style>
 :root{{--paper:#f6f4ef;--sheet:#fffdf8;--ink:#1d2129;--muted:#585e68;--rule:#dcd7cc;--pass:#1f7a3e;--pass-bg:#e3f1e6;--fail:#b3261e;--fail-bg:#f7e2de;--tool:#8a5f00;--tool-bg:#f6ecd4}}

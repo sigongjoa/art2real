@@ -165,12 +165,25 @@ def 점검(cfg, 폴더, net, 기록, Xnp, 이):
         a = fig.add_axes([.04 + v * .21, .04, .19, .45]); a.imshow(Xnp[이.index(n), v], cmap="gray"); a.imshow(np.kron(w[v] / w.max(), np.ones((16, 16))), cmap="viridis", alpha=.6, vmin=0, vmax=1); a.axis("off"); a.set_title(f"{n} {B.뷰[v]} · 4 층 칸1 주의 {w[v].sum():.2f}", fontsize=12)
     fig.savefig(폴더 + "시트.png", dpi=60); plt.close(fig); return 지
 # ── ⑤ 판정 · ⑥ 기록 ──────────────────────────────────────
-def 판정(cfg, 지):
-    줄 = []
+여유 = 0.03   # 시드 0 값이 기준 ± 이 안이면 시드 1 · 2 를 더 돎(최대 3 번 · 10-25 사용자) · 같은 판 다시 돌려 실행률 ±0.02 흔들림(146 0.870 → 0.890) · 기준마다 「여유:」 로 바꿈
+def 가까움(cfg, 지): return any(isinstance(v := 지.get(c.지표), (int, float)) and abs(v - c.값) <= float(c.get("여유", 여유)) for c in cfg.기준)
+def 시드돌기(cfg, 폴더, 한판):   # 한판(설정, 폴더) → 지표 · 시드 0 이 기준에 가까울 때만 시드 1 · 2(폴더/시드<n>/) · 학습 없는 계산 판은 부르지 않음
+    지들 = [한판(cfg, 폴더)]
+    if 가까움(cfg, 지들[0]):
+        for s in (1, 2):
+            print(f"시드 0 이 기준 ±{여유} 안 — 시드 {s} 도 돎", flush=True); c = OmegaConf.create(OmegaConf.to_container(cfg, resolve=True)); c.학습.시드 = s; 지들.append(한판(c, 폴더 + f"시드{s}/"))
+    return 지들
+def 평균(지들): return {k: (round(float(np.mean([d[k] for d in 지들])), 4) if all(isinstance(d.get(k), (int, float)) and not isinstance(d.get(k), bool) for d in 지들) else v) for k, v in 지들[0].items()}
+def 판정(cfg, 지들):   # 지들 = 시드마다 지표(하나면 dict 도 됨) · 모든 시드 통과 = 통과 · 모두 못 넘음 = 실패 · 갈리면 흔들림(이김 · 짐을 말하지 않음)
+    지들 = [지들] if isinstance(지들, dict) else 지들; 줄 = []
     for c in cfg.기준:
-        v = 지.get(c.지표); ok = v is not None and {">=": v >= c.값, "<=": v <= c.값, ">": v > c.값, "<": v < c.값}[c.식]; 줄.append({"지표": c.지표, "식": c.식, "값": c.값, "이 판": v, "통과": bool(ok)})
-    전 = all(r["통과"] for r in 줄); 말 = ("통과" if 전 else "실패") if cfg.판.종류 != "탐색" else ("탐색 — 이김 판정 없음 · " + ("기준 넘음" if 전 else "기준 못 넘음"))
-    return {"판정": 말, "기준": 줄}
+        vs = [d.get(c.지표) for d in 지들]; oks = [v is not None and {">=": v >= c.값, "<=": v <= c.값, ">": v > c.값, "<": v < c.값}[c.식] for v in vs]
+        줄.append({"지표": c.지표, "식": c.식, "값": c.값, "이 판": 평균(지들).get(c.지표), "통과": all(oks), "흔들림": any(oks) and not all(oks), "목표선": bool(c.get("목표선", False)), **({"시드값": vs} if len(vs) > 1 else {})})
+    명 = [r for r in 줄 if not r["목표선"]] or 줄; 목 = [r for r in 줄 if r["목표선"]]   # 판정은 명제 기준만 · 목표선(프로젝트 목표치)은 따로 셈 — 130~139 가 목표선 하나로 전부 「실패」라 가설이 틀린 건지 가를 수 없었음(10-25 감사)
+    전 = all(r["통과"] for r in 명); 흔 = any(r["흔들림"] for r in 명)
+    결 = "통과" if 전 else (f"흔들림 — 시드 {len(지들)} 번이 기준 양쪽" if 흔 else "실패")
+    말 = (결 if cfg.판.종류 != "탐색" else ("탐색 — 이김 판정 없음 · " + ("기준 넘음" if 전 else "기준 흔들림" if 흔 else "기준 못 넘음"))) + (f" · 목표선 {sum(r['통과'] for r in 목)}/{len(목)}" if 목 else "")
+    return {"판정": 말, "기준": 줄, **({"시드지표": 지들} if len(지들) > 1 else {})}
 def 기록(cfg, 폴더, 바뀐, 연, 지, 판, 해시):   # 해시 = 돌리기 시작할 때의 커밋(관문이 코드 깨끗함을 확인)
     남 = f"{뿌리}/하네스/판/{cfg.판.이름}/"; os.makedirs(남, exist_ok=True)
     OmegaConf.save(cfg, 남 + "설정.yaml"); json.dump({"바뀐 손잡이": {k: list(v) for k, v in 바뀐.items()}, "git": 해시, "날짜": time.strftime("%Y-%m-%d %H:%M"), "연기": 연, "지표": 지, **판, "산출 폴더": 폴더}, open(남 + "판정.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
@@ -198,17 +211,22 @@ def 주(cfg):
     해시 = 깃("rev-parse", "--short", "HEAD"); 코해 = 코드해시(); print("관문 통과 · 바뀐 손잡이", {k: v[1] for k, v in 바뀐.items()}, "· git", 해시, flush=True)
     폴더 = f"{뿌리}/out/하네스/{cfg.판.이름}/"; os.makedirs(폴더, exist_ok=True)
     if not 학습함(cfg):   # 계산만 하는 판: 점검(입력 판 모델 예측 → 계산 → 정답과 맞춤 · 대조는 판 안에서) → 판정 · 기록 · 끝 단계는 같음
-        V = __import__(계산과제[cfg.목표]); 지 = V.점검(cfg, 폴더); torch.cuda.empty_cache(); 판 = 판정(cfg, 지); 기록(cfg, 폴더, 바뀐, {}, 지, 판, 해시)
+        V = __import__(계산과제[cfg.목표])
+        def 한판(c, 폴): os.makedirs(폴, exist_ok=True); 지 = V.점검(c, 폴); torch.cuda.empty_cache(); return 지
+        지들 = 시드돌기(cfg, 폴더, 한판) if cfg.목표 == "코드생성" else [한판(cfg, 폴더)]   # 코드생성은 안에서 학습함(시드가 결과를 바꿈) · 벡터화 · 세뷰는 결정적
+        판 = 판정(cfg, 지들); 기록(cfg, 폴더, 바뀐, {}, 평균(지들), 판, 해시)
         print("판정", json.dumps(판, ensure_ascii=False), flush=True); return
     X, Y, 쓰, idx, vx, 이, Xnp = 자료("cuda", cfg)
     연 = 연기(cfg, X, Y, 쓰, idx) if "연기" in cfg.점검 else {}; print("연기 판 통과", 연, flush=True)
-    net, 록 = 실행(cfg, 폴더, X, Y, 쓰, idx, vx, 이, 코해)
-    if 선지도(cfg):   # 점검 = 지표 + 같은 에폭 화소 대조(같은 머리) · 그림
-        import 과제선지도 as G; 지 = G.점검(cfg, 폴더, net, 록, X, Y, vx, 이, Xnp, lambda c2, 폴: 실행(c2, 폴, X, Y, 쓰, idx, vx, 이, 코해))
-        del X, Y, net; import gc; gc.collect(); torch.cuda.empty_cache()   # 끝 단계 쇼츠 TTS 가 GPU 를 씀 — 안 비우면 130 ~ 136 쇼츠 7 편이 굽기 실패(10-22)
-    else:
-        del X, Y, 쓰; torch.cuda.empty_cache(); 지 = 점검(cfg, 폴더, net, 록, Xnp, 이)
-    판 = 판정(cfg, 지); 기록(cfg, 폴더, 바뀐, 연, 지, 판, 해시)
+    def 한판(c, 폴):
+        os.makedirs(폴, exist_ok=True); net, 록 = 실행(c, 폴, X, Y, 쓰, idx, vx, 이, 코해)
+        if 선지도(c):   # 점검 = 지표 + 같은 에폭 화소 대조(같은 머리) · 그림
+            import 과제선지도 as G; 지 = G.점검(c, 폴, net, 록, X, Y, vx, 이, Xnp, lambda c2, 폴2: 실행(c2, 폴2, X, Y, 쓰, idx, vx, 이, 코해))
+        else: 지 = 점검(c, 폴, net, 록, Xnp, 이)
+        del net; import gc; gc.collect(); torch.cuda.empty_cache(); return 지
+    지들 = 시드돌기(cfg, 폴더, 한판)
+    del X, Y, 쓰; import gc; gc.collect(); torch.cuda.empty_cache()   # 끝 단계 쇼츠 TTS 가 GPU 를 씀 — 안 비우면 130 ~ 136 쇼츠 7 편이 굽기 실패(10-22)
+    판 = 판정(cfg, 지들); 지 = 평균(지들); 기록(cfg, 폴더, 바뀐, 연, 지, 판, 해시)
     print("판정", json.dumps(판, ensure_ascii=False), flush=True)
 if __name__ == "__main__":
     주()

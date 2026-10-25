@@ -31,7 +31,9 @@ def 한번(c, 판, 시드):   # 참가자 하나 · 시드 하나의 공통 자 
     import 공통자
     from omegaconf import OmegaConf
     if OmegaConf.load(f"{뿌리}/하네스/판/{판}/설정.yaml").get("목표") == "코드생성":   # 145~: 시드 0 = 판 지표 그대로 · 시드 n = 같은 설정을 시드만 바꿔 점검(학습 · 생성 · 실행 · 몇 시간 · 다 돈 값은 읽기만)
-        if not 시드: return dict(json.load(open(f"{뿌리}/하네스/판/{판}/판정.json", encoding="utf-8"))["지표"])
+        j = json.load(open(f"{뿌리}/하네스/판/{판}/판정.json", encoding="utf-8"))
+        if len(j.get("시드지표", [])) > 시드: return dict(j["시드지표"][시드])   # 판이 기준 가까이라 시드 1 · 2 까지 돈 값(10-25) — 같은 학습을 또 하지 않음
+        if not 시드: return dict(j["지표"])
         폴 = f"{뿌리}/out/하네스/비교/{c.비교.이름}/{판}_s{시드}/"; 경 = 폴 + "지표.json"
         import 과제코드; 코 = 과제코드.코드해시()   # 10-25 감사: 있기만 하면 읽어 코드가 바뀐 뒤에도 옛 값이 섞였음 → 같은 코드로 잰 값만
         if os.path.exists(경) and (r := json.load(open(경, encoding="utf-8"))).get("_코드") == 코: return r

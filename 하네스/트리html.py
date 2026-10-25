@@ -34,7 +34,7 @@ CSS = """
 .t2 .잎 .몸{min-width:0;display:flex;flex-direction:column;gap:5px}.t2 .잎 .윗{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.t2 .잎 .이름{font-weight:600}
 .t2 .판줄{display:flex;gap:4px;flex-wrap:wrap}
 """
-def 판알(판, 링크): 꼴 = "통과" if 판["판정"] == "통과" else ("실패" if not 판["판정"].startswith("탐색") else ""); return f'<a class="판알 {꼴}" href="{E(링크(판["판"]))}" title="{E(판["명제"])}"><i></i>판 {E(판["판"])}</a>'
+def 판알(판, 링크): 꼴 = "통과" if 판["판정"].startswith("통과") else ("실패" if not 판["판정"].startswith(("탐색", "흔들림")) else ""); return f'<a class="판알 {꼴}" href="{E(링크(판["판"]))}" title="{E(판["명제"])}"><i></i>판 {E(판["판"])}</a>'
 def 그리기(자료, 꼴="t1", 강조=None, 링크=lambda 판: f"판/{판}/보고.html"):
     def 잎(l):
         판줄 = "".join(판알(p, 링크) for p in l["판"]); 표 = ' <span class="이판">이 판</span>' if 강조 == l["번호"] else ""

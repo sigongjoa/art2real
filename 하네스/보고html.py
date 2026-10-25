@@ -123,7 +123,7 @@ def 검증칸(d):   # 코드생성 판: 스텝별 검증 — 부품마다 표(�
         h.append("</tbody></table></div></details>")
     return "".join(h)
 def 만들기(판, d, c, j, 지, 대, 곡, 특, 해석, 다음, 모션=None, 파일="보고.html", 구=None, 쇼=None):
-    말 = j["판정"]; 판정꼴 = "통과" if 말 == "통과" else ("탐색" if 말.startswith("탐색") else "실패")
+    말 = j["판정"]; 판정꼴 = "통과" if 말.startswith("통과") else ("탐색" if 말.startswith(("탐색", "흔들림")) else "실패")   # 「통과 · 목표선 n/m」 · 흔들림은 중립 색(10-25)
     바뀐 = ", ".join(f"{k}: {a} → {b}" for k, (a, b) in j["바뀐 손잡이"].items()) or "없음 (재현)"
     meta = [("판", 판), ("가지", c.판.가지), ("종류", c.판.종류), ("바뀐 손잡이", 바뀐), ("에폭", c.학습.에폭), ("대조", c.대조.get("판", "없음") if c.대조 else "없음"), ("git", j["git"]), ("날짜", j.get("날짜", ""))]
     h = [f'<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>판 {E(판)} · 하네스 보고서</title><style>{CSS}{모션CSS.get(모션, "")}</style></head><body><main style="--n:{len(j["기준"])}">']
