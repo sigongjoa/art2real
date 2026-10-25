@@ -33,19 +33,21 @@ def 한번(c, 판, 시드):   # 참가자 하나 · 시드 하나의 공통 자 
     if OmegaConf.load(f"{뿌리}/하네스/판/{판}/설정.yaml").get("목표") == "코드생성":   # 145~: 시드 0 = 판 지표 그대로 · 시드 n = 같은 설정을 시드만 바꿔 점검(학습 · 생성 · 실행 · 몇 시간 · 다 돈 값은 읽기만)
         if not 시드: return dict(json.load(open(f"{뿌리}/하네스/판/{판}/판정.json", encoding="utf-8"))["지표"])
         폴 = f"{뿌리}/out/하네스/비교/{c.비교.이름}/{판}_s{시드}/"; 경 = 폴 + "지표.json"
-        if os.path.exists(경): return json.load(open(경, encoding="utf-8"))
-        import 과제코드; pc = OmegaConf.load(f"{뿌리}/하네스/판/{판}/설정.yaml"); pc.학습.시드 = 시드; os.makedirs(폴, exist_ok=True)
-        r = 과제코드.점검(pc, 폴); json.dump(r, open(경, "w", encoding="utf-8"), ensure_ascii=False); print(판, "시드", 시드, r, flush=True); return r
+        import 과제코드; 코 = 과제코드.코드해시()   # 10-25 감사: 있기만 하면 읽어 코드가 바뀐 뒤에도 옛 값이 섞였음 → 같은 코드로 잰 값만
+        if os.path.exists(경) and (r := json.load(open(경, encoding="utf-8"))).get("_코드") == 코: return r
+        pc = OmegaConf.load(f"{뿌리}/하네스/판/{판}/설정.yaml"); pc.학습.시드 = 시드; os.makedirs(폴, exist_ok=True)
+        r = 과제코드.점검(pc, 폴); r["_코드"] = 코; json.dump(r, open(경, "w", encoding="utf-8"), ensure_ascii=False); print(판, "시드", 시드, r, flush=True); return r
     경로 = f"{뿌리}/하네스/판/{판}/공통자.json" if 시드 == 0 else f"{뿌리}/out/하네스/비교/{c.비교.이름}/{판}_s{시드}/공통자.json"
-    if os.path.exists(경로) and json.load(open(경로, encoding="utf-8")).get("자") == 자해시(): return json.load(open(경로, encoding="utf-8"))
+    import 하네스 as H; 열 = f"{자해시()}|{json.load(open(f'{뿌리}/하네스/판/{판}/판정.json', encoding='utf-8'))['날짜']}|{H.코드해시() if 시드 else ''}"   # 자 · 판을 다시 돌린 날 · (시드 n) 학습 코드가 같을 때만 읽음 — 자 해시만 봐서 판을 다시 돌려도 옛 모델 값이 남았음(10-25 감사)
+    if os.path.exists(경로) and json.load(open(경로, encoding="utf-8")).get("자") == 열: return json.load(open(경로, encoding="utf-8"))
     net = 자료 = None
     if 시드:   # 같은 판 설정에서 시드만 바꿔 다시 학습(점검 · 보고서 없이 · 이어 하기 됨)
-        import 하네스 as H, 과제선지도 as G
+        import 과제선지도 as G
         pc = OmegaConf.load(f"{뿌리}/하네스/판/{판}/설정.yaml"); pc.학습.시드 = 시드; X, Y, _, idx, vx, 이, _ = G.자료("cuda", pc)
-        net, _ = H.실행(pc, os.path.dirname(경로) + "/", X, Y, None, idx, vx, 이, 해시="비교"); 자료 = (X, vx, 이); del Y
+        net, _ = H.실행(pc, os.path.dirname(경로) + "/", X, Y, None, idx, vx, 이, 해시=H.코드해시()); 자료 = (X, vx, 이); del Y   # 해시가 고정 「비교」 였을 때는 코드가 바뀌어도 옛 마지막.pt 를 이어 받았음
     r, 예, 부품들 = getattr(공통자, 어댑터["선지도"])(판, net, 자료)
     if "12050" in 부품들: r["_보기"] = 예[부품들.index("12050"), 1].tolist()
-    r["자"] = 자해시(); os.makedirs(os.path.dirname(경로), exist_ok=True); json.dump(r, open(경로, "w", encoding="utf-8"), ensure_ascii=False)
+    r["자"] = 열; os.makedirs(os.path.dirname(경로), exist_ok=True); json.dump(r, open(경로, "w", encoding="utf-8"), ensure_ascii=False)
     print(판, "시드", 시드, {k: v for k, v in r.items() if not k.startswith("_")}, flush=True)
     import gc, torch; del net; gc.collect(); torch.cuda.empty_cache(); return r
 def 재기(c):   # 참가자마다 시드 0(판 그대로) ~ 시드 n-1 → 평균 · 시드별 주지표

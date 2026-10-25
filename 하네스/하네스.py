@@ -9,6 +9,7 @@ import 모델124 as B, 조립124 as C, 모델127 as M7
 계산만 = {"학습.미세", "학습.시드", "벡터화.대조손잡이"}   # 대조손잡이: 판 안 대조로 무엇을 끌지(측정 설정 · 143)   # 시드: 판 하나는 늘 0 · 바꾸는 건 비교판의 흔들림 재기뿐(옛 판 설정엔 칸이 없어 None 대 0 이 손잡이로 세지던 것 막음) ·   # 결과가 같은 계산 방식(기울기 누적 조각 · GroupNorm 은 장마다라 같음) — 손잡이로 안 셈
 def 펼친(d, 앞=""): return {f"{앞}{k}": v for k0, v0 in d.items() for k, v in (펼친(v0, f"{k0}.").items() if isinstance(v0, dict) else [(k0, v0)])} if isinstance(d, dict) else {앞: d}
 class 관문거부(Exception): pass
+시작시각 = time.time()   # 기록이 이번 실행이 만든 산출물만 옮기게
 # ── ① 관문 ────────────────────────────────────────────────
 지표출처 = {"시험loss": None, "학습loss": None, "몸수맞음": None, "칸닮음4": "층보기", "빈조각주의4": "층보기", "주의엔트로피4": "층보기", "자리퍼짐": "층보기",
          "탐침_구조": "탐침", "탐침_곡률": "탐침", "탐침3_구조": "탐침", "탐침3_곡률": "탐침", "탐침4_구조": "탐침", "탐침4_곡률": "탐침",
@@ -16,12 +17,13 @@ class 관문거부(Exception): pass
 지표출처 |= {f"{k}{끝}": None for k in ("선_직선", "선_곡선", "선_곡면테", "선_숨음", "선_헛선", "선_자리", "선_자리헛선", "선_종류", "점_정밀", "점_재현", "점_F1") for 끝 in ("", "_화소", "_차")}
 지표출처 |= {"선_곡선옆직선오류": None, "선_곡선옆직선오류_화소": None}   # 137~
 지표출처 |= {f"벡_{k}{끝}": None for k in ("재현", "정밀", "F1", "종류", "조각", "한선", "끊김", "재현_보임", "종류_보임", "재현_숨", "끊김_숨", "재현_윤곽", "종류_윤곽", "윤곽수") for 끝 in ("", "_정답", "_대조", "_차")} | {"벡_끊김_숨_비": None}   # 140~ 벡터화(학습 없음)
-지표출처 |= {f"코드_{k}": None for k in ("실행률", "IoU", "IoU평균", "학습loss", "시험loss")}   # 145~ 코드 생성(모듈이 학습까지 함)
+지표출처 |= {f"코드_{k}": None for k in ("실행률", "IoU", "IoU평균", "IoU실행", "OOM", "정답실패", "학습loss", "시험loss")}   # 145~ 코드 생성(모듈이 학습까지 함) · IoU실행 = 실행된 것만 · OOM · 정답실패 = 집계에서 뺀 수(10-25 감사)
 지표출처 |= {f"세뷰_{k}": None for k in ("부품", "실패", "겹침몫", "가름", "겹침당모서리")}   # 142~ 세 뷰 짝(학습 없음)
 지표출처 |= {f"층{k}_{m}": None for k in (1, 2, 3, 4) for m in ("선_자리", "선_자리헛선", "선_종류", "선_직선", "선_곡선", "점_F1")}   # 선지도 탐침층   # 선지도 과제는 점검이 늘 만듦
 식들 = {">=", "<=", ">", "<"}
 코드경로 = ["하네스", "원화3d/실험_20261013/캐드부품"]
 def 깃(*a): return subprocess.run(["git", "-C", 뿌리, "-c", "core.quotepath=off", *a], capture_output=True, text=True, encoding="utf-8").stdout.rstrip()   # 앞 공백은 남김(porcelain 첫 줄 상태 칸)
+def 코드해시(): return 깃("log", "-1", "--format=%h", "--", *(f"{p}/*.py" for p in 코드경로), ":(exclude)하네스/판", ":(exclude)하네스/비교")   # 판 폴더엔 검증/*.py(생성 글)가 커밋됨 — 빼야 함   # 이어 하기 열쇠용 — HEAD 는 하네스 자체 커밋(판 · 링크)만으로 바뀌어 학습이 0 부터 다시 돌았음(134 · 137 점검_옛 · 10-25 감사)
 def 관문(cfg, 설정파일, 덮어쓰기=()):
     판 = cfg.판; 대설정 = f"{뿌리}/하네스/판/{cfg.대조.get('손잡이판', cfg.대조.get('판'))}/설정.yaml" if cfg.대조 else ""   # 손잡이판 = 손잡이를 셀 판(에폭을 바꾸는 판은 같은 에폭 대조가 판 안에 있음)   # 대조 판이 하네스 판이면 그 설정과 손잡이를 셈(아니면 바탕)
     바탕 = OmegaConf.to_container(OmegaConf.load(대설정 if 대설정 and os.path.exists(대설정) else f"{뿌리}/하네스/conf/바탕.yaml")); 지금 = OmegaConf.to_container(cfg, resolve=True)
@@ -46,7 +48,7 @@ def 관문(cfg, 설정파일, 덮어쓰기=()):
         상 = 깃("status", "--porcelain", "--", 파일)
         if 상: 문.append(f"{파일} 가 커밋 안 됨({상[:2].strip()}) — 설정 · 기준은 돌리기 전에 커밋해야 사전등록")
     if 덮어쓰기: 문.append(f"명령줄 덮어쓰기 {list(덮어쓰기)} — 판 설정 파일에 적고 커밋해야 사전등록 · 재현이 됨")
-    더러 = [l for l in 깃("status", "--porcelain", "--", *코드경로).splitlines() if l[:2].strip() and not l.startswith("??") and l.rstrip().endswith((".py", ".yaml"))]
+    더러 = [l for l in 깃("status", "--porcelain", "--", *코드경로).splitlines() if l[:2].strip() and (not l.startswith("??") or l[3:].startswith("하네스/")) and l.rstrip().endswith((".py", ".yaml"))]   # 하네스 안 새 .py 는 커밋 전엔 막음(import 되면 git 해시로 재현 안 됨 · 10-25 감사) · 캐드부품의 실험 낙서 .py 는 그대로 둠
     if 더러: 문.append(f"돌릴 코드가 커밋 안 됨 {len(더러)} 개(예: {더러[0][3:]}) — 기록할 git 해시가 실제 코드와 달라짐")
     import 개념그림   # 10-23 사용자: 개념 설명할 때 움직이는 그림 필수 — 그림 없는 구조는 돌리기 전에 /anatomy 로
     if 개념그림.키(cfg) and not 개념그림.찾기(cfg)[0]: 문.append(f"이 구조({개념그림.키(cfg)})의 개념 그림이 없다 — /anatomy 로 그림(mp4 · gif)을 먼저 만들어 하네스/개념그림/ 에 넣고 개념그림.구조표 에 적는다")
@@ -118,7 +120,7 @@ def 실행(cfg, 폴더, X, Y, 쓰, idx, vx, 이, 해시=""):
             else: 수 = {"몸수맞음": float(((ov[..., 0] > 0).sum(1) == yv[..., 0].sum(1)).float().mean())}
         기록.append({"에폭": ep + 1, "학습": float(np.mean(ls)), "시험": lv, **수, "초": round(time.time() - t0)}); print(기록[-1], flush=True)
         for k_, v_ in 기록[-1].items(): k_ != "에폭" and tb.add_scalar(k_, v_, ep + 1)
-        torch.save(net.state_dict(), 폴더 + f"점검/{ep + 1:02d}.pt"); torch.save({"모델": net.state_dict(), "옵티": opt.state_dict(), "에폭": ep + 1, "기록": 기록, "rng": torch.get_rng_state(), "열쇠": 키}, 폴더 + "점검/마지막.pt")
+        torch.save(net.state_dict(), 폴더 + f"점검/{ep + 1:02d}.pt"); torch.save({"모델": net.state_dict(), "옵티": opt.state_dict(), "에폭": ep + 1, "기록": 기록, "rng": torch.get_rng_state(), "열쇠": 키}, 폴더 + "점검/마지막.pt.tmp"); os.replace(폴더 + "점검/마지막.pt.tmp", 폴더 + "점검/마지막.pt")   # 쓰다 꺼져도 반쪽 파일이 안 남게
     tb.close(); json.dump(기록, open(폴더 + "학습.json", "w", encoding="utf-8"), ensure_ascii=False); return net, 기록
 # ── ④ 점검 ────────────────────────────────────────────────
 def 주의그림(x, w, 폴더, 폭=640):   # 쇼츠 카드용 큰 그림: 도면(흰 바탕 검은 선) 위에 모델이 보는 칸을 빨갛게 · 뷰마다 주의_<뷰>.png · 도면만 도면_<뷰>.png
@@ -174,14 +176,17 @@ def 기록(cfg, 폴더, 바뀐, 연, 지, 판, 해시):   # 해시 = 돌리기 �
     OmegaConf.save(cfg, 남 + "설정.yaml"); json.dump({"바뀐 손잡이": {k: list(v) for k, v in 바뀐.items()}, "git": 해시, "날짜": time.strftime("%Y-%m-%d %H:%M"), "연기": 연, "지표": 지, **판, "산출 폴더": 폴더}, open(남 + "판정.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     import shutil
     for 파 in ("시트.png", "학습.json", "특징.json", "특징.png", "구조.json", "입력_위.png", "입력_앞.png", "입력_옆.png", "칸1.png", "칸2.png", "칸3.png", "칸4.png", "칸5.png", "칸6.png", "예측전체.png", "정답.png", "검증.json", "검증.png", *(f"{종}_{뷰}.png" for 종 in ("도면", "주의") for 뷰 in B.뷰)):
-        if os.path.exists(폴더 + 파): shutil.copy(폴더 + 파, 남 + 파)
+        if os.path.exists(폴더 + 파) and os.path.getmtime(폴더 + 파) >= 시작시각: shutil.copy(폴더 + 파, 남 + 파)   # 이번 실행이 만든 것만 — 앞 판의 특징.json 등이 새 보고서에 섞였음(10-25 감사)
     if os.path.isdir(폴더 + "검증"): shutil.copytree(폴더 + "검증", 남 + "검증", dirs_exist_ok=True, ignore=shutil.ignore_patterns("*.err"))   # 코드생성 스텝별 검증(글 · 렌더)
     import 개념그림; 개념그림.넣기(cfg, 남)   # 개념.mp4 · 개념.gif → 판 폴더(보고서 「모델 동작」)
-    import 보고; print("보고서", 보고.만들기(cfg.판.이름))
-    표 = f"{뿌리}/하네스/results.tsv"; 새 = not os.path.exists(표)
-    with open(표, "a", encoding="utf-8") as f:
-        if 새: f.write("날짜\t판\t가지\t종류\t바뀐 손잡이\t판정\t시험loss\t탐침_구조\t탐침_곡률\t칸닮음4\tgit\n")
-        f.write(f"{time.strftime('%m-%d %H:%M')}\t{cfg.판.이름}\t{cfg.판.가지}\t{cfg.판.종류}\t{','.join(f'{k}={v[1]}' for k, v in 바뀐.items()) or '-'}\t{판['판정']}\t{지.get('시험loss')}\t{지.get('탐침_구조')}\t{지.get('탐침_곡률')}\t{지.get('칸닮음4')}\t{해시}\n")
+    try: import 보고; print("보고서", 보고.만들기(cfg.판.이름))
+    except Exception as e: print("⚠ 보고서 실패 — 표 · 끝 단계는 계속(끝 단계가 다시 만듦)", repr(e)[:300], flush=True)   # 145 가 여기서 죽어 판정만 있고 표 · 커밋이 없었음
+    표 = f"{뿌리}/하네스/results.tsv"; 머리 = "날짜\t판\t가지\t종류\t바뀐 손잡이\t판정\t시험loss\t탐침_구조\t탐침_곡률\t칸닮음4\tgit\t기준값\n"
+    줄들 = open(표, encoding="utf-8").read().splitlines()[1:] if os.path.exists(표) else []
+    줄들 = [l for l in 줄들 if l.split("\t")[1:2] != [cfg.판.이름]]   # 같은 판을 다시 돌리면 그 줄을 바꿈(옛 값은 git 이력에) — 두 줄씩 쌓여 판 수가 부풀었음
+    기준값 = ",".join(f"{c.지표}={지.get(c.지표)}" for c in cfg.기준)   # 판정에 쓴 지표 — 코드 판은 시험loss 칸만으론 비교가 안 됐음
+    줄들.append(f"{time.strftime('%m-%d %H:%M')}\t{cfg.판.이름}\t{cfg.판.가지}\t{cfg.판.종류}\t{','.join(f'{k}={v[1]}' for k, v in 바뀐.items()) or '-'}\t{판['판정']}\t{지.get('시험loss')}\t{지.get('탐침_구조')}\t{지.get('탐침_곡률')}\t{지.get('칸닮음4')}\t{해시}\t{기준값}")
+    open(표, "w", encoding="utf-8").write(머리 + "".join(l + "\n" for l in 줄들))
     import 끝; print("끝 단계", json.dumps(끝.끝내기(cfg.판.이름, tuple(cfg.get("끝", []))), ensure_ascii=False)[:600])
 @hydra.main(version_base=None, config_path="conf")
 def 주(cfg):
@@ -189,16 +194,17 @@ def 주(cfg):
     hc = hydra.core.hydra_config.HydraConfig.get(); 설정파일 = f"하네스/conf/{hc.job.config_name}.yaml"
     try: 바뀐 = 관문(cfg, 설정파일, tuple(hc.overrides.task))
     except 관문거부 as e: print(e); sys.exit(2)
-    해시 = 깃("rev-parse", "--short", "HEAD"); print("관문 통과 · 바뀐 손잡이", {k: v[1] for k, v in 바뀐.items()}, "· git", 해시, flush=True)
+    if os.name == "nt" and not os.environ.get("ART_MEM_CAPPED") and os.environ.get("ART_MEM_GB") != "0": print("메모리 상한이 안 걸린 파이썬 — cadrille venv(sitecustomize)로 돌리거나 ART_MEM_GB=0 으로 일부러 끈다"); sys.exit(2)   # 10-15 PC 다운
+    해시 = 깃("rev-parse", "--short", "HEAD"); 코해 = 코드해시(); print("관문 통과 · 바뀐 손잡이", {k: v[1] for k, v in 바뀐.items()}, "· git", 해시, flush=True)
     폴더 = f"{뿌리}/out/하네스/{cfg.판.이름}/"; os.makedirs(폴더, exist_ok=True)
     if not 학습함(cfg):   # 계산만 하는 판: 점검(입력 판 모델 예측 → 계산 → 정답과 맞춤 · 대조는 판 안에서) → 판정 · 기록 · 끝 단계는 같음
         V = __import__(계산과제[cfg.목표]); 지 = V.점검(cfg, 폴더); torch.cuda.empty_cache(); 판 = 판정(cfg, 지); 기록(cfg, 폴더, 바뀐, {}, 지, 판, 해시)
         print("판정", json.dumps(판, ensure_ascii=False), flush=True); return
     X, Y, 쓰, idx, vx, 이, Xnp = 자료("cuda", cfg)
     연 = 연기(cfg, X, Y, 쓰, idx) if "연기" in cfg.점검 else {}; print("연기 판 통과", 연, flush=True)
-    net, 록 = 실행(cfg, 폴더, X, Y, 쓰, idx, vx, 이, 해시)
+    net, 록 = 실행(cfg, 폴더, X, Y, 쓰, idx, vx, 이, 코해)
     if 선지도(cfg):   # 점검 = 지표 + 같은 에폭 화소 대조(같은 머리) · 그림
-        import 과제선지도 as G; 지 = G.점검(cfg, 폴더, net, 록, X, Y, vx, 이, Xnp, lambda c2, 폴: 실행(c2, 폴, X, Y, 쓰, idx, vx, 이, 해시))
+        import 과제선지도 as G; 지 = G.점검(cfg, 폴더, net, 록, X, Y, vx, 이, Xnp, lambda c2, 폴: 실행(c2, 폴, X, Y, 쓰, idx, vx, 이, 코해))
         del X, Y, net; import gc; gc.collect(); torch.cuda.empty_cache()   # 끝 단계 쇼츠 TTS 가 GPU 를 씀 — 안 비우면 130 ~ 136 쇼츠 7 편이 굽기 실패(10-22)
     else:
         del X, Y, 쓰; torch.cuda.empty_cache(); 지 = 점검(cfg, 폴더, net, 록, Xnp, 이)

@@ -28,12 +28,15 @@ def 끝내기(판, 단계=("쇼츠", "커밋", "공개", "이슈")):
         if 상: 돌("git", "commit", "-q", "-m", f"{말}\n\n하네스 자동 · 보고서 하네스/판/{판}/보고.html · 가지 {c.판.가지}\n\nCo-Authored-By: Claude Opus 5.5 (1M context) <noreply@anthropic.com>", "--", *더할)
     if "이슈" in 단계:   # 이슈를 커밋 전에 — 커밋 · 공개되는 보고서에 이슈 주소가 들어가게(Pages 주소는 판 이름으로 미리 앎)
         짧은 = 시도   # 시도는 관문이 괄호 · 문턱 없이 60 자 안으로 막음
-        제목 = f"판 {판} — " + (짧은 if len(짧은) <= 80 else 짧은[:80].rsplit(" ", 1)[0] + "…"); 있 = 돌("gh", "issue", "list", "--repo", "sigongjoa/art2real", "--state", "all", "--search", f"판 {판} in:title", "--json", "number,title", "-q", ".[].title", 확인=False)
-        if 제목 not in 있.splitlines():
-            줄 = "\n".join(f"| {r['지표']} | {r['식']} {r['값']} | {r['이 판']} | {'✓' if r['통과'] else '✗'} |" for r in j["기준"])
-            몸 = f"**시도**: {시도}\n\n**명제**: {명제}\n\n**판정**: {j['판정']} · 가지 {c.판.가지} · {c.판.종류}\n\n| 지표 | 조건 | 이 판 | 결과 |\n|---|---|---|---|\n{줄}\n\n보고서: {남['Pages']}\n\n(하네스 자동 — 판 하나 = 이슈 하나)"
-            url = 돌("gh", "issue", "create", "--repo", "sigongjoa/art2real", "--title", 제목, "--body", 몸)
-            돌("gh", "issue", "close", url, "--repo", "sigongjoa/art2real", "--comment", f"판정 {j['판정']} — 하네스가 판 끝에 닫음", 확인=False); 남["이슈"] = url
+        제목 = f"판 {판} — " + (짧은 if len(짧은) <= 80 else 짧은[:80].rsplit(" ", 1)[0] + "…")
+        try:   # 10-25 감사: gh · 네트워크 실패가 try 밖이라 판정은 있고 커밋은 없이 죽었음 · 목록을 못 읽으면(확인=False 로 빈 글) 같은 이슈를 또 만들었음
+            있 = 돌("gh", "issue", "list", "--repo", "sigongjoa/art2real", "--state", "all", "--search", f"판 {판} in:title", "--json", "number,title", "-q", ".[].title")
+            if 제목 not in 있.splitlines():
+                줄 = "\n".join(f"| {r['지표']} | {r['식']} {r['값']} | {r['이 판']} | {'✓' if r['통과'] else '✗'} |" for r in j["기준"])
+                몸 = f"**시도**: {시도}\n\n**명제**: {명제}\n\n**판정**: {j['판정']} · 가지 {c.판.가지} · {c.판.종류}\n\n| 지표 | 조건 | 이 판 | 결과 |\n|---|---|---|---|\n{줄}\n\n보고서: {남['Pages']}\n\n(하네스 자동 — 판 하나 = 이슈 하나)"
+                url = 돌("gh", "issue", "create", "--repo", "sigongjoa/art2real", "--title", 제목, "--body", 몸)
+                돌("gh", "issue", "close", url, "--repo", "sigongjoa/art2real", "--comment", f"판정 {j['판정']} — 하네스가 판 끝에 닫음", 확인=False); 남["이슈"] = url
+        except Exception as e: 남["이슈실패"] = str(e)[:300]   # 앞 이슈 주소(남["이슈"])는 그대로 둠
     기록하고_커밋(f"판 {판} — {시도} — {j['판정']}")
     if "공개" in 단계:
         import 공개
@@ -41,6 +44,6 @@ def 끝내기(판, 단계=("쇼츠", "커밋", "공개", "이슈")):
             주소, 쪽 = 공개.내보내기(); 남["공개"] = 주소
             기록하고_커밋(f"판 {판} 링크 — 공개 커밋 주소")   # 걸러진 사본이 생긴 뒤라 보고서의 공개 커밋 링크가 채워짐
             if "커밋" in 단계: 공개.내보내기()
-        except Exception as e: 남["공개"] = {"실패": str(e)[:300]}; json.dump(남, open(d + "끝.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+        except Exception as e: 남["공개"] = {"실패": str(e)[:300]}; 기록하고_커밋(f"판 {판} — 공개 실패 기록")   # 끝.json 만 쓰고 커밋 안 해 작업 트리가 더러운 채 남았음(10-25 감사)
     return 남
 if __name__ == "__main__": print(json.dumps(끝내기(sys.argv[1], tuple(sys.argv[2:]) or ("분석", "쇼츠", "커밋", "공개", "이슈")), ensure_ascii=False, indent=1))

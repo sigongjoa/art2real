@@ -119,6 +119,13 @@ def 손실(model, b):   # 답(코드) 자리만 lm_head → CE · 10-24 선 글 
     try: h = base(**{k: v for k, v in b.items() if k != "labels"}).logits
     finally: base.lm_head = head
     y = b["labels"][:, 1:]; m = y != -100; return F.cross_entropy(head(h[:, :-1][m]).float(), y[m])
+OOM = "# OOM\n"   # 메모리가 넘쳐 못 쓴 글 표시 · 평가에서 빼고 코드_OOM 으로 셈(10-25 감사: 빈 글이 실행 실패 0 점으로 섞였음)
+def 코드해시():   # 학습 · 생성 결과를 바꾸는 코드(설정 yaml 말고) — 이어 하기 · 학습 끝난 LoRA · 비교판 시드 값은 이것까지 같을 때만 다시 씀(10-25 감사: 옛 코드 LoRA 를 새 코드에서 읽었음)
+    import hashlib; h = hashlib.md5()
+    for p in (__file__, f"{뿌리}/하네스/코드글.py", f"{캐}/cadrille.py", f"{캐}/dataset.py"): h.update(open(p, "rb").read())
+    return h.hexdigest()[:10]
+def 원자저장(쓰기, 경로):   # 쓰는 도중 꺼져도 반쯤 쓴 파일이 안 남게(모델124 와 같은 꼴)
+    쓰기(경로 + ".tmp"); os.replace(경로 + ".tmp", 경로)
 def 생성(model, proc, items, 배=4, 최대=1024):
     import torch
     model.eval(); out = []
@@ -128,8 +135,11 @@ def 생성(model, proc, items, 배=4, 최대=1024):
         막 = list(range(151657, len(proc.tokenizer)))   # 좌표 토큰은 입력 전용 — 생성 금지
         try:
             with torch.no_grad(): g = model.generate(**인, max_new_tokens=최대, do_sample=False, use_cache=True, **({"suppress_tokens": 막} if 막 else {}))
-        except torch.OutOfMemoryError:   # 10-25 147 시험 생성 첫 묶음에서 넘침 → 그 묶음만 하나씩
-            del 인; torch.cuda.empty_cache(); out += 생성(model, proc, items[s:s + 배], 1, 최대) if 배 > 1 else [""]; model.eval(); continue
+        except RuntimeError as ex:   # 10-25 147 은 torch.OutOfMemoryError 가 아니라 「RuntimeError: CUDA error: out of memory」로 죽음 · OOM 만 잡고 나머지는 다시 던짐
+            if "out of memory" not in str(ex): raise
+            g = None
+        if g is None:   # except 밖에서 다시(traceback 이 텐서를 잡고 있지 않게) · 하나씩도 넘치면 OOM 표시 — 실행 실패(모델 탓)와 따로 셈
+            del 인, b; torch.cuda.empty_cache(); out += 생성(model, proc, items[s:s + 배], 1, 최대) if 배 > 1 else [OOM]; model.eval(); continue
         out += proc.batch_decode([o[len(i):] for i, o in zip(b["input_ids"], g)], skip_special_tokens=True)
         if len(items) > 8 and (s // 배) % 10 == 0: print(f"생성 {len(out)}/{len(items)}", flush=True)   # 10-24 145 생성 1 시간을 못 봤음
     model.train(); return out
@@ -140,7 +150,7 @@ def 평가(이름들, 글들):   # 생성 글 · 정답 사양 → 실루엣 IoU
     렌 = B.병렬렌더([("글", g) for g in 글들] + [("조립", 색[n]["코드"]) for n in 이름들]); k = len(글들); 줄 = []
     for t, n in enumerate(이름들):
         예, 정 = 렌[t], 렌[k + t]; iou = 0. if 예 is None or 정 is None else float((예[1] & 정[1]).sum() / max((예[1] | 정[1]).sum(), 1))
-        줄.append({"부품": n, "실행": 예 is not None, "IoU": round(iou, 4)})
+        줄.append({"부품": n, "실행": 예 is not None, "IoU": round(iou, 4), "OOM": 글들[t] == OOM, "정답실패": 정 is None})   # 정답 렌더 실패 · OOM 은 모델 탓이 아님 → 집계에서 뺌
     return 줄, 렌
 def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.스텝 · 4 스텝마다 갱신) → 시험 생성 → 실행 · IoU → 그림
     import torch
@@ -155,8 +165,9 @@ def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.
     고정 = [항목(n, l, g, 입력) for n, _, l, g in 시[:16]]; 기록 = []; 묶음손 = []; t0 = time.time()
     검 = 검증부품(시); 검폴더 = 폴더 + "검증/"; os.makedirs(검폴더, exist_ok=True)
     def 검증생성(step):   # 10-24 사용자 「스텝별 validation 결과가 어떻게 바뀌는지 코드랑 렌더 둘 다」 · 고정 시험 부품 넷 · 탐욕 생성
-        for (n, _, l, g), 글 in zip(검, 생성(model, proc, [항목(n, l, g, 입력, 정답=False) for n, _, l, g in 검])): open(검폴더 + f"{step:05d}_{n}.py", "w", encoding="utf-8").write(글)
-    from omegaconf import OmegaConf; 이어 = 폴더 + "이어.pt"; 설정 = OmegaConf.to_yaml(cfg); 시작 = 0   # 10-25 PC 꺼짐(1000/3000 에서) → 500 스텝마다 이어 두기 · 설정이 같을 때만 잇기
+        for (n, _, l, g), 글 in zip(검, 생성(model, proc, [항목(n, l, g, 입력, 정답=False) for n, _, l, g in 검])):
+            p = 검폴더 + f"{step:05d}_{n}.py"; open(p, "w", encoding="utf-8").write(글); os.path.exists(p + ".err") and os.remove(p + ".err")   # 옛 판 오류 말이 남지 않게
+    from omegaconf import OmegaConf; 이어 = 폴더 + "이어.pt"; 설정 = OmegaConf.to_yaml(cfg) + f"# 코드 {코드해시()}\n"; 시작 = 0   # 10-25 PC 꺼짐(1000/3000 에서) → 500 스텝마다 이어 두기 · 설정 · 코드가 같을 때만 잇기
     다 = 폴더 + "lora/"; 다했 = os.path.exists(다 + "설정.yaml") and open(다 + "설정.yaml", encoding="utf-8").read() == 설정 and os.path.exists(폴더 + "학습.json")
     if 다했:   # 10-25 학습은 끝났는데 생성에서 죽은 판: 같은 설정의 LoRA(+ 좌표 임베딩)를 읽고 생성부터
         from peft import set_peft_model_state_dict; from safetensors.torch import load_file
@@ -175,25 +186,37 @@ def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.
             model.eval()
             with torch.no_grad(): 시손 = float(np.mean([float(손실(model, 묶([it], proc))) for it in 고정]))
             model.train(); 검증생성(step); 기록.append({"에폭": step, "학습": float(np.mean(묶음손[-250:])), "시험": 시손, "초": round(time.time() - t0), "GPU": round(torch.cuda.max_memory_allocated() / 1e9, 2)}); print(기록[-1], flush=True)
-            if step % 500 == 0 and step < 스텝: torch.save({"설정": 설정, "스텝": step, "기록": 기록, "묶음손": 묶음손, "가중": {k: v for k, v in model.named_parameters() if v.requires_grad}, "opt": opt.state_dict(), "sched": sched.state_dict(), "random": random.getstate(), "torch": torch.get_rng_state(), "cuda": torch.cuda.get_rng_state()}, 이어)   # 500 = 누적 4 의 배수(쌓인 기울기 없음)
+            if step % 500 == 0 and step < 스텝: 원자저장(lambda p: torch.save({"설정": 설정, "스텝": step, "기록": 기록, "묶음손": 묶음손, "가중": {k: v for k, v in model.named_parameters() if v.requires_grad}, "opt": opt.state_dict(), "sched": sched.state_dict(), "random": random.getstate(), "torch": torch.get_rng_state(), "cuda": torch.cuda.get_rng_state()}, p), 이어)   # 500 = 누적 4 의 배수(쌓인 기울기 없음)
     del opt, sched; torch.cuda.empty_cache()   # 옵티마이저 상태(GPU)를 비우고 생성 · 10-25 147 시험 생성 OOM
     if not 다했: model.save_pretrained(폴더 + "lora"); open(다 + "설정.yaml", "w", encoding="utf-8").write(설정)
-    not 다했 and 토큰 == "좌표" and torch.save(model.get_base_model().model.embed_tokens.새.detach().cpu(), 폴더 + "lora/좌표임베딩.pt"); os.path.exists(이어) and os.remove(이어); json.dump(기록, open(폴더 + "학습.json", "w", encoding="utf-8"), ensure_ascii=False)
-    글들 = 생성(model, proc, [항목(n, l, g, 입력, 정답=False) for n, _, l, g in 시]); os.makedirs(폴더 + "생성", exist_ok=True)
-    for (n, *_), 글 in zip(시, 글들): open(폴더 + f"생성/{n}.py", "w", encoding="utf-8").write(글)
+    not 다했 and 토큰 == "좌표" and torch.save(model.get_base_model().model.embed_tokens.새.detach().cpu(), 폴더 + "lora/좌표임베딩.pt"); json.dump(기록, open(폴더 + "학습.json", "w", encoding="utf-8"), ensure_ascii=False); os.path.exists(이어) and os.remove(이어)   # 학습.json 을 먼저(사이에 꺼지면 다 배운 것을 잃음)
+    생경 = 폴더 + "생성.json"; 생 = json.load(open(생경, encoding="utf-8")) if os.path.exists(생경) else {}   # 10-25 감사: 생성 1 시간이 끝에 한 번에 써져 죽으면 처음부터 · 8 개마다 남기고 같은 설정 · 코드면 이어서
+    if 생.get("설정") != 설정: 생 = {"설정": 설정, "글": {}}
+    남은 = [x for x in 시 if x[0] not in 생["글"]]; len(남은) < len(시) and print("생성 이어 함", len(시) - len(남은), "/", len(시), flush=True)
+    for s0 in range(0, len(남은), 8):
+        조 = 남은[s0:s0 + 8]
+        for (n, *_), 글 in zip(조, 생성(model, proc, [항목(n, l, g, 입력, 정답=False) for n, _, l, g in 조])): 생["글"][n] = 글
+        원자저장(lambda p: json.dump(생, open(p, "w", encoding="utf-8"), ensure_ascii=False), 생경); print(f"생성 {len(시) - len(남은) + s0 + len(조)}/{len(시)}", flush=True)
+    글들 = [생["글"][x[0]] for x in 시]; os.makedirs(폴더 + "생성", exist_ok=True)
+    for (n, *_), 글 in zip(시, 글들):
+        p = 폴더 + f"생성/{n}.py"; open(p, "w", encoding="utf-8").write(글); os.path.exists(p + ".err") and os.remove(p + ".err")   # 옛 판 오류 말이 새 글에 붙지 않게
     del model; torch.cuda.empty_cache()
     줄, 렌 = 평가([x[0] for x in 시], 글들)
-    오 = 오류들([폴더 + f"생성/{r['부품']}.py" for r in 줄 if not r["실행"]])
-    for r in 줄: r["오류"] = 오.get(폴더 + f"생성/{r['부품']}.py", "")
+    오 = 오류들([폴더 + f"생성/{r['부품']}.py" for r in 줄 if not r["실행"] and not r["OOM"]])
+    for r in 줄: r["오류"] = "OOM — 메모리가 넘쳐 못 씀" if r["OOM"] else 오.get(폴더 + f"생성/{r['부품']}.py", "")
     json.dump(줄, open(폴더 + "평가.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
-    iou = np.array([r["IoU"] for r in 줄]); 그림(폴더, 시, 글들, 렌, 줄, 입력); 검증정리(폴더, 검, {x[0]: 렌[len(글들) + t] for t, x in enumerate(시)})
-    return {"코드_실행률": round(float(np.mean([r["실행"] for r in 줄])), 4), "코드_IoU": round(float(np.median(iou)), 4), "코드_IoU평균": round(float(iou.mean()), 4),
+    그림(폴더, 시, 글들, 렌, 줄, 입력); 검증정리(폴더, 검, {x[0]: 렌[len(글들) + t] for t, x in enumerate(시)}, {0} | {r["에폭"] for r in 기록})
+    쓸 = [r for r in 줄 if not r["OOM"] and not r["정답실패"]]; iou = np.array([r["IoU"] for r in 쓸]); 된 = np.array([r["IoU"] for r in 쓸 if r["실행"]])   # 모델 탓이 아닌 칸은 뺌
+    if len(쓸) < len(줄): print(f"⚠ 집계에서 뺌 — OOM {sum(r['OOM'] for r in 줄)} · 정답 렌더 실패 {sum(r['정답실패'] for r in 줄)}", flush=True)
+    return {"코드_실행률": round(float(np.mean([r["실행"] for r in 쓸])), 4), "코드_IoU": round(float(np.median(iou)), 4), "코드_IoU평균": round(float(iou.mean()), 4),
+            "코드_IoU실행": round(float(np.median(된)), 4) if len(된) else None,   # 실행된 것만의 모양 — 코드_IoU(실패 = 0 중앙)는 실행률 < 0.5 면 늘 0 이라 모양을 못 봄(10-25 감사: 145 0.000 인데 이것은 0.53)
+            "코드_OOM": sum(r["OOM"] for r in 줄), "코드_정답실패": sum(r["정답실패"] for r in 줄),
             "코드_학습loss": round(기록[-1]["학습"], 4), "코드_시험loss": round(기록[-1]["시험"], 4), "시험loss": round(기록[-1]["시험"], 4), "학습loss": round(기록[-1]["학습"], 4)}
 def 검증부품(시):   # 시트와 같은 넷: 12050 + 앞 셋
     보 = [x for x in 시 if x[0] == "12050"] + 시[:3]; return list({x[0]: x for x in 보}.values())[:4]
-def 검증정리(폴더, 검, 정렌):   # 검증/*.py → 렌더 · IoU · 오류 → 검증.json · 검증/<스텝>_<부품>.png · 검증.png(행 = 스텝 · 열 = 부품)
+def 검증정리(폴더, 검, 정렌, 스텝들=None):   # 검증/*.py → 렌더 · IoU · 오류 → 검증.json · 검증/<스텝>_<부품>.png · 검증.png(행 = 스텝 · 열 = 부품) · 스텝들 = 이 판이 쓴 스텝만(앞 판 파일이 섞이지 않게)
     import 모델124 as B; from PIL import Image
-    파 = sorted(glob.glob(폴더 + "검증/*.py")); 글 = [open(f, encoding="utf-8").read() for f in 파]; 렌 = B.병렬렌더([("글", g) for g in 글]); 오 = 오류들([f for f, x in zip(파, 렌) if x is None]); 줄 = []
+    파 = sorted(f for f in glob.glob(폴더 + "검증/*.py") if 스텝들 is None or (os.path.basename(f)[:5].isdigit() and int(os.path.basename(f)[:5]) in 스텝들)); 글 = [open(f, encoding="utf-8").read() for f in 파]; 렌 = B.병렬렌더([("글", g) for g in 글]); 오 = 오류들([f for f, x in zip(파, 렌) if x is None]); 줄 = []
     for f, g, x in zip(파, 글, 렌):
         st, n = os.path.basename(f)[:-3].split("_"); 정 = 정렌.get(n); iou = 0. if x is None or 정 is None else float((x[1] & 정[1]).sum() / max((x[1] | 정[1]).sum(), 1))
         if x is not None: Image.fromarray(np.asarray(x[0])).resize((200, 200)).save(f[:-3] + ".png")
@@ -231,6 +254,16 @@ if __name__ == "__main__":   # 자체 시험(가벼움): 줄글 꼴 · 도면그
     print(줄글([{"_m": np.ones((2, 2), bool), "시작": [1, 2], "끝": [3, 4], "종류": "원호", "중간": [2, 5], "숨음": True}], 1))
     assert 줄글([{"_m": np.ones((2, 2), bool), "시작": [1, 2], "끝": [3, 4], "종류": "직선", "중간": [2, 3], "숨음": False}], 0) == ["T L 1 2 3 4"]
     assert 좌표글("T L 47 25 62 37 h\nF A 1 2 3 4 5 6") == "T L<47><25><62><37> h\nF A<1><2><3><4><5><6>"
+    import torch, types   # OOM 길: 「CUDA error: out of memory」(RuntimeError) → 하나씩 → 그래도 넘치면 OOM 표시 · 다른 RuntimeError 는 다시 던짐(10-25 147)
+    class 가짜:
+        def __init__(s, 말): s.말 = 말
+        def eval(s): pass
+        def train(s): pass
+        def generate(s, **k): raise RuntimeError(s.말)
+    묶 = lambda items, proc, eval=False: {"input_ids": torch.zeros(len(items), 1, dtype=torch.long)}; 프 = types.SimpleNamespace(tokenizer=[0] * 151657)
+    assert 생성(가짜("CUDA error: out of memory"), 프, [{}] * 3, 배=2) == [OOM] * 3
+    try: 생성(가짜("shape mismatch"), 프, [{}]); raise AssertionError("다른 오류를 삼킴")
+    except RuntimeError: pass
     if "--토큰" in sys.argv:   # 왕복: 자료 선 글 전부 → 좌표 토큰 → 숫자가 모두 <0>~<127> 한 토큰 · 디코드가 원문 · 길이 줄어듦
         from transformers import AutoTokenizer; import re
         tok = AutoTokenizer.from_pretrained(캐 + "/weights/qwen2vl2b"); 전 = [len(tok(l).input_ids) for _, _, l, _ in 목록()[:300]]; tok.add_tokens([f"<{i}>" for i in range(좌표수)]); 후 = []
