@@ -14,11 +14,17 @@ def _글하나(i):   # 정답 사양 → 글 파일(일꾼 프로세스 · CadQu
         import 코드글, 모델124 as B
         s = json.load(open(B.D + f"사양/{i}.json", encoding="utf-8")); open(p, "w", encoding="utf-8").write(코드글.글로(s["코드"]))
     except Exception as ex: open(p + ".err", "w", encoding="utf-8").write(str(ex)[:300])
-def _오류(p):   # 생성 글 파일 하나 실행 → p.err(오류 꼴 · 첫 줄) · 성공이면 빈 파일 · 렌더 실패만으로는 왜 깨졌는지 모름(10-24 145 실행률 0.455)
-    try:
-        import 코드글; 글 = open(p, encoding="utf-8").read(); compile(글, "생성", "exec"); 코드글.실행(글); 말 = ""   # compile 먼저 = 줄 번호가 생성 글 기준(머리말 6 줄 빼고)
-    except Exception as ex: 말 = f"{type(ex).__name__}: {str(ex).splitlines()[0][:120] if str(ex) else ''}"
-    open(p + ".err", "w", encoding="utf-8").write(말)
+def _오류(p):   # 생성 글 파일 하나 실행 → p.err = 첫 줄 「오류 꼴: 말」 · 둘째 줄 「줄 탭 열」(생성 글 기준 · 모르면 0) · 성공이면 빈 파일 · 10-25 사용자 「코드 어디가 틀렸는지도」
+    import traceback, 코드글
+    글 = open(p, encoding="utf-8").read(); 말, 줄, 열 = "", 0, 0
+    try: compile(글, "생성", "exec")
+    except SyntaxError as ex: 말, 줄, 열 = f"SyntaxError: {ex.msg}", ex.lineno or 0, ex.offset or 0
+    else:
+        try: 코드글.실행(글)
+        except Exception as ex:   # 실행 오류: 머리말 + 글을 exec 한 「<string>」 틀 중 글 쪽 마지막 줄
+            말 = f"{type(ex).__name__}: {str(ex).splitlines()[0][:120] if str(ex) else ''}"; 머 = 코드글.머리말.count("\n")
+            줄 = next((f.lineno - 머 for f in reversed(traceback.extract_tb(ex.__traceback__)) if f.filename == "<string>" and f.lineno > 머), 0)
+    open(p + ".err", "w", encoding="utf-8").write(말 + (f"\n{줄}\t{열}" if 말 else ""))
 def 오류들(파일들, 초=60):   # → {파일: 오류 말} · 시간 넘으면 「시간 넘음」
     일꾼(_오류, [f for f in 파일들 if not os.path.exists(f + ".err")], 초)
     return {f: open(f + ".err", encoding="utf-8").read() if os.path.exists(f + ".err") else "시간 넘음" for f in 파일들}

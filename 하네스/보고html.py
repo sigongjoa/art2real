@@ -101,14 +101,25 @@ const io=new IntersectionObserver(es=>es.forEach(e=>{if(!e.isIntersecting)return
 requestAnimationFrame(()=>requestAnimationFrame(()=>{document.querySelectorAll('td.열.대기').forEach(c=>c.classList.remove('대기'));
 document.querySelectorAll('td[data-n]').forEach(c=>{if(c.dataset.n==='')return;const v=parseFloat(c.dataset.n),자=(c.dataset.n.split('.')[1]||'').length,k=Math.min(1,t/900);c.textContent=(v*(1-Math.pow(2,-10*k))).toFixed(자)});
 requestAnimationFrame(()=>document.getAnimations().forEach(a=>{a.pause();a.currentTime=t}))}))})()</script>"""
+def 오류풀기(t):   # 과제코드._오류 의 「말 · 줄 바꿈 · 줄 탭 열」 → (말, 줄, 열) · 옛 꼴(말만 · 「(생성, line N)」)도
+    a, _, b = t.partition("\n"); 줄, 열 = (int(x) for x in b.split("\t")) if "\t" in b else (0, 0)
+    if not 줄 and (m := re.search(r"line (\d+)\)", a)): 줄 = int(m.group(1))
+    return a, 줄, 열
+def 코드틀(글, 줄=0, 열=0):   # 줄 번호 붙은 코드 · 틀린 줄은 빨간 바탕 + 열 자리에 ^ · 그 줄로 스크롤되게 앞뒤만 펼침은 안 함(전문)
+    out = []
+    for k, l in enumerate(글.splitlines() or [""], 1):
+        if k == 줄: out.append(f'<span style="background:var(--fail-bg);color:var(--fail);display:block">{k:>3} {E(l)}</span>' + (f'<span style="color:var(--fail);display:block">    {" " * (열 - 1)}^</span>' if 열 else ""))
+        else: out.append(f"{k:>3} {E(l)}")
+    return '<pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">' + "\n".join(out) + "</pre>"
 def 검증칸(d):   # 코드생성 판: 스텝별 검증 — 부품마다 표(스텝 · 렌더 · IoU/오류 · 생성 코드) · 10-24 사용자 「코드랑 렌더 둘 다 보여야 원인이 파악된다」
     if not os.path.exists(d + "검증.json"): return ""
     줄 = json.load(open(d + "검증.json", encoding="utf-8")); h = ['<h2>스텝별 검증 <span class="차">같은 시험 부품 넷 · 250 스텝마다 탐욕 생성 → 실행 → 렌더</span></h2>', '<figure><img src="검증.png" alt="스텝별 검증 렌더 격자"><figcaption>행 = 스텝, 열 = 부품, 맨 위 = 정답. 분홍 = 코드가 실행되지 않음</figcaption></figure>']
     for k, n in enumerate(dict.fromkeys(r["부품"] for r in 줄)):
         h.append(f'<details{" open" if k == 0 else ""}><summary>부품 {E(n)} — 스텝별 코드</summary><div class="표"><table><thead><tr><th>스텝</th><th>렌더</th><th>결과</th><th>생성 코드</th></tr></thead><tbody><tr><td>정답</td><td><img src="검증/정답_{E(n)}.png" width="140" alt=""></td><td></td><td></td></tr>')
         for r in sorted((r for r in 줄 if r["부품"] == n), key=lambda r: r["스텝"]):
-            그 = f'<img src="검증/{r["스텝"]:05d}_{E(n)}.png" width="140" alt="">' if r["실행"] else "—"; 결 = f'IoU {r["IoU"]:.2f}' if r["실행"] else f'<strong>실행 실패</strong><br>{E(r["오류"])}'
-            h.append(f'<tr><td>{r["스텝"]}</td><td>{그}</td><td class="왼">{결}</td><td class="왼"><pre style="max-height:220px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">{E(r["글"])}</pre></td></tr>')
+            말, 줄, 열 = 오류풀기(r.get("오류", "")) if not r["실행"] else ("", 0, 0)
+            그 = f'<img src="검증/{r["스텝"]:05d}_{E(n)}.png" width="140" alt="">' if r["실행"] else "—"; 결 = f'IoU {r["IoU"]:.2f}' if r["실행"] else f'<strong>실행 실패</strong><br>{E(말)}' + (f"<br>{줄} 째 줄" + (f" {열} 째 글자" if 열 else "") if 줄 else "")
+            h.append(f'<tr><td>{r["스텝"]}</td><td>{그}</td><td class="왼">{결}</td><td class="왼">{코드틀(r["글"], 줄, 열)}</td></tr>')
         h.append("</tbody></table></div></details>")
     return "".join(h)
 def 만들기(판, d, c, j, 지, 대, 곡, 특, 해석, 다음, 모션=None, 파일="보고.html", 구=None, 쇼=None):
