@@ -28,6 +28,7 @@ def 관문(cfg, 설정파일, 덮어쓰기=()):
     판 = cfg.판; 대설정 = f"{뿌리}/하네스/판/{cfg.대조.get('손잡이판', cfg.대조.get('판'))}/설정.yaml" if cfg.대조 else ""   # 손잡이판 = 손잡이를 셀 판(에폭을 바꾸는 판은 같은 에폭 대조가 판 안에 있음)   # 대조 판이 하네스 판이면 그 설정과 손잡이를 셈(아니면 바탕)
     바탕 = OmegaConf.to_container(OmegaConf.load(대설정 if 대설정 and os.path.exists(대설정) else f"{뿌리}/하네스/conf/바탕.yaml")); 지금 = OmegaConf.to_container(cfg, resolve=True)
     a, b = (펼친({k: v for k, v in d.items() if k not in 손잡이밖}) for d in (바탕, 지금)); 기본 = 펼친(OmegaConf.to_container(OmegaConf.load(f"{뿌리}/하네스/conf/바탕.yaml"))); a = {**{k: v for k, v in 기본.items() if k in b}, **a}; 바뀐 = {k: (a.get(k), b.get(k)) for k in set(a) | set(b) if a.get(k) != b.get(k) and k not in 계산만}   # 대조 판 이후 생긴 손잡이는 바탕 기본값(= 옛 동작)으로 채움 — 139 가 137 에 없던 「테」를 바꿈으로 셌음
+    if cfg.get("코드", {}).get("LoRA") and cfg.대조 and str(cfg.코드.LoRA) == str(cfg.대조.get("판")): 바뀐.pop("코드.LoRA", None)   # 대조 판이 학습한 가중치를 그대로 읽음 = 같은 모델 · 손잡이 아님(149~)
     문 = []
     if not str(cfg.판.get("명제", "") or "").strip() or str(cfg.판.get("명제")) == "???": 문.append("명제가 없다 — 이 판이 맞거나 틀릴 문장 하나를 적어라(사전 예측)")
     시 = str(cfg.판.get("시도", "") or "").strip()
