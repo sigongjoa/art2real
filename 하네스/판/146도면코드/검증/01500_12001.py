@@ -1,0 +1,3 @@
+b0 = place(cq.Workplane("XY").box(36.1, 28.8, 13.1, centered=(True, True, False)).faces(">Z").workplane(origin=(0, 0, 13.1)).center(10.0, 10.0).hole(10.0, 10.1).edges("|Z").fillet(2.6), "y", (0.0, 0.0, 0.0))
+b1 = place(cq.Workplane("XY").box(36.1, 28.1, 20.2, centered=(True, True, False)).faces(">Z").workplane(origin=(0, 0, 20.2)).center(1.2, -1.3).hole(1.0, 1.2).edges("|Z").fillet(2.6), "z", (0.0, 0.0, -22.2))
+result = b0.union(b1)

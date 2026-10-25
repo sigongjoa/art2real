@@ -1,0 +1,418 @@
+[
+ {
+  "스텝": 0,
+  "부품": "12000",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "KeyError: 'result'\n0\t0",
+  "글": "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-100,0))\nr=w0.sketch().segment((-59,11),(-56,11)).arc((58,26),(-56,14)).segment((-59,14)).close().assemble().push([(0,25)]).circle(55,mode='s').finalize().extrude(4).union(w0.sketch().segment((-42,-10),(-28,-19)).segment((-28,-16)).arc((-36,-12),(-42,-6)).close().assemble().reset().face(w0.sketch().arc((-37,4),(-33,10),(-28,16)).segment((-37,16)).close().assemble()).reset().face(w0.sketch().segment((-37,-16),(-28,-16)).arc((-33,-10),(-37,-4)).close().assemble()).reset().face(w0.sketch().segment((28,-16),(37,-16)).segment((37,-4)).arc((33,-10),(28,-16)).assemble()).finalize().extrude(200))"
+ },
+ {
+  "스텝": 0,
+  "부품": "12001",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "KeyError: 'result'\n0\t0",
+  "글": "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-100,0))\nr=w0.sketch().segment((-64,1),(-36,-25)).arc((-27,-36),(-16,-44)).segment((12,-69)).segment((18,-62)).close().assemble().reset().face(w0.sketch().segment((-18,62),(64,-1)).arc((27,36),(-18,62)).assemble()).finalize().extrude(167).union(w0.sketch().segment((-45,29),(-36,18)).arc((-32,24),(-27,29)).segment((-36,39)).close().assemble().reset().face(w0.sketch().segment((-33,-29),(-24,-39)).segment((-15,-29)).segment((-24,-18)).arc((-28,-24),(-33,-29)).assemble()).reset().face(w0.sketch().segment((27,-29),(36,-29)).segment((36,-18)).arc((32,-24),(27,-29)).assemble()).reset().face(w0.sketch().arc((27,29),(32,24),(36,18)).segment((36,29)).close().assemble()).finalize().extrude(200))"
+ },
+ {
+  "스텝": 0,
+  "부품": "12002",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "StdFail_NotDone: GC_MakeArcOfCircle::Value() - no result\n3\t0",
+  "글": "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,100,0))\nr=w0.sketch().segment((-100,0),(-69,-22)).arc((-67,-24),(-65,-26)).segment((-65,-23)).segment((10,-73)).segment((10,-76)).segment((12,-76)).segment((12,-74)).segment((100,0)).segment((69,22)).arc((67,24),(65,26)).segment((65,23)).segment((-10,73)).segment((-10,76)).segment((-12,76)).segment((-12,74)).close().assemble().circle(76,mode='s').reset().face(w0.sketch().segment((-58,-10),(-41,-24)).segment((-22,-4)).arc((-20,-10),(-16,-15)).segment((-33,-3)).segment((-38,-3)).segment((-38,3)).segment((-37,3)).segment((-47,10)).close().assemble()).reset().face(w0.sketch().segment((-38,12),(-21,3)).segment((-16,3)).arc((-20,10),(-24,15)).segment((-7,3)).segment((-2,3)).segment((-2,-3)).segment((-3,-3)).segment((3,-10)).segment((18,10)).segment((0,24)).segment((-22,4)).segment((-38,19)).close().assemble()).finalize().extrude(-200)"
+ },
+ {
+  "스텝": 0,
+  "부품": "12050",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "KeyError: 'result'\n0\t0",
+  "글": "import cadquery as cq\nw0=cq.Workplane('ZX',origin=(0,-99,0))\nr=w0.sketch().segment((-95,-1),(-67,-1)).arc((-65,-10),(-61,-18)).segment((-61,-22)).segment((-59,-22)).arc((0,-65),(59,-22)).segment((61,-22)).segment((61,-18)).arc((65,-10),(67,-1)).segment((95,-1)).segment((95,1)).segment((67,1)).arc((65,10),(61,18)).segment((61,22)).segment((59,22)).arc((0,65),(-59,22)).segment((-61,22)).segment((-61,18)).arc((-65,10),(-67,1)).segment((-95,1)).close().assemble().finalize().extrude(169).union(w0.sketch().segment((-54,11),(-17,-31)).segment((-17,-40)).segment((-9,-40)).segment((17,-67)).segment((54,-29)).segment((17,13)).segment((17,22)).segment((9,22)).segment((-17,49)).close().assemble().circle(65,mode='s').finalize().extrude(199))"
+ },
+ {
+  "스텝": 250,
+  "부품": "12000",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: unmatched ')'\n1\t17",
+  "글": "w1 = (0, 0.0, 0))\nr=w0.sketch().circle(100).circle(99,mode='s').finalize().extrude(10).union(w0.sketch().segment((-100,0),(-88,-10)).arc((-87,-12),(-85,-14)).segment((-85,14)).close().assemble().reset().face(w0.sketch().segment((-80,14),(-78,14)).segment((-78,11)).segment((-76,11)).segment((-76,14)).segment((-74,14)).segment((-74,18)).segment((-76,18)).segment((-76,21)).segment((-78,21)).segment((-78,18)).segment((-80,18)).close().assemble()).finalize().extrude(10)).union(w1.sketch().circle(100).circle(99,mode='s').finalize().extrude(100))"
+ },
+ {
+  "스텝": 250,
+  "부품": "12001",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: invalid syntax. Perhaps you forgot a comma?\n1\t2",
+  "글": "(0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.00.0, 0.0.0.0.0.0.0.0.0.0.00. 0.0.00 = 0.0.0. 0.0.0.0 0.0.0.0.0.0. 0.0.0.0. 0.0.0. 0.0.0. 0.0. 0.0. 0.0. 0.0. 0.0. 0.0. 0.0. 0.0.  0.0. 0.0.  0.0. 0.0.  0.0.  0.0.  0.0.  0.0.  0.0.  0.0.  0.0.  0.0.  0.0.  0.0.  0.0.  0.0.  0.0.  0.0.  0.0.  0.0.   0.0.   0.0.   0.0.   0.0.   0.0.   0.0.   0.0.   0.0.   0.0.   0.0.   0.0.   0.0.    0.0.    0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0. 0.0.         0.0.    0.0.    0.0.    0.0.    0.0.    0.0.    0.0.    0.0.    0.0.    0.0.   0.0.   0.0.   0.0.   0.0.    0.0.   0.0.   0.0.   0.0.   0.0.   0.0.   0.0.   0.0.   0.0.   0.0.   0.0.   0.0.   0.0.    0.0.    0.0.    0.0.   0.0.   0.0.   0.0.   0.0.   0.0.   0.0.   0.0.   0.00.     0.00.      0.00.    0.00.    "
+ },
+ {
+  "스텝": 250,
+  "부품": "12002",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: '(' was never closed\n1\t1",
+  "글": "(0, 0, 0.0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.0,  0, 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0, 0, 0.0,  0, 0, 0.0,  0, 0, 0, 0, 0, 0, 0.0,  0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0"
+ },
+ {
+  "스텝": 250,
+  "부품": "12050",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: '(' was never closed\n1\t1",
+  "글": "(0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0,  0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0."
+ },
+ {
+  "스텝": 500,
+  "부품": "12000",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "TypeError: Workplane.center() takes 3 positional arguments but 4 were given\n1\t0",
+  "글": "b0 = place(cq.Workplane(\"XY\").box(36.8, 4.0, 36.8, centered=(True, True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 36.8)).center(14.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XY\").box(4.2, 4.4, 36.8, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 36.8)).center(1.3, 0.0, 0.0))\nresult = b0"
+ },
+ {
+  "스텝": 500,
+  "부품": "12001",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: unmatched ')'\n3\t412",
+  "글": "b0 = place(cq.Workplane(\"XY\").box(36.8, 4.1, 36.8, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 36.8)).center(14.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XY\").box(36.8, .3, 36.8).faces(\">Z\").workplane(origin=(0, 0, 36.8)).center(1.2, 1.1).hole(1.3), \"x\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XY\").box(36.8, 3.1, 36.8).faces(\">Z\").workplane(origin=(0, 0, 36.8)).center(1.1, 1.1).faces(\">Z\").workplane(origin=(0, 0, 36.8)).center(1.1, 1.1).faces(\">Z\").workplane(origin=(0, 0, 36.8)).center(1.1, 1.1).faces(\">Z\").workplane(origin=(0, 0, 36.8)).center(1.1, 1.1).faces(\">Z\").workplane(origin=(0, 0, 36.8)).center(1.1, 1.1).rect(3.1, 1.1).rect(3.3, 2.3).rect(3.3, 2.3)).rect(3.3, 3.3)).rect(3.3, 3.3)).rect(3.3, 2.3), \"x\", (3.5, 0.0, 0.0))\nresult = b0.union(b1.union(b2.union(b3)))"
+ },
+ {
+  "스텝": 500,
+  "부품": "12002",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: closing parenthesis ')' does not match opening parenthesis '['\n1\t372",
+  "글": "b0 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (20.0, 0.0), (20.0, 20.0), (19.0, 20.0), (18.0, 21.0), (17.0, 21.0), (16.0, 21.0), (15.0, 21.0), (14.0, 21.0), (13.0, 21.0), (12.0, 21.0), (11.0, 21.0), (10.0, 21.0), (9.0, 21.0), (8.0, 21.0), (7.0, 21.0), (6.0, 21.0), (5.0, 21.0), (4.0, 21.0), (3.0, 21.0), (2.0, 21.0), (1.0, 21.0), (0.0, 21.0), (0.0, 21.0), 0.0, 21.0), (0.0, 21.0), (0.0, 21.0), 0.0, 21.0), (0.0, 21.0, 21.0), 20.0, 21.0), (0.0, 21.0)]). 10.9, 21.0), 10.7, 21.0), (0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), (0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0), 0.0, 21.0),"
+ },
+ {
+  "스텝": 500,
+  "부품": "12050",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: unmatched ')'\n1\t1091",
+  "글": "b0 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (24.8, 0.0), (24.8, 24.8), (23.8, 24.8), (23.8, 10.1), (14.8, 10.1), (14.8, 7.6), (13.6, 7.6), (13.6, 24.8), (12.8, 24.8), (12.8, 10.1), (12.8, 7.1), (13.1, 7.1), (13.1, 24.8), (12.8, 24.8), (12.8, 10.1), (12.8, 7.1), (13.0, 7.1), (13.0, 24.8), (12.0, 24.8), (12.0, 10.1), (12.0, 7.1), (12.0, 24.8), (12.0, 24.8), (12.0, 19.1), (10.8, 19.1), (0.0, 19.1)]).close().revolve(38), (0.0, 0.0), \"b\", (0.0, 0.0), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), (0.0, 24.8), 0.0, 24.8), (0.0, 24.8), 0.0, 24.8), 0.0, 24.8), (0.0, 24.8), 0.0, 24.8), 0.0, 24.8), 0.0, 24.8), (0.0, 24.8), 0.0, 24.8), 0.0, 24.8), 0.0, 24.8), 0.0, 24.8), 0.0, 24.8), 0.0,"
+ },
+ {
+  "스텝": 750,
+  "부품": "12000",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: closing parenthesis ']' does not match opening parenthesis '('\n7\t146",
+  "글": "b0 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (20.0, 0.0), (20.0, 10.0), (15.0, 10.0), (15.0, 20.0), (0.0, 20.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 20.0)).center(1.1, -1.1).hole(1.1), \"y\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (20.0, 0.0), (20.0, 10.0), (15.0, 10.0), (15.0, 20.0), (0.0, 20.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 20.0)).center(1.2, -10.1).rect(12.1, 14.1).cutBlind(-14.3), \"y\", (0.0, 0.0, -26.1))\nb2 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (20.0, 0.0), (20.0, 14.1), (14.9, 14.1), (14.9, 20.1), (0.0, 20.1)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), \"y\", (0.0, 0.0, 26.1))\nb2 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (20.0, 0.0), (20.0, 14.1), (20.0, 20.1), (20.0, 29.1), (0.0, 29.1)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), \"y\", (0.0, 0.0, 26.1))\nb3 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (25.0, 0.0), (25.0, 14.1), (24.1, 14.1), (24.1, 29.1), (20.0, 29.1), (20.0, 14.1), (0.0, 14.1)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), \"y\", (25.0, 0.0, -26.1))\nb3 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (25.0, 0.0), (25.0, 14.1), (25.0, 29.1), (25.0, 39.1), (0.0, 39.1)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), \"y\", (0.0, -19.5, 0.0))\nb3 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (25.0, 0.0), (25.0, 14.1, (25.0, 29.1), (25.0, 39.1), (25.0, 49.1), (25.0, 65.9), (0.0, 65.9)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), \"z\","
+ },
+ {
+  "스텝": 750,
+  "부품": "12001",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: unmatched ')'\n3\t212",
+  "글": "b0 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (20.0, 0.0), (20.0, 10.0), (15.0, 10.0), (15.0, 20.0), (0.0, 20.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 20.0)).center(1.1, -1.1).rect(11.1, 11.1).cutBlind(-1.6), \"y\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XY\").box(36.1, 36.1, 20.2, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 20.2)).center(1.2, -1.1).hole(1.2), \"y\", (0.0, 0.0, -22.0))\nb2 = place(cq.Workplane(\"XY\").box(36.1, 22.2, 22.2, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 22.2)).center(1.2, 1.1).box(10.2, 11.2, 11.2, 11.2, 22.2, 22.2, 22.2)), \"y\", (36.0, 0.0, 0.0))\nb3 = place(cq.Workplane(\"XY\").box(36.0, 22.2, 22.2, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 22.2)).center(1.2, 1.1).hole(2.2), \"z\", (0.0, 0.0, -22.0))\nb2 = place(cq.Workplane(\"XY\").box(36.1, 22.2, 22.2, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 22.2)).center(1.2, -1.1).hole(2.2), \"z\", (36.0, 0.0, 22.2))\nb3 = place(cq.Workplane(\"XY\").circle(12.2).extrude(22.2).faces(\">Z\").workplane(origin=(0, 0, 22.2)).center(1.2, -1.2).hole(1.2), \"z\", (36.0, 0.0, -22.0))\nresult = b0.union(b1.union(b2.union(b3.union(b4.union(b5)))"
+ },
+ {
+  "스텝": 750,
+  "부품": "12002",
+  "실행": true,
+  "IoU": 0.548,
+  "오류": "",
+  "글": "b0 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (15.0, 0.0), (15.0, 10.0), (10.9, 10.0), (10.9, 20.0), (0.0, 20.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), \"y\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (20.0, 0.0), (20.0, 10.0), (15.0, 10.0), (15.0, 20.0), (0.0, 20.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), \"z\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (20.0, 0.0), (20.0, 10.0), (20.0, 20.0), (20.0, 29.7), (0.0, 29.7)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), \"z\", (0.0, 29.7, -19.1))\nb2 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (20.0, 0.0), (20.0, 10.1), (20.0, 29.7), (20.0, 39.7), (0.0, 39.7)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), \"z\", (0.0, 29.7, -19.1))\nresult = b0.union(b1.union(b2))"
+ },
+ {
+  "스텝": 750,
+  "부품": "12050",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: '(' was never closed\n6\t164",
+  "글": "b0 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (19.0, 0.0), (19.0, 10.0), (14.0, 10.0), (14.0, 2.0), (0.0, 2.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 10.0)).center(1.2, -1.1).rect(10.1, 1.1).cutBlind(-1.6), \"y\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (20.0, 0.0), (20.0, 10.0), (15.0, 10.0), (15.0, 2.0), (0.0, 2.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 10.0)).center(1.2, -1.1).rect(16.1, 14.1).cutBlind(-1.2), \"y\", (0.0, 0.0, -22.2))\nb4 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (22.0, 0.0), (22.0, 10.1), (21.1, 10.1), (21.1, 14.8), (14.0, 14.8), (14.0, 13.6), (10.0, 13.6), (6.5, 13.6), (3.5, 13.6), (0.0, 13.6)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), \"y\", (0.0, 0.0, 22.2))\nb3 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (22.0, 0.0), (22.0, 10.1), (19.0, 10.1), (19.0, 4.1), (0.0, 4.1)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 10.1)).center(1.2, -10.6).rect(16.2, 22.2).cutBlind(-12.6), \"z\", (0.0, 0.0, -22.2))\nb3 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (22.0, 0.0), (22.0, 12.1), (19.0, 12.1), (19.0, 14.1), (14.0, 14.1), (14.0, 12.1), (10.0, 12.1), (10.0, 14.1), (0.0, 14.1)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), \"y\", (-36.6, 0.0, 0.0))\nb3 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (22.0, 0.0), (22.0, 12.1), (22.0, 14.1), (22.0, 15.2), (22.0, 16.2), (22.0, 17.2), (22.0, 18.2), (22.0, 20.2), (22.0, "
+ },
+ {
+  "스텝": 1000,
+  "부품": "12000",
+  "실행": true,
+  "IoU": 0.5557,
+  "오류": "",
+  "글": "b0 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (24.5, 0.0), (24.5, 15.0), (15.0, 15.0), (15.0, 20.0), (0.0, 20.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 20.0)).center(10.0, 10.5).hole(10.7, 10.5), \"z\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (24.5, 0.0), (24.5, 15.0), (15.0, 15.0), (15.0, 20.0), (0.0, 20.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 20.0)).center(10.7, 10.5).hole(10.7), \"z\", (0.0, 0.0, 0.0))\nresult = b0.union(b1)"
+ },
+ {
+  "스텝": 1000,
+  "부품": "12001",
+  "실행": true,
+  "IoU": 0.4338,
+  "오류": "",
+  "글": "b0 = place(cq.Workplane(\"XY\").circle(15.0).extrude(20.0).faces(\">Z\").workplane(origin=(0, 0, 20.0)).center(1.5, -1.5).hole(10.0, 14.0), \"z\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (20.0, 0.0), (20.0, 20.0), (15.0, 20.0), (15.0, 39.0), (0.0, 39.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 39.0)).center(1.2, 1.1).hole(1.2), \"z\", (0.0, 0.0, 29.0))\nb2 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (24.0, 0.0), (24.0, 20.0), (15.0, 20.0), (15.0, 39.0), (0.0, 39.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 39.0)).center(1.2, 1.1).hole(1.2), \"z\", (0.0, 0.0, 29.0))\nresult = b0.union(b1.union(b2))"
+ },
+ {
+  "스텝": 1000,
+  "부품": "12002",
+  "실행": true,
+  "IoU": 0.5896,
+  "오류": "",
+  "글": "b0 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (24.5, 0.0), (24.5, 15.0), (15.1, 15.0), (15.1, 20.0), (0.0, 20.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 15.0)).center(1.1, 1.1).hole(1.9, 2.9), \"z\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (24.5, 0.0), (24.5, 15.0), (14.0, 15.0), (14.0, 20.0), (0.0, 20.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 20.0)).center(-1.1, -1.3).hole(1.3), \"z\", (0.0, 0.0, -26.0))\nb2 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (26.0, 0.0), (26.0, 15.0), (10.5, 15.0), (10.5, 20.0), (0.0, 20.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 20.0)).center(-1.1, -1.3).hole(1.3), \"z\", (0.0, 0.0, -26.0))\nresult = b0.union(b1.union(b2))"
+ },
+ {
+  "스텝": 1000,
+  "부품": "12050",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "NameError: name 'b3' is not defined\n5\t0",
+  "글": "b0 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (24.0, 0.0), (24.0, 15.5), (15.9, 15.5), (15.9, 20.0), (0.0, 20.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 20.0)).center(-1.5, -1.1).hole(1.9, 1.8), \"z\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (24.0, 0.0), (24.0, 15.5), (14.9, 15.5), (14.9, 20.0), (0.0, 20.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 20.0)).center(-1.9, -1.1).hole(1.9), \"z\", (0.0, 0.0, -36.0))\nb2 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (24.0, 0.0), (24.0, 15.7), (10.9, 15.7), (10.9, 20.0), (0.0, 20.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 20.0)).center(-1.5, -1.1).hole(1.3), \"z\", (0.0, 0.0, -36.0))\nb2 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (24.0, 0.0), (24.0, 15.7), (14.9, 15.7), (14.9, 20.0), (0.0, 20.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 20.0)).center(-1.5, -1.3).hole(1.3), \"z\", (0.0, 0.0, -36.0))\nresult = b0.union(b1.union(b2.union(b3)))"
+ },
+ {
+  "스텝": 1250,
+  "부품": "12000",
+  "실행": true,
+  "IoU": 0.5169,
+  "오류": "",
+  "글": "b0 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (19.8, 0.0), (19.8, 15.0), (10.8, 15.0), (10.8, 20.0), (0.0, 20.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 20.0)).center(10.0, 10.3).hole(10.0, 10.0), \"z\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (25.0, 0.0), (25.0, 15.0), (14.6, 15.0), (14.6, 24.0), (0.0, 24.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 24.0)).center(10.0, 10.0).hole(10.0, 10.0), \"z\", (0.0, 0.0, 0.0))\nresult = b0.union(b1)"
+ },
+ {
+  "스텝": 1250,
+  "부품": "12001",
+  "실행": true,
+  "IoU": 0.4591,
+  "오류": "",
+  "글": "b0 = place(cq.Workplane(\"XY\").box(40.8, 40.8, 14.7, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 14.7)).center(11.0, 10.7).hole(10.7).faces(\">Z\").workplane(origin=(0, 0, 14.7)).center(11.2, 10.7).hole(10.7).faces(\">Z\").workplane(origin=(0, 0, 14.7)).center(11.2, 1.1).hole(10.2, 2.7), \"z\", (0.0, 0.0, 0.0))\nresult = b0"
+ },
+ {
+  "스텝": 1250,
+  "부품": "12002",
+  "실행": true,
+  "IoU": 0.45,
+  "오류": "",
+  "글": "b0 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (22.2, 0.0), (22.2, 15.0), (10.1, 15.0), (10.1, 20.0), (0.0, 20.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 20.0)).center(10.0, 10.7).rect(10.7, 8.7).cutBlind(-10.6), \"z\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (22.2, 0.0), (22.2, 15.0), (10.9, 15.0), (10.9, 20.0), (0.0, 20.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 20.0)).center(10.2, 10.3).rect(10.7, 10.0).cutBlind(-10.6), \"z\", (0.0, 0.0, 0.0))\nresult = b0.union(b1)"
+ },
+ {
+  "스텝": 1250,
+  "부품": "12050",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "NameError: name 'b2' is not defined\n3\t0",
+  "글": "b0 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (19.9, 0.0), (19.9, 15.0), (10.9, 15.0), (10.9, 20.0), (0.0, 20.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 20.0)).center(10.0, 10.9).hole(10.7).faces(\">Z\").workplane(origin=(0, 0, 20.0)).center(10.7, 10.0).hole(10.7, 10.0), \"z\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (28.8, 0.0), (28.8, 15.0), (17.9, 15.0), (17.9, 20.0), (0.0, 20.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 20.0)).center(10.7, 10.5).hole(10.2), \"z\", (0.0, 0.0, 20.0))\nresult = b0.union(b1.union(b2))"
+ },
+ {
+  "스텝": 1500,
+  "부품": "12000",
+  "실행": true,
+  "IoU": 0.3568,
+  "오류": "",
+  "글": "b0 = place(cq.Workplane(\"XY\").box(46.8, 24.8, 13.9, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 13.9)).center(-10.0, 1.0).hole(10.0, 1.0).edges(\"|Z\").fillet(3.6), \"y\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XY\").box(46.8, 24.4, 14.0, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 14.0)).center(1.1, -1.1).hole(1.0, 1.2).edges(\"|Z\").fillet(3.6), \"z\", (0.0, 0.0, -22.0))\nresult = b0.union(b1)"
+ },
+ {
+  "스텝": 1500,
+  "부품": "12001",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "StdFail_NotDone: BRep_API: command not done\n1\t0",
+  "글": "b0 = place(cq.Workplane(\"XY\").box(36.1, 28.8, 13.1, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 13.1)).center(10.0, 10.0).hole(10.0, 10.1).edges(\"|Z\").fillet(2.6), \"y\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XY\").box(36.1, 28.1, 20.2, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 20.2)).center(1.2, -1.3).hole(1.0, 1.2).edges(\"|Z\").fillet(2.6), \"z\", (0.0, 0.0, -22.2))\nresult = b0.union(b1)"
+ },
+ {
+  "스텝": 1500,
+  "부품": "12002",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: invalid syntax. Perhaps you forgot a comma?\n1\t12",
+  "글": "b0 = place(cq.Workplane(\"XY\").add(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (20.0, 0.0), (20.0, 15.0), (14.1, 15.0), (14.1, 3.0), (0.0, 3.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 15.0)).center(10.2, 10.3).hole(10.0, 10.0).faces(\">Z\").workplane(origin=(0, 0, 15.0)).center(1.1, 1.1).hole(10.0, 10.0), \"z\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XY\").add(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (20.0, 0.0), (20.0, 15.0), (15.1, 15.0), (15.1, 3.0), (0.0, 3.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 15.0)).center(10.0, 10.0).hole(10.0, 10.0), \"z\", (0.0, 0.0, -22.0))\nresult = b0.union(b1.union(b2))"
+ },
+ {
+  "스텝": 1500,
+  "부품": "12050",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: '(' was never closed\n4\t11",
+  "글": "b0 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (28.2, 0.0), (27.2, 6.7), (24.2, 12.1), (19.9, 17.9), (13.1, 21.9), (6.6, 24.1), (0.0, 24.1)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), \"z\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (28.2, 0.0), (27.2, 10.0), (24.9, 20.6), (20.9, 31.8), (15.6, 40.8), (9.5, 46.6), (4.0, 50.6), (0.0, 51.1)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), \"y\", (0.0, 0.0, 29.0))\nb2 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (20.0, 0.0), (19.6, 4.0), (18.5, 8.0), (15.9, 12.0), (11.9, 15.0), (7.0, 17.0), (0.0, 17.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), \"z\", (0.0, 0.0, -29.0))\nb3 = place(cq.Workplane(\"XY\").add(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (20.0, 0.0), (20.0, 15.0), (16.8, 15.0), (16.8, 3.9), (0.0, 3.9)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 15.0)).center(10.2, -10.7).rect(12.1, 8.1).cutBlind(-10.6), \"z\", (0.0, 0.0, -29.0))\nresult = b0.union(b1.union(b2.union(b3)))"
+ },
+ {
+  "스텝": 1750,
+  "부품": "12000",
+  "실행": true,
+  "IoU": 0.4564,
+  "오류": "",
+  "글": "b0 = place(cq.Workplane(\"XY\").box(46.1, 24.4, 24.4, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 24.4)).center(-1.1, 1.1).hole(1.3), \"z\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XY\").box(46.1, 24.4, 24.4, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 24.4)).center(-1.1, 1.1).hole(10.0, 11.0).faces(\">Z\").workplane(origin=(0, 0, 24.4)).center(-1.2, 1.1).hole(10.2), \"z\", (0.0, 0.0, 0.0))\nresult = b0"
+ },
+ {
+  "스텝": 1750,
+  "부품": "12001",
+  "실행": true,
+  "IoU": 0.3245,
+  "오류": "",
+  "글": "b0 = place(cq.Workplane(\"XY\").box(35.1, 24.4, 20.2, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 20.2)).center(1.2, 1.1).hole(1.0, 10.0).faces(\">Z\").workplane(origin=(0, 0, 20.2)).center(1.3, 1.1).hole(1.0, 19.2).faces(\">Z\").workplane(origin=(0, 0, 20.2)).center(1.3, 1.1).hole(1.0, 19.2).faces(\">Z\").workplane(origin=(0, 0, 20.2)).center(1.3, 1.1).hole(1.2), \"z\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XY\").box(35.1, 28.1, 20.2, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 20.2)).center(1.2, 1.1).hole(1.2), \"z\", (0.0, 0.0, 20.2))\nresult = b0.union(b1)"
+ },
+ {
+  "스텝": 1750,
+  "부품": "12002",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: '(' was never closed\n2\t11",
+  "글": "b0 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (28.4, 0.0), (28.4, 13.0), (15.0, 13.0), (15.0, 20.0), (0.0, 20.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 20.0)).center(-1.1, 1.1).hole(11.2).faces(\">Z\").workplane(origin=(0, 0, 20.0)).center(-1.1, 1.1).hole(1.2), \"z\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XY\").add(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (26.0, 0.0), (26.0, 11.0), (11.8, 11.0), (11.8, 20.0), (0.0, 20.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 20.0)).center(-1.1, 1.1).hole(11.0, 14.0).faces(\">Z\").workplane(origin=(0, 0, 20.0)).center(-1.3, 1.1).hole(11.0, 14.0), \"z\", (0.0, 0.0, -21.0))\nresult = b0.union(b1.union(b2))"
+ },
+ {
+  "스텝": 1750,
+  "부품": "12050",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "NameError: name 'b2' is not defined\n3\t0",
+  "글": "b0 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (28.2, 0.0), (28.2, 11.0), (17.0, 11.0), (17.0, 20.0), (0.0, 20.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 20.0)).center(-1.3, -1.3).hole(11.2).faces(\">Z\").workplane(origin=(0, 0, 20.0)).center(-1.3, 1.1).hole(1.2), \"z\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (28.2, 0.0), (28.2, 15.0), (17.9, 15.0), (17.9, 3.0), (0.0, 3.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 15.0)).center(-1.2, 1.1).hole(10.2).faces(\">Z\").workplane(origin=(0, 0, 15.0)).center(-1.2, 1.1).hole(10.2), \"z\", (0.0, 0.0, 20.0))\nresult = b0.union(b1.union(b2))"
+ },
+ {
+  "스텝": 2000,
+  "부품": "12000",
+  "실행": true,
+  "IoU": 0.3238,
+  "오류": "",
+  "글": "b0 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (20.0, 0.0), (20.0, 15.0), (10.8, 15.0), (10.8, 20.0), (0.0, 20.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 20.0)).center(-1.1, 1.0).hole(10.6, 10.6), \"z\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (28.0, 0.0), (28.0, 15.0), (18.0, 15.0), (18.0, 20.0), (0.0, 20.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), \"z\", (0.0, 0.0, 0.0))\nb2 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (26.0, 0.0), (26.0, 15.0), (14.0, 15.0), (14.0, 26.0), (0.0, 26.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 26.0)).center(-1.1, 1.1).hole(1.3), \"z\", (0.0, 0.0, 33.0))\nresult = b0.union(b1.union(b2))"
+ },
+ {
+  "스텝": 2000,
+  "부품": "12001",
+  "실행": true,
+  "IoU": 0.4503,
+  "오류": "",
+  "글": "b0 = place(cq.Workplane(\"XY\").box(46.8, 24.8, 13.7, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 13.7)).center(-1.1, 1.1).hole(1.2), \"z\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XY\").box(46.8, 22.7, 22.7, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 22.7)).center(-1.1, 1.1).hole(1.2), \"z\", (0.0, 0.0, 0.0))\nb2 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (28.0, 0.0), (28.0, 15.0), (20.0, 15.0), (20.0, 20.0), (0.0, 20.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), \"z\", (0.0, 0.0, 22.7))\nresult = b0.union(b1.union(b2))"
+ },
+ {
+  "스텝": 2000,
+  "부품": "12002",
+  "실행": true,
+  "IoU": 0.6695,
+  "오류": "",
+  "글": "b0 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (28.0, 0.0), (28.0, 15.0), (18.1, 15.0), (18.1, 20.0), (0.0, 20.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 20.0)).center(-1.1, 1.1).hole(11.6, 14.0), \"z\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (28.0, 0.0), (28.0, 15.0), (20.0, 15.0), (20.0, 20.0), (0.0, 20.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), \"z\", (0.0, 0.0, 0.0))\nb2 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (20.0, 0.0), (20.0, 15.0), (14.0, 15.0), (14.0, 29.0), (0.0, 29.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 29.0)).center(-1.1, 1.1).hole(10.2, 15.0), \"z\", (0.0, 0.0, 29.0))\nresult = b0.union(b1.union(b2))"
+ },
+ {
+  "스텝": 2000,
+  "부품": "12050",
+  "실행": true,
+  "IoU": 0.5852,
+  "오류": "",
+  "글": "b0 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (20.0, 0.0), (20.0, 15.0), (10.8, 15.0), (10.8, 20.0), (0.0, 20.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 20.0)).center(-1.1, 1.1).hole(10.6, 10.6), \"z\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (28.0, 0.0), (28.0, 15.0), (18.0, 15.0), (18.0, 20.0), (0.0, 20.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 20.0)).center(-1.9, -1.3).hole(10.6, 10.6), \"z\", (0.0, 0.0, 20.0))\nb2 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (28.0, 0.0), (28.0, 15.0), (19.0, 15.0), (19.0, 20.0), (0.0, 20.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), \"z\", (0.0, 0.0, 20.0))\nb3 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (26.0, 0.0), (26.0, 15.0), (17.6, 15.0), (17.6, 20.0), (0.0, 20.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), \"z\", (0.0, 0.0, 20.0))\nresult = b0.union(b1.union(b2.union(b3)))"
+ },
+ {
+  "스텝": 2250,
+  "부품": "12000",
+  "실행": true,
+  "IoU": 0.3282,
+  "오류": "",
+  "글": "b0 = place(cq.Workplane(\"XY\").circle(23.2).extrude(32.2).faces(\">Z\").workplane(origin=(0, 0, 32.2)).center(-1.1, -1.2).hole(10.0, 10.0), \"z\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XY\").box(46.5, 38.3, 15.4, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 15.4)).center(-1.1, 1.1).hole(10.0, 10.0), \"z\", (0.0, 0.0, 0.0))\nresult = b0.union(b1)"
+ },
+ {
+  "스텝": 2250,
+  "부품": "12001",
+  "실행": true,
+  "IoU": 0.4215,
+  "오류": "",
+  "글": "b0 = place(cq.Workplane(\"XY\").box(46.1, 24.4, 14.4, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 14.4)).center(-1.1, 1.1).hole(1.0, 1.9).edges(\"|Z\").fillet(2.6), \"y\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XY\").box(56.1, 28.1, 24.4, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 24.4)).center(-1.1, 1.1).hole(1.0, 1.3).edges(\"|Z\").fillet(2.6), \"z\", (0.0, 0.0, -23.4))\nb2 = place(cq.Workplane(\"XY\").box(46.9, 39.9, 15.4, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 15.4)).center(1.2, 1.1).hole(4.2, 1.2), \"z\", (0.0, 0.0, -23.4))\nresult = b0.union(b1.union(b2))"
+ },
+ {
+  "스텝": 2250,
+  "부품": "12002",
+  "실행": true,
+  "IoU": 0.5404,
+  "오류": "",
+  "글": "b0 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (20.0, 0.0), (20.0, 17.0), (10.8, 17.0), (10.8, 3.0), (0.0, 3.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 17.0)).center(-1.1, 1.1).hole(10.6, 10.0), \"z\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (28.0, 0.0), (28.0, 15.0), (18.0, 15.0), (18.0, 3.8), (0.0, 3.8)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 15.0)).center(-1.1, -1.3).hole(10.0, 17.0), \"z\", (0.0, 0.0, -21.0))\nb2 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (26.0, 0.0), (26.0, 15.0), (17.0, 15.0), (17.0, 3.9), (0.0, 3.9)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), \"x\", (0.0, 0.0, -21.0))\nresult = b0.union(b1.union(b2))"
+ },
+ {
+  "스텝": 2250,
+  "부품": "12050",
+  "실행": true,
+  "IoU": 0.5248,
+  "오류": "",
+  "글": "b0 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (19.8, 0.0), (19.8, 15.0), (14.1, 15.0), (14.1, 3.0), (0.0, 3.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 15.0)).center(-1.1, 1.1).hole(10.7, 10.6), \"z\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (28.0, 0.0), (28.0, 15.0), (18.8, 15.0), (18.8, 3.1), (0.0, 3.1)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 15.0)).center(-1.1, 1.1).hole(10.6, 10.6), \"z\", (0.0, 0.0, -23.0))\nb2 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (28.0, 0.0), (28.0, 15.0), (19.0, 15.0), (19.0, 3.9), (0.0, 3.9)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 15.0)).center(-1.1, -1.2).hole(10.2), \"z\", (0.0, 0.0, -23.0))\nresult = b0.union(b1.union(b2))"
+ },
+ {
+  "스텝": 2500,
+  "부품": "12000",
+  "실행": true,
+  "IoU": 0.4833,
+  "오류": "",
+  "글": "b0 = place(cq.Workplane(\"XY\").box(46.1, 31.1, 14.4, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 14.4)).center(-11.0, 10.0).hole(10.0), \"z\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XY\").box(46.1, 21.1, 21.4, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 21.4)).center(-1.1, 1.1).hole(10.0, 10.0), \"z\", (0.0, 0.0, 0.0))\nresult = b0.union(b1)"
+ },
+ {
+  "스텝": 2500,
+  "부품": "12001",
+  "실행": true,
+  "IoU": 0.3543,
+  "오류": "",
+  "글": "b0 = place(cq.Workplane(\"XY\").box(41.1, 31.1, 14.4, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 14.4)).center(-1.1, 1.1).hole(1.0, 1.9).edges(\"|Z\").fillet(2.2), \"y\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XY\").box(36.1, 36.1, 14.4, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 14.4)).center(-1.1, 1.1).hole(1.0, 1.3).edges(\"|Z\").fillet(3.6), \"z\", (0.0, 0.0, -21.0))\nb2 = place(cq.Workplane(\"XY\").box(36.1, 36.1, 21.0, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 21.0)).center(1.1, 1.1).hole(1.3, 1.2), \"z\", (0.0, 0.0, -21.0))\nresult = b0.union(b1.union(b2))"
+ },
+ {
+  "스텝": 2500,
+  "부품": "12002",
+  "실행": true,
+  "IoU": 0.5362,
+  "오류": "",
+  "글": "b0 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (28.0, 0.0), (28.0, 15.0), (18.0, 15.0), (18.0, 3.0), (0.0, 3.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 15.0)).center(-1.1, 1.1).hole(11.2, 14.0), \"z\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XY\").add(cq.Solid.makeCone(20.7, 0, 39.4)), \"z\", (0.0, 0.0, 39.4))\nb2 = place(cq.Workplane(\"XY\").circle(17.2).extrude(32.1), \"z\", (0.0, 0.0, -30.0))\nb3 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (20.0, 0.0), (19.6, 7.0), (18.5, 14.0), (15.5, 20.0), (11.5, 25.0), (6.7, 28.9), (0.0, 30.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), \"z\", (0.0, 0.0, -30.0))\nresult = b0.union(b1.union(b2))"
+ },
+ {
+  "스텝": 2500,
+  "부품": "12050",
+  "실행": true,
+  "IoU": 0.3907,
+  "오류": "",
+  "글": "b0 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (20.0, 0.0), (20.0, 15.0), (10.8, 15.0), (10.8, 30.0), (0.0, 30.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 30.0)).center(-1.1, 1.1).hole(11.7, 15.0), \"z\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (28.0, 0.0), (28.0, 15.0), (17.8, 15.0), (17.8, 3.8), (0.0, 3.8)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 15.0)).center(-1.1, 1.1).hole(10.2, 14.0), \"z\", (0.0, 0.0, 30.0))\nb2 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (28.0, 0.0), (28.0, 15.0), (19.0, 15.0), (19.0, 3.9), (0.0, 3.9)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), \"z\", (0.0, 0.0, -30.0))\nresult = b0.union(b1.union(b2))"
+ },
+ {
+  "스텝": 2750,
+  "부품": "12000",
+  "실행": true,
+  "IoU": 0.302,
+  "오류": "",
+  "글": "b0 = place(cq.Workplane(\"XY\").box(46.1, 24.4, 13.7, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 13.7)).center(-10.1, 1.3).hole(10.0, 1.3).edges(\"|Z\").fillet(2.6), \"y\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XY\").box(46.1, 28.1, 21.0, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 21.0)).center(-1.1, 1.1).hole(1.2, 1.9), \"z\", (0.0, 0.0, 0.0))\nb2 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (28.0, 0.0), (28.0, 11.0), (21.0, 11.0), (21.0, 38.0), (0.0, 38.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 38.0)).center(1.1, -1.2).hole(10.0, 15.0), \"z\", (0.0, 0.0, -33.0))\nresult = b0.union(b1.union(b2))"
+ },
+ {
+  "스텝": 2750,
+  "부품": "12001",
+  "실행": true,
+  "IoU": 0.3359,
+  "오류": "",
+  "글": "b0 = place(cq.Workplane(\"XY\").box(46.1, 31.1, 21.0, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 21.0)).center(11.1, 1.0).hole(7.0, 1.3).edges(\"|Z\").fillet(2.6), \"z\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XY\").box(36.1, 36.1, 21.0, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 21.0)).center(1.1, 1.1).hole(1.1, 1.8).edges(\"|Z\").fillet(3.6), \"z\", (0.0, 0.0, -21.0))\nresult = b0.union(b1)"
+ },
+ {
+  "스텝": 2750,
+  "부품": "12002",
+  "실행": true,
+  "IoU": 0.6067,
+  "오류": "",
+  "글": "b0 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (28.0, 0.0), (28.0, 13.0), (20.1, 13.0), (20.1, 20.0), (0.0, 20.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 20.0)).center(11.1, 10.3).rect(12.7, 8.7).cutBlind(-12.6), \"z\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (25.0, 0.0), (25.0, 15.0), (14.1, 15.0), (14.1, 30.0), (0.0, 30.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 30.0)).center(11.1, 11.0).hole(12.0, 15.0), \"z\", (0.0, 0.0, -21.0))\nb2 = place(cq.Workplane(\"XY\").circle(17.0).extrude(26.0).faces(\">Z\").workplane(origin=(0, 0, 26.0)).center(10.9, 11.1).hole(12.0), \"z\", (0.0, 0.0, -21.0))\nresult = b0.union(b1.union(b2))"
+ },
+ {
+  "스텝": 2750,
+  "부품": "12050",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "NameError: name 'b4' is not defined\n5\t0",
+  "글": "b0 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (20.0, 0.0), (20.0, 15.0), (10.8, 15.0), (10.8, 3.0), (0.0, 3.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 15.0)).center(-1.1, 1.1).hole(10.6, 10.3), \"z\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (28.0, 0.0), (28.0, 15.0), (18.8, 15.0), (18.8, 3.1), (0.0, 3.1)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 15.0)).center(11.1, 10.3).hole(11.0, 11.0), \"z\", (0.0, 0.0, -19.5))\nb2 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (28.0, 0.0), (28.0, 15.0), (21.9, 15.0), (21.9, 3.9), (0.0, 3.9)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 15.0)).center(11.1, -10.5).hole(11.0, 11.0), \"y\", (0.0, 0.0, -19.5))\nb3 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (28.0, 0.0), (28.0, 15.0), (19.9, 15.0), (19.9, 3.9), (0.0, 3.9)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 15.0)).center(-11.1, 10.2).hole(11.0, 11.0), \"z\", (-31.2, 0.0, -19.5))\nresult = b0.union(b1.union(b2.union(b3.union(b4))))"
+ },
+ {
+  "스텝": 3000,
+  "부품": "12000",
+  "실행": true,
+  "IoU": 0.3479,
+  "오류": "",
+  "글": "b0 = place(cq.Workplane(\"XY\").box(46.1, 24.4, 13.7, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 13.7)).center(-11.1, -1.3).hole(10.0, 1.3).edges(\"|Z\").fillet(3.6), \"z\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XY\").box(46.1, 28.1, 21.0, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 21.0)).center(-1.1, 1.1).hole(10.0, 10.0), \"z\", (0.0, 0.0, -17.0))\nb2 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (25.0, 0.0), (25.0, 15.0), (11.8, 15.0), (11.8, 20.0), (0.0, 20.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 20.0)).center(11.0, -1.0).hole(10.0, 10.0), \"y\", (0.0, -27.5, 0.0))\nresult = b0.union(b1)"
+ },
+ {
+  "스텝": 3000,
+  "부품": "12001",
+  "실행": true,
+  "IoU": 0.451,
+  "오류": "",
+  "글": "b0 = place(cq.Workplane(\"XY\").box(46.1, 31.1, 2.1, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 2.1)).center(11.1, 1.0).hole(7.0, 1.3).faces(\">Z\").workplane(origin=(0, 0, 2.1)).center(11.4, 1.0).hole(10.0, 1.0), \"z\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XY\").box(36.1, 36.1, 20.4, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 20.4)).center(1.1, 1.1).hole(10.0, 10.0), \"z\", (0.0, 0.0, -17.2))\nresult = b0.union(b1)"
+ },
+ {
+  "스텝": 3000,
+  "부품": "12002",
+  "실행": true,
+  "IoU": 0.7255,
+  "오류": "",
+  "글": "b0 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (28.0, 0.0), (28.0, 13.0), (20.1, 13.0), (20.1, 20.0), (0.0, 20.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 20.0)).center(11.1, 10.3).rect(12.7, 8.7).cutBlind(-12.6), \"z\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (25.0, 0.0), (25.0, 15.0), (11.9, 15.0), (11.9, 24.0), (0.0, 24.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 24.0)).center(11.1, -10.6).rect(11.4, 8.8).cutBlind(-12.6), \"z\", (0.0, 0.0, 33.0))\nb2 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (19.0, 0.0), (19.0, 15.0), (11.2, 15.0), (11.0, 20.0), (7.4, 20.0), (7.4, 24.0), (0.0, 24.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), \"z\", (0.0, 0.0, -33.0))\nresult = b0.union(b1.union(b2))"
+ },
+ {
+  "스텝": 3000,
+  "부품": "12050",
+  "실행": true,
+  "IoU": 0.5305,
+  "오류": "",
+  "글": "b0 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (20.0, 0.0), (20.0, 15.0), (10.8, 15.0), (10.8, 3.0), (0.0, 3.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 15.0)).center(1.3, 1.1).hole(10.6, 10.3).faces(\">Z\").workplane(origin=(0, 0, 15.0)).center(1.1, 1.1).hole(10.6, 10.0), \"z\", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (28.0, 0.0), (28.0, 15.0), (17.6, 15.0), (17.6, 3.9), (0.0, 3.9)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 15.0)).center(11.1, 10.5).hole(10.6, 10.5), \"z\", (0.0, 0.0, -22.0))\nb2 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (26.0, 0.0), (26.0, 15.0), (17.6, 15.0), (17.6, 3.9), (0.0, 3.9)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 15.0)).center(11.1, -10.0).hole(10.2), \"z\", (0.0, 0.0, -22.0))\nresult = b0.union(b1.union(b2))"
+ }
+]

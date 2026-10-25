@@ -1,0 +1,2 @@
+w1 = (0, 0.0, 0))
+r=w0.sketch().circle(100).circle(99,mode='s').finalize().extrude(10).union(w0.sketch().segment((-100,0),(-88,-10)).arc((-87,-12),(-85,-14)).segment((-85,14)).close().assemble().reset().face(w0.sketch().segment((-80,14),(-78,14)).segment((-78,11)).segment((-76,11)).segment((-76,14)).segment((-74,14)).segment((-74,18)).segment((-76,18)).segment((-76,21)).segment((-78,21)).segment((-78,18)).segment((-80,18)).close().assemble()).finalize().extrude(10)).union(w1.sketch().circle(100).circle(99,mode='s').finalize().extrude(100))
