@@ -83,7 +83,19 @@ def 항목(n, 선, 글, 입력, 정답=True):
     if 입력 == "도면": it["video"] = [도면그림(n)]
     if 정답: it["answer"] = 글
     return it
-def 모델(rank=16):
+좌표수 = 128   # 판 147 「좌표 토큰」: 선 글 좌표 0~127 을 토큰 하나씩 · 10-25 Qwen 은 숫자를 한 자리씩 잘라 입력 1818 토큰의 53 % 가 숫자 조각 · 서로 다른 토큰 18 개
+def 좌표글(선): import re; return re.sub(r" (\d+)", lambda m: f"<{m.group(1)}>", 선)   # "T L 47 25 62 37 h" → "T L<47><25><62><37> h"(7 토큰)
+def _좌표임베딩():
+    import torch, torch.nn as nn
+    class 좌표임베딩(nn.Module):   # 원래 임베딩(얼림) + 새 좌표 행 128 개만 학습 · 어휘 전체를 학습하면 Adam 상태가 8 GB 를 넘음 · 묶인 lm_head 는 그대로(좌표 토큰은 생성 금지)
+        def __init__(s, 원, n0, 초기): super().__init__(); s.원, s.n0 = 원, n0; s.새 = nn.Parameter(초기)
+        @property
+        def weight(s): return s.원.weight
+        def forward(s, ids):
+            새 = ids >= s.n0; e = s.원(ids.masked_fill(새, 0))
+            return torch.where(새[..., None], s.새.to(e.dtype)[(ids - s.n0).clamp(0, len(s.새) - 1)], e)
+    return 좌표임베딩
+def 모델(rank=16, 토큰="기존"):
     import torch
     from transformers import AutoProcessor
     from peft import LoraConfig, get_peft_model
@@ -91,7 +103,13 @@ def 모델(rank=16):
     m = Cadrille.from_pretrained(캐 + "/weights/cadrille", torch_dtype=torch.bfloat16, attn_implementation="sdpa", device_map="cuda")
     proc = AutoProcessor.from_pretrained(캐 + "/weights/qwen2vl2b", min_pixels=256 * 28 * 28, max_pixels=1280 * 28 * 28, padding_side="left")
     m.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False}); m.enable_input_require_grads()
-    m = get_peft_model(m, LoraConfig(r=rank, lora_alpha=2 * rank, lora_dropout=.05, target_modules=["q_proj", "k_proj", "v_proj", "o_proj"])); return m, proc
+    m = get_peft_model(m, LoraConfig(r=rank, lora_alpha=2 * rank, lora_dropout=.05, target_modules=["q_proj", "k_proj", "v_proj", "o_proj"]))
+    if 토큰 == "좌표":   # 새 토큰 = 토크나이저 끝(151657~) · 모델 행 151936 의 남는 칸 안 · 초기값 = 원래 자릿수 조각 임베딩 평균
+        tok = proc.tokenizer; tok.add_tokens([f"<{i}>" for i in range(좌표수)]); n0 = tok.convert_tokens_to_ids("<0>"); b = m.get_base_model(); 원 = b.model.embed_tokens
+        assert n0 + 좌표수 <= 원.weight.shape[0], n0
+        with torch.no_grad(): 초기 = torch.stack([원.weight[tok(str(i), add_special_tokens=False).input_ids].float().mean(0) for i in range(좌표수)])
+        b.model.embed_tokens = _좌표임베딩()(원, n0, 초기)
+    return m, proc
 def 묶(items, proc, eval=False):
     import torch; sys.path.insert(0, 캐); from cadrille import collate
     b = collate(items, processor=proc, n_points=256, eval=eval); return {k: (v.cuda() if torch.is_tensor(v) else v) for k, v in b.items()}
@@ -107,7 +125,8 @@ def 생성(model, proc, items, 배=4, 최대=1024):
     for s in range(0, len(items), 배):
         b = 묶(items[s:s + 배], proc, eval=True); 인 = {k: b[k] for k in ("input_ids", "attention_mask", "point_clouds", "is_pc", "is_img") if k in b}
         if b.get("pixel_values_videos") is not None: 인 |= {"pixel_values_videos": b["pixel_values_videos"], "video_grid_thw": b["video_grid_thw"]}
-        with torch.no_grad(): g = model.generate(**인, max_new_tokens=최대, do_sample=False, use_cache=True)
+        막 = list(range(151657, len(proc.tokenizer)))   # 좌표 토큰은 입력 전용 — 생성 금지
+        with torch.no_grad(): g = model.generate(**인, max_new_tokens=최대, do_sample=False, use_cache=True, **({"suppress_tokens": 막} if 막 else {}))
         out += proc.batch_decode([o[len(i):] for i, o in zip(b["input_ids"], g)], skip_special_tokens=True)
         if len(items) > 8 and (s // 배) % 10 == 0: print(f"생성 {len(out)}/{len(items)}", flush=True)   # 10-24 145 생성 1 시간을 못 봤음
     model.train(); return out
@@ -122,10 +141,12 @@ def 평가(이름들, 글들):   # 생성 글 · 정답 사양 → 실루엣 IoU
     return 줄, 렌
 def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.스텝 · 4 스텝마다 갱신) → 시험 생성 → 실행 · IoU → 그림
     import torch
-    s = cfg.코드; 입력 = str(s.입력); 목 = 자료(); 학 = [x for x in 목 if not x[1]]; 시 = [x for x in 목 if x[1]]
+    s = cfg.코드; 입력 = str(s.입력); 토큰 = str(s.get("토큰", "기존")); 목 = 자료()
+    if 토큰 == "좌표": 목 = [(n, t, 좌표글(l), g) for n, t, l, g in 목]
+    학 = [x for x in 목 if not x[1]]; 시 = [x for x in 목 if x[1]]
     if s.get("시험수"): 시 = 시[:int(s.시험수)]
     random.seed(int(cfg.학습.get("시드", 0))); torch.manual_seed(int(cfg.학습.get("시드", 0)))
-    model, proc = 모델(int(s.get("랭크", 16))); 스텝 = int(cfg.학습.스텝); 누적 = 4
+    model, proc = 모델(int(s.get("랭크", 16)), 토큰); 스텝 = int(cfg.학습.스텝); 누적 = 4
     opt = torch.optim.AdamW([p for p in model.parameters() if p.requires_grad], lr=float(cfg.학습.학습률), weight_decay=0.)
     sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda t: min(1., (t + 1) / 20) * .5 * (1 + math.cos(math.pi * min(t, 스텝 // 누적) / max(스텝 // 누적, 1))))
     고정 = [항목(n, l, g, 입력) for n, _, l, g in 시[:16]]; 기록 = []; 묶음손 = []; t0 = time.time()
@@ -146,7 +167,7 @@ def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.
             with torch.no_grad(): 시손 = float(np.mean([float(손실(model, 묶([it], proc))) for it in 고정]))
             model.train(); 검증생성(step); 기록.append({"에폭": step, "학습": float(np.mean(묶음손[-250:])), "시험": 시손, "초": round(time.time() - t0), "GPU": round(torch.cuda.max_memory_allocated() / 1e9, 2)}); print(기록[-1], flush=True)
             if step % 500 == 0 and step < 스텝: torch.save({"설정": 설정, "스텝": step, "기록": 기록, "묶음손": 묶음손, "가중": {k: v for k, v in model.named_parameters() if v.requires_grad}, "opt": opt.state_dict(), "sched": sched.state_dict(), "random": random.getstate(), "torch": torch.get_rng_state(), "cuda": torch.cuda.get_rng_state()}, 이어)   # 500 = 누적 4 의 배수(쌓인 기울기 없음)
-    model.save_pretrained(폴더 + "lora"); os.path.exists(이어) and os.remove(이어); json.dump(기록, open(폴더 + "학습.json", "w", encoding="utf-8"), ensure_ascii=False)
+    model.save_pretrained(폴더 + "lora"); 토큰 == "좌표" and torch.save(model.get_base_model().model.embed_tokens.새.detach().cpu(), 폴더 + "lora/좌표임베딩.pt"); os.path.exists(이어) and os.remove(이어); json.dump(기록, open(폴더 + "학습.json", "w", encoding="utf-8"), ensure_ascii=False)
     글들 = 생성(model, proc, [항목(n, l, g, 입력, 정답=False) for n, _, l, g in 시]); os.makedirs(폴더 + "생성", exist_ok=True)
     for (n, *_), 글 in zip(시, 글들): open(폴더 + f"생성/{n}.py", "w", encoding="utf-8").write(글)
     del model; torch.cuda.empty_cache()
@@ -198,4 +219,12 @@ def 그림(폴더, 시, 글들, 렌, 줄, 입력):   # 시험 부품 넷: 입력
 if __name__ == "__main__":   # 자체 시험(가벼움): 줄글 꼴 · 도면그림 크기
     print(줄글([{"_m": np.ones((2, 2), bool), "시작": [1, 2], "끝": [3, 4], "종류": "원호", "중간": [2, 5], "숨음": True}], 1))
     assert 줄글([{"_m": np.ones((2, 2), bool), "시작": [1, 2], "끝": [3, 4], "종류": "직선", "중간": [2, 3], "숨음": False}], 0) == ["T L 1 2 3 4"]
+    assert 좌표글("T L 47 25 62 37 h\nF A 1 2 3 4 5 6") == "T L<47><25><62><37> h\nF A<1><2><3><4><5><6>"
+    if "--토큰" in sys.argv:   # 왕복: 자료 선 글 전부 → 좌표 토큰 → 숫자가 모두 <0>~<127> 한 토큰 · 디코드가 원문 · 길이 줄어듦
+        from transformers import AutoTokenizer; import re
+        tok = AutoTokenizer.from_pretrained(캐 + "/weights/qwen2vl2b"); 전 = [len(tok(l).input_ids) for _, _, l, _ in 목록()[:300]]; tok.add_tokens([f"<{i}>" for i in range(좌표수)]); 후 = []
+        for _, _, l, _ in 목록():
+            c = 좌표글(l); 수들 = [int(x) for x in re.findall(r"\d+", l)]; assert max(수들, default=0) < 좌표수, max(수들)
+            ids = tok(c).input_ids; assert tok.decode(ids) == c; assert not any(t.isdigit() for t in tok.convert_ids_to_tokens(ids)); 후.append(len(ids))
+        print("좌표 토큰 왕복 통과 · 입력 토큰 중앙", int(np.median(전)), "→", int(np.median(후)))
     print("과제코드 시험 통과")
