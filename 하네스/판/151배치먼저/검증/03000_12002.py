@@ -1,0 +1,7 @@
+layout = [("revolve", "z", (0.0, 0.0, 0.0)), ("revolve", "y", (0.0, 0.0, -22.8)), ("revolve", "z", (0.0, 0.0, -22.8)), ("box", "z", (0.0, 0.0, -22.8)), ("box", "x", (0.0, 0.0, -22.8)), ("box", "z", (0.0, 0.0, -22.8)), ("box", "x", (0.0, 0.0, -22.8)), ("box", "x", (0.0, 0.0, -22.8)), ("box", "x", (0.0, 0.0, -22.8)), ("box", "x", (0.0, 0.0, -22.8)), ("box", "x", (0.0, 0.0, -22.8)), ("box", "x", (0.0, 0.0, -22.8)), ("box", "x", (0.0, -22.8, -22.8)), ("box(36.0, 36.0, -22.8, -22.8))]
+b0 = at(0, cq.Workplane("XY").add(cq.Workplane("XY").circle(20.0).extrude(27.3).faces(">Z").workplane(origin=(0, 0, 27.3)).center(1.5, -1.1).hole(11.1).faces(">Z").workplane(origin=(0, 0, 27.3)).center(1.1, -1.1).hole(11.1, 11.0))
+b1 = at(1, cq.Workplane("XY").box(44.1, 33.1, 2.1, centered=(True, True, False)).faces(">Z").workplane(origin=(0, 0, 2.1)).center(10.1, 1.1).hole(10.2, 1.1))
+b2 = at(2, cq.Workplane("XY").box(44.1, 44.4, 2.1, centered=(True, True, False)).faces(">Z").workplane(origin=(0, 0, 2.1)).center(10.1, 1.1).hole(10.2, 1.1).edges("|Z").fillet(2.5))
+b3 = at(3, cq.Workplane("XY").box(47.1, 44.4, 2.2, centered=(True, True, False)).faces(">Z").workplane(origin=(0, 0, 2.2)).center(10.5, -1.1).hole(10.3, 1.1).edges("|Z").fillet(2.4))
+b4 = at(4, cq.Workplane("XY").box(47.1, 44.4, 2.2, centered=(True, True, False)).faces(">Z").workplane(origin=(0, 0, 2.2)).center(10.5, 1.1).hole(10.3, 1.1).edges("|Z").fillet(1.4))
+result = b0.union(b1.union(b2.union(b3.union(b4))))

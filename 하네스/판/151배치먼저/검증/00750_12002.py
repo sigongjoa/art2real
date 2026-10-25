@@ -1,0 +1,5 @@
+layout = [("revolve", "z", (0.0, 0.0, 0.0)), ("revolve", "z", (0.0, 0.0, -22.7)), ("revolve", "z", (0.0, 0.0, -22.7)), ("revolve", "z", (0.0, 0.0, -22.7)), ("revolve", "z", (0.0, 0.0, -22.7)), ("result", "z", (0.0, 0.0, -22.7)), ("result = b0, 0, 0, 22.7)).center(1.0, 1.1, 0.1, 0.0, 22.7)))
+b0 = at(0, cq.Workplane("XY").add(cq.Workplane("XY").add(cq.Workplane("XY").add(cq.Workplane("XY").add(cq.Workplane("XY").add(cq.Workplane("XY").polyline([(0, 0, 22.7)).center(1.3, 1.1, 11.1))
+b1 = at(1, cq.Workplane("XY").add(cq.Workplane("XY").polyline([(0, 0, 22.7)).center(1.3, 1.1, 11.1))
+b1.union(b1.union(b26.8)), (0, 0, 11.1)).center(1.4, 3.1, 10.1)).cutBlind(-10.1, 0.0, 11.1)).center(1.4, 1.1, 11.1))
+b1 = at(1, cq.Workplane("XY").add(cq.Workplane("XY").polyline([(0, 0, 11.1)).arc((0, 1.1),(1,0)).close().assemble()).finalize().extrude(30.5).faces(">Z").workplane(origin=(0, 0, 11.1)).arc((0, 1.1),(1,0)).close().extrude(30.5)).cut(b2.union(b2.union(b3.union(b4))

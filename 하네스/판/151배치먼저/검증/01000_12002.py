@@ -1,0 +1,8 @@
+layout = [("revolve", "z", (0.0, 0.0, 0.0)), ("revolve", "z", (0.0, 0.0, -22.7)), ("revolve", "z", (0.0, 0.0, -22.7)), ("revolve", "z", (0.0, 0.0, -22.7)), ("revolve", "z", (0.0, 0.0, -22.7)), ("revolve", "z", (0.0, 0.0, -22.7))]
+b0 = at(0, cq.Workplane("XZ").polyline([(0.0, 0.0), (28.6, 0.0), (28.6, 22.2), (15.8, 22.2), (15.8, 7.3), (0.0, 7.3)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(">Z").workplane(origin=(0, 0, 22.2)).center(1.1, -1.1).hole(11.7))
+b1 = at(1, cq.Workplane("XZ").polyline([(0.0, 0.0), (28.6, 0.0), (28.6, 22.2), (13.5, 22.2), (13.5, 6.8), (0.0, 6.8)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(">Z").workplane(origin=(0, 0, 22.2)).center(10.5, 11.1).hole(15.5, 10.8))
+b2 = at(2, cq.Workplane("XZ").polyline([(0.0, 0.0), (28.6, 0.0), (28.6, 22.2), (14.5, 22.2), (14.5, 6.5), (0.0, 6.5)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(">Z").workplane(origin=(0, 0, 22.2)).center(-10.5, 10.0).hole(10.7))
+b2 = at(2, cq.Workplane("XZ").polyline([(0.0, 0.0), (17.0, 0.0), (17.0, 22.2), (6.5, 22.2), (6.5, 6.5), (0.0, 6.5)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(">Z").workplane(origin=(0, 0, 22.2)).center(-10.5, 10.0).hole(10.7))
+b4 = at(4, cq.Workplane("XZ").polyline([(0.0, 0.0), (17.0, 0.0), (17.0, 22.2), (6.5, 22.2), (6.5, 7.5), (0.0, 7.5)]).close().revolve(360, (0, 0, 0), (0, 1, 0)))
+b5 = at(5, cq.Workplane("XY").add(cq.Workplane("XY").polyline([(0.0, 0.0), (17.0, 0.0), (17.0, 22.2), (6.5, 22.2), (6.5, 7.5), (0.0, 7.5)]).close().revolve(360, (0, 0, 0), (0, 1, 0)))
+result = b0.union(b1.union(b2.union(b3)))

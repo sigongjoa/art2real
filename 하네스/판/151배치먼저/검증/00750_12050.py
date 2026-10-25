@@ -1,0 +1,6 @@
+layout = [("revolve", "z", (0.0, 0.0, 0.0)), ("revolve", "z", (0.0, 0.0, -22.0)), ("revolve", "z", (0.0, 0.0, -22.0)), ("revolve", "z", (0.0, 0.0, -22.0)), ("box", "z", (28.6, 0.0, 0.0)), ("revolve", "z", (26.6, 0.0, 0.0))]
+b0 = at(0, cq.Workplane("XY").add(cq.Workplane("XY").add(cq.Workplane("XY").add(cq.Workplane("XY").box(32.6, 22.3, 22.3, centered=(True, True, False)).faces(">Z").workplane(origin=(0, 0, 22.3)).center(1.1, -1.1).hole(1.6, 1.1).hole(3.6))
+b1 = at(1, cq.Workplane("XY").add(cq.Workplane("XY").polyline([(0.0, 0.0), (21.0, 0.0), (21.0, 11.1), (18.5, 11.1), (18.5, 5.5), (0.0, 5.5)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(">Z").workplane(origin=(0, 0, 11.1)).center(1.5, 1.1).hole(15.6, 1.2))
+b1 = at(1, cq.Workplane("XY").add(cq.Workplane("XY").add(cq.Workplane("XY").polyline([(0.0, 0.0), (22.2, 0.0), (22.2, 11.1), (18.2, 11.1), (18.2, 5.3), (0.0, 5.3)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(">Z").workplane(origin=(0, 0, 11.1)).center(1.5, 1.1).hole(15.6, 1.2))
+b2 = at(2, cq.Workplane("XY").add(cq.Workplane("XY").add(cq.Workplane("XY").extrude(22.2))
+b1.union(b2))

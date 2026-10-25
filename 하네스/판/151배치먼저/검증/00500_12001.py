@@ -1,0 +1,9 @@
+layout = [("box", "x", (0.0, 0.0, 0.0))]
+b0 = at(0, cq.Workplane("XY").box(36.6, 20.6, 0.0)), ("cone", "z", (10.0, 10.6, 0.0)), ("box(14.7, 15.6, 15.6, centered=(True, True, False)).faces(">Z").workplane(origin=(0, 0, 15.6)).center(-1, -1, 15.6)).center(-1, 1, 15.6)).center(-1, 1, 15.6)).center(1, 1, 15.6)).center(1, 1, 15.6)).center(1, 1, 15.6)).center(1, 1, 15.6)).center(3.6, 0.0, 15.6)).center(1, 0.0, 15.6)).center(1, 0.0, 15.6)).center(1, 0.0, 15.6)).center(1, 0.0, 15.6)).center(1, 0.0, 15.6)).center(">Z").workplane(origin=(0, 0, 15.6)).center(1, 0, 15.6)).center(1, 0, 15.6)).center(1, 0, 15.6)).center(1, 0, 15.6)).center(1, 0.0), (1, 0.0), (1, 1))
+b0.union(b0.workplane(origin=(0, 0, 15.6)).center(1, 0, 15.6)).center(1, 0, 15.6)).center(1, 0, 15.6)).center(1, 0, 15.6)).center(1, 0, 15.6)).center(1, 0, 15.6)).center(1, 0, 15.6)).center(1, 0, 15.6)).center(1, 0, 15.6)).center(1, 0, 15.6)).center(1, 0, 15.6)).center(1, 0, 15.6)).center(1, 0, 15.6)).center(1, 0, 15.6)).center(1, 0, 15.6)).center(1, 0, 15.6)).center(0.0, 0.0), (0.0, -13.1), (0.0, cq.Workplane("XY").polyline([(0.0, -13.1)]).rect(4.6, 4.5).rect(3.3, 3.3, 2.3))
+b1 = at(1, cq.Workplane('XY").polyline([(0.0,0.5)]).rect(3.6, 3.3), (2.0, 2.2), (2.2, 3.2), (2.3, 4.2), (2.3, 5.2), (2.3, 6.2), (2.3, 7.1), (2.3, 8.8), (2.3, 9.9), (2.3, 10.9), (2.3, 11.9), (2.3, 12.9), (2.3, 13.9), (2.3, 14.9)]).rect(2.6, 2.2), -1.0)))
+result = b0.workplane("XY").box(3.6, 3.1, 15.6))
+center(1, 1, 15.6))
+center(1, 0.0), (1,0.0), (1,1)).rect(1,2, 1, 1, 3.6))
+result = b0.workplane("XY").rect(3.6, 3.6).rect(3.6,3.6).rect(3.6,1.6).cutBlind(-10.0))
+b1 = at(1,
