@@ -30,9 +30,12 @@ def 자해시():
 def 한번(c, 판, 시드):   # 참가자 하나 · 시드 하나의 공통 자 값 — 저장된 값이 같은 자(공통자.py 해시)로 잰 것이면 읽기만
     import 공통자
     from omegaconf import OmegaConf
-    if OmegaConf.load(f"{뿌리}/하네스/판/{판}/설정.yaml").get("목표") == "코드생성":   # 145~: 판 지표를 그대로(시드 반복은 아직 — 판 하나가 학습 · 생성 · 실행에 몇 시간)
-        if 시드: raise 비교거부(f"{판}: 코드생성 판의 시드 반복은 아직 없다 — 비교 설정 시드를 1 로")
-        return dict(json.load(open(f"{뿌리}/하네스/판/{판}/판정.json", encoding="utf-8"))["지표"])
+    if OmegaConf.load(f"{뿌리}/하네스/판/{판}/설정.yaml").get("목표") == "코드생성":   # 145~: 시드 0 = 판 지표 그대로 · 시드 n = 같은 설정을 시드만 바꿔 점검(학습 · 생성 · 실행 · 몇 시간 · 다 돈 값은 읽기만)
+        if not 시드: return dict(json.load(open(f"{뿌리}/하네스/판/{판}/판정.json", encoding="utf-8"))["지표"])
+        폴 = f"{뿌리}/out/하네스/비교/{c.비교.이름}/{판}_s{시드}/"; 경 = 폴 + "지표.json"
+        if os.path.exists(경): return json.load(open(경, encoding="utf-8"))
+        import 과제코드; pc = OmegaConf.load(f"{뿌리}/하네스/판/{판}/설정.yaml"); pc.학습.시드 = 시드; os.makedirs(폴, exist_ok=True)
+        r = 과제코드.점검(pc, 폴); json.dump(r, open(경, "w", encoding="utf-8"), ensure_ascii=False); print(판, "시드", 시드, r, flush=True); return r
     경로 = f"{뿌리}/하네스/판/{판}/공통자.json" if 시드 == 0 else f"{뿌리}/out/하네스/비교/{c.비교.이름}/{판}_s{시드}/공통자.json"
     if os.path.exists(경로) and json.load(open(경로, encoding="utf-8")).get("자") == 자해시(): return json.load(open(경로, encoding="utf-8"))
     net = 자료 = None
