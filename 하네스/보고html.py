@@ -117,9 +117,9 @@ def 검증칸(d):   # 코드생성 판: 스텝별 검증 — 부품마다 표(�
     for k, n in enumerate(dict.fromkeys(r["부품"] for r in 줄)):
         h.append(f'<details{" open" if k == 0 else ""}><summary>부품 {E(n)} — 스텝별 코드</summary><div class="표"><table><thead><tr><th>스텝</th><th>렌더</th><th>결과</th><th>생성 코드</th></tr></thead><tbody><tr><td>정답</td><td><img src="검증/정답_{E(n)}.png" width="140" alt=""></td><td></td><td></td></tr>')
         for r in sorted((r for r in 줄 if r["부품"] == n), key=lambda r: r["스텝"]):
-            말, 줄, 열 = 오류풀기(r.get("오류", "")) if not r["실행"] else ("", 0, 0)
-            그 = f'<img src="검증/{r["스텝"]:05d}_{E(n)}.png" width="140" alt="">' if r["실행"] else "—"; 결 = f'IoU {r["IoU"]:.2f}' if r["실행"] else f'<strong>실행 실패</strong><br>{E(말)}' + (f"<br>{줄} 째 줄" + (f" {열} 째 글자" if 열 else "") if 줄 else "")
-            h.append(f'<tr><td>{r["스텝"]}</td><td>{그}</td><td class="왼">{결}</td><td class="왼">{코드틀(r["글"], 줄, 열)}</td></tr>')
+            말, 행, 열 = 오류풀기(r.get("오류", "")) if not r["실행"] else ("", 0, 0)   # 줄(목록)과 이름이 겹치면 다음 부품에서 터진다(10-25)
+            그 = f'<img src="검증/{r["스텝"]:05d}_{E(n)}.png" width="140" alt="">' if r["실행"] else "—"; 결 = f'IoU {r["IoU"]:.2f}' if r["실행"] else f'<strong>실행 실패</strong><br>{E(말)}' + (f"<br>{행} 째 줄" + (f" {열} 째 글자" if 열 else "") if 행 else "")
+            h.append(f'<tr><td>{r["스텝"]}</td><td>{그}</td><td class="왼">{결}</td><td class="왼">{코드틀(r["글"], 행, 열)}</td></tr>')
         h.append("</tbody></table></div></details>")
     return "".join(h)
 def 만들기(판, d, c, j, 지, 대, 곡, 특, 해석, 다음, 모션=None, 파일="보고.html", 구=None, 쇼=None):
