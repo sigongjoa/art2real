@@ -233,6 +233,7 @@ def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.
     import torch
     s = cfg.코드; 입력 = str(s.입력); 토큰 = str(s.get("토큰", "기존")); 제 = str(s.get("디코딩", "탐욕")) == "제약"; 목 = 자료()
     if 토큰 == "좌표": 목 = [(n, t, 좌표글(l), g) for n, t, l, g in 목]
+    if str(s.get("서식", "기존")) == "배치먼저": import 코드글; 목 = [(n, t, l, 코드글.배치먼저(g)) for n, t, l, g in 목]   # 151~: 몸 개수 · 배치를 첫 줄에
     학 = [x for x in 목 if not x[1]]; 시 = [x for x in 목 if x[1]]
     if s.get("시험수"): 시 = 시[:int(s.시험수)]
     random.seed(int(cfg.학습.get("시드", 0))); torch.manual_seed(int(cfg.학습.get("시드", 0)))
@@ -295,7 +296,9 @@ def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.
     return {"코드_실행률": round(float(np.mean([r["실행"] for r in 쓸])), 4), "코드_IoU": round(float(np.median(iou)), 4), "코드_IoU평균": round(float(iou.mean()), 4),
             "코드_IoU실행": round(float(np.median(된)), 4) if len(된) else None,   # 실행된 것만의 모양 — 코드_IoU(실패 = 0 중앙)는 실행률 < 0.5 면 늘 0 이라 모양을 못 봄(10-25 감사: 145 0.000 인데 이것은 0.53)
             "코드_OOM": sum(r["OOM"] for r in 줄), "코드_정답실패": sum(r["정답실패"] for r in 줄),
+            "코드_몸개수맞음": round(float(np.mean([몸수(g) == 몸수(x[3]) for g, x in zip(글들, 시)])), 4),   # 실행과 상관없이 몸 줄 수가 정답과 같은 비율(10-25 원인 쪼개기: 147 실행된 것 중 39 %)
             "코드_학습loss": round(기록[-1]["학습"], 4), "코드_시험loss": round(기록[-1]["시험"], 4), "시험loss": round(기록[-1]["시험"], 4), "학습loss": round(기록[-1]["학습"], 4)}
+def 몸수(글): import re; return len(re.findall(r"^b\d+ = ", 글, re.M))
 def 검증부품(시):   # 시트와 같은 넷: 12050 + 앞 셋
     보 = [x for x in 시 if x[0] == "12050"] + 시[:3]; return list({x[0]: x for x in 보}.values())[:4]
 def 검증정리(폴더, 검, 정렌, 스텝들=None):   # 검증/*.py → 렌더 · IoU · 오류 → 검증.json · 검증/<스텝>_<부품>.png · 검증.png(행 = 스텝 · 열 = 부품) · 스텝들 = 이 판이 쓴 스텝만(앞 판 파일이 섞이지 않게)

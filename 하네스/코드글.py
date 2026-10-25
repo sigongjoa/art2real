@@ -9,6 +9,7 @@ def place(w, axis, pos):
     if axis == "y": w = w.rotate((0, 0, 0), (1, 0, 0), -90)
     bb = w.val().BoundingBox()
     return w.translate((pos[0] - (bb.xmin + bb.xmax) / 2, pos[1] - (bb.ymin + bb.ymax) / 2, pos[2] - (bb.zmin + bb.zmax) / 2))
+def at(i, w): return place(w, layout[i][1], layout[i][2])
 '''
 def 수(v): return f"{float(v):.1f}"
 def 점들(pts): return "[" + ", ".join(f"({수(x)}, {수(y)})" for x, y in pts) + "]"
@@ -47,6 +48,14 @@ def 글로(c):   # 사양 → 글(머리말 빼고) · 몸마다 특징을 하�
         줄.append(f'b{i} = place({식}, "{s["축"]}", ({", ".join(수(v) for v in s["자리"])}))')
     줄.append("result = " + ".union(".join(f"b{i}" for i in range(len(c["몸"]))) + ")" * (len(c["몸"]) - 1))
     return "\n".join(줄)
+def 배치먼저(글):   # 판 151 서식: 첫 줄 layout = [(종류, 축, 자리), …] 로 몸 개수 · 배치를 먼저 쓰고 몸 줄은 at(i, 모양식) · 10-25 원인 쪼개기: 실행된 코드의 몸 개수 61 % 틀림 · 위치만 정답으로 바꾸면 0.54 → 0.70
+    import re; 배, 몸 = [], []
+    for l in 글.splitlines():
+        m = re.fullmatch(r'(b\d+) = place\((.*), "(\w)", \(([^()]*)\)\)', l)
+        if not m: 몸.append(l); continue
+        식 = m.group(2); 종 = "cone" if "makeCone" in 식 else "revolve" if "revolve" in 식 else "box" if ".box(" in 식 else "cylinder"
+        배.append(f'("{종}", "{m.group(3)}", ({m.group(4)}))'); 몸.append(f"{m.group(1)} = at({len(배) - 1}, {식})")
+    return "layout = [" + ", ".join(배) + "]\n" + "\n".join(몸)
 if __name__ == "__main__":   # 자체 시험: 부품 몇 개 왕복(사양 짓기 vs 글 실행) 부피 IoU
     import sys, json; sys.path.insert(0, "G:/art2real/원화3d/실험_20261013/캐드부품")
     import 모델124 as B, 조립124 as C, 설계116 as S
@@ -56,4 +65,8 @@ if __name__ == "__main__":   # 자체 시험: 부품 몇 개 왕복(사양 짓�
         v = S.점유(가); u = S.점유(나); 겹 = float((v & u).sum() / max((v | u).sum(), 1)); 겹들.append(겹)
         print(p, "글자", len(글), "부피 IoU", round(겹, 3))
     print("첫 부품 글:\n" + 글로(json.load(open(B.D + f"사양/{부품[0]}.json", encoding="utf-8"))["코드"]))
-    assert min(겹들) > .9, 겹들; print("코드글 시험 통과")
+    assert min(겹들) > .9, 겹들
+    for p in 부품:   # 배치먼저 서식이 같은 입체를 짓나(부피 IoU) · 첫 줄이 layout · place 가 안 남음
+        글 = 글로(json.load(open(B.D + f"사양/{p}.json", encoding="utf-8"))["코드"]); 새 = 배치먼저(글); assert 새.startswith("layout = [(") and "place(" not in 새, 새[:200]
+        v = S.점유(C.메시(실행(글))[0]); u = S.점유(C.메시(실행(새))[0]); assert (v & u).sum() / max((v | u).sum(), 1) > .999, p
+    print("배치먼저 예:\n" + 배치먼저(글)); print("코드글 시험 통과")
