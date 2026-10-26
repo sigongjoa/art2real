@@ -17,7 +17,7 @@ class 관문거부(Exception): pass
 지표출처 |= {f"{k}{끝}": None for k in ("선_직선", "선_곡선", "선_곡면테", "선_숨음", "선_헛선", "선_자리", "선_자리헛선", "선_종류", "점_정밀", "점_재현", "점_F1") for 끝 in ("", "_화소", "_차")}
 지표출처 |= {"선_곡선옆직선오류": None, "선_곡선옆직선오류_화소": None}   # 137~
 지표출처 |= {f"벡_{k}{끝}": None for k in ("재현", "정밀", "F1", "종류", "조각", "한선", "끊김", "재현_보임", "종류_보임", "재현_숨", "끊김_숨", "재현_윤곽", "종류_윤곽", "윤곽수") for 끝 in ("", "_정답", "_대조", "_차")} | {"벡_끊김_숨_비": None}   # 140~ 벡터화(학습 없음)
-지표출처 |= {f"코드_{k}": None for k in ("실행률", "IoU", "IoU평균", "IoU실행", "OOM", "정답실패", "학습loss", "시험loss", "몸개수맞음")}   # 145~ 코드 생성(모듈이 학습까지 함) · IoU실행 = 실행된 것만 · OOM · 정답실패 = 집계에서 뺀 수(10-25 감사)
+지표출처 |= {f"코드_{k}": None for k in ("실행률", "IoU", "IoU평균", "IoU실행", "OOM", "정답실패", "학습loss", "시험loss", "몸개수맞음", "원뿔배움")}   # 145~ 코드 생성(모듈이 학습까지 함) · IoU실행 = 실행된 것만 · OOM · 정답실패 = 집계에서 뺀 수(10-25 감사)
 지표출처 |= {f"세뷰_{k}": None for k in ("부품", "실패", "겹침몫", "가름", "겹침당모서리")}   # 142~ 세 뷰 짝(학습 없음)
 지표출처 |= {f"층{k}_{m}": None for k in (1, 2, 3, 4) for m in ("선_자리", "선_자리헛선", "선_종류", "선_직선", "선_곡선", "점_F1")}   # 선지도 탐침층   # 선지도 과제는 점검이 늘 만듦
 식들 = {">=", "<=", ">", "<"}
@@ -193,7 +193,7 @@ def 기록(cfg, 폴더, 바뀐, 연, 지, 판, 해시):   # 해시 = 돌리기 �
     남 = f"{뿌리}/하네스/판/{cfg.판.이름}/"; os.makedirs(남, exist_ok=True)
     OmegaConf.save(cfg, 남 + "설정.yaml"); json.dump({"바뀐 손잡이": {k: list(v) for k, v in 바뀐.items()}, "git": 해시, "날짜": time.strftime("%Y-%m-%d %H:%M"), "연기": 연, "지표": 지, **판, "산출 폴더": 폴더, "세션": 세션()}, open(남 + "판정.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     import shutil
-    for 파 in ("시트.png", "학습.json", "특징.json", "특징.png", "구조.json", "입력_위.png", "입력_앞.png", "입력_옆.png", "칸1.png", "칸2.png", "칸3.png", "칸4.png", "칸5.png", "칸6.png", "예측전체.png", "정답.png", "검증.json", "검증.png", "원인쪼개기.json", "원인쪼개기.png", *(f"{종}_{뷰}.png" for 종 in ("도면", "주의") for 뷰 in B.뷰)):
+    for 파 in ("시트.png", "학습.json", "특징.json", "특징.png", "구조.json", "입력_위.png", "입력_앞.png", "입력_옆.png", "칸1.png", "칸2.png", "칸3.png", "칸4.png", "칸5.png", "칸6.png", "예측전체.png", "정답.png", "검증.json", "검증.png", "원인쪼개기.json", "원인쪼개기.png", "배움.json", *(f"{종}_{뷰}.png" for 종 in ("도면", "주의") for 뷰 in B.뷰)):
         if os.path.exists(폴더 + 파) and os.path.getmtime(폴더 + 파) >= 시작시각: shutil.copy(폴더 + 파, 남 + 파)   # 이번 실행이 만든 것만 — 앞 판의 특징.json 등이 새 보고서에 섞였음(10-25 감사)
     if os.path.isdir(폴더 + "검증"): shutil.copytree(폴더 + "검증", 남 + "검증", dirs_exist_ok=True, ignore=shutil.ignore_patterns("*.err"))   # 코드생성 스텝별 검증(글 · 렌더)
     import 개념그림; 개념그림.넣기(cfg, 남)   # 개념.mp4 · 개념.gif → 판 폴더(보고서 「모델 동작」)

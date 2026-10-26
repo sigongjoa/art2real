@@ -285,6 +285,9 @@ def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.
     글들 = [생["글"][x[0]] for x in 시]; os.makedirs(폴더 + "생성", exist_ok=True)
     for (n, *_), 글 in zip(시, 글들):
         p = 폴더 + f"생성/{n}.py"; open(p, "w", encoding="utf-8").write(글); os.path.exists(p + ".err") and os.remove(p + ".err")   # 옛 판 오류 말이 새 글에 붙지 않게
+    배 = {}
+    try: import 코드배움; 배 = 코드배움.저장(폴더, model, proc, [(n, l, g) for n, _, l, g in 학], [(n, l, g) for n, _, l, g in 시], 입력); print("배웠나", 배, flush=True)   # 정답 넣어 줄 때 결정 자리 맞힘 → 배움.json(보고서 칸) · 10-26 사용자 「학습을 못한 거 아니고?」
+    except Exception as e: print("배웠나 실패", repr(e), flush=True)
     del model; torch.cuda.empty_cache()
     줄, 렌 = 평가([x[0] for x in 시], 글들)
     오 = 오류들([폴더 + f"생성/{r['부품']}.py" for r in 줄 if not r["실행"] and not r["OOM"]])
@@ -297,7 +300,7 @@ def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.
     if len(쓸) < len(줄): print(f"⚠ 집계에서 뺌 — OOM {sum(r['OOM'] for r in 줄)} · 정답 렌더 실패 {sum(r['정답실패'] for r in 줄)}", flush=True)
     return {"코드_실행률": round(float(np.mean([r["실행"] for r in 쓸])), 4), "코드_IoU": round(float(np.median(iou)), 4), "코드_IoU평균": round(float(iou.mean()), 4),
             "코드_IoU실행": round(float(np.median(된)), 4) if len(된) else None,   # 실행된 것만의 모양 — 코드_IoU(실패 = 0 중앙)는 실행률 < 0.5 면 늘 0 이라 모양을 못 봄(10-25 감사: 145 0.000 인데 이것은 0.53)
-            "코드_OOM": sum(r["OOM"] for r in 줄), "코드_정답실패": sum(r["정답실패"] for r in 줄),
+            "코드_OOM": sum(r["OOM"] for r in 줄), "코드_원뿔배움": 배.get("학습", {}).get("원뿔 갈래 .Solid", {}).get("맞음"),   # 학습 부품에서 「cq.」 다음 「.Solid」 를 맞히나(정답 넣어 줌) · 147 · 151 은 0 "코드_정답실패": sum(r["정답실패"] for r in 줄),
             "코드_몸개수맞음": round(float(np.mean([몸수(g) == 몸수(x[3]) for g, x in zip(글들, 시)])), 4),   # 실행과 상관없이 몸 줄 수가 정답과 같은 비율(10-25 원인 쪼개기: 147 실행된 것 중 39 %)
             "코드_학습loss": round(기록[-1]["학습"], 4), "코드_시험loss": round(기록[-1]["시험"], 4), "시험loss": round(기록[-1]["시험"], 4), "학습loss": round(기록[-1]["학습"], 4)}
 def 몸수(글): import re; return len(re.findall(r"^b\d+ = ", 글, re.M))
