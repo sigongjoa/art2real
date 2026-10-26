@@ -22,8 +22,11 @@ def 짓기(초=540):
         for k, _ in enumerate(p.imap_unordered(_하나, 일, chunksize=4)):
             if time.time() - t0 > 초: p.terminate(); print("멈춤", k, flush=True); return
     print("끝")
-def 색인():
-    rs = [json.load(open(p, encoding="utf-8")) for p in sorted(glob.glob(D + "사양/*.json"))]; return [r for r in rs if "코드" in r]
+def 색인():   # 10-26 G: 는 HDD — 재부팅 뒤 찬 캐시면 작은 json 12300 개 여는 데 25 분(데워지면 1 초) → 한 파일로 묶어 둠 · 사양 수가 바뀌면 다시 묶음
+    ps = sorted(glob.glob(D + "사양/*.json")); 묶 = D + "색인묶음.json"
+    if os.path.exists(묶) and (c := json.load(open(묶, encoding="utf-8")))["수"] == len(ps): rs = c["사양"]
+    else: rs = [json.load(open(p, encoding="utf-8")) for p in ps]; json.dump({"수": len(ps), "사양": rs}, open(묶, "w", encoding="utf-8"), ensure_ascii=False)
+    return [r for r in rs if "코드" in r]
 def 임베딩():   # 이어 하기 · 8 분 넘으면 멈춤 · 이름도 같이 저장(123 의 조각 이름 없음 위험 막기)
     from sentence_transformers import SentenceTransformer
     import torch
@@ -101,15 +104,19 @@ def _묶음(잡파일, ks, 칸):   # 일꾼 프로세스 하나 = 잡 여러 개
     for k in ks:
         with open(칸 + f"{k}.tmp", "wb") as f: pickle.dump(_렌더잡(잡[k]), f)
         os.replace(칸 + f"{k}.tmp", 칸 + f"{k}.pkl")
-def 병렬렌더(잡, 초=60, 묶=8):   # 10-21 Pool 은 OCC 로 일꾼이 죽으면 일이 사라져 47 분 멈춤 → 프로세스 6 개씩 · 묶음 마감 = 초 × 묶 · 못 끝낸 잡은 하나씩 한 번 더 · 그래도 안 되면 None(0 점)
-    import pickle, shutil, tempfile
+def 병렬렌더(잡, 초=60, 묶=8, n=None):   # 10-21 Pool 은 OCC 로 일꾼이 죽으면 일이 사라져 47 분 멈춤 → 프로세스 따로 · 묶음 마감 = 초 × 묶 · 못 끝낸 잡은 하나씩 한 번 더 · 그래도 안 되면 None(0 점)
+    import pickle, shutil, tempfile                     # 10-26 사용자 「CPU 를 병렬로」: 6 개씩 물결(느린 묶음 하나가 물결 전체를 붙잡음) → 코어 - 4 개를 끊김 없이 채움 · 메모리는 ART_MEM_GB 상한이 일꾼까지 묶음
     from multiprocessing import Process
+    n = n or max(2, (os.cpu_count() or 8) - 4)
     칸 = tempfile.mkdtemp() + "/"; 잡파일 = 칸 + "잡.pkl"; pickle.dump(잡, open(잡파일, "wb")); 있 = lambda k: os.path.exists(칸 + f"{k}.pkl")
     for 크 in (묶, 1):
-        남 = [k for k in range(len(잡)) if not 있(k)]; 묶음들 = [남[b:b + 크] for b in range(0, len(남), 크)]
-        for g in range(0, len(묶음들), 6):
-            ps = [Process(target=_묶음, args=(잡파일, ks, 칸)) for ks in 묶음들[g:g + 6]]; [q.start() for q in ps]; t0 = time.time()
-            for q in ps: q.join(max(1, 초 * 크 - (time.time() - t0))); q.is_alive() and q.terminate()
+        남 = [k for k in range(len(잡)) if not 있(k)]; 묶음들 = [남[b:b + 크] for b in range(0, len(남), 크)]; 도는 = []
+        while 묶음들 or 도는:
+            while 묶음들 and len(도는) < n: q = Process(target=_묶음, args=(잡파일, 묶음들.pop(0), 칸)); q.start(); 도는.append((q, time.time()))
+            for q, t in 도는[:]:
+                if not q.is_alive(): 도는.remove((q, t))
+                elif time.time() - t > 초 * 크: q.terminate(); 도는.remove((q, t))
+            time.sleep(.2)
     out = [pickle.load(open(칸 + f"{k}.pkl", "rb")) if 있(k) else None for k in range(len(잡))]; shutil.rmtree(칸, ignore_errors=True)
     print("걸림·실패", sum(o is None for o in out), "/", len(out), flush=True); return out
 def 평가():
