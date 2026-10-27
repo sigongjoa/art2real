@@ -38,7 +38,7 @@ if __name__ == "__main__":   # 지난 판 소급: python 코드배움.py 151배�
     from omegaconf import OmegaConf; from peft import set_peft_model_state_dict; from safetensors.torch import load_file
     for 판 in sys.argv[1:]:
         s = OmegaConf.load(f"{뿌리}/하네스/판/{판}/설정.yaml").코드; 토큰 = str(s.get("토큰", "기존")); 원 = f"{뿌리}/out/하네스/{판}/lora/"
-        model, proc = K.모델(int(s.get("랭크", 16)), 토큰); set_peft_model_state_dict(model, load_file(원 + "adapter_model.safetensors", device="cuda"))
+        model, proc = K.모델(int(s.get("랭크", 16)), 토큰, str(s.get("LoRA대상", "어텐션"))); set_peft_model_state_dict(model, load_file(원 + "adapter_model.safetensors", device="cuda"))
         if 토큰 == "좌표":
             with torch.no_grad(): model.get_base_model().model.embed_tokens.새.copy_(torch.load(원 + "좌표임베딩.pt"))
         목 = K.자료()

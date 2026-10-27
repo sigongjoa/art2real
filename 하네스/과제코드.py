@@ -103,7 +103,8 @@ def _좌표임베딩():
             새 = ids >= s.n0; e = s.원(ids.masked_fill(새, 0))
             return torch.where(새[..., None], s.새.to(e.dtype)[(ids - s.n0).clamp(0, len(s.새) - 1)], e)
     return 좌표임베딩
-def 모델(rank=16, 토큰="기존"):
+LoRA대상들 = {"어텐션": ["q_proj", "k_proj", "v_proj", "o_proj"], "전부": ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]}   # 154~ 전부 = MLP 포함(Biderman 등 2024 · claudedocs/research_LoRA대상층_20261027.md) · 입력이 선글이라 비전 인코더 · merger 는 안 거침
+def 모델(rank=16, 토큰="기존", 대상="어텐션"):
     import torch
     from transformers import AutoProcessor
     from peft import LoraConfig, get_peft_model
@@ -111,7 +112,7 @@ def 모델(rank=16, 토큰="기존"):
     m = Cadrille.from_pretrained(캐 + "/weights/cadrille", torch_dtype=torch.bfloat16, attn_implementation="sdpa", device_map="cuda")
     proc = AutoProcessor.from_pretrained(캐 + "/weights/qwen2vl2b", min_pixels=256 * 28 * 28, max_pixels=1280 * 28 * 28, padding_side="left")
     m.gradient_checkpointing_enable(gradient_checkpointing_kwargs={"use_reentrant": False}); m.enable_input_require_grads()
-    m = get_peft_model(m, LoraConfig(r=rank, lora_alpha=2 * rank, lora_dropout=.05, target_modules=["q_proj", "k_proj", "v_proj", "o_proj"]))
+    m = get_peft_model(m, LoraConfig(r=rank, lora_alpha=2 * rank, lora_dropout=.05, target_modules=LoRA대상들[대상]))
     if 토큰 == "좌표":   # 새 토큰 = 토크나이저 끝(151657~) · 모델 행 151936 의 남는 칸 안 · 초기값 = 원래 자릿수 조각 임베딩 평균
         tok = proc.tokenizer; tok.add_tokens([f"<{i}>" for i in range(좌표수)]); n0 = tok.convert_tokens_to_ids("<0>"); b = m.get_base_model(); 원 = b.model.embed_tokens
         assert n0 + 좌표수 <= 원.weight.shape[0], n0
@@ -245,7 +246,7 @@ def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.
     학 = [x for x in 목 if not x[1]]; 시 = [x for x in 목 if x[1]]
     if s.get("시험수"): 시 = 시[:int(s.시험수)]
     random.seed(int(cfg.학습.get("시드", 0))); torch.manual_seed(int(cfg.학습.get("시드", 0)))
-    model, proc = 모델(int(s.get("랭크", 16)), 토큰); 스텝 = int(cfg.학습.스텝); 누적 = 4
+    model, proc = 모델(int(s.get("랭크", 16)), 토큰, str(s.get("LoRA대상", "어텐션"))); 스텝 = int(cfg.학습.스텝); 누적 = 4
     opt = torch.optim.AdamW([p for p in model.parameters() if p.requires_grad], lr=float(cfg.학습.학습률), weight_decay=0.)
     sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda t: min(1., (t + 1) / 20) * .5 * (1 + math.cos(math.pi * min(t, 스텝 // 누적) / max(스텝 // 누적, 1))))
     고정 = [항목(n, l, g, 입력) for n, _, l, g in 시[:16]]; 기록 = []; 묶음손 = []; t0 = time.time()
@@ -257,7 +258,7 @@ def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.
     다 = 폴더 + "lora/"; 다했 = os.path.exists(다 + "설정.yaml") and open(다 + "설정.yaml", encoding="utf-8").read() == 설정 and os.path.exists(폴더 + "학습.json")
     if s.get("LoRA"):   # 149~: 다른 판이 학습한 LoRA 를 그대로(학습 없음 · 생성 방식만 바꾸는 판) · 입력 · 토큰 · 랭크가 그 판과 같아야
         from peft import set_peft_model_state_dict; from safetensors.torch import load_file; 원 = f"{뿌리}/out/하네스/{s.LoRA}/"; 원설 = OmegaConf.load(f"{뿌리}/하네스/판/{s.LoRA}/설정.yaml").코드
-        assert all(str(원설.get(k, d)) == str(s.get(k, d)) for k, d in (("입력", ""), ("토큰", "기존"), ("랭크", 16))), f"{s.LoRA} 와 입력 · 토큰 · 랭크가 다르다"
+        assert all(str(원설.get(k, d)) == str(s.get(k, d)) for k, d in (("입력", ""), ("토큰", "기존"), ("랭크", 16), ("LoRA대상", "어텐션"))), f"{s.LoRA} 와 입력 · 토큰 · 랭크 · LoRA대상이 다르다"
         set_peft_model_state_dict(model, load_file(원 + "lora/adapter_model.safetensors", device="cuda")); 기록 = json.load(open(원 + "학습.json", encoding="utf-8")); 시작 = 스텝; 다했 = True
         if 토큰 == "좌표":
             with torch.no_grad(): model.get_base_model().model.embed_tokens.새.copy_(torch.load(원 + "lora/좌표임베딩.pt"))
