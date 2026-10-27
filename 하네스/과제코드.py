@@ -51,7 +51,14 @@ def _선하나(k):   # 부품 k(자료 순번)의 세 뷰 → 선 글
     줄 = []
     for v in range(3): 줄 += 줄글(V.벡터화(z["있"][k, v], z["열"][k, v].astype(np.float32), z["숨"][k, v], 2., 이음=True, 숨메움=True), v)
     open(p, "w", encoding="utf-8").write("\n".join(줄))
-def 자료(입력판="137전부합침"):   # 글(정답) · 선(입력) 을 부품 3299 개 모두 · 한 번 만들면 재사용
+def _정답선하나(n):   # 153: CNN 예측 대신 정답 선지도(선정답/<n>.npz · CAD 형상 투영)를 같은 벡터화로 → 선정답글/<n>.txt · CNN 이 뽑은 선의 위치 오차가 코드에 얼마나 번지나
+    p = 자료폴더 + f"선정답글/{n}.txt"
+    if os.path.exists(p): return
+    import 과제벡터화 as V, 과제선지도 as G
+    d = np.load(f"{뿌리}/out/하네스/선정답/{n}.npz"); 열 = G.열지도(d["점"][None])[0].astype(np.float32); 줄 = []
+    for v in range(3): 줄 += 줄글(V.벡터화(d["지도"][v] > 0, 열[v], d["숨"][v], 2., 이음=True, 숨메움=True), v)
+    open(p, "w", encoding="utf-8").write("\n".join(줄))
+def 자료(입력판="137전부합침", 선입력="CNN"):   # 글(정답) · 선(입력) 을 부품 3299 개 모두 · 한 번 만들면 재사용
     import torch, 과제선지도 as G, 분석그림 as A, 모델124 as B
     from omegaconf import OmegaConf
     for d in ("글", "선"): os.makedirs(자료폴더 + d, exist_ok=True)
@@ -64,11 +71,12 @@ def 자료(입력판="137전부합침"):   # 글(정답) · 선(입력) 을 부�
             있.append((1 - pr[:, :, 0] > .5).cpu().numpy()); 열.append(torch.sigmoid(o[:, :, G.K + 1]).half().cpu().numpy()); 숨.append((o[:, :, G.K] > 0).cpu().numpy())
         np.savez(자료폴더 + "선지도.npz", 이름=np.array(이), 있=np.concatenate(있), 열=np.concatenate(열), 숨=np.concatenate(숨), X=Xnp); del X, Y, net; torch.cuda.empty_cache()
     z = np.load(자료폴더 + "선지도.npz"); 일꾼(_선하나, [k for k, n in enumerate(z["이름"]) if not os.path.exists(자료폴더 + f"선/{n}.txt")], 초=300)
-    return 목록()
-def 목록():   # → [(부품, 시험?, 입력 선 글, 정답 글)] 둘 다 있는 것만
+    if 선입력 == "정답": os.makedirs(자료폴더 + "선정답글", exist_ok=True); 일꾼(_정답선하나, [n for n in 이름들 if not os.path.exists(자료폴더 + f"선정답글/{n}.txt")], 초=300)
+    return 목록({"CNN": "선", "정답": "선정답글"}[선입력])
+def 목록(선폴더="선"):   # → [(부품, 시험?, 입력 선 글, 정답 글)] 둘 다 있는 것만
     import 모델124 as B
     out = []
-    for p in sorted(glob.glob(자료폴더 + "선/*.txt")):
+    for p in sorted(glob.glob(자료폴더 + f"{선폴더}/*.txt")):
         n = os.path.basename(p)[:5]; g = 자료폴더 + f"글/{n}.py"
         if os.path.exists(g): out.append((n, int(n) >= B.NT, open(p, encoding="utf-8").read(), open(g, encoding="utf-8").read()))
     return out
@@ -231,7 +239,7 @@ def 평가(이름들, 글들):   # 생성 글 · 정답 사양 → 실루엣 IoU
     return 줄, 렌
 def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.스텝 · 4 스텝마다 갱신) → 시험 생성 → 실행 · IoU → 그림
     import torch
-    s = cfg.코드; 입력 = str(s.입력); 토큰 = str(s.get("토큰", "기존")); 제 = str(s.get("디코딩", "탐욕")) == "제약"; 목 = 자료()
+    s = cfg.코드; 입력 = str(s.입력); 토큰 = str(s.get("토큰", "기존")); 제 = str(s.get("디코딩", "탐욕")) == "제약"; 목 = 자료(선입력=str(s.get("선입력", "CNN")))
     if 토큰 == "좌표": 목 = [(n, t, 좌표글(l), g) for n, t, l, g in 목]
     if str(s.get("서식", "기존")) == "배치먼저": import 코드글; 목 = [(n, t, l, 코드글.배치먼저(g)) for n, t, l, g in 목]   # 151~: 몸 개수 · 배치를 첫 줄에
     학 = [x for x in 목 if not x[1]]; 시 = [x for x in 목 if x[1]]
