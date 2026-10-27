@@ -181,6 +181,8 @@ def 세션():   # 이 판을 돌린 Claude 대화 — 줄 하나에서 「왜 �
     return {"주소": f"https://claude.ai/code/{원격}" if 원격 else None, "로컬": 로컬}
 def 판정(cfg, 지들):   # 지들 = 시드마다 지표(하나면 dict 도 됨) · 모든 시드 통과 = 통과 · 모두 못 넘음 = 실패 · 갈리면 흔들림(이김 · 짐을 말하지 않음)
     지들 = [지들] if isinstance(지들, dict) else 지들; 줄 = []
+    갈래 = {c.지표.split("_")[0] + "_" for c in cfg.기준 if "_" in c.지표}; 빠진 = sorted(k for k in 지표출처 if any(k.startswith(g) for g in 갈래) and k.count("_") == 1 and any(k not in d for d in 지들))   # 10-27 과제코드가 주석 뒤에 「코드_정답실패」를 묻어 152 까지 조용히 빠졌음 → 기준 지표와 같은 갈래가 안 나오면 소리 냄
+    빠진 and print("⚠ 지표출처에 있는데 이 판이 안 낸 지표", 빠진, flush=True)
     for c in cfg.기준:
         vs = [d.get(c.지표) for d in 지들]; oks = [v is not None and {">=": v >= c.값, "<=": v <= c.값, ">": v > c.값, "<": v < c.값}[c.식] for v in vs]
         줄.append({"지표": c.지표, "식": c.식, "값": c.값, "이 판": 평균(지들).get(c.지표), "통과": all(oks), "흔들림": any(oks) and not all(oks), "목표선": bool(c.get("목표선", False)), **({"시드값": vs} if len(vs) > 1 else {})})
