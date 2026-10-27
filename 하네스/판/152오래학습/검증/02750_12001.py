@@ -1,0 +1,5 @@
+b0 = place(cq.Workplane("XY").box(49.4, 41.0, 2.0, centered=(True, True, False)), "y", (0.0, 0.0, 0.0))
+b1 = place(cq.Workplane("XY").add(cq.Solid.makeCone(26.4, 0, 33.3)), "y", (0.0, 0.0, -25.0))
+b2 = place(cq.Workplane("XY").add(cq.Solid.makeCone(26.4, 0, 33.3)), "y", (0.0, 0.0, -25.0))
+b3 = place(cq.Workplane("XY").add(cq.Solid.makeCone(26.4, 0, 33.3)), "y", (0.0, 0.0, -25.0))
+result = b0.union(b1.union(b2.union(b3)))

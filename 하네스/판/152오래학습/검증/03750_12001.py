@@ -1,0 +1,4 @@
+b0 = place(cq.Workplane("XY").box(49.4, 31.4, 2.1, centered=(True, True, False)).faces(">Z").workplane(origin=(0, 0, 2.1)).center(1.9, -1.1).rect(11.0, 7.8).cutBlind(-1.9), "z", (0.0, 0.0, 0.0))
+b1 = place(cq.Workplane("XY").box(44.4, 31.4, 24.6, centered=(True, True, False)).faces(">Z").workplane(origin=(0, 0, 24.6)).center(1.9, -1.1).rect(11.0, 7.8).cutBlind(-1.9), "z", (0.0, 0.0, 27.6))
+b2 = place(cq.Workplane("XY").box(44.4, 31.4, 24.6, centered=(True, True, False)).faces(">Z").workplane(origin=(0, 0, 24.6)).center(1.9, -1.1).rect(11.0, 8.0).cutBlind(-1.9), "z", (0.0, 0.0, 24.6))
+result = b0.union(b1.union(b2))
