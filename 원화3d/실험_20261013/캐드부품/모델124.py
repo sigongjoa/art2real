@@ -105,9 +105,9 @@ def _묶음(잡파일, ks, 칸):   # 일꾼 프로세스 하나 = 잡 여러 개
         with open(칸 + f"{k}.tmp", "wb") as f: pickle.dump(_렌더잡(잡[k]), f)
         os.replace(칸 + f"{k}.tmp", 칸 + f"{k}.pkl")
 def 병렬렌더(잡, 초=60, 묶=8, n=None):   # 10-21 Pool 은 OCC 로 일꾼이 죽으면 일이 사라져 47 분 멈춤 → 프로세스 따로 · 묶음 마감 = 초 × 묶 · 못 끝낸 잡은 하나씩 한 번 더 · 그래도 안 되면 None(0 점)
-    import pickle, shutil, tempfile                     # 10-26 사용자 「CPU 를 병렬로」: 6 개씩 물결(느린 묶음 하나가 물결 전체를 붙잡음) → 코어 - 4 개를 끊김 없이 채움 · 메모리는 ART_MEM_GB 상한이 일꾼까지 묶음
-    from multiprocessing import Process
-    n = n or max(2, (os.cpu_count() or 8) - 4)
+    import pickle, shutil, tempfile                     # 10-26 사용자 「CPU 를 병렬로」: 6 개씩 물결(느린 묶음 하나가 물결 전체를 붙잡음) → 끊김 없이 채움
+    from multiprocessing import Process                 # 10-27 일꾼 12 개는 ART_MEM_GB(부모 + 일꾼 합) 를 넘어 MemoryError · 페이징 파일 부족 → 152 시드 1 · 2 채점이 멈춤(내 실수) · 일꾼은 6 개 그대로
+    n = n or 6
     칸 = tempfile.mkdtemp() + "/"; 잡파일 = 칸 + "잡.pkl"; pickle.dump(잡, open(잡파일, "wb")); 있 = lambda k: os.path.exists(칸 + f"{k}.pkl")
     for 크 in (묶, 1):
         남 = [k for k in range(len(잡)) if not 있(k)]; 묶음들 = [남[b:b + 크] for b in range(0, len(남), 크)]; 도는 = []
