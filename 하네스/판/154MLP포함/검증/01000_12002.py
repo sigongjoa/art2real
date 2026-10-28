@@ -1,0 +1,3 @@
+b0 = place(cq.Workplane("XY").circle(22.1).extrude(23.0).faces(">Z").workplane(origin=(0, 0, 23.0)).center(1.1, -1.1).hole(15.1, 13.9).faces(">Z").workplane(origin=(0, 0, 23.0)).center(1.1, -1.1).hole(15.1, 13.9), "z", (0.0, 0.0, 0.0))
+b1 = place(cq.Workplane("XY").circle(18.3).extrude(15.3).faces(">Z").workplane(origin=(0, 0, 15.3)).center(1.1, -1.1).hole(10.9, 10.1), "z", (0.0, 0.0, -20.7))
+result = b0.union(b1)

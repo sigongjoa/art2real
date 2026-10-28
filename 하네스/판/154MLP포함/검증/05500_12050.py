@@ -1,0 +1,5 @@
+b0 = place(cq.Workplane("XZ").polyline([(0.0, 0.0), (24.0, 0.0), (24.0, 11.0), (13.4, 11.0), (13.4, 20.6), (0.0, 20.6)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(">Z").workplane(origin=(0, 0, 20.6)).center(1.2, 1.2).hole(15.4, 10.5), "z", (0.0, 0.0, 0.0))
+b1 = place(cq.Workplane("XZ").polyline([(0.0, 0.0), (22.1, 0.0), (22.1, 15.0), (13.4, 15.0), (13.4, 30.4), (0.0, 30.4)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(">Z").workplane(origin=(0, 0, 30.4)).center(1.2, 1.2).hole(13.4, 15.4), "z", (0.0, 0.0, -22.2))
+b2 = place(cq.Workplane("XZ").polyline([(0.0, 0.0), (20.0, 0.0), (20.0, 12.0), (13.4, 12.0), (13.4, 22.6), (0.0, 22.6)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(">Z").workplane(origin=(0, 0, 22.6)).center(1.2, 1.2).hole(10.4, 10.9), "z", (0.0, 0.0, -31.0))
+b3 = place(cq.Workplane("XZ").polyline([(0.0, 0.0), (22.2, 0.0), (22.2, 12.0), (13.4, 12.0), (13.4, 22.6), (0.0, 22.6)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(">Z").workplane(origin=(0, 0, 22.6)).center(1.2, 1.2).hole(10.4, 10.9), "z", (0.0, 0.0, -31.0))
+result = b0.union(b1.union(b2.union(b3)))

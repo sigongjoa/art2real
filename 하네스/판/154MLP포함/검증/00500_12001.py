@@ -1,0 +1,2 @@
+b0 = place(cq.Workplane("XY").box(46.6, 39.4, 10.2, centered=(True, True, False)).faces(">Z").workplane(origin=(0, 0, 10.2)).center(-1.1, 1.0).hole(1.3, 1.9).edges("|Z").fillet(4.0), "z", (0.0, 0.0, 0.0))
+result = b0

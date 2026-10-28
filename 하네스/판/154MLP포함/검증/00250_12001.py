@@ -1,0 +1,5 @@
+b0 = place(cq.Workplane('XY").circle(26.6).extrude(16.6), "z", (0.0, 0.0, 0.0))
+b1 = place(cq.Workplane("XY").circle(16.6).extrude(16.6), "z", (0.0, 0.0, 0.0))
+b1 = place(cq.Workplane("XY").circle(16.6),mode='s').face(w0.sketch().segment((0,0),(1,0)).segment((1,1)).close().extrude(16.6), "y", (0.0, 0.0, 0.0))
+b1 = place(cq.Workplane("XY").circle(16.6),mode='s').face(w0.sketch().segment((0,0),(1,0)).segment((1,1)).close().rev", 1), 0,1)).close().revyy", (0,0), 0,0)), "y.union(b1.workplane(origin=(0,0,0))
+b1.union(b1.workplane(origin=(0,0,0)), "1, 0), "1, 1)).segment((0,1)).close().revolve(360, 0, 0)), (0,0)),y.union(b1.workplane(origin=(0,0,0)), "1, 1, 1)).segment((0,1)).close().revolve(360,0, 0)), "0,0)),y1 = 1, 0), "0,1)).close().revolve(360, 0, 0)), "1, 0), (0,1)).segment((0,0)).close().revolve(c0.union(b1.union(b2))
