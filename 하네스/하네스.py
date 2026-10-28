@@ -183,6 +183,8 @@ def 판정(cfg, 지들):   # 지들 = 시드마다 지표(하나면 dict 도 됨
     지들 = [지들] if isinstance(지들, dict) else 지들; 줄 = []
     갈래 = {c.지표.split("_")[0] + "_" for c in cfg.기준 if "_" in c.지표}; 빠진 = sorted(k for k in 지표출처 if any(k.startswith(g) for g in 갈래) and k.count("_") == 1 and any(k not in d for d in 지들))   # 10-27 과제코드가 주석 뒤에 「코드_정답실패」를 묻어 152 까지 조용히 빠졌음 → 기준 지표와 같은 갈래가 안 나오면 소리 냄
     빠진 and print("⚠ 지표출처에 있는데 이 판이 안 낸 지표", 빠진, flush=True)
+    정실 = [d.get("코드_정답실패", 0) for d in 지들]   # 10-28 154 시드 1 · 2 를 동시에 채점해 정답 렌더가 시간 넘음 203 · 122 → 실행된 코드가 IoU 0(내 실수) · 정답이 안 그려지면 모델 탓이 아니니 판정하지 않는다
+    assert not any(정실), f"정답 렌더 실패 {정실} (시드별) — 채점기 과부하(동시 채점?) · 판정 안 함 · 혼자 다시 채점"
     for c in cfg.기준:
         vs = [d.get(c.지표) for d in 지들]; oks = [v is not None and {">=": v >= c.값, "<=": v <= c.값, ">": v > c.값, "<": v < c.값}[c.식] for v in vs]
         줄.append({"지표": c.지표, "식": c.식, "값": c.값, "이 판": 평균(지들).get(c.지표), "통과": all(oks), "흔들림": any(oks) and not all(oks), "목표선": bool(c.get("목표선", False)), **({"시드값": vs} if len(vs) > 1 else {})})
