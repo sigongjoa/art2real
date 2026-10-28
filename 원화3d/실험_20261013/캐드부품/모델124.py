@@ -104,7 +104,16 @@ def _묶음(잡파일, ks, 칸):   # 일꾼 프로세스 하나 = 잡 여러 개
     for k in ks:
         with open(칸 + f"{k}.tmp", "wb") as f: pickle.dump(_렌더잡(잡[k]), f)
         os.replace(칸 + f"{k}.tmp", 칸 + f"{k}.pkl")
-def 병렬렌더(잡, 초=60, 묶=8, n=None):   # 10-21 Pool 은 OCC 로 일꾼이 죽으면 일이 사라져 47 분 멈춤 → 프로세스 따로 · 묶음 마감 = 초 × 묶 · 못 끝낸 잡은 하나씩 한 번 더 · 그래도 안 되면 None(0 점)
+def 병렬렌더(잡, *a, **k):   # 10-28 154 시드 1 · 2 채점이 겹쳐 정답 렌더 시간 넘음 203 · 122(내 실수) → 컴퓨터 전체에서 한 번에 하나만 · 파일 잠금은 프로세스가 죽으면 OS 가 풂
+    import msvcrt, tempfile
+    f = open(os.path.join(tempfile.gettempdir(), "art2real_병렬렌더.lock"), "a+"); 기다림 = time.time()
+    while True:
+        try: f.seek(0); msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1); break
+        except OSError: time.sleep(5)
+    time.time() - 기다림 > 10 and print(f"다른 채점이 끝나기를 {time.time() - 기다림:.0f} 초 기다림", flush=True)
+    try: return _병렬렌더(잡, *a, **k)
+    finally: f.seek(0); msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1); f.close()
+def _병렬렌더(잡, 초=60, 묶=8, n=None):   # 10-21 Pool 은 OCC 로 일꾼이 죽으면 일이 사라져 47 분 멈춤 → 프로세스 따로 · 묶음 마감 = 초 × 묶 · 못 끝낸 잡은 하나씩 한 번 더 · 그래도 안 되면 None(0 점)
     import pickle, shutil, tempfile                     # 10-26 사용자 「CPU 를 병렬로」: 6 개씩 물결(느린 묶음 하나가 물결 전체를 붙잡음) → 끊김 없이 채움
     from multiprocessing import Process                 # 10-27 일꾼 12 개는 ART_MEM_GB(부모 + 일꾼 합) 를 넘어 MemoryError · 페이징 파일 부족 → 152 시드 1 · 2 채점이 멈춤(내 실수) · 일꾼은 6 개 그대로
     n = n or 6

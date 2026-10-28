@@ -27,12 +27,12 @@ def 글(몸):   # [(모양식, 축, 자리)] → place 서식 코드
     return "\n".join(f'b{i} = place({s}, "{a}", ({p}))' for i, (s, a, p) in enumerate(몸)) + "\nresult = " + ("b0" if len(몸) == 1 else "".join(f"b{i}.union(" for i in range(len(몸) - 1)) + f"b{len(몸) - 1}" + ")" * (len(몸) - 1))
 칸 = ["생성 그대로", "위치만 정답", "모양식만 정답", "둘 다 정답"]; 키 = [None, "위치만정답", "모양만정답", "정답글"]
 def 중(v): v = [x for x in v if x is not None]; return round(float(np.median(v)), 3) if v else None
-def 재기(폴더):   # 폴더 = out/하네스/<판>/ (평가.json · 생성/) → 원인쪼개기.json · 원인쪼개기.png · 요약 dict
+def 재기(폴더, 정답=정답폴더):   # 폴더 = out/하네스/<판>/ (평가.json · 생성/) → 원인쪼개기.json · 원인쪼개기.png · 요약 dict
     import 모델124 as B
     d = json.load(open(폴더 + "평가.json", encoding="utf-8")); 색 = {f"{r['i']:05d}": r for r in B.색인()}; 줄, 일 = [], []
     for r in d:
         if not r["실행"]: continue
-        n = r["부품"]; a = 몸들(open(폴더 + f"생성/{n}.py", encoding="utf-8").read()); b = 몸들(open(정답폴더 + f"{n}.py", encoding="utf-8").read())
+        n = r["부품"]; a = 몸들(open(폴더 + f"생성/{n}.py", encoding="utf-8").read()); b = 몸들(open(정답 + f"{n}.py", encoding="utf-8").read())
         if a is None or b is None: continue
         z = {"부품": n, "IoU": r["IoU"], "생성몸": len(a), "정답몸": len(b), "종류같음": [x[0] for x in a] == [x[0] for x in b]}
         if len(a) == len(b):

@@ -2,7 +2,7 @@
 # 정답 「코드」 는 JSON 사양(몸 · 바탕 · 특징 · 축 · 자리)이고 조립124.짓기 가 CadQuery 로 지었다 → 같은 형상을 내는 CadQuery 글로 옮김
 # 글 = 몸마다 한 줄(바탕 + 특징 사슬) · place(w, 축, 자리) 로 눕히고 가운데 맞춰 놓기 · result = 합집합 · 머리말(import · place)은 실행할 때 붙임(모델은 몸 줄만 씀)
 # 원래 짓기가 try 로 건너뛴 특징(필렛 · 구멍 실패)은 글에서도 뺌 — 줄마다 실제로 지어 보고 남김
-import numpy as np
+import sys, numpy as np
 머리말 = '''import cadquery as cq
 def place(w, axis, pos):
     if axis == "x": w = w.rotate((0, 0, 0), (0, 1, 0), 90)
@@ -56,6 +56,24 @@ def 배치먼저(글):   # 판 151 서식: 첫 줄 layout = [(종류, 축, 자�
         식 = m.group(2); 종 = "cone" if "makeCone" in 식 else "revolve" if "revolve" in 식 else "box" if ".box(" in 식 else "cylinder"
         배.append(f'("{종}", "{m.group(3)}", ({m.group(4)}))'); 몸.append(f"{m.group(1)} = at({len(배) - 1}, {식})")
     return "layout = [" + ", ".join(배) + "]\n" + "\n".join(몸)
+def 도면좌표(글, 길=100.):   # 판 155: mm · b0 원점 → 도면과 같은 기준(부품 전체 상자 가운데 원점 · 가장 긴 변 = 길) · 10-28 입력(도면)은 정규화인데 정답은 mm 라 몸 자리에 안 보이는 배율이 섞였음
+    import re, 설계116 as S
+    _, _, c, e = S.메시(실행(글)); k = 길 / e   # 도면(모델123.도면 → 설계116.메시)과 같은 c · e
+    각 = r"\.rotate\(\(0, 0, 0\), \(1, 0, 0\), -?[\d.]+\)"   # 기울임 각도는 길이가 아님
+    def 몸줄(l):
+        m = re.fullmatch(r'(b\d+) = place\((.*), "(\w)", \(([^()]*)\)\)', l)
+        if not m: return l
+        식 = re.sub(f"({각})|(-?\\d+\\.\\d+)", lambda q: q.group(1) or 수(float(q.group(2)) * k), m.group(2))
+        return f'{m.group(1)} = place({식}, "{m.group(3)}", ({", ".join(수((float(v) - c[j]) * k) for j, v in enumerate(m.group(4).split(",")))}))'
+    return "\n".join(몸줄(l) for l in 글.splitlines())
+if __name__ == "__main__" and sys.argv[1:2] == ["도면좌표"]:   # 자체 시험: 바꾼 글의 가운데 ≈ 0 · 가장 긴 변 ≈ 100 · 부피 = 원래 × k³
+    import sys, glob; sys.path.insert(0, "G:/art2real/원화3d/실험_20261013/캐드부품"); import 설계116 as S
+    for p in sorted(glob.glob("G:/art2real/out/하네스/코드자료/글/*.py"))[:: 300]:
+        g = open(p, encoding="utf-8").read(); h = 도면좌표(g); _, _, c0, e0 = S.메시(실행(g)); m, _, c, e = S.메시(실행(h))
+        비 = 실행(h).val().Volume() / 실행(g).val().Volume() / (100 / e0) ** 3
+        assert abs(e - 100) < .5 and abs(c).max() < .5 and abs(비 - 1) < .02, (p, e, c, 비)
+        print(p[-8:-3], "가장 긴 변", round(e, 2), "가운데", c.round(2), "부피비", round(비, 4))
+    print("도면좌표 시험 통과"); sys.exit()
 if __name__ == "__main__":   # 자체 시험: 부품 몇 개 왕복(사양 짓기 vs 글 실행) 부피 IoU
     import sys, json; sys.path.insert(0, "G:/art2real/원화3d/실험_20261013/캐드부품")
     import 모델124 as B, 조립124 as C, 설계116 as S

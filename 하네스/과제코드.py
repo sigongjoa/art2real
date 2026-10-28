@@ -14,6 +14,11 @@ def _글하나(i):   # 정답 사양 → 글 파일(일꾼 프로세스 · CadQu
         import 코드글, 모델124 as B
         s = json.load(open(B.D + f"사양/{i}.json", encoding="utf-8")); open(p, "w", encoding="utf-8").write(코드글.글로(s["코드"]))
     except Exception as ex: open(p + ".err", "w", encoding="utf-8").write(str(ex)[:300])
+def _도면글하나(n):   # 155: 정답 글(mm · b0 원점) → 도면 기준(전체 가운데 원점 · 가장 긴 변 100) · 글도면/<n>.py
+    p = 자료폴더 + f"글도면/{n}.py"
+    if os.path.exists(p): return
+    try: import 코드글; open(p, "w", encoding="utf-8").write(코드글.도면좌표(open(자료폴더 + f"글/{n}.py", encoding="utf-8").read()))
+    except Exception as ex: open(p + ".err", "w", encoding="utf-8").write(str(ex)[:300])
 def _오류(p):   # 생성 글 파일 하나 실행 → p.err = 첫 줄 「오류 꼴: 말」 · 둘째 줄 「줄 탭 열」(생성 글 기준 · 모르면 0) · 성공이면 빈 파일 · 10-25 사용자 「코드 어디가 틀렸는지도」
     import traceback, 코드글
     글 = open(p, encoding="utf-8").read(); 말, 줄, 열 = "", 0, 0
@@ -58,7 +63,7 @@ def _정답선하나(n):   # 153: CNN 예측 대신 정답 선지도(선정답/<
     d = np.load(f"{뿌리}/out/하네스/선정답/{n}.npz"); 열 = G.열지도(d["점"][None])[0].astype(np.float32); 줄 = []
     for v in range(3): 줄 += 줄글(V.벡터화(d["지도"][v] > 0, 열[v], d["숨"][v], 2., 이음=True, 숨메움=True), v)
     open(p, "w", encoding="utf-8").write("\n".join(줄))
-def 자료(입력판="137전부합침", 선입력="CNN"):   # 글(정답) · 선(입력) 을 부품 3299 개 모두 · 한 번 만들면 재사용
+def 자료(입력판="137전부합침", 선입력="CNN", 좌표계="mm"):   # 글(정답) · 선(입력) 을 부품 3299 개 모두 · 한 번 만들면 재사용
     import torch, 과제선지도 as G, 분석그림 as A, 모델124 as B
     from omegaconf import OmegaConf
     for d in ("글", "선"): os.makedirs(자료폴더 + d, exist_ok=True)
@@ -72,12 +77,13 @@ def 자료(입력판="137전부합침", 선입력="CNN"):   # 글(정답) · 선
         np.savez(자료폴더 + "선지도.npz", 이름=np.array(이), 있=np.concatenate(있), 열=np.concatenate(열), 숨=np.concatenate(숨), X=Xnp); del X, Y, net; torch.cuda.empty_cache()
     z = np.load(자료폴더 + "선지도.npz"); 일꾼(_선하나, [k for k, n in enumerate(z["이름"]) if not os.path.exists(자료폴더 + f"선/{n}.txt")], 초=300)
     if 선입력 == "정답": os.makedirs(자료폴더 + "선정답글", exist_ok=True); 일꾼(_정답선하나, [n for n in 이름들 if not os.path.exists(자료폴더 + f"선정답글/{n}.txt")], 초=300)
-    return 목록({"CNN": "선", "정답": "선정답글"}[선입력])
-def 목록(선폴더="선"):   # → [(부품, 시험?, 입력 선 글, 정답 글)] 둘 다 있는 것만
+    if 좌표계 == "도면": os.makedirs(자료폴더 + "글도면", exist_ok=True); 일꾼(_도면글하나, [n for n in 이름들 if os.path.exists(자료폴더 + f"글/{n}.py") and not os.path.exists(자료폴더 + f"글도면/{n}.py") and not os.path.exists(자료폴더 + f"글도면/{n}.py.err")], 초=300)
+    return 목록({"CNN": "선", "정답": "선정답글"}[선입력], {"mm": "글", "도면": "글도면"}[좌표계])
+def 목록(선폴더="선", 글폴더="글"):   # → [(부품, 시험?, 입력 선 글, 정답 글)] 둘 다 있는 것만
     import 모델124 as B
     out = []
     for p in sorted(glob.glob(자료폴더 + f"{선폴더}/*.txt")):
-        n = os.path.basename(p)[:5]; g = 자료폴더 + f"글/{n}.py"
+        n = os.path.basename(p)[:5]; g = 자료폴더 + f"{글폴더}/{n}.py"
         if os.path.exists(g): out.append((n, int(n) >= B.NT, open(p, encoding="utf-8").read(), open(g, encoding="utf-8").read()))
     return out
 def 도면그림(n):   # 3면도 → 256 회색 2×2(위 · 앞 / 옆 · 빈칸) · cadrille 영상 입력
@@ -240,7 +246,7 @@ def 평가(이름들, 글들):   # 생성 글 · 정답 사양 → 실루엣 IoU
     return 줄, 렌
 def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.스텝 · 4 스텝마다 갱신) → 시험 생성 → 실행 · IoU → 그림
     import torch
-    s = cfg.코드; 입력 = str(s.입력); 토큰 = str(s.get("토큰", "기존")); 제 = str(s.get("디코딩", "탐욕")) == "제약"; 목 = 자료(선입력=str(s.get("선입력", "CNN")))
+    s = cfg.코드; 입력 = str(s.입력); 토큰 = str(s.get("토큰", "기존")); 제 = str(s.get("디코딩", "탐욕")) == "제약"; 좌 = str(s.get("좌표계", "mm")); 목 = 자료(선입력=str(s.get("선입력", "CNN")), 좌표계=좌)
     if 토큰 == "좌표": 목 = [(n, t, 좌표글(l), g) for n, t, l, g in 목]
     if str(s.get("서식", "기존")) == "배치먼저": import 코드글; 목 = [(n, t, l, 코드글.배치먼저(g)) for n, t, l, g in 목]   # 151~: 몸 개수 · 배치를 첫 줄에
     학 = [x for x in 목 if not x[1]]; 시 = [x for x in 목 if x[1]]
@@ -303,15 +309,22 @@ def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.
     for r in 줄: r["오류"] = "OOM — 메모리가 넘쳐 못 씀" if r["OOM"] else 오.get(폴더 + f"생성/{r['부품']}.py", "")
     json.dump(줄, open(폴더 + "평가.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     그림(폴더, 시, 글들, 렌, 줄, 입력); 검증정리(폴더, 검, {x[0]: 렌[len(글들) + t] for t, x in enumerate(시)}, {0} | {r["에폭"] for r in 기록})
-    try: import 코드원인; print("원인 쪼개기", 코드원인.재기(폴더), flush=True)   # 몸 개수 · 바꿔 끼우기 사다리 → 원인쪼개기.json · png(보고서 칸) · 실패해도 판은 계속
+    try: import 코드원인; print("원인 쪼개기", 코드원인.재기(폴더, 자료폴더 + {"mm": "글", "도면": "글도면"}[좌] + "/"), flush=True)   # 몸 개수 · 바꿔 끼우기 사다리 → 원인쪼개기.json · png(보고서 칸) · 실패해도 판은 계속
     except Exception as ex: print("⚠ 원인 쪼개기 실패", type(ex).__name__, ex, flush=True)
     쓸 =[r for r in 줄 if not r["OOM"] and not r["정답실패"]]; iou = np.array([r["IoU"] for r in 쓸]); 된 = np.array([r["IoU"] for r in 쓸 if r["실행"]])   # 모델 탓이 아닌 칸은 뺌
     if len(쓸) < len(줄): print(f"⚠ 집계에서 뺌 — OOM {sum(r['OOM'] for r in 줄)} · 정답 렌더 실패 {sum(r['정답실패'] for r in 줄)}", flush=True)
     return {"코드_실행률": round(float(np.mean([r["실행"] for r in 쓸])), 4), "코드_IoU": round(float(np.median(iou)), 4), "코드_IoU평균": round(float(iou.mean()), 4),
             "코드_IoU실행": round(float(np.median(된)), 4) if len(된) else None,   # 실행된 것만의 모양 — 코드_IoU(실패 = 0 중앙)는 실행률 < 0.5 면 늘 0 이라 모양을 못 봄(10-25 감사: 145 0.000 인데 이것은 0.53)
             "코드_OOM": sum(r["OOM"] for r in 줄), "코드_정답실패": sum(r["정답실패"] for r in 줄), "코드_원뿔배움": 배.get("학습", {}).get("원뿔 갈래 .Solid", {}).get("맞음"),   # 원뿔배움: 학습 부품에서 「cq.」 다음 「.Solid」 를 맞히나(정답 넣어 줌) · 147 · 151 은 0 · 10-27 주석 뒤에 정답실패가 묻혀 빠졌던 것 고침
+            "코드_옆옮김": 옆옮김(글들), "코드_옆옮김정답": 옆옮김([x[3] for x in 시]),   # 10-28 사용자 「겹친다 교집합을 못 배우네」: 152 · 154 는 b1~ 를 z 로만 옮김(97 %+) · 정답은 x · y 도 76 % — b0 기준 x 나 y 로 옮긴 몸 비율
             "코드_몸개수맞음": round(float(np.mean([몸수(g) == 몸수(x[3]) for g, x in zip(글들, 시)])), 4),   # 실행과 상관없이 몸 줄 수가 정답과 같은 비율(10-25 원인 쪼개기: 147 실행된 것 중 39 %)
             "코드_학습loss": round(기록[-1]["학습"], 4), "코드_시험loss": round(기록[-1]["시험"], 4), "시험loss": round(기록[-1]["시험"], 4), "학습loss": round(기록[-1]["학습"], 4)}
+def 옆옮김(글들):   # b0 대비 x · y 로 0.5 넘게 옮긴 몸(b1~)의 비율 · place 서식만 셈(배치먼저는 기존화)
+    import 코드원인; 몸 = [b for b in map(코드원인.몸들, 글들) if b and len(b) > 1]
+    쌍 = [(b[0], x) for b in 몸 for x in b[1:]]
+    if not 쌍: return None
+    f = lambda x: [float(v) for v in x[3].split(",")]
+    return round(sum(max(abs(f(x)[0] - f(a)[0]), abs(f(x)[1] - f(a)[1])) >= .5 for a, x in 쌍) / len(쌍), 4)
 def 몸수(글): import re; return len(re.findall(r"^b\d+ = ", 글, re.M))
 def 검증부품(시):   # 시트와 같은 넷: 12050 + 앞 셋
     보 = [x for x in 시 if x[0] == "12050"] + 시[:3]; return list({x[0]: x for x in 보}.values())[:4]
