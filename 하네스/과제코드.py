@@ -16,8 +16,8 @@ def _글하나(i):   # 정답 사양 → 글 파일(일꾼 프로세스 · CadQu
     except Exception as ex: open(p + ".err", "w", encoding="utf-8").write(str(ex)[:300])
 def _도면글하나(n):   # 155: 정답 글(mm · b0 원점) → 도면 기준(전체 가운데 원점 · 가장 긴 변 100) · 글도면/<n>.py
     p = 자료폴더 + f"글도면/{n}.py"
-    if os.path.exists(p): return
-    try: import 코드글; open(p, "w", encoding="utf-8").write(코드글.도면좌표(open(자료폴더 + f"글/{n}.py", encoding="utf-8").read()))
+    if os.path.exists(p) and os.path.getsize(p): return
+    try: import 코드글; t = 코드글.도면좌표(open(자료폴더 + f"글/{n}.py", encoding="utf-8").read()); open(p + ".tmp", "w", encoding="utf-8").write(t); os.replace(p + ".tmp", p)   # 10-29 세션이 끝나며 일꾼이 죽어 빈 파일 5 개 → 다 쓴 뒤 바꿔 넣음
     except Exception as ex: open(p + ".err", "w", encoding="utf-8").write(str(ex)[:300])
 def _오류(p):   # 생성 글 파일 하나 실행 → p.err = 첫 줄 「오류 꼴: 말」 · 둘째 줄 「줄 탭 열」(생성 글 기준 · 모르면 0) · 성공이면 빈 파일 · 10-25 사용자 「코드 어디가 틀렸는지도」
     import traceback, 코드글
@@ -77,7 +77,7 @@ def 자료(입력판="137전부합침", 선입력="CNN", 좌표계="mm"):   # �
         np.savez(자료폴더 + "선지도.npz", 이름=np.array(이), 있=np.concatenate(있), 열=np.concatenate(열), 숨=np.concatenate(숨), X=Xnp); del X, Y, net; torch.cuda.empty_cache()
     z = np.load(자료폴더 + "선지도.npz"); 일꾼(_선하나, [k for k, n in enumerate(z["이름"]) if not os.path.exists(자료폴더 + f"선/{n}.txt")], 초=300)
     if 선입력 == "정답": os.makedirs(자료폴더 + "선정답글", exist_ok=True); 일꾼(_정답선하나, [n for n in 이름들 if not os.path.exists(자료폴더 + f"선정답글/{n}.txt")], 초=300)
-    if 좌표계 == "도면": os.makedirs(자료폴더 + "글도면", exist_ok=True); 일꾼(_도면글하나, [n for n in 이름들 if os.path.exists(자료폴더 + f"글/{n}.py") and not os.path.exists(자료폴더 + f"글도면/{n}.py") and not os.path.exists(자료폴더 + f"글도면/{n}.py.err")], 초=300)
+    if 좌표계 == "도면": os.makedirs(자료폴더 + "글도면", exist_ok=True); 일꾼(_도면글하나, [n for n in 이름들 if os.path.exists(자료폴더 + f"글/{n}.py") and not (os.path.exists(자료폴더 + f"글도면/{n}.py") and os.path.getsize(자료폴더 + f"글도면/{n}.py")) and not os.path.exists(자료폴더 + f"글도면/{n}.py.err")], 초=300)
     return 목록({"CNN": "선", "정답": "선정답글"}[선입력], {"mm": "글", "도면": "글도면"}[좌표계])
 def 목록(선폴더="선", 글폴더="글"):   # → [(부품, 시험?, 입력 선 글, 정답 글)] 둘 다 있는 것만
     import 모델124 as B
