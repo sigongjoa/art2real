@@ -6,6 +6,7 @@ import os, sys, re, ast, json, numpy as np
 정답폴더 = 뿌리 + "/out/하네스/코드자료/글/"   # 정답 글은 늘 기존 서식(place)으로 읽음
 P = re.compile(r'^(b\d+) = place\((.*), "(\w)", \(([^()]*)\)\)$')
 def 기존화(글):   # 배치먼저(layout + at(i, 식)) → place 서식 · 못 풀면 그대로(파싱에서 빠짐)
+    글 = "\n".join(l for l in 글.splitlines() if not l.startswith("#"))   # 156~ 읽기먼저: 주석 줄은 몸이 아님
     if not 글.startswith("layout = "): return 글
     첫, _, 나머지 = 글.partition("\n")
     try: 배 = ast.literal_eval(첫[len("layout = "):])

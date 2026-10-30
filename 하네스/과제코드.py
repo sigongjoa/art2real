@@ -249,9 +249,8 @@ def 평가(이름들, 글들):   # 생성 글 · 정답 사양 → 실루엣 IoU
 def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.스텝 · 4 스텝마다 갱신) → 시험 생성 → 실행 · IoU → 그림
     import torch
     s = cfg.코드; 입력 = str(s.입력); 토큰 = str(s.get("토큰", "기존")); 제 = str(s.get("디코딩", "탐욕")) == "제약"; 좌 = str(s.get("좌표계", "mm")); 목 = 자료(선입력=str(s.get("선입력", "CNN")), 좌표계=좌)
-    if 토큰 == "좌표": 목 = [(n, t, 좌표글(l), g) for n, t, l, g in 목]
-    if str(s.get("서식", "기존")) == "배치먼저": import 코드글; 목 = [(n, t, l, 코드글.배치먼저(g)) for n, t, l, g in 목]   # 151~: 몸 개수 · 배치를 첫 줄에
-    학 = [x for x in 목 if not x[1]]; 시 = [x for x in 목 if x[1]]
+    목 = 서식바꿈(목, s); 학 = [x for x in 목 if not x[1]]; 시 = [x for x in 목 if x[1]]
+    if s.get("학습부품"): 고 = set(json.load(open(f"{뿌리}/out/하네스/{s.학습부품}/부품.json"))); 학 = [x for x in 학 if x[0] in 고]   # 156~ 증류 시범: 읽기가 있는 학습 부품만(대조 판도 같은 부품)
     if s.get("시험수"): 시 = 시[:int(s.시험수)]
     random.seed(int(cfg.학습.get("시드", 0))); torch.manual_seed(int(cfg.학습.get("시드", 0)))
     model, proc = 모델(int(s.get("랭크", 16)), 토큰, str(s.get("LoRA대상", "어텐션"))); 스텝 = int(cfg.학습.스텝); 누적 = 4
@@ -321,6 +320,13 @@ def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.
             "코드_옆옮김": 옆옮김(글들), "코드_옆옮김정답": 옆옮김([x[3] for x in 시]),   # 10-28 사용자 「겹친다 교집합을 못 배우네」: 152 · 154 는 b1~ 를 z 로만 옮김(97 %+) · 정답은 x · y 도 76 % — b0 기준 x 나 y 로 옮긴 몸 비율
             "코드_몸개수맞음": round(float(np.mean([몸수(g) == 몸수(x[3]) for g, x in zip(글들, 시)])), 4),   # 실행과 상관없이 몸 줄 수가 정답과 같은 비율(10-25 원인 쪼개기: 147 실행된 것 중 39 %)
             "코드_학습loss": round(기록[-1]["학습"], 4), "코드_시험loss": round(기록[-1]["시험"], 4), "시험loss": round(기록[-1]["시험"], 4), "학습loss": round(기록[-1]["학습"], 4)}
+def 서식바꿈(목, s):   # 입력 토큰 · 정답 서식 — 점검 · 학습부품확인 이 같이 씀
+    if str(s.get("토큰", "기존")) == "좌표": 목 = [(n, t, 좌표글(l), g) for n, t, l, g in 목]
+    서 = str(s.get("서식", "기존"))
+    if 서 == "배치먼저": import 코드글; 목 = [(n, t, l, 코드글.배치먼저(g)) for n, t, l, g in 목]   # 151~: 몸 개수 · 배치를 첫 줄에
+    if 서 == "읽기먼저":   # 156~ 증류: 큰 모델이 도면 + 정답 코드를 보고 쓴 「도면 읽기」 주석 줄(# …)을 코드 앞에 · 없는 부품은 코드만
+        읽 = f"{뿌리}/out/하네스/증류/읽기/"; 목 = [(n, t, l, (open(읽 + f"{n}.txt", encoding="utf-8").read().strip() + "\n" + g) if os.path.exists(읽 + f"{n}.txt") else g) for n, t, l, g in 목]
+    return 목
 def 옆옮김(글들):   # b0 대비 x · y 로 0.5 넘게 옮긴 몸(b1~)의 비율 · place 서식만 셈(배치먼저는 기존화)
     import 코드원인; 몸 = [b for b in map(코드원인.몸들, 글들) if b and len(b) > 1]
     쌍 = [(b[0], x) for b in 몸 for x in b[1:]]
