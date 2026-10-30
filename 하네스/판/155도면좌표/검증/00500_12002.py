@@ -1,0 +1,8 @@
+b0 = place(cq.Workplane("XZ").polyline([(0.0, 0.0), (18.0, 0.0), (18.0, 10.0), (17.0, 10.0), (17.0, 11.0), (0.0, 11.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), "z", (0.0, 0.0, -19.9))
+b1 = place(cq.Workplane("XZ").polyline([(0.0, 0.0), (18.0, 0.0), (18.0, 10.0), (17.0, 10.0), (17.0, 11.0), (0.0, 11.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), "z", (16.0, 0.0, -19.9))
+b1 = place(cq.Workplane("XZ").polyline([(0.0, 0.0), (16.0, 0.0), (16.0, 10.0), (17.0, 10.0), (17.0, 11.0), (0.0, 11.0), -19.9, 10.0), -19.9, 10.0), -19.9, 10.0), -19.9, 10.0), -19.9, 10.0), -19.9, 11.0), -19.9, 10.0), -19.9, 10.0), -19.9, 10.0), -19.9, 11.0), -19.9, 10.0), -19.9, 10.0), -19.9, 11.0), -Bind(360, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0.0)), "z", (16.0, -19.9, -19.9))
+b1 = place(cq.Workplane("XY").box(100.0, 26.0, 16.0, centered=(True, True, False)).faces(">Z").workplane(origin=(0, 0, 16.0))
+center(10.0, 1.0, -16.0))
+result = b0.union(b2.union(b2.union(b2.union(b2.union(b2.union(b2.union(b2.union(b2.union(b2.union(b2.union(b2.union(b2.workplane(origin=(0,0,0))
+bline([(0,0),(-1,0),(-1,1)).close().assemble().finalize().extrude(-100).union(w0.sketch().arc((15.5,0),(16.0,0),(-1,0)).arc((-1,1),(-2,1)).arc((-2,0),(-3,0)).close().assemble().finalize().extrude(44)).union(w0.sketch().segment((0,0),(15.5,0)).arc((8.5,1),(0,0)).assemble().finalize().extrude(56)).union(w0.sketch().arc((0,0),(8.5,1),(15.5,0)).segment((15.5,18.5), (0,18.5)).close().assemble().finalize().extrude(56)).union(w0.workplane(origin=(0,0,0))
+bline([(0,0),(-1,0),(-1,18.5)).close().assemble().finalize().extrude(56))
