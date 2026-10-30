@@ -34,12 +34,12 @@ def 오류들(파일들, 초=60):   # → {파일: 오류 말} · 시간 넘으�
     일꾼(_오류, [f for f in 파일들 if not os.path.exists(f + ".err")], 초)
     return {f: open(f + ".err", encoding="utf-8").read() if os.path.exists(f + ".err") else "시간 넘음" for f in 파일들}
 def 일꾼(함수, 일, 초=120, n=6):   # 부품마다 프로세스 · 시간 상한(과제세뷰.투영들 과 같은 꼴)
-    import multiprocessing as mp
+    import 모델124 as B   # 10-30 mp.Process 는 하네스 __main__ 을 다시 불러 하나 뜨는 데 1 분+ → 155 오류 말이 「시간 넘음」 · 새 파이썬 한 줄(B.따로)
     도는 = {}
     while 일 or 도는:
-        while 일 and len(도는) < n: i = 일.pop(); pr = mp.Process(target=함수, args=(i,)); pr.start(); 도는[i] = (pr, time.time())
+        while 일 and len(도는) < n: i = 일.pop(); pr = B.따로(f"import 과제코드 as K; K.{함수.__name__}({i!r})"); 도는[i] = (pr, time.time())
         for i, (pr, t) in list(도는.items()):
-            if not pr.is_alive(): 도는.pop(i)
+            if pr.poll() is not None: 도는.pop(i)
             elif time.time() - t > 초: pr.kill(); 도는.pop(i)
         time.sleep(.2)
 def 줄글(선들, v):   # 벡터화 선 목록 → 글 줄들(긴 선부터 최대 120 줄 · 자리 순 정렬)
@@ -239,11 +239,13 @@ def 생성(model, proc, items, 배=4, 최대=1024, 제약=False):
 def 평가(이름들, 글들):   # 생성 글 · 정답 사양 → 실루엣 IoU(병렬렌더 「글」 · 「조립」)
     import 모델124 as B
     색 = {f"{r['i']:05d}": r for r in B.색인()}
-    렌 = B.병렬렌더([("글", g) for g in 글들] + [("조립", 색[n]["코드"]) for n in 이름들]); k = len(글들); 줄 = []
+    import 데이터117 as Q, 재채점   # 10-30 새 자: 부피 IoU(옛 실루엣은 같은 모양 하나만 내도 0.41) · 바닥 = 모든 부품에 같은 모양 하나의 가장 좋은 값
+    렌 = B.병렬렌더([("글", g, 1) for g in 글들] + [("조립", 색[n]["코드"], 1) for n in 이름들] + [("글", g, 1) for g in 재채점.바닥.values()]); k = len(글들); 줄 = []
+    부 = lambda r: None if r is None else r[2]; 바 = {b: float(np.median([Q.부피겹(부(렌[2 * k + j]), 부(렌[k + t])) for t in range(k) if 렌[k + t] is not None])) for j, b in enumerate(재채점.바닥)}
     for t, n in enumerate(이름들):
         예, 정 = 렌[t], 렌[k + t]; iou = 0. if 예 is None or 정 is None else float((예[1] & 정[1]).sum() / max((예[1] | 정[1]).sum(), 1))
-        줄.append({"부품": n, "실행": 예 is not None, "IoU": round(iou, 4), "OOM": 글들[t] == OOM, "정답실패": 정 is None})   # 정답 렌더 실패 · OOM 은 모델 탓이 아님 → 집계에서 뺌
-    return 줄, 렌
+        줄.append({"부품": n, "실행": 예 is not None, "IoU": round(iou, 4), "OOM": 글들[t] == OOM, "정답실패": 정 is None, "부피IoU": round(Q.부피겹(부(예), 부(정)), 4)})   # 정답 렌더 실패 · OOM 은 모델 탓이 아님 → 집계에서 뺌
+    return 줄, 렌, 바
 def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.스텝 · 4 스텝마다 갱신) → 시험 생성 → 실행 · IoU → 그림
     import torch
     s = cfg.코드; 입력 = str(s.입력); 토큰 = str(s.get("토큰", "기존")); 제 = str(s.get("디코딩", "탐욕")) == "제약"; 좌 = str(s.get("좌표계", "mm")); 목 = 자료(선입력=str(s.get("선입력", "CNN")), 좌표계=좌)
@@ -304,7 +306,7 @@ def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.
     try: import 코드배움; 배 = 코드배움.저장(폴더, model, proc, [(n, l, g) for n, _, l, g in 학], [(n, l, g) for n, _, l, g in 시], 입력); print("배웠나", 배, flush=True)   # 정답 넣어 줄 때 결정 자리 맞힘 → 배움.json(보고서 칸) · 10-26 사용자 「학습을 못한 거 아니고?」
     except Exception as e: print("배웠나 실패", repr(e), flush=True)
     del model; torch.cuda.empty_cache()
-    줄, 렌 = 평가([x[0] for x in 시], 글들)
+    줄, 렌, 바 = 평가([x[0] for x in 시], 글들)
     오 = 오류들([폴더 + f"생성/{r['부품']}.py" for r in 줄 if not r["실행"] and not r["OOM"]])
     for r in 줄: r["오류"] = "OOM — 메모리가 넘쳐 못 씀" if r["OOM"] else 오.get(폴더 + f"생성/{r['부품']}.py", "")
     json.dump(줄, open(폴더 + "평가.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
@@ -313,7 +315,7 @@ def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.
     except Exception as ex: print("⚠ 원인 쪼개기 실패", type(ex).__name__, ex, flush=True)
     쓸 =[r for r in 줄 if not r["OOM"] and not r["정답실패"]]; iou = np.array([r["IoU"] for r in 쓸]); 된 = np.array([r["IoU"] for r in 쓸 if r["실행"]])   # 모델 탓이 아닌 칸은 뺌
     if len(쓸) < len(줄): print(f"⚠ 집계에서 뺌 — OOM {sum(r['OOM'] for r in 줄)} · 정답 렌더 실패 {sum(r['정답실패'] for r in 줄)}", flush=True)
-    return {"코드_실행률": round(float(np.mean([r["실행"] for r in 쓸])), 4), "코드_IoU": round(float(np.median(iou)), 4), "코드_IoU평균": round(float(iou.mean()), 4),
+    return {"코드_실행률": round(float(np.mean([r["실행"] for r in 쓸])), 4), "코드_IoU": round(float(np.median(iou)), 4), "코드_IoU평균": round(float(iou.mean()), 4), "코드_부피IoU": round(float(np.median([r["부피IoU"] for r in 쓸])), 4), "코드_부피바닥": round(max(바.values()), 4),   # 10-30 판정은 부피 IoU 로 · 바닥은 같은 모양 하나(원기둥 0.15 근처)
             "코드_IoU실행": round(float(np.median(된)), 4) if len(된) else None,   # 실행된 것만의 모양 — 코드_IoU(실패 = 0 중앙)는 실행률 < 0.5 면 늘 0 이라 모양을 못 봄(10-25 감사: 145 0.000 인데 이것은 0.53)
             "코드_OOM": sum(r["OOM"] for r in 줄), "코드_정답실패": sum(r["정답실패"] for r in 줄), "코드_원뿔배움": 배.get("학습", {}).get("원뿔 갈래 .Solid", {}).get("맞음"),   # 원뿔배움: 학습 부품에서 「cq.」 다음 「.Solid」 를 맞히나(정답 넣어 줌) · 147 · 151 은 0 · 10-27 주석 뒤에 정답실패가 묻혀 빠졌던 것 고침
             "코드_옆옮김": 옆옮김(글들), "코드_옆옮김정답": 옆옮김([x[3] for x in 시]),   # 10-28 사용자 「겹친다 교집합을 못 배우네」: 152 · 154 는 b1~ 를 z 로만 옮김(97 %+) · 정답은 x · y 도 76 % — b0 기준 x 나 y 로 옮긴 몸 비율

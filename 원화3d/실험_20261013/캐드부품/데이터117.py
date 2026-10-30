@@ -3,6 +3,14 @@
 import sys, os, json, copy, subprocess, numpy as np, cv2
 import 설계116 as S
 D = S.O + "임베딩117/"; os.makedirs(D + "렌더", exist_ok=True); os.makedirs(D + "영상", exist_ok=True)
+def 부피(m, n=64):   # 10-30 새 자: 도면과 같은 정규화(상자 가운데 · 가장 긴 변 1) 뒤 n³ 점유 → packbits · 옛 실루엣 IoU 는 원기둥 하나만 그려도 0.41(바닥) · 부피는 0.15
+    import open3d as o3d
+    v = (m.vertices - m.bounds.mean(0)) / float(m.extents.max()); sc = o3d.t.geometry.RaycastingScene(); sc.add_triangles(o3d.core.Tensor(v.astype(np.float32)), o3d.core.Tensor(np.asarray(m.faces, np.uint32)))
+    g = (np.arange(n) + .5) / n * 1.1 - .55; X, Y, Z = np.meshgrid(g, g, g, indexing="ij")
+    return np.packbits(sc.compute_occupancy(o3d.core.Tensor(np.stack([X, Y, Z], -1).reshape(-1, 3).astype(np.float32))).numpy() > 0)
+def 부피겹(a, b):   # packbits 둘 → 부피 IoU · 하나라도 None 이면 0
+    if a is None or b is None: return 0.
+    a, b = np.unpackbits(a).astype(bool), np.unpackbits(b).astype(bool); return float((a & b).sum() / max((a | b).sum(), 1))
 def 렌더(m, 방위=35., 고도=25., n=256):   # open3d 광선 · 법선 음영(램버트) · 흰 바탕
     import open3d as o3d
     v = (m.vertices - m.bounds.mean(0)) / float(m.extents.max()); sc = o3d.t.geometry.RaycastingScene(); sc.add_triangles(o3d.core.Tensor(v.astype(np.float32)), o3d.core.Tensor(np.asarray(m.faces, np.uint32)))
