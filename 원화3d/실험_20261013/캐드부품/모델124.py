@@ -113,18 +113,21 @@ def 병렬렌더(잡, *a, **k):   # 10-28 154 시드 1 · 2 채점이 겹쳐 정
     time.time() - 기다림 > 10 and print(f"다른 채점이 끝나기를 {time.time() - 기다림:.0f} 초 기다림", flush=True)
     try: return _병렬렌더(잡, *a, **k)
     finally: f.seek(0); msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1); f.close()
+def 따로(코드):   # 10-30 일꾼을 multiprocessing 으로 띄우면 부모 __main__(하네스.py → torch · hydra …)을 다시 불러 하나 뜨는 데 1 분+ → 155 시드 1 실행되는 코드 66 개가 「시간 넘음」(따로 돌리면 9 초) · 일꾼은 코드 한 줄만 부르는 새 파이썬
+    import subprocess
+    return subprocess.Popen([os.environ.get("__PYVENV_LAUNCHER__") or sys.executable, "-c", f"import sys; sys.path[:0] = {sys.path!r}; " + 코드])
 def _병렬렌더(잡, 초=60, 묶=8, n=None):   # 10-21 Pool 은 OCC 로 일꾼이 죽으면 일이 사라져 47 분 멈춤 → 프로세스 따로 · 묶음 마감 = 초 × 묶 · 못 끝낸 잡은 하나씩 한 번 더 · 그래도 안 되면 None(0 점)
     import pickle, shutil, tempfile                     # 10-26 사용자 「CPU 를 병렬로」: 6 개씩 물결(느린 묶음 하나가 물결 전체를 붙잡음) → 끊김 없이 채움
-    from multiprocessing import Process                 # 10-27 일꾼 12 개는 ART_MEM_GB(부모 + 일꾼 합) 를 넘어 MemoryError · 페이징 파일 부족 → 152 시드 1 · 2 채점이 멈춤(내 실수) · 일꾼은 6 개 그대로
+    # 10-27 일꾼 12 개는 ART_MEM_GB(부모 + 일꾼 합) 를 넘어 MemoryError · 페이징 파일 부족 → 152 시드 1 · 2 채점이 멈춤(내 실수) · 일꾼은 6 개 그대로
     n = n or 6
     칸 = tempfile.mkdtemp() + "/"; 잡파일 = 칸 + "잡.pkl"; pickle.dump(잡, open(잡파일, "wb")); 있 = lambda k: os.path.exists(칸 + f"{k}.pkl")
     for 크 in (묶, 1):
         남 = [k for k in range(len(잡)) if not 있(k)]; 묶음들 = [남[b:b + 크] for b in range(0, len(남), 크)]; 도는 = []
         while 묶음들 or 도는:
-            while 묶음들 and len(도는) < n: q = Process(target=_묶음, args=(잡파일, 묶음들.pop(0), 칸)); q.start(); 도는.append((q, time.time()))
+            while 묶음들 and len(도는) < n: q = 따로(f"import 모델124 as B; B._묶음({잡파일!r}, {묶음들.pop(0)!r}, {칸!r})"); 도는.append((q, time.time()))
             for q, t in 도는[:]:
-                if not q.is_alive(): 도는.remove((q, t))
-                elif time.time() - t > 초 * 크: q.terminate(); 도는.remove((q, t))
+                if q.poll() is not None: 도는.remove((q, t))
+                elif time.time() - t > 초 * 크: q.kill(); 도는.remove((q, t))
             time.sleep(.2)
     out = [pickle.load(open(칸 + f"{k}.pkl", "rb")) if 있(k) else None for k in range(len(잡))]; shutil.rmtree(칸, ignore_errors=True)
     print("걸림·실패", sum(o is None for o in out), "/", len(out), flush=True); return out
