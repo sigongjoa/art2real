@@ -1,0 +1,10 @@
+# 3 bodies: stepped disc, stepped disc, stepped disc, stepped, at front along y, base at x, at front-right at x, at right x about -15, z (x about -15, z≈-15); seen as the large circle in TOP, at front-right in FRONT and SIDE; a small rectangle at the front at TOP and a wide rectangle at the top.
+# b1: revolved cup along z, at front (x about -15, y≈-15, z≈-15); seen as the lower circle in TOP, a rectangular pocket in FRONT and a small rectangle in TOP and SIDE; a small rectangle in FRONT and a small rectangle in TOP.
+# b2: revolved cup along z, at front (x about -15, y≈-15, z≈-18); seen as the lower circle in TOP, a wide circle in TOP and a small rectangle in FRONT and a small rectangle in TOP.
+# b3: revolved cup along z, at left (x about -15, y≈-15, z≈-19); seen as the lower circle in TOP; a rectangular pocket in TOP and a small rectangle in TOP.
+# b3: revolved cup along z, at left (x about -15, y≈-15, z≈-16); seen as the lower rectangle in TOP and the rectangle in TOP.
+b0 = place(cq.Workplane("XZ").polyline([(0.0, 0.0), (15.0, 0.0), (15.0, 14.1), (10.0, 14.1), (10.0, 20.1), (0.0, 20.1)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(">Z").workplane(origin=(0, 0, 20.1)).center(-15.0, -15.0).hole(15.0, 15.0), "z", (0.0, 15.0, 0.0))
+b1 = place(cq.Workplane("XZ").polyline([(0.0, 0.0), (21.0, 0.0), (21.0, 14.1), (13.0, 14.1), (13.0, 20.1), (0.0, 20.1)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(">Z").workplane(origin=(0, 0, 20.1)).center(-15.0, -15.0).hole(15.0, 15.0), "y", (-15.0, 15.0, 0.0))
+b2 = place(cq.Workplane("XY").circle(33.0).extrude(29.0).faces(">Z").workplane(origin=(0, 0, 29.0)).center(-15.0, -15.0).rect(14.0, 15.0).cutBlind(-15.0), "y", (-15.0, -15.0, 0.0))
+b3 = place(cq.Workplane("XY").circle(31.0).extrude(29.0).faces(">Z").workplane(origin=(0, 0, 29.0)).center(15.0, -15.0, 0.0)).cutBlind(-15.0), "y", (-15.0, -15.0, 0.0))
+result = b0.union(b1.union(b2.union(b3)))

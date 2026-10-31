@@ -1,0 +1,4 @@
+# 1 bodies: thin
+# b0: box along z, centred, at front (y≈10, z≈10) along x, at right x (x about 10, z≈10) along x, at right x (x≈-10, z≈10) along x, at right-left (x≈-10, z≈10) along x, at right-left (x≈-10, y≈10); seen as the large circle in TOP, the front at top in FRONT and SIDE; a small circle in TOP, a small circle in TOP, a small blind hole in TOP.
+b0 = place(cq.Workplane("XY").add(cq.Workplane("XY").add(cq.Workplane("XY").push([(0.0,0.0)]).rect(10.0, 10.0).push([(0.0,0.0)]).rect(10.0, 10.0),mode='s').push([(0.0,0.0)]).rect(10.0, 10.0), (0.0, 0.0), (0.0, 10.0), (0.0, 20.0), (0.0, 21.0), (0.0, 22.0), (0.0, 23.0), (0.0, 24.0), (0.0, 25.0), (0.0, 26.0), (0.0, 27.0), (0.0, 28.0), (0.0, 29.0), (0.0, 30.0), (0.0, 30.0), (0.0, 31.0), (0.0, 32.0), (0.0, 34.0), (0.0, 35.0), (0.0, 37.0), (0.0, 37.0), (0.0, 37.0)]).arc((0.0, 35),(-1.0, 35.0), (0.0, 35.0),(-1.0, -1), -1.0, -1), -1.0, 0.0, 0.0, 0.0))
+result = b0.union(b1(b1.union(b2.union(b3))

@@ -1,0 +1,8 @@
+# 5 bodies: stepped disc, stepped disc, stepped disc, stepped, at front along y, base at x, at front at z, at z, at front-right (x about -12, y≈-12); seen as the large circle in TOP, a small rectangle in FRONT and a small rectangle in TOP and SIDE; a small rectangle in TOP and a small rectangle in TOP and a small rectangle in TOP and a small rectangle in TOP.
+# b1: box along z (z≈-12), at x≈-12, y≈-12, z≈-12); seen as the lower rectangle in TOP and the upper rectangle in TOP and the rectangle in TOP; a small rectangle in FRONT and a wide rectangle in TOP.
+# b2: revolved cup along z, at left (x≈-12, y≈-12, z≈-12); seen as the lower rectangle in TOP and the upper rectangle in FRONT and SIDE; a small rectangle in FRONT and a small rectangle in TOP.
+# b2: revolved cup along y, at left (x≈-12, y≈-12, z≈-12); seen as the lower rectangle in TOP and the rectangle in FRONT; a rectangular pocket in its left of the left of the upper upper left edge in TOP.
+b0 = place(cq.Workplane("XZ").polyline([(0.0, 0.0), (29.8, 0.0), (29.8, 13.3), (22.6, 13.3), (22.6, 20.4), (13.6, 20.4), (13.6, 13.4), (0.0, 13.4)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), "z", (0.0, 0.0, 0.0))
+b1 = place(cq.Workplane("XZ").polyline([(0.0, 0.0), (29.8, 0.0), (29.8, 13.3), (22.8, 13.3), (22.8, 20.4), (13.6, 20.4), (13.6, 13.4), (0.0, 13.4)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), "x", (-12.0, 0.0, 0.0))
+b2 = place(cq.Workplane("XZ").polyline([(0.0, 0.0), (29.8, 0.0), (29.8, 13.3), (22.8, 13.3), (22.8, 20.4), (0.0, 20.4)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(">Z").workplane(origin=(0, 0, 20.4)).center(-12.0, 12.8).rect(10.1, 10.8).cutBlind(-12.0), "z", (-12.0, 0.0, 0.0))
+result = b0.union(b1.union(b2.union(b3.union(b4.union(b3)))

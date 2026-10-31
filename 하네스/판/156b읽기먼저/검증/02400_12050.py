@@ -1,0 +1,10 @@
+# 5 bodies: stepped disc, stepped disc, stepped disc, stepped, at front
+# b0: thin bowl along z, at front (z≈12, z≈12, z≈12; seen as the circle in TOP, at right in FRONT, a rectangular pocket in TOP and a half disc in TOP and a half-right in TOP, a half circle in TOP and a small base at the left (x≈12); seen as a half-out rectangle in FRONT and a half-right at right in TOP and a half-right at the top.
+# b1: revolved cup along y, at front-right (x≈-12, y≈-12, z≈12); seen as the lower circle in TOP and a half circle in TOP; a half circle in TOP and a half-right at the left of TOP and a half disc in TOP.
+# b2: revolved cup along z, at left (x about -12, y≈-12, y≈-12); seen as the lower in FRONT, a half disc in TOP and a half-right in TOP.
+b0 = place(cq.Workplane("XY").circle(30.0).extrude(19.7).faces(">Z").workplane(origin=(0, 0, 19.7)).center(-1.1, 1.9).hole(11.9, 17.7), "y", (12.0, 0.0, 12.7))
+b1 = place(cq.Workplane("XZ").polyline([(0.0, 0.0), (21.0, 0.0), (21.0, 19.7), (13.0, 19.7), (13.0, 38.3), (0.0, 38.3)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(">Z").workplane(origin=(0, 0, 38.3)).center(-1.1, -1.1).rect(11.1, 10.9).cutBlind(-12.6), "z", (-12.6, 0.0, 12.7))
+b2 = place(cq.Workplane("XZ").polyline([(0.0, 0.0), (10.0, 0.0), (10.0, 10.1), (8.0, 10.1), (8.0, 22.7), (0.0, 22.7)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(">Z").workplane(origin=(0, 0, 22.7)).center(-1.5, -1.5).rect(11.1, 1.1).cutBlind(-1.5), "z", (-12.6, 0.0, 12.7))
+b3 = place(cq.Workplane("XY").circle(29.0).extrude(16.6).faces(">Z").workplane(origin=(0, 0, 16.6)).center(-1.1, -1.1).rect(10.1, 10.9).cutBlind(-1.1), "z", (12.0, 0.0, 16.7))
+b3 = place(cq.Workplane("XZ").polyline([(0.0, 0.0), (10.0, 0.0), (10.0, 14.7), (8.0, 14.7), (8.0, 22.7), (0.0, 22.7)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(">Z").workplane(origin=(0, 0, 14.7)).center(1.5, -1.1).rect(10.0, 1.1).cutBlind(-1.1), "y", (12.0, 0.0, -1.1))
+b4 = place(cq.Workplane("XY").box(15.5, 29.7, 16.7, centered=(True, True, False)).faces(">Z").workplane(origin=(0, 0, 16.7)).center(1.1, -1.1

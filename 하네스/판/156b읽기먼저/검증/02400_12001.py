@@ -1,0 +1,5 @@
+# 1 body: thin
+# b0: box along z, centred, at centre (0,0,0), ~50, z ~17, ~15, ~12; seen as two circle in TOP and SIDE, a rectangle in TOP and a wide rectangle in FRONT and SIDE; a small circle in SIDE, a small blind hole in SIDE; a small blind hole in SIDE; a small blind hole (dashed) along z, a small blind hole (x≈-12); seen as a wide rectangle in TOP and a wide rectangle in FRONT and SIDE; a wide rectangle in FRONT and a wide rectangle in FRONT and a wide circle in TOP and a wide circle in TOP and a small rectangle in FRONT and a wide rectangle in TOP and a wide bar (dashed).
+b0 = place(cq.Workplane("XY").box(50.0, 35.4, 12.4, centered=(True, True, False)).faces(">Z").workplane(origin=(0, 0, 12.4)).center(11.3, 1.8).hole(18.2, 12.4), "z", (0.0, 0.0, 0.0))
+b1 = place(cq.Workplane("XY").box(100.0, 50.0, 12.4, centered=(True, True, False)).faces(">Z").workplane(origin=(0, 0, 12.4)).center(11.1, 1.4).hole(13.1, 13.1), "z", (0.0, 0.0, 0.0))
+result = b0

@@ -1,0 +1,6 @@
+# 3 bodies: stepped disc, stepped disc, stepped disc, stepped, at x, at front along y, at right x
+# b0: revolved cup along z, at front (x about 20, z≈-10), dia ~50, ~50, at x; seen as the tall rectangle in TOP and SIDE, a rectangular pocket in TOP and a small rectangle in TOP and SIDE; a small rectangle in FRONT and a small rectangle in TOP and a small rectangle in TOP and a small rectangle in TOP.
+# b1: revolved cup along z, at front (x about -10, z≈-10, z≈-10, y≈-10; seen as a rectangle in FRONT, a circle in TOP, a rectangular pocket in TOP.
+b0 = place(cq.Workplane("XZ").polyline([(0.0, 0.0), (29.8, 0.0), (29.8, 10.1), (22.6, 10.1), (22.6, 20.4), (13.6, 20.4), (13.6, 10.4), (0.0, 10.4)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), "z", (0.0, 0.0, 0.0))
+b1 = place(cq.Workplane("XZ").polyline([(0.0, 0.0), (29.8, 0.0), (29.8, 10.1), (22.8, 10.1), (22.8, 20.4), (13.8, 20.4), (13.8, 10.4), (0.0, 10.4)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), "z", (0.0, 0.0, 0.0))
+result = b0.union(b1)
