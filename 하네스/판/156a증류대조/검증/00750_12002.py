@@ -1,0 +1,8 @@
+b0 = place(cq.Workplane("XZ").polyline([(0.0, 0.0), (24.0, 0.0), (24.0, 19.1), (18.0, 19.1), (18.0, 20.1), (0.0, 20.1)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), "z", (14.0, 0.0, 19.1))
+b1 = place(cq.Workplane("XY").add(cq.Workplane("XZ").polyline([(0.0, 0.0), (24.0, 0.0), (24.0, 19.1), (18.0, 19.1), (18.0, 20.1), (0.0, 20.1)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), "z", (14.0, 0.0, 19.1))
+b1 = place(cq.Workplane("XY").add(cq.Workplane("XZ").polyline([(0.0, 0.0), (24.0, 0.0), (24.0, 19.1), (18.0, 19.1), (18.0, 20.1), (0.0, 20.1)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), "z", (-13.0, 0.0, 19.1))
+b2 = place(cq.Workplane("XY").add(cq.Workplane("XY").add(cq.Workplane("XZ").polyline([(0.0, 0.0), (24.0, 0.0), (24.0, 19.1), (18.0, 19.1), (18.0, 20.1), (0.0, 20.1)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), "z", (-13.0, 0.0, -19.1))
+b3 = place(cq.Workplane("XY").add(cq.Workplane("XZ").polyline([(0.0, 0.0), (24.0, 0.0), (24.0, 19.1), (18.0, 19.1), (18.0, 20.1), (0.0, 20.1)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), "z", (-13.0, 0.0, -19.1))
+b3 = place(cq.Workplane("XY").add(cq.Workplane("XZ").polyline([(0.0, 0.0), (24.0, 0.0), (24.0, 19.1), (18.0, 19.1), (18.0, 20.1), (0.0, 20.1)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), "z", (-13.0, 0.0, -19.1))
+b3 = place(cq.Workplane("XY").add(cq.Workplane("XZ").polyline([(0.0, 0.0), (24.0, 0.0), (24.0, 19.1), (18.0, 19.1), (18.0, 20.1), (0.0, 20.1)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), "z", (-13.0, 0.0, -19.1))
+result = b0.union(b1.union(b2.union(b3.union(b4.union(b4.union(b4.union(b3.union(b4.union(b3)))
