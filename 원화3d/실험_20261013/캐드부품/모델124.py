@@ -115,7 +115,7 @@ def 병렬렌더(잡, *a, **k):   # 10-28 154 시드 1 · 2 채점이 겹쳐 정
     finally: f.seek(0); msvcrt.locking(f.fileno(), msvcrt.LK_UNLCK, 1); f.close()
 def 따로(코드):   # 10-30 일꾼을 multiprocessing 으로 띄우면 부모 __main__(하네스.py → torch · hydra …)을 다시 불러 하나 뜨는 데 1 분+ → 155 시드 1 실행되는 코드 66 개가 「시간 넘음」(따로 돌리면 9 초) · 일꾼은 코드 한 줄만 부르는 새 파이썬
     import subprocess
-    return subprocess.Popen([os.environ.get("__PYVENV_LAUNCHER__") or sys.executable, "-c", f"import sys; sys.path[:0] = {sys.path!r}; " + 코드])
+    return subprocess.Popen([os.environ.get("__PYVENV_LAUNCHER__") or sys.executable, "-c", f"import sys; sys.path[:0] = {list(dict.fromkeys(sys.path))!r}; " + 코드])   # 10-31 156b: 스텝마다 sys.path.insert(과제코드 129) 로 경로가 불어 명령줄 32 K 넘음(WinError 206)
 def _병렬렌더(잡, 초=60, 묶=8, n=None):   # 10-21 Pool 은 OCC 로 일꾼이 죽으면 일이 사라져 47 분 멈춤 → 프로세스 따로 · 묶음 마감 = 초 × 묶 · 못 끝낸 잡은 하나씩 한 번 더 · 그래도 안 되면 None(0 점)
     import pickle, shutil, tempfile                     # 10-26 사용자 「CPU 를 병렬로」: 6 개씩 물결(느린 묶음 하나가 물결 전체를 붙잡음) → 끊김 없이 채움
     # 10-27 일꾼 12 개는 ART_MEM_GB(부모 + 일꾼 합) 를 넘어 MemoryError · 페이징 파일 부족 → 152 시드 1 · 2 채점이 멈춤(내 실수) · 일꾼은 6 개 그대로
