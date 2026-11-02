@@ -10,6 +10,7 @@ def place(w, axis, pos):
     bb = w.val().BoundingBox()
     return w.translate((pos[0] - (bb.xmin + bb.xmax) / 2, pos[1] - (bb.ymin + bb.ymax) / 2, pos[2] - (bb.zmin + bb.zmax) / 2))
 def at(i, w): return place(w, layout[i][1], layout[i][2])
+def cone(r, h): return cq.Workplane("XY").add(cq.Solid.makeCone(r, 0, h))
 '''
 def 수(v): return f"{float(v):.1f}"
 def 점들(pts): return "[" + ", ".join(f"({수(x)}, {수(y)})" for x, y in pts) + "]"
@@ -53,9 +54,11 @@ def 배치먼저(글):   # 판 151 서식: 첫 줄 layout = [(종류, 축, 자�
     for l in 글.splitlines():
         m = re.fullmatch(r'(b\d+) = place\((.*), "(\w)", \(([^()]*)\)\)', l)
         if not m: 몸.append(l); continue
-        식 = m.group(2); 종 = "cone" if "makeCone" in 식 else "revolve" if "revolve" in 식 else "box" if ".box(" in 식 else "cylinder"
+        식 = m.group(2); 종 = "cone" if "makeCone" in 식 or 식.startswith("cone(") else "revolve" if "revolve" in 식 else "box" if ".box(" in 식 else "cylinder"
         배.append(f'("{종}", "{m.group(3)}", ({m.group(4)}))'); 몸.append(f"{m.group(1)} = at({len(배) - 1}, {식})")
     return "layout = [" + ", ".join(배) + "]\n" + "\n".join(몸)
+def 원뿔이름(글):   # 판 158 서식: cq.Workplane("XY").add(cq.Solid.makeCone(r, 0, h)) → cone(r, h)(머리말에 정의) · 11-02 157: 「cq」 다음 드문 갈래 .Solid 를 2,400 스텝으로 못 넘음(CE 33.9 · 나머지 토큰은 다 맞음) → 갈래를 줄 첫머리 몸 종류 자리로
+    import re; return re.sub(r'cq\.Workplane\("XY"\)\.add\(cq\.Solid\.makeCone\((-?[\d.]+), 0, (-?[\d.]+)\)\)', r'cone(\1, \2)', 글)
 def 도면좌표(글, 길=100.):   # 판 155: mm · b0 원점 → 도면과 같은 기준(부품 전체 상자 가운데 원점 · 가장 긴 변 = 길) · 10-28 입력(도면)은 정규화인데 정답은 mm 라 몸 자리에 안 보이는 배율이 섞였음
     import re, 설계116 as S
     _, _, c, e = S.메시(실행(글)); k = 길 / e   # 도면(모델123.도면 → 설계116.메시)과 같은 c · e

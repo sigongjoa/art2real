@@ -316,13 +316,14 @@ def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.
     if len(쓸) < len(줄): print(f"⚠ 집계에서 뺌 — OOM {sum(r['OOM'] for r in 줄)} · 정답 렌더 실패 {sum(r['정답실패'] for r in 줄)}", flush=True)
     return {"코드_실행률": round(float(np.mean([r["실행"] for r in 쓸])), 4), "코드_IoU": round(float(np.median(iou)), 4), "코드_IoU평균": round(float(iou.mean()), 4), "코드_부피IoU": round(float(np.median([r["부피IoU"] for r in 쓸])), 4), "코드_부피바닥": round(max(바.values()), 4),   # 10-30 판정은 부피 IoU 로 · 바닥은 같은 모양 하나(원기둥 0.15 근처)
             "코드_IoU실행": round(float(np.median(된)), 4) if len(된) else None,   # 실행된 것만의 모양 — 코드_IoU(실패 = 0 중앙)는 실행률 < 0.5 면 늘 0 이라 모양을 못 봄(10-25 감사: 145 0.000 인데 이것은 0.53)
-            "코드_OOM": sum(r["OOM"] for r in 줄), "코드_정답실패": sum(r["정답실패"] for r in 줄), "코드_원뿔배움": 배.get("학습", {}).get("원뿔 갈래 .Solid", {}).get("맞음"),   # 원뿔배움: 학습 부품에서 「cq.」 다음 「.Solid」 를 맞히나(정답 넣어 줌) · 147 · 151 은 0 · 10-27 주석 뒤에 정답실패가 묻혀 빠졌던 것 고침
+            "코드_OOM": sum(r["OOM"] for r in 줄), "코드_정답실패": sum(r["정답실패"] for r in 줄), "코드_원뿔배움": 배.get("학습", {}).get("원뿔 갈래 .Solid", 배.get("학습", {}).get("원뿔 갈래 cone", {})).get("맞음"),   # 원뿔배움: 학습 부품에서 「cq.」 다음 「.Solid」 를 맞히나(정답 넣어 줌) · 147 · 151 은 0 · 10-27 주석 뒤에 정답실패가 묻혀 빠졌던 것 고침
             "코드_옆옮김": 옆옮김(글들), "코드_옆옮김정답": 옆옮김([x[3] for x in 시]),   # 10-28 사용자 「겹친다 교집합을 못 배우네」: 152 · 154 는 b1~ 를 z 로만 옮김(97 %+) · 정답은 x · y 도 76 % — b0 기준 x 나 y 로 옮긴 몸 비율
             "코드_몸개수맞음": round(float(np.mean([몸수(g) == 몸수(x[3]) for g, x in zip(글들, 시)])), 4),   # 실행과 상관없이 몸 줄 수가 정답과 같은 비율(10-25 원인 쪼개기: 147 실행된 것 중 39 %)
             "코드_학습loss": round(기록[-1]["학습"], 4), "코드_시험loss": round(기록[-1]["시험"], 4), "시험loss": round(기록[-1]["시험"], 4), "학습loss": round(기록[-1]["학습"], 4)}
 def 서식바꿈(목, s):   # 입력 토큰 · 정답 서식 — 점검 · 학습부품확인 이 같이 씀
     if str(s.get("토큰", "기존")) == "좌표": 목 = [(n, t, 좌표글(l), g) for n, t, l, g in 목]
     서 = str(s.get("서식", "기존"))
+    if 서 == "원뿔이름": import 코드글; 목 = [(n, t, l, 코드글.원뿔이름(g)) for n, t, l, g in 목]   # 158~
     if 서 == "배치먼저": import 코드글; 목 = [(n, t, l, 코드글.배치먼저(g)) for n, t, l, g in 목]   # 151~: 몸 개수 · 배치를 첫 줄에
     if 서 == "읽기먼저":   # 156~ 증류: 큰 모델이 도면 + 정답 코드를 보고 쓴 「도면 읽기」 주석 줄(# …)을 코드 앞에 · 없는 부품은 코드만
         읽 = f"{뿌리}/out/하네스/증류/읽기/"; 목 = [(n, t, l, (open(읽 + f"{n}.txt", encoding="utf-8").read().strip() + "\n" + g) if os.path.exists(읽 + f"{n}.txt") else g) for n, t, l, g in 목]

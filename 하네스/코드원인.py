@@ -22,7 +22,7 @@ def 몸들(글):   # → [(종류, 모양식, 축, 자리)] · 한 줄이라도 
         if l.startswith("result"): continue
         m = P.match(l)
         if not m: return None
-        s = m.group(2); out.append(("cone" if "makeCone" in s else "rev" if "revolve" in s else "box" if ".box(" in s else "cyl" if ".circle(" in s else "?", s, m.group(3), m.group(4)))
+        s = m.group(2); out.append(("cone" if "makeCone" in s or s.startswith("cone(") else "rev" if "revolve" in s else "box" if ".box(" in s else "cyl" if ".circle(" in s else "?", s, m.group(3), m.group(4)))
     return out
 def 글(몸):   # [(모양식, 축, 자리)] → place 서식 코드
     return "\n".join(f'b{i} = place({s}, "{a}", ({p}))' for i, (s, a, p) in enumerate(몸)) + "\nresult = " + ("b0" if len(몸) == 1 else "".join(f"b{i}.union(" for i in range(len(몸) - 1)) + f"b{len(몸) - 1}" + ")" * (len(몸) - 1))

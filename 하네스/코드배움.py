@@ -24,6 +24,7 @@ def 재기(model, proc, 묶음, 입력="선글"):   # 묶음 = [(부품, 입력 
         for i in ids: 자.append(len(글)); 글 += tok.decode([i])
         표 = {}
         for x in re.finditer(r"\.add\(cq\.Solid", 글): 표[x.start() + 1] = "원뿔 시작 .add"; 표[x.start() + 8] = "원뿔 갈래 .Solid"
+        for x in re.finditer(r"place\(cone\(", 글): 표[x.start() + 6] = "원뿔 갈래 cone"   # 158 원뿔이름 서식: 갈래는 몸 종류 자리
         for j, s0 in enumerate(자):
             이것 = tok.decode([ids[j]]); 덮 = next((v for q, v in 표.items() if s0 <= q < s0 + len(이것)), None)
             칸.setdefault(칸이름(글[:s0], 이것, 글[s0:].split("\n", 1)[0], 덮), []).append((맞[j], ce[j]))
