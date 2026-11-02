@@ -4,7 +4,7 @@
 import os, sys, re, ast, json, numpy as np
 뿌리 = "G:/art2real"; sys.path.insert(0, 뿌리 + "/하네스"); sys.path.insert(0, 뿌리 + "/원화3d/실험_20261013/캐드부품")
 정답폴더 = 뿌리 + "/out/하네스/코드자료/글/"   # 정답 글은 늘 기존 서식(place)으로 읽음
-P = re.compile(r'^(b\d+) = place\((.*), "(\w)", \(([^()]*)\)\)$')
+P = re.compile(r'^(b\d+) = place\((.*), "(\w)", \((-?[\d.]+, -?[\d.]+, -?[\d.]+)\)\)$')   # 11-02 158 시드 1: 자리에 「1 - 1」 식이 와 옆옮김 float 에서 죽음 → 숫자 셋만 받음
 def 기존화(글):   # 배치먼저(layout + at(i, 식)) → place 서식 · 못 풀면 그대로(파싱에서 빠짐)
     글 = "\n".join(l for l in 글.splitlines() if not l.startswith("#"))   # 156~ 읽기먼저: 주석 줄은 몸이 아님
     if not 글.startswith("layout = "): return 글
