@@ -1,0 +1,354 @@
+[
+ {
+  "스텝": 0,
+  "부품": "12000",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "StdFail_NotDone: GC_MakeArcOfCircle::Value() - no result\n4\t0",
+  "글": "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(29,0,0))\nw1=cq.Workplane('YZ',origin=(30,0,0))\nr=w0.sketch().segment((18,15),(20,15)).arc((21,17),(22,15)).segment((24,15)).segment((24,18)).segment((18,18)).close().assemble().finalize().extrude(-100).union(w1.sketch().arc((19,33),(21,36),(24,38)).arc((22,40),(20,42)).arc((19,38),(19,33)).assemble().finalize().extrude(70))"
+ },
+ {
+  "스텝": 0,
+  "부품": "12001",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "KeyError: 'result'\n0\t0",
+  "글": "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(31,0,0))\nw1=cq.Workplane('YZ',origin=(29,0,0))\nr=w0.sketch().segment((92,31),(93,31)).segment((92,32)).close().assemble().finalize().extrude(-131).union(w1.sketch().arc((92,10),(93,13),(92,16)).close().assemble().finalize().extrude(-129))"
+ },
+ {
+  "스텝": 0,
+  "부품": "12002",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "KeyError: 'result'\n0\t0",
+  "글": "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(50,0,0))\nw1=cq.Workplane('YZ',origin=(30,0,0))\nr=w0.sketch().segment((55,1),(56,1)).arc((56,3),(55,5)).close().assemble().finalize().extrude(-120).union(w0.sketch().segment((55,20),(55,21)).arc((54,21),(55,20)).assemble().finalize().extrude(19)).union(w1.sketch().arc((-53,55),(-47,56),(-41,56)).arc((-46,58),(-53,55)).assemble().finalize().extrude(-120))"
+ },
+ {
+  "스텝": 0,
+  "부품": "12050",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "StdFail_NotDone: GC_MakeArcOfCircle::Value() - no result\n4\t0",
+  "글": "import cadquery as cq\nw0=cq.Workplane('YZ',origin=(53,0,0))\nw1=cq.Workplane('YZ',origin=(21,0,0))\nr=w0.sketch().segment((17,15),(21,15)).arc((20,17),(19,19)).close().assemble().finalize().extrude(-153).union(w0.sketch().segment((19,15),(21,15)).arc((20,17),(19,19)).close().assemble().finalize().extrude(-107)).union(w1.sketch().arc((19,15),(20,17),(21,19)).segment((19,19)).close().assemble().finalize().extrude(7))"
+ },
+ {
+  "스텝": 250,
+  "부품": "12000",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: unmatched ')'\n1\t43",
+  "글": "cylinder(100,10), (100, 9), (96,10), 96,10), (96,11), (96,12), (96,13)).close().face(w0.sketch().segment((0,0),(-1,0)).close().face(w0.sketch().segment((0,0),(0,1)).c), (0,0)).assemble()).reset().face(w0.sketch().segment((0,0),(1,0)).segment((1,1)).close().assemble()).reset().face(w0.sketch().segment((0,0),(0,1)).close().assemble()).reset().face(w0.sketch().segment((1,0),(1,1)).segment((1,0)).close().assemble()).reset().face(w0.sketch().segment((0,0),(1,0)).segment((1,1)).close().assemble()).reset().face(w0.sketch().segment((0,0),(1,0)).segment((1,1)).close().assemble()).finalize().extrude(10), (0,0),(-1,0)).close().assemble()).finalize().extrude(10), (0,0),(-1,1)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).close().assemble(1, 0),(-1,0)).union(w0.sketch().segment((0,0),(1,0)).segment((1,1)).close().assemble().finalize().extrude(10)).union(w0.sketch().segment((0,0),(1,0)).segment((1,1)).close().assemble().finalize().extrude(10)).union(w0.sketch().segment((0,0),(1,0)).segment((1,1)).close().assemble().finalize().extrude(10)).union(w0.sketch().segment((0,0),(1,0)).segment((1,1)).close().assemble().finalize().extrude(10)).union(w0.sketch().segment((0,0),(1,0)).segment((1,1)).close().assemble().finalize().extrude(10)).union(w0.sketch().segment((0,0),(1,0)).segment((1,1)).close().assemble().finalize().extrude(10)).union(w0.sketch().segment((0,0),(1,0)).segment((1,1)).close().assemble().finalize().extrude(10)).union(w0.sketch().segment((0,0),(1,0)).segment((1,1)).close().assemble().finalize().extrude(10)).union(w0.sketch().segment((0,0),(1,0)).segment((1,1)).close().assemble().finalize().extrude(10)).union(w0.sketch().segment((0,0),(1,0)).segment((1,1)).close().assemble().finalize().extrude(100)).union(w0.sketch().segment((0,0),(1,0)).segment((1,1)).close().assemble().finalize().extrude(-100))"
+ },
+ {
+  "스텝": 250,
+  "부품": "12001",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: unmatched ')'\n1\t139",
+  "글": "cylinder(100,10), (100, 9), (96,0), (96,0), (96,0.1),.cylinder(96,10), (96,10.1), (96,11.1), (96,10.1), (96,0.10.1), (96,0.10.1), (96,0.0)).close().face(w0.sketch().segment((0,0),(0,10.1)).arc((-1,0),(-1,-10)).close().assemble()).reset().face(w0.sketch().arc((1,-1),(1,0),(2,1)).close().assemble()).reset().face(w0.sketch().segment((1,1),(2,1)).arc((2,2),(1,2)).close().assemble()).finalize().extrude(10).union(w0.sketch().segment((0,0),(0,1)).arc((0,2),(1,2)).segment((1,3)).segment((2,3)).arc((2,2),(3,0)).segment((3,1)).arc((3,0),(2,-1)).segment((2,-2)).segment((1,-2)).segment((1,-1)).arc((0,0),(0,0)).assemble().finalize().extrude(10)).union(w0.sketch().segment((-100,0),(-96,0)).segment((-96,1)).close().assemble().reset().face(w0.sketch().segment((-96,1),(-96,2)).segment((-100,2)).close().assemble()).reset().face(w0.sketch().segment((-96,2),(-92,2)).segment((-92,3)).segment((-96,3)).close().assemble()).finalize().extrude(100))"
+ },
+ {
+  "스텝": 250,
+  "부품": "12002",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: unmatched ')'\n1\t90",
+  "글": "cylinder(111,10), (100, 9), (96,0), (96,0), (96,0.1),.cylinder(96,10), (96,0.1), (96,0.0)).close().face(w0.sketch().segment((0,0),(0,1)).close().face(w0.sketch().segment((0,0),(-1,0)).segment((-1,1),(-1,0)).close().assemble()).finalize().extrude(10), (100,0),(-1,0),(-1,1)).close().assemble()).finalize().extrude(10), (100,0),(-1,0)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).segment((-1,0)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).segment((-1,0)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).segment((-1,0)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).segment((-1,0)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).segment((-1,0)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).segment((-1,0)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).segment((-1,0)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).segment((-1,0)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).segment((-1,0)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).segment((-1,0)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).segment((-1,0)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).segment((-1,0)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).segment((-1,0)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).segment((-1,0)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).segment((-1,0)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).segment((-1,0)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).segment((-1,0)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).segment((-1,0)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).segment((-1,0)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).segment((-1,0)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).segment((-1,0)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).segment((-1,0)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).segment((-1,0)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).segment((-1,0)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).segment((-1,0)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).segment((-1,0)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).segment((-1,0)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).segment((-1,0)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).segment((-1,0)).close().assemble()).finalize().extrude(10),(-1,0),(-1,1)).segment((-1,0)).close().assemble()).finalize().extrude(10),(-1,0),(-1"
+ },
+ {
+  "스텝": 250,
+  "부품": "12050",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: invalid syntax. Perhaps you forgot a comma?\n1\t10",
+  "글": "cylinder(31 10), (10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, 10.0, "
+ },
+ {
+  "스텝": 500,
+  "부품": "12000",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: closing parenthesis ')' does not match opening parenthesis '['\n3\t476",
+  "글": "b0 = place(cq.Workplane(\"XY\").box(100.0, 58.4, 58.4, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 0)).extrude(10). \" = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (10.0, 0.0), (10.0, 10.1), (10.0, 10.8), (10.0, 9.8), (0.0, 9.8)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 0)).faces(\">Z\").workplane(origin=(0, 0, 0)).faces(\">Z\").workplane(origin=(0, 0, 0)).faces(\">Z\").workplane(origin=(0, 0, 0)).faces(\">Z\").workplane(origin=(0, 0, 0)).faces(\">Z\").workplane(origin=(0, 0, 0)).faces(\">Z\").workplane(origin=(0, 0, 0)).faces(\">Z\").workplane(origin=(0, 0, 0)).faces(\">Z\").workplane(origin=(0, 0, 0)).faces(\">Z\").workplane(origin=(0, 0, 0)).faces(\">Z\").workplane(origin=(0, 0, 0)).faces(\">Z\").workplane(origin=(0, 0, 0)).faces(\">Z\").workplane(origin=(0, 0, 0)).faces(\">Z\").workplane(origin=(0, 0, 0)).faces(\">Z\").workplane(origin=(0, 0, 0)).faces(\">Z\").workplane(origin=(0, 0, 0)).faces(\">hole\nb0.workplane(origin=(0, 0, 0)).faces(\">hole(\"1 = -10.0), \"z\", (-0.0, 0.0, 0.0))\nb3 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (10.0, 0.0), (10.0, 10.4), (10.0, 9.8), (10.0, 7.8), (0.0, 7.8)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 0)).faces(\">Z\").workplane(origin=(0, 0, 0)).faces(\">Z\").workplane(origin=(0, 0, 0)).faces(\">Z\").workplane(origin=(0, 0, 0)).faces(\">Z\").workplane(origin=(0, 0, 0)).faces(\">olve(360, (0, 0, 0)).faces(\">olve(360, (0, 0, 0)).faces(\">hole(360, (0, 0, 0)).faces(\">olve[360, (0, 0, 0)).faces(\">olve[360, (0, 0, 0)).faces(\">olve[360, (0, 0, 0)).faces(\">olve[360, (0, 0, 0)).faces(\">olve[360, (0, 0, 0)).faces(\">olveyolve[\"letZ\").workplane(origin=(0, 0, 0)).faces(\">olvey0.union(b4)))"
+ },
+ {
+  "스텝": 500,
+  "부품": "12001",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: unmatched ')'\n1\t131",
+  "글": "b0 = place(cq.Workplane(\"XY\").circle(20.0).extrude(10.0).bylinder(10.0), \"y\").workplane(origin=(0, 0, 10.0)).center(3.5, 0.0, 0.0))\nresult = b0)), \"z\", (0, 0, 10.5))\ncenter = b0, 0, 10.5)).rect(10.0, 20.0).faces(\">Z\").workplane(origin=(0, 0, 10.5)).center(3.5, 0.0, 10.5).rect(11.0, 20.0).faces(\">Z\").workplane(origin=(0, 0, 10.5)).center(0, 0, 10.5).rect(11.0, 20.0), \"z\", (0, 0, 10.5))\nb1 = place(cq.Workplane(\"XY\").circle(30.0).extrude(10.0).faces(\">Z\").workplane(origin=(0, 0, 10.5).center(10.0, 0.0, 10.5).rect(11.0, 20.0).hole(2.0).faces(\">Z\").workplane(origin=(0, 0, 10.5).center(3.5, -0.0, 0.0))\nresult = b0.union(b1 = place(cq.Workplane(\"XY\").circle(30.0).faces(\">Z\").workplane(origin=(0, 0, 10.5).center(13.0, -0.0, 0.0))\nb3 = place(cq.Workplane(\"XY\").circle(10.0).finalize().extrude(10.0), \"z\",(-2.0, -0.0, 0.0))\nb3 = place(cq.Workplane(\"XY\").circle(30.0).circle(20.0,mode='s').finalize().extrude(-10.0).b\", \"\", \" place(cq.Workplane(\"XY\").circle(10.0).circle(6.faces(\">Z\").workplane(origin=(0, 0, 10.5).center(0.0, 0.0, 10.5).rect(11.0, 20.5).faces(\">Z\").workplane(origin=(0,0, 10.5).center(0.0, -0.0, 0.0))\nb3 = place(cq.Workplane(\"XY\").circle(6.0).finalize().extrude(10.0).faces(\">Z\").workplane(origin=(0, 0, 10.5).center(0, 0, 10.5).rect(11.0, 20.5).center(10.0, -0.0), 0.0, 0.0))\nresult = b0.union(b1.union(b2.workplane(origin=(0,0,0)).faces(0, 0, 10.5).faces(3.5, -1.5), (1.5, -0.0), (0.0, 0.0), (0.0, 10.5), (0.0, 0.0)).close().revolve(3.5, -0.0), (0.0, -0.0), (0.0, 10.5), 0.0, 10.5), 0.0, 0.0)).close().revolve(3.5, -0.0, 0.0))\nb3 = place(cq.Workplane(\"XY\").circle(6.0).finalize().extrude(-10.0).center(3.5, -0.0, 0.0))\nb3 = place(cq.Workplane(\"XY\").circle(6.0),mode='s').finalize().extrude(10.0), \"b\", \"b\", (0,0, 10.5))\nbX\", -30.0, 0, 0.0))\nb = b0.workplane(\"X\").rect(12.0,12.5).rect(12.0,12.5).finalize().extrude(10.0), \"z\", (0,0, 10.5))\ncenter(-1.5, 0.0, 0"
+ },
+ {
+  "스텝": 500,
+  "부품": "12002",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: unterminated string literal (detected at line 1)\n1\t172",
+  "글": "b0 = place(cq.Workplane(\"XY\").circle(10.0).extrude(10.0).union(w0.sketch().circle(10.0).rect(6.4, 6.0,mode='s').finalize().extrude(10.0)).faces(b0\").faces(3.5), \" place(c0\",(-1, -1),(-1,0)).arc((-1,2),(-2,3)).close().extrude(10.0)).cut(w0.sketch().circle(10.5).rect(6.4, 6.0,mode='s').finalize().extrude(10.0)).result[(-1, -1),(-2,0),(-2,3)).arc((-2,5),(-1,6)).arc((0,7),(2,7)).arc((3,7),(3,8)).arc((4,10),(6,12)).arc((10,14),(12,18)).arc((13,20),(14,22)).arc((15,24),(16,26)).arc((17,29),(18,32)).arc((17,34),(18,36)).arc((17,39),(16,41)).arc((0,28),(-2,9)).arc((-3,6),(-4,3)).close().extrude(10.0)).center(1, -1).circle(3).finalize().extrude(10.0)).extrude(10.0), (0,0),(-2,3)).arc((-1,5),(0,7)).arc((1,7),(2,8)).arc((3,10),(4,12)).arc((5,14),(6,16)).arc((10,20),(14,22)).arc((16,24),(18,26)).arc((17,29),(18,32)).arc((17,34),(16,36)).arc((14,39),(12,41)).arc((10,40),(9,41)).arc((0,34),(-2,25)).arc((-3,22),(-4,20)).arc((-5,17),(-6,16)).arc((-7,14),(-8,12)).arc((-10,9),(-12,7)).arc((-14,5),(-18,2)).arc((-17,0),(-18,0)).arc((-17,0),(-16,1)).arc((-13,0),(-10,0)).arc((-9,0),(-8,0)).arc((-7,3),(-6,5)).arc((-4,8),(-2,10)).arc((-1,10),(-1,12)).arc((-2,10),(-2,8)).arc((-3,7),(-4,7)).arc((-5,5),(-8,3)).arc((-10,0),(-13,0)).arc((-14,0),(-18,0)).arc((-17,0),(-16,1)).arc((-13,3),(-10,5)).arc((-9,8),(-6,10)).arc((-4,14),(-1,16)).arc((0,18),(2,20)).arc((3,22),(4,24)).arc((5,26),(7,28)).arc((10,30),(13,32)).arc((15,34),(18,36)).arc((17,38),(18,40)).arc((17,41),(16,41)).arc((13,43),(10,45)).arc((0,40),(-1,31)).arc((-2,28),(-4,25)).arc((-5,22),(-8,20)).arc((-11,18),(-13,16),(-18,14),(-18,12)).arc((-16,9),(-13,7),(-10,5),(-7,3)).arc((-6,0),(-3,0)).arc((-2,0),(-1,1)).arc((-2,0),(-1,0)).arc((-2,0),(-2,1)).arc((-3,0),(-4,0)).close().extr"
+ },
+ {
+  "스텝": 500,
+  "부품": "12050",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: unmatched ')'\n2\t148",
+  "글": "b0 = place(cq.Workplane(\"XY\").circle(10.0).extrude(10.0).faces(\">Z\").workplane(origin=(0, 0, 10.0)).center(3.5, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XY\").circle(10.0).extrude(10.0).faces(\">Z\").workplane(origin=(0, 0, 10.0)).center(10.0, 0.0, 10.0)).result 10.0, 0.0, 10.0))\nb1 = place(cq.Workplane(\"XY\").circle(10.0).extrude(10.0).faces(\">Z\").workplane(origin=(0, 0, 10.0)).center(0, 0, 10.0)).center(10.0, 0.0, 10.0)).result 10.0, 0.0, 10.0)).result\",\").workplane(origin=(0, 0, 10.0)).center(0, 0, 10.0).center(-13.0, -10.0).faces(\">Z\").workplane(origin=(0, 0, 10.0)).center(10.0, 0.0, 10.0)).result = b0.union(b1.union(b2.union(b2.union(b2.workplane(origin=(0, 0, 10.5)).faces(\">Z\").workplane(origin=(0, 0, 10.5)).center(10.0, 0, 10.5)).rect(12.0, 2.8).faces(\">Z\").workplane(origin=(0, 0, 10.5)).center(0.0, 0.0, 10.5)).result = b0, 0, 10.5)).result(10.0, -10.0, 0.0))\nb1 = place(cq.Workplane(\"XY\").circle(10.0).faces(\">Z\").workplane(origin=(0, 0, 10.5)).center(0, 0, 10.5).center(10.0, -10.0, 10.5).result = b0.union(b2.workplane(origin=(0, 0, 10.5)).center(0, 0, 10.5)).faces(\">Z\").workplane(origin=(0, 0, 10.5)).center(0, 0, 10.5).faces(\">Z\").workplane(origin=(0, 0, 10.5)).center(0, 0, 10.5).cut(c0.workplane(\"XZ\").polyline([(0.0, 0.0), (10.0, 0.0), (10.0, 13.4), (0.0, 13.4), (0.0, 9.8), (0.0, 8.8), (0.0, 7.7)).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 10.5).center(10.0, 0.0, 10.5).result\", \" = b0, 0, 10.5))\nresult\", \" = b0.union(b2.workplane(origin=(0, 0, 10.5)).center(0, 0, 10.5)).faces(\">Z\").workplane(origin=(0, 0, 10.5)).center(0.0, 0, 10.5).result(\">Z\").result\").workplane(origin=(0, 0, 10.5)).center(0, 0, 10.5).faces(\">Z\").workplane(origin=(0, 0, 10.5)).center(0, 0, 10.5).faces(\">Z\").workplane(origin=(0, 0, 10.5)).center(0, 0, 10.5).faces(\">Z\").workplane(origin=(0, 0, 10.5)).result(0, 0, 10.5)).faces(\">Z\").workplane(origin=(0, 0, 10.5)).center(0, 0, "
+ },
+ {
+  "스텝": 750,
+  "부품": "12000",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: invalid syntax. Perhaps you forgot a comma?\n1\t12",
+  "글": "b0 = place(cq.Workplane(\"XY\").add(cq.Workplane(\"XY\").polyline([(0.0,0.0), (24.0, 0.0), (24.0, 21.1), (20.0, 21.1), (20.0, 5.7), (0.0, 5.7)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 21.5)).center(21.4, -0.4).hole(21.4, 0.0), \"z\", (0.0, 0.0))\nb1 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (24.0, 0.0), (24.0, 21.1), (23.1, 21.1), (23.1, 8.7), (0.0, 8.7)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), \"x\", (6.0, -27.1, 0.0))\nb3 = place(cq.Workplane(\"XY\").add(cq.Workplane(\"XY\").box(100.0, 4.4, 6.4).faces(\">Z\").workplane(origin=(0, 0, 21.5)).center(21.4, 2.6).hole(360, (0, 3.6), \"x\", (-13.5, -10.5, 0.0))\nb3 = place(cq.Workplane(\"XY\").box(10.2, 3.8, 6.5))\nresult = b0.union(b1.union(b2.union(b3)))"
+ },
+ {
+  "스텝": 750,
+  "부품": "12001",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: closing parenthesis ')' does not match opening parenthesis '['\n3\t77",
+  "글": "b0 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (34.0, 0.0), (34.0, 28.8), (28.8, 28.8), (28.8, 8.0), (0.0, 8.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 28.8)).center(13.3, 3.8).hole(2.6), \"x\", (2.6, -0.0, 0.0))\nb1 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (36.0, 0.0), (360, 26.8), (18.6, 26.8), (18.6, 8.8), (0.0, 8.8)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), \"x\", (0.0, 0.0, 26.8))\nb2 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (36.0, 0.0), (360, 26.8)).segment((18.6,26.8)).faces(\">Z\").workplane(origin=(0, 0, 26.8)).center(0.0, 3.6).hole(16.6, 0.0), 0.0, 1.0))\nb3 = place(cq.Workplane(\"XY\").polyline([(0.0, 0.0), (36.0, 0.0), (36.0, 26.8), (36.0, 26.8), (36.0, 10.2), (36.0, 9.8), (36.0, 5.6)]).center(0.0, 3.6), \"x\", (0.0, 0.0, 0, 26.8))\nb3.union(b1))"
+ },
+ {
+  "스텝": 750,
+  "부품": "12002",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: closing parenthesis ')' does not match opening parenthesis '['\n3\t54",
+  "글": "b0 = place(cq.Workplane(\"XY\").add(cq.Workplane(\"XY\").polyline([(0.0, 0.0), (24.8, 0.0), (24.8, 28.1), (20.8, 28.1), (20.8, 8.5), (0.0, 8.5)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 28.1)).center(1.2, -0.8).hole(2.2, 0.0), \"z\", (0.0, 0.0, -10.5))\nb1 = place(cq.Workplane(\"XY\").box(100.0, 4.4, 6.4, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 28.1)).center(13.6, 3.8).hole(11.3, 5.6), \"z\", (2.0, 0.0, 10.6))\nb2 = place(cq.Workplane(\"XY\").result([(0.0, 0.0, 6.6))\nb2 = 1.3, 4.8, 6.6))\nb2 = place(cq.Workplane(\"XY\").box(100.0, 2.8, 6.6))\nresult = (0.0, 0, 6.6))\nresult = (0.0, 1.7, 6.6))\nb3 = (22.6, 4.8, 6.6))\nb5 = (3.5, -4.8, 6.6))\nb5.6 = holy), (0.0, 3.6, 6.6))\nb5.6 = X\", (-1.2, 0.0, 6.6))\nb5.6 = -1.6), \"x\", (0.0, -3.8, 6.6))\nb4 = place(cq.Workplane(\"XY\").polyline([(0.0, 0.0), (24.8, 0.0), (24.8, 28.1), (23.8, 28.1), (23.8, 8.6), (0.0, 8.6)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 6.6)).center(1.6, 3.6).hole(2.6, 6.6), \"z\", (0.0, 0.0, 6.6))\nb4 = -1.6, 3.6, 6.6))\nb6 = place(cq.Workplane(\"XY\").polyline([(0.0, 0.0), (24.8, 0.0), (24.8, 28.1), (23.8, 28.1), (23.8, 8.6), (0.0, 8.6)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 28.1)).center(1.6, 3.6).hole(13.6, 6.6), \"z\", (0.0, 0.0, 6.6))\nresult = b.Workplane(\"X\").polyline([(0.0, 0.0), (24.8, 0.0), (24.8, 28.1), (23.8, 28.1), (23.8, 8.6)]).center(0.0, 3.6).faces(\">Z\").workplane(origin=(0, 0, 28.1)).center(13.6, 3.6).hole(11.6, 0.0, 6.6))\nresult = b0.workplane(\"X\").polyline([(0.0, 0.0), (24.8, 0.0), (24.8, 28.1)).segment((24.8, 28.1"
+ },
+ {
+  "스텝": 750,
+  "부품": "12050",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: closing parenthesis ')' does not match opening parenthesis '['\n6\t117",
+  "글": "b0 = place(cq.Workplane(\"XY\").box(62.2, 62.2, 23.2, centered=(True, True, False))\nb1 = place(cq.Workplane(\"XY\").box(10.2, 42.2, 23.2, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 23.2)).center(15.2, 26.2).hole(15.2, 26.2, 23.2))\nb2 = place(cq.Workplane(\"XY\").box(62.2, 62.2, 23.2, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 23.2)).center(1.6, -1.6).hole(13.2, 1.6), \"x\", (4.5, -Bletch().box(63.8, 28.8, 28.8, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 28.8)).center(1.6, -0.6).hole(13.8, 1.8).hole(15.6), \"x\", (-26.6, 11.5, 23.8))\nb4 = place(cq.Workplane(\"XY\").box(63.4, 43.8, 23.8, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 23.8)).center(13.6, 26.8).hole(15.6, 30.6), \"x\", (-26.6, -1.6, 21.8))\nb3 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (27.6, 0.0), (27.6, 21.8), (18.8, 21.8), (18.8, 26.8), (0.0, 26.8)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 26.8)).center(1.6, -3.6).hole(12.6), \"y\", (27.6, -3.6, -21.8))\nb4 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (10.6, 0.0), (10.6, 21.8), (8.8, 21.8), (8.8, 28.8), (0.0, 28.8)).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 28.8)).center(13.6, 26.8).hole(18.8, 21.8), (10.6, 21.8), (10.8, 18.8), (0.0, 18.8), (0.0, 26.8), (0.0, 26.8), (0.0, 27.6), (0.0, 27.6), (0.0, 27.6), (0.0, 27.8), (0.0, 27.8), (0.0, 27.8), (0.0, 27.8), (0.0, 27.8), (0.0, 27.8), (0.0, 27.8), (0.0, 27.8), (0.0, 27.8), (0.0, 27.8), (0.0, 27.8), (0.0, 27.8), (0.0, 27.8), (0.0, 27.8), (0.0, 27.8), (0.0, 27.8), (0.0, 27.8), (0.0, 27."
+ },
+ {
+  "스텝": 1000,
+  "부품": "12000",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: unmatched ']'\n1\t192",
+  "글": "b0 = place(cq.Workplane(\"XY\").add(cq.Workplane(\"XY\").Z\").Z\").polyline([(0.0, 0.0), (14.0, 0.0), (15.0, 6.1), (16.0, 10.1), (17.1, 16.2), (18.1, 22.2), (17.1, 22.2)]). 20.0, 18.2), (0.0, 18.2)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), \"z\", (17.0, 29.0, 0.0))\nb1 = place(cq.Workplane(\"XY\").box(103.0, 4.4, 10.1, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 17.5)).center(-2.0, -1.5).hole(13.0, 17.5), \"z\", (26.6, 0.0, 17.1))\nb2 = place(cq.Workplane(\"XY\").add(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (14.0, 0.0), (15.1, 8.1), (16.1, 16.1), (17.1, 22.2), (17.1, 29.7), (16.1, 29.7), (0.0, 29.7)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), \"z\", (26.6, 2.0, 17.1))\nresult = b0.union(b1.union(b2.union(b2.union(b3)))"
+ },
+ {
+  "스텝": 1000,
+  "부품": "12001",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "Standard_ConstructionError: gp_Vec::Normalize() - vector has zero norm\n2\t0",
+  "글": "b0 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (14.4, 0.0), (14.4, 21.4), (10.4, 21.4), (10.4, 80.1), (0.0, 80.1)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 21.4)).center(13.4, 30.4).hole(16.4), \"z\", (0.0, 0.0, -18.7))\nb1 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (34.0, 0.0), (34.0, 21.4), (28.8, 21.4), (28.8, 8.1), (0.0, 8.1)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 8.1)).center(0.0, 3.4).hole(16.4, 0.0), \"z\", (0.0, 0.0, 8.1))\nresult = b0.union(b1)"
+ },
+ {
+  "스텝": 1000,
+  "부품": "12002",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: unterminated string literal (detected at line 1)\n1\t55",
+  "글": "b0 = place(cq.Workplane(\"XY\").add(cq.Workplane(\"XY\").Z\").add([(0.0, 0.0), (24.0, 0.0), (22.9, 4.7), (18.9, 14.4), (13.8, 26.6), (7.7, 38.6), (2.0, 40.6), (0.0, 39.6), 0, 26.6), 0.0, 22.6, 0.0))\nb1 = place(cq.Workplane(\"XY\").circle(11.4).extrude(38).union(w0.workplane(26.4), (0.0, 0.0), (16.4, 0.0), (16.4, 31.1), (10.5, 31.1), (10.5, 6.7), (0.0, 6.7)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 26.1)).center(2.2, 4.6).rect(11.6, 6.6).cutBlind(-13.0, 6.7).cutBlind(13.7, 26.6), \"b2 = place(cq.Workplane(\"XY\").circle(31.1).extrude(26.3)).faces(\">Z\").box(13.1, 4.6), \"z\", (0.0, 3.6), \" 12.1, 5.1), -3.0, 21.6), \"b4, 21.6), -x\", (0.0, 19.6, 0.0))\nresult = (16.4, 29.4), \"z\", (0.0, -3.9, 0.0))\nb3 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (8.4, 0.0), (8.4, 3.1), (3.9, 3.1)).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 26.5)).center(0.0, 3.6).hole(2.6), \"z\", (0.0, -3.9, 0.0))\nresult = b0.union(b1.union(b2.union(b3)))"
+ },
+ {
+  "스텝": 1000,
+  "부품": "12050",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: unterminated string literal (detected at line 2)\n2\t184",
+  "글": "b0 = place(cq.Workplane(\"XY\").box(69.0, 69.6, 2.2, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 29)).center(-15.1, 31.8).hole(15.8, 15.6).faces(\">Z\").workplane(origin=(0, 0, 29)).center(-15.3, 15.9).rect(15.9, 2.2).cutBlind(-2.6).rect(15.6, 3.8).cutBlind(-18.6), \"z\", (6.5, -15.6, 0.0))\nb1 = place(cq.Workplane(\"XY\").box(67.0, 69.6, 15.5, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 15.5)).center(12.9, 31.8).rect(15.9, 2.8).cutBlind(-14.1, 27.8), \"x, (7.6, 15.6, 15.8))\nb2 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (13.8, 0.0), (18.8, 19.6), (20.0, 29.9), (20.6, 37.7), (20.6, 44.0), (20.6, 53.0), (20.6, 52.0), (20.4, 51.0), (18.8, 50.0), (13.9, 40.8), (8.6, 24.6), (0.0, 24.6)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), \"z\", (24.2, 31.9, -12.5))\nb4 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (24.1, 0.0), (18.8, 19.6), (18.8, 29.9), (14.9, 29.9), (9.6, 1.6), (0.0, 1.6)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), \"z\", (0.0, -38.0, 0.0))\nb3 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (13.8, 0.0), (13.8, 19.9), (12.9, 19.9), (12.9, 26.6), (12.9, 34.7), (12.9, 42.0), (12.9, 44.0), (13.9, 44.0), (13.8, 34.7), (0.0, 34.7)]).rect(2,6.6).rect(2.2, 2.8).cutZ = 26.7, 31.6), \"b3 = (5.6, 17.6, -12.0))\nb3 = place(cq.Workplane(\"XY\").add(cq.Workplane(\"XY\").add(10.7, 12.6, 26.6))\nb4 = (6.9, -31.1, -15.5))\nresult=4.4), \"z\", (0.0, 0.0, 15.6))\nresult = b0.union(b1.union(b2.union(b3.union(b4))"
+ },
+ {
+  "스텝": 1250,
+  "부품": "12000",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: unterminated string literal (detected at line 1)\n1\t268",
+  "글": "b0 = place(cq.Workplane(\"XY\").Z\").add(cq.Workplane(\"XY\").Z\").Z\").polyline([(0.0, 0.0), (4.0, 0.0), (4.0, 21.9), (2.5, 21.9), (2.5, 20.4), (2.0, 17.5), (0.0, 17.9, 17.9), (0.0,0),(-1,0)).faces(\">Z\").workplane(origin=(0, 0, 21.9)).center(3.2, -0.0).hole(12.0, 26.0), \"z\", (26.7, -10.0, 0.0))\nb1 = place(cq.Workplane(\"XY\").box(43.3, 43.7, 0.0))\nresult = b0.union(b1)"
+ },
+ {
+  "스텝": 1250,
+  "부품": "12001",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: closing parenthesis ')' does not match opening parenthesis '['\n2\t53",
+  "글": "b0 = place(cq.Workplane(\"XY\").box(100.0, 26.4, 26.4, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 26.4)).center(-12.4, 1.4).hole(11.5, 0.  24.4, 7.6), \"z\", (0, 0, 26.4))\nb1 = place(cq.Workplane(\"XZ\").polyline([(0, 0, 26.4)).center(13.4, 3.8).hole(10.8), \"x\", (bX\", (0, 0, 26.4))\nb3 = place(cq.Workplane(\"XZ\").polyline([(0, 0, 26.4)).rect((42.2, 43.1, 43.1, addline\", \"2xone (-30.0), -14.0, 0.0, 12.2))\nb2 = place(cq.Workplane(\"XY\").box(67.4, 31.0, 26.4, centered=(True, True,0)).faces(\">Z\").workplane(origin=(0, 0, 26.4)).center(12.0, 3.8).hole(8.6), \"x\", (-30.0, 0, 23.4))\nresult = b0.union(b1.union(b2))"
+ },
+ {
+  "스텝": 1250,
+  "부품": "12002",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: unterminated string literal (detected at line 1)\n1\t131",
+  "글": "b0 = place(cq.Workplane(\"XY\").add(cq.Workplane(\"XY\").Z\").workplane(origin=(0,0,0)).box(83, 42,0))..union(b1 = 4.4)).fil(1=4.4), \"z\",(-30.8, 16.4, -14.8))\nb1 = x.box(48.4, 33.4, 24.5, \" True, True, False)).fil(35.4, 0, 24.5))\nb2 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (27.7, 0.0), (27.7, 35.2), (20.2, 35.2), (20.2, 65.6), (0.0, 65.6)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 65.6)).center(1.5, -2.7).hole(24.6), \"z\", (0.0, 16.4, -14.5))\nresult = b0.union(b1.union(b2))"
+ },
+ {
+  "스텝": 1250,
+  "부품": "12050",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: unterminated string literal (detected at line 2)\n2\t324",
+  "글": "b0 = place(cq.Workplane(\"XY\").box(68.0, 67.6, 29.9, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 29.9)).center(-15.9, 3.2).hole(15.9, 21.8), \"y\", (14.6, -79.5, 15.9))\nb1 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (5.4, 1.9), (12.6, 5.3), (15.9, 13.6), (19.9, 27.8), (23.0, 39..union(b0.workplane(\"X1(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (38.2, 0.0), (38.2, 18.8), (21.8, 18.8), (21.8, 26.6), (15.8, 26.6), (15.6, 18.7), (0.0, 18.7)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), \"z\", (0.0, 0.0, 15.9))\nb3 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (18.4, 0.0), (18.4, 11.5), (20.5, 11.5), (20.5, 8.1), (21.5, 8.1), (21.5, 5.0),0, 5, 0, 0, 0))\nb2 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (21.5, 0.0), (21.5, 7.1), (21.5, 14.8), (21.8, 14.8), (21.8, 16.1), (21.1, 19.1),0, 19.1)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), \"y\", (-23.8, 3.6, 15.9))\nb3 = place(cq.Workplane(\"XY\").add(cq.Workplane(\"XY\").add(7.7, 24.4, 15.6))\nresult = b0.union(b1.union(b2.union(b3)))"
+ },
+ {
+  "스텝": 1500,
+  "부품": "12000",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: closing parenthesis ')' does not match opening parenthesis '['\n2\t113",
+  "글": "b0 = place(cq.Workplane(\"XY\").add(cq.Workplane(\"XY\").Z\").polyline([(0.0, 0.0), (24.0, 0.0), (21.7, 4.0), (16.2, 12.1), (12.6, 18.7), (8.2, 24.1), (3.2, 32.1), (0.0, 32.1, 32.1, 0.0, 0, 0, 0, 0, 0, 0)), \"26.2, 0.0, \" \"b1 =26.3, \" \"b1, (0.0, 0.0, 0, 0.0))\nb1 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (1.0, 0.0), (1.0, 21.8), (0.0, 21.8), (0.0, 32.9), -2. -20.8), (0.0, -35.9), \"b-25.4), \"x\", (0.0, 19.2, 0.0))\nb2, 77,0, 0, 0, 0, 32.8))\nb2 = place(cq.Workplane(\"XY\").box(43 -20.0, 21.5, 21.5).faces(\">Z\").workplane(origin=(0, 0, 21.5)).center(2.2, 0.0, 21.5)).center(0.0, -11.0).hole(5.3, 0.0, 26.2)).center(-0.0, 0.0), \"y).fil(23.5), \"x\", (0.0, -21.3, 0.0))\nb3 = place(cq.Workplane(\"XY\").box(67.7, 21.5, 67.5).result,.union(b1.union(b2, (0, 0, 6.5))"
+ },
+ {
+  "스텝": 1500,
+  "부품": "12001",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: unterminated string literal (detected at line 1)\n1\t268",
+  "글": "b0 = place(cq.Workplane(\"XY\").box(68.3, 43.2, 43.3, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 43.3)).center(-13.0, 1.6).hole(12.1).edges(\"|Z\").workplane(origin=(0, 0, 43.3)).center([(0.0, 0.0).hole(0.0, 1.0), \"b0.workplane(\"XZ\").2 = x.b0._B\", \" (36.4, 0.0, 0.0))\nb2 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (36.5, 0.0), (36.5, 1. \" (e.h\", (0.0, 0.0,0.0))\nresult = b0.union(b1.union(b2))"
+ },
+ {
+  "스텝": 1500,
+  "부품": "12002",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: unterminated string literal (detected at line 1)\n1\t265",
+  "글": "b0 = place(cq.Workplane(\"XY\").add(cq.Workplane(\"XY\").Z\").polyline([(0.0, 0.0), (27.7, 0.0), (27.7, 22.1), (20.2, 22.1), (20.2, 8.5), (0.0, 8.5)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 22.5)).center(2.3, -3.0).hole(22.3), \"z\", (0.0, 37.9, 0.0))\nb1 = place(cq.Workplane(\"XY\").circle(5.5).extrude(15.1).faces(\">Z\").workplane(origin=(0, 0, 22.5)).center(0.0, 1.0).rect(24.2, 3.1).cutBlind(-4.1).ed(30.6, 12.5), \"y\", (7.5, -3.9, 0.0))\nb2 = place(cq.Workplane(\"XY\").add(cq.Workplane(\"XY\").circle(4.7).extrude(15.7).faces(\">Z\").workplane(origin=(0, 0, 15.7)).center(0.0, -9.5).rect(8.5, 5.5).cutBlind(-23.5), \"x\", (6.9, -29.2, 0.0))\nb1 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (4.4, 2.2)).circle(3.0), 5.2, 0.3))\nb4 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0),(-24.8, 0.0), -24.8, 35.0), (0.0, 35.0, 35.0), \"O(22.5, -3.9, 0.0))\nresult = b0.union(b1.union(b2.union(b1.union(b2.union(b3)))"
+ },
+ {
+  "스텝": 1500,
+  "부품": "12050",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: unmatched ')'\n5\t168",
+  "글": "b0 = place(cq.Workplane(\"XY\").box(68.0, 67.6, 28.7, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 28.7)).center(-12.7, 3.4).hole(10.9, 27.7), \"y\", \"x\",(-9.6, -7.2), \"y\", (6.5, -7.7, 0.0))\nb1 = place(cq.Workplane(\"XY\").box(67.0, 37.7, 16.7, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 16.7)).center(-22.1, 8.2).rect(12.8, 8.2).cutBlind(-6.2).faces(\">Z\").workplane(origin=(0, 0, 16.7)).center(3.6, 3.8).rect(6.8, 7.0).cutBlind(-22.6, 3.6), \"z\", (0.0, 8.0, 12.2))\nb2 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (27.5, 0.0), (27.5, 34.1), (15.6, 34.1), (15.6, 8.1), (0.0, 8.1)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 27.1)).center(12.4, 3.8).hole(10.4, 4.6), \"z\", (0.0, 8.0, 0.0))\nb3 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (28.7, 0.0), (28.7, 11.8), (10.8, 11.8), (10.8, 52.0), (0.0, 52.0)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 52.0)).center(-12.6, -2.9).hole(11.8, 8.6).faces(\">Z\").workplane(origin=(0, 0, 52.5)).center(5.8, -2.6).hole(6.1), \"y\", (22.4, 0.0, 0.0))\nb5workplane2 = place(cq.Workplane(\"XY\").2 = 8.4).faces(\">Z\").workplane(origin=(0, 0, 52.5)).center(-20.1, 4.8).rect(11.8, 6.9).cutBlind(-18.8), \"x\", (-26.7, 0.0, 19.9))\nresult = b0.union(b1.union(b2.union(b3.union(b4))))"
+ },
+ {
+  "스텝": 1750,
+  "부품": "12000",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: unterminated string literal (detected at line 1)\n1\t220",
+  "글": "b0 = place(cq.Workplane(\"XY\").add(cq.Workplane(\"XY\").Z\").polyline([(0.0, 0.0), (22.0, 0.0), (21.7, 4.7), (15.0, 9.1), (12.9, 11.1), (10.0, 14.4), (4.2, 19.4), (0.0, 19.4)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), \"x\", (13.5, 0.0, -22.5)\n26.0, 0.0, (17.0, 0.0, (18.2, (15.0, 2.2), 12.4, 6.4), (10.6, 10.4), (6.0, 15.4), (0.0, 19.4)]).center(1.2, 0.0, 0.0))\nb1 = place26.4, (0, 0, 0))\nb2 = place(cq.Workplane(\"XY\").add(cq.Workplane(\"XY\").box(63.0, 44.4, 0.faces, True, False2 True, (0, 0, 0))\nb3 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (21.4, 0.0), (22.3, 4.4), (17.3, 3.2), (15.3,2.2), (12.3,2.2), (10.3,2.2), (8.1, 2.2), (5.0, 7.3), (0.0, 9.7)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 26.1)).center(17.3, -4.9).hole(16.9, 31.4).faces(\">Z\").workplane(origin=(0, 0, 26.1)).center(-1.9, -0.4).hole(6.1, 0.0, 0.0))\nb4 = place(cq.Workplane(\"XY\").circle(3).finalize().extrude(15).union(w0.sketch().segment((0,0),(0,2)).arc((-3,0),(-1,-2)).segment((-1,0)).close().assemble().finalize().extrude(15)).cut(w0.sketch().segment((1,0),(1,2)).segment((3,2)).arc((0,1),(1,0)).assemble()).finalize().extrude(15)).cut(w0.sketch().segment((0,0),(0,2)).segment((2,2)).arc((0,1),(0,0)).assemble()).finalize().extrude(15)).cut(w0.sketch().segment((0,0),(0,2)).segment((1,2)).arc((0,1),(0,0)).assemble()).finalize().extrude(-15)).cut(w0.workplane(\"X0)), \"1(c0,0),(0,0)).assemble().finalize().extrude(-20)).segment((0,-1)).20=0)).close().assemble().finalize().extrude(10)).cut(w0.sketch().segment((1,0),(1,1)).segment((3,1)).arc((0,0),(-3,0)).close().assemble().finalize().extrude(10)).union(w0.workplane(\"X))"
+ },
+ {
+  "스텝": 1750,
+  "부품": "12001",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: unmatched ')'\n3\t56",
+  "글": "b0 = place(cq.Workplane(\"XY\").box(68.3, 43.2, 43.3, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 43.3)).center(-13.0, 3.3).hole(12.3).edges(\"|Z\").workplane(origin=(0, 0, 43.3)).center(-10.0, 9.9).rect(11.1, 4.4).cutBlind(-13.1), \"x\", (6.3, -14.0, 0.0))\nb2 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (30.6, 0.0), (30.6, 12.2), (18.2, 12.2), (18.2, 21.2), (0.0, 21.2)]).close().revolve(360, (0, 0, 0), (0, 0, 0)).faces(\">Z\").workplane(origin=(0, 1, 21.2)).center(16.3, 5.4).hole(14.6, 10.8).faces(\">Z\").workplane(origin=(0, 0, 21.2)).center(6.3, -2.9).rect(31.0, 6.0).cutBlind(-22.0), \"x\", (14.0, -4.4, 0.0))\ncylinder(14.8).cutBled(20.4, 0.0), \"z\", (0.0, 2.4, 0.0))\nb3 = place(cq.Workplane(\"XY\").box(67.3, 29.1, 36.4, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 36.1)).center(8.4, 5.8).rect(15.6, 8.4).cutBlind(-6.7).faces(\">Z\").workplane(origin=(0, 29.1, 0.0))\ncenter =)"
+ },
+ {
+  "스텝": 1750,
+  "부품": "12002",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: unterminated string literal (detected at line 1)\n1\t266",
+  "글": "b0 = place(cq.Workplane(\"XY\").add(cq.Workplane(\"XY\").Z\").polyline([(0.0, 0.0), (29.5, 0.0), (29.5, 35.0), (28.5, 35.0), (26.5, 6.8), (0.0, 6.8)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 26.5)).center(12.3, -2.0).hole(24.3), \"z\", (16.0, -16.0, 0.0))\nb1 = place(cq.Workplane(\"XY\").circle(5.0).extrude(33.4).faces(\">Z\").workplane(origin=(0, 0, 33.4)).center(16.0, 16.0).edges(16.0, 16.0).faces(\">Z\").workplane(origin=(0, 0, 34.4)).center(0.0, 2.6).rect(6.4, 4.4).cutBlind(-13.3), \"y\", (-25.9, 0, 26.4))\nresult = (16.0, -30.9, 0.0))\nresult = b0.union(b1.union(b22.4))"
+ },
+ {
+  "스텝": 1750,
+  "부품": "12050",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: unterminated string literal (detected at line 4)\n4\t76",
+  "글": "b0 = place(cq.Workplane(\"XY\").add(cq.Workplane(\"XY\").circle(29.9).extrude(37.8).faces(\">Z\").workplane(origin=(0, 0, 37.8)).center(15.7, -7.5).hole(15.7, 15.7), \"y\", (-36.2, -7.5, 19.9))\nb1 = place(cq.Workplane(\"XY\").box(65.6, 65.6, 36.8, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 36.8)).center(8.7, 5.6).rect(15.8, 12.9).cutBlind(-16.6), \"x\", (-36.7, -7.5, -19.9))\nb2 = place(cq.Workplane(\"XY\").circle(45.5).extrude(35.8).faces(\">Z\").workplane(origin=(0, 0, 36.8)).center(9.9, 15.9, 19.9))\nb1 = place(cq.Workplane(\"XY\").circle(29.6).extrude(37.8), \"x\", (6.5, -7.7, \"0.0))\nb3 = place(cq.Workplane(\"XY\").circle(57.1).circle(25.1,mode='s').circle(21.2).extrude(35.8).union(w0.workplane(\"XY\").circle(31).circle(27.6,mode='s').circle(21.6).extrude(40)).bline(\"X)).faces(\">Z\").workplane(origin=(0, 0, 41)).center(13.4, 54.4).faces(\">0\").faces(\">Z\").workplane(origin=(0, 0, 41)).center(-9.7, -.2. -1. -1.2).hole(18.8 37.7 17.5), \"x\", (-3.1, -12.5, -15.5))\nb3 = place(cq.Workplane(\"XY\").circle(23.2),mode='s').finalize().extrude(30.8), \"x\", (-6.2, -15.2, -15.9))\nb3 = place(cq.Workplane(\"XY\").circle(23.3),mode='s').bylinder(30.3), \"x\").faces(\">Z\").workplane(origin=(0, 0, 34.8)).center(0, 5.8).hole(0, 12.8), \" place(c0, -17.9), -14.9))\nb3 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (4.8, 1.4), (5. (5, 2..faces(\">Z\").workplane(origin=(0, 0, 34.8)).center(9.7, -8.2, -12.9))\nb4 = place(cq.Workplane(\"X\"one (-15.9\").circle(5.9).b 5.1), \"x\", (7.2, -7.8, -15.9))\nb5 = bX\").addiction(\"6.2).faces(\">Z\").workplane(origin=(0, 0, 34.8)).center(12.4, -15.6, 12.9))\nb3 = place(cq.Workplane(\"XY\").circle(21.3).fil(5.faces(\">Z\").workplane(origin=(0, 0, 34.8)).circle(10.1),mode='s').finalize().extrude(11.1).faces(\">Z\").workplane(origin=(0, 0, 34.8)).center(12.4, -14.1, 12.9).hole(6.1, -7.1, -15.9))\nb5 = place(cq.Workplane(\"X3 = 1(\">3) 18.5, -14.0, -15.9))\nb4 =31 =34.6), -12.0, -12.2, -15.9))\nb\" 17.7), \"x\"(\"6.7,"
+ },
+ {
+  "스텝": 2000,
+  "부품": "12000",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: unterminated string literal (detected at line 1)\n1\t247",
+  "글": "b0 = place(cq.Workplane(\"XY\").add(cq.Workplane(\"XY\").Z\").polyline([(0.0, 0.0), (22.0, 0.0), (21.7, 4.7), (15.0, 12.0), (12.0, 20.0), (10.0, 28.7), (7.0, 28.7), (6.0, 24.5), (2.0, 24.7), (2.0, 15.7), (1.0, 7.7), (0.0, 7.7), (0, 0.0), 0, 0, 0)), \"x\", (0.0, -20.0, 0.0))\nb1 = place(cq.Workplane(\"XY\").box(22.0, 31.2, 0.0, centered=(0, 21.3,0,0,0)).b1, 12.3, 0.0))\nb2 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (27.1, 0.0), (27.1,21.3), (20.2, 21.3), (20.2,35.7), (13.5,35.7), (13.5, 54.0), (10.5, 54.0), (10.0, 11.7), (0.0, 12.7, 10.7), \"-x\", (0.0, -20.0, 0.0))\nb1=26.0, 12.0, 0.0))\nb1 26.0), \"y\", (0.0, -27.2, 0.0))\nb1 = place(cq.Workplane(\"XY\").2.union(b1.union(b2.union(b1.union(b3)))"
+ },
+ {
+  "스텝": 2000,
+  "부품": "12001",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: closing parenthesis ')' does not match opening parenthesis '['\n1\t292",
+  "글": "b0 = place(cq.Workplane(\"XY\").box(68.3, 43.2, 43.3, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 43.3)).center(-13.0, 1.6).hole(12.1).edges(\"|Z\").workplane(origin=(0, 0, 43.3)).center([(0.0, 0.0).hole(0.0, 1.0), \"b0.workplane(\"XZ\").2).box(60.4, 3x.ims()).27.4), \"z\", (x\").rect(61.4, 33.3, \"y\").workplane2place(-b0.0), \"b0, 0, 31.5).faces(\"2, 13.3, 10.6))\nb2 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (22.2, 0.0), (22.2, 18.8), (15.8, 18.8), (15.8, 39.7), (0.0, 39.7)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 47.7)).center(13.0, 7.5).rect(6.6, 22.6).rect(5.7, 22.7).finalize().extrude(38).cut16.4).faces(\">Z\").workplane(origin=(0, 0, 38.9)).center(16.4, 0.0, -1).hole(16.3).union(w0.workplane(\"XY\").box(40.4, 43.4, 43.4)).)))"
+ },
+ {
+  "스텝": 2000,
+  "부품": "12002",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: unterminated string literal (detected at line 1)\n1\t268",
+  "글": "b0 = place(cq.Workplane(\"XY\").add(cq.Workplane(\"XY\").Z\").polyline([(0.0, 0.0), (29.8, 0.0), (29.8, 36.0), (29.8, 33.6), (29.8, 19.6), (0.0, 19.6)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 19.6)).center(26.9, -2.0).hole(16.0), \"z\", (16.6, 0.0, -0.2))\nb1 = place(cq.Workplane(\"XY\").2 = -6.0).rect(6.0, 6.4).cutBlind(-1.2), \"z\", (0.0, 38.9, 0.0))\nb2 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (38.4, 0.0), (384.1, 49.2)).cutBledge(2.6), \"e\", (0.0, -19.9, 0.0))\nb3 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (36.6, 0.0), (36.6, 12.8), (15.8, 12.8), (15.8, 24.5), (0.0, 24.5)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 24.5)).center(-13.6, -4.7).rect(5.3, 5.5).cutBlind(-14.6), \"y\", (0.0, -30.4, 0.45.4))\nb4 = place(cq.Workplane(\"XY\").box(33.3, 40.4, 0.5) \""
+ },
+ {
+  "스텝": 2000,
+  "부품": "12050",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: invalid syntax. Perhaps you forgot a comma?\n1\t12",
+  "글": "b0 = place(cq.Workplane(\"XY\").add(cq.Workplane(\"XY\").circle(29.9).extrude(37.8).faces(\">Z\").workplane(origin=(0, 0, 37.8)).center(15.7, -3.6).hole(15.6), \"y\", (-27.7, -16.6))\nb1 = place(cq.Workplane(\"XY\").box(46.8, 41.4, 38.7, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 37.7)).center(20.5, -3.6).rect(19.9, 27.8), \"x\", (-27.7, -16.6, 19.9))\nb2 = place(cq.Workplane(\"XY\").circle(57.7).extrude(35.2).faces(\">Z\").workplane(origin=(0, 0, 35.9)).center(11.8, 12.6).hole(18.6), \"x\", (-27.7, -16.6, 19.9))\nb2 = place(cq.Workplane(\"XY\").circle(57.9).extrude(22.2).faces(\">Z\").workplane(origin=(0, 0, 38.9)).center(11.6, 16.5).rect(21.6, 21.6, -11.6))\nb1 = place(cq.Workplane(\"XY\").circle(57.8).extrude(33.2).faces(\">Z\").workplane(origin=(0, 0, 38.9)).center(19.9, 16.4, 20.9).rect(21.6, 17.2, 20.8, 20.6))\nb2 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (21.5, 0.0), (21.5, 21.2), (21.2, 29.9), (20.2, 29.9), (0.0, 25.6)]).close().revolve(6.3, 11.5), (0.0, 18.8), (0.0, 25.9))\nresult = b0.union(b1.union(b2.union(b67))"
+ },
+ {
+  "스텝": 2250,
+  "부품": "12000",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: closing parenthesis ')' does not match opening parenthesis '['\n1\t162",
+  "글": "b0 = place(cq.Workplane(\"XY\").add(cq.Workplane(\"XY\").add(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (27.1, 0.0), (27.1, 22.1), (18.1, 22.1), (18.1,0.0), (0.0, 0.0)).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 22.5)).center(4.9, -2.0).hole(13.0, 3.6).cutBl421, (17.0, 22.5, 22.5))\nb1 = place(cq.Workplane(\"XY\").circle(57.0).union(w0.workplane(b1 = (0, 0, 0)).faces(\">Z\").workplane(origin=(0, 1.5).cutBl8)))"
+ },
+ {
+  "스텝": 2250,
+  "부품": "12001",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: closing parenthesis ')' does not match opening parenthesis '['\n1\t115",
+  "글": "b0 = place(cq.Workplane(\"XY\").box(68.3, 43.2, 43.3, centered=(True, True, False)).faces(\">Z\").workplane([(0, 0, 4))) (20. , 0.  .hole\").b3b\", (16.7, 29.2, 11.8)\nb2 = place(cq.Workplane(\"XY\").circle(31.1).extrude(47.add (0, 0, 47.2)).2linehole\nb0.workplane(\"XZ\").polyline([(0,0, 47.2)).arc((-3, 0),(-3,-40)).close().revetch().circle(3),mode='s').circle(2).finalize().extrude(21. place(cq.Workplane(\"XY\").circle(31.1).extrude(36 place(cq.Workplane(\"XY\").circle(6.faces(\">Z\").workplane(origin=(0, 0, 47.2)).circle(31.2), \"x\", (30.2, -19.6, 0.0))\nb1 = place(cq.Workplane(\"XZ\").polyline([(0,0, 47.2)).arc((0,0),(-4,47.2)).close().rev(30.2, 30.3, 0.0))\nb3 = place(cq.Workplane(\"XY\").circle(31.2,mode='s').4.3, -1.faces().bhole 2x.3, 0.0, 0.0))\nb3 76\", \" placelet(34.3, 0, 31.0)\ncenter=-19.6, 0.0, 31.0).faces(\">Z\").workplane(origin=(0, 0, 31.1)).center(0, 0, 38).circle(2,mode='s').finalize().extrude(21.1).union(w0.workplane(offset=21.1/2).box(140.1, 44.4, 21.1, centered=())),\").faces(\">Z\").workplane(origin=(0, 0, 21.1)).center(9.4, 0.0, 21.1)).poly(21.4, -0.2), 12.7, -0.2, 11.8))\nb1 = place(cq.Workplane(\"XY\").circle(5.0,mode='s').finalize().extrude(21.1))"
+ },
+ {
+  "스텝": 2250,
+  "부품": "12002",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: unterminated string literal (detected at line 1)\n1\t267",
+  "글": "b0 = place(cq.Workplane(\"XY\").add(cq.Workplane(\"XY\").Z\").polyline([(0.0, 0.0), (29.8, 0.0), (29.8, 35.0), (23.3, 35.0), (23.3, 10.5), (0.0, 10.5)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 10.5)).center(5.9, -2.0).hole(24.6), \"z\", (16.0, -30.9, 0.0))\nb1 = place(cq.Workplane(\"XY\").circle(5.0).extrude(11).union(w0.sketch().segment((-100,0),(-97,-2)).segment((-97,0)).close().assemble().reset().face(w0.sketch().segment((-92,26),(-81,26)).segment((-81,30)).close().assemble()).reset().face(w0.sketch().segment((-80,32),(-76,32)).segment((-76,30)).segment((-73,30)).segment((-73,26)).segment((-65,26)).segment((-65,22)).segment((-57,15)).segment((-54,18)).segment((-54,16)).segment((-51,16)).segment((-51,19)).segment((-48,19)).segment((-48,26)).segment((-40,26)).segment((-40,32)).segment((-39,32)).segment((-39,36)).segment((-40,36)).segment((-40,37)).segment((-48,37)).segment((-48,39)).segment((-51,39)).segment((-51,37)).segment((-54,37)).segment((-54,36)).segment((-57,36)).segment((-57,32)).segment((-65,32)).segment((-65,37)).segment((-68,37)).segment((-68,39)).segment((-71,39)).segment((-71,37)).segment((-76,37)).segment((-76,32)).close().assemble()).finalize().extrude(110)).union(w0.sketch().segment((-81,0),(-65,0)).segment((-65,1)).segment((-63,1)).segment((-63,0)).segment((-47,0)).segment((-47,13)).segment((-39,13)).segment((-39,26)).segment((-47,26)).segment((-47,39)).segment((-63,39)).segment((-63,26)).segment((-71,26)).segment((-71,19)).segment((-78,19)).segment((-78,13)).segment((-81,13)).close().assemble().finalize().extrude(66))"
+ },
+ {
+  "스텝": 2250,
+  "부품": "12050",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: invalid syntax. Perhaps you forgot a comma?\n1\t12",
+  "글": "b0 = place(cq.Workplane(\"XY\").add(cq.Workplane(\"XY\").circle(29.9).extrude(37.8).faces(\">Z\").workplane(origin=(0, 0, 37.8)).center(15.7, -3.6).hole(15.6, 12.1), \"y\", (-33.6, -16.6))\nb1 = place(cq.Workplane(\"XY\").circle(45.7).extrude(40.3).faces(\">Z\").workplane(origin=(0, 0, 41)).31 14.6), \"z\", (0.0, 26.1, 19.9))\nb2 = place(cq.Workplane(\"XY\").box(66.0, 6.9, 34.4))\nb3 = place(cq.Workplane(\"XY\").circle(43.3).extrude(30.2).faces(\">Z\").workplane(origin=(0, 0, 32.2)).center(9.9, 26.1).rect((6.8, 8.8).faces(\">Z\").workplane(origin=(0, 0, 32.2)).center(12.6, -3.8).rect(11.6, 11.3).cutBlind(-6.1).faces(\">Z\").workplane(origin=(0, 0, 32.2)).center(8.6, -7.5).rect(11.6, 11.7).cutBlind(-16.6), \"x\", (-6.6, -16.9, 19.9))\nb1.union(b1.union(b2.union(b3.union(b4.union(b4))))"
+ },
+ {
+  "스텝": 2400,
+  "부품": "12000",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: closing parenthesis ')' does not match opening parenthesis '['\n1\t162",
+  "글": "b0 = place(cq.Workplane(\"XY\").add(cq.Workplane(\"XY\").add(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (27.1, 0.0), (27.1, 22.1), (18.1, 22.1), (18.1,0.0), (0.0, 0.0)).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 22.5)).center(12.2, -0.2).hole(13.0, 3.0), \"z\", (16.1, -0.0, 0.0))\nb1 = place(cq.Workplane(\"XY\").circle(31.0).extrude(15.0).faces(\">Z\").workplane(origin=(0, 0, 15.0)).center(22.0, 0.0, 0.0))\nb1 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (18.1, 0.0), (181,0.0)).faces(\">Z\").workplane(origin=(0, 0, 15.5)).center(14.0, -0.0).hole(13.0, 0.0), (0.0, 0.0), (0.0, 1, 0, 0)), \"x 26.5, 0.0, -17.0))\nb2 = place(cq.Workplane(\"XZ\").polyline(360, (0, 0, 0)).center(1().finalize().extrude(15.0).faces(\">Z\").workplane(origin=(0, 0, 15.5)).center(0.0, 0.0).rect(4,21.7).finalize().extrude(20.0).union(w0.sketch().segment((-28,0),(-28,2)).segment((-26,2)).segment((-26,0)).arc((-24,1),(-23,3)).segment((-23,4)).segment((-22,4)).arc((-20,5),(-18,5)).segment((-18,3)).arc((-16,2),(-15,0)).segment((-15,1)).arc((-16,2),(-18,2)).segment((-18,3)).arc((-20,4),(-22,4)).segment((-22,5)).segment((-23,5)).segment((-23,4)).arc((-25,4),(-26,3)).segment((-26,0)).close().assemble().finalize().extrude(10.0)).faces(\"10.0, -0.0), (-2.0, 0.0), -2.0, 2.2), -2.5, 2.4))\nb2 =6.7), \"x\", (-24.4, 0.0, -22.0))\nresult =2.union(b1.union(b2.union(b3)))"
+ },
+ {
+  "스텝": 2400,
+  "부품": "12001",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: unterminated string literal (detected at line 1)\n1\t285",
+  "글": "b0 = place(cq.Workplane(\"XY\").box(68.3, 43.2, 43.3, centered=(True, True, False)).faces(\">Z\").workplane(origin=(0, 0, 43.3)).center(-16.0, 1.5).rect(14.9, 9.2).b\", (-12.0, 7.6).bX 14.5, 2.2).faces(\">Z\").workplane(origin=(0, 0, 43.3)).center(12, 3.8).rect(6.0, 6.0).cutBlind(-13.7), \"x\", -10.2, 0.0, 0.0))\nb2 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), 22.0, 0.0), 23.6, 5.2), 23.6, 11.8), 22.2, 15.6), (0.0, 15.6)]).close().revolve(360, (0, 0, 0), (0, 1, 0)), \"x\", (16.2, 0.0, 0.0))\nb2 = place(cq.Workplane(\"XZ\").polyline([(0.0, 0.0), (33.7, 0.0), (33.7, 13.2), (20.3, 13.2), (20.3, 6.1), (0.0, 6.1)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 28.2)).center(2.0, 1.2).rect(6.6, 6.1).cutBlind(-16.3).faces(\">Z\").workplane(origin=(0, 0, 28.2)).center(8.0, 5.4).hole(9.2, 0.0, 7.8).rect(8.6, 6.9).cutBlind(7.4).faces(\">Z\").workplane(origin=(0, 0, 28.2)).center(9.0, 3.0).hole(14.0, 0.0, 2.1))\nresult = b0.union(b1)"
+ },
+ {
+  "스텝": 2400,
+  "부품": "12002",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: unterminated string literal (detected at line 1)\n1\t351",
+  "글": "b0 = place(cq.Workplane(\"XY\").add(cq.Workplane(\"XY\").Z\").polyline([(0.0, 0.0), (29.5, 0.0), (29.5, 35.0), (28.5, 35.0), (26.5, 6.8), (0.0, 6.8)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(\">Z\").workplane(origin=(0, 0, 26.5)).center(12.3, -2.0).hole(23.3, 22.0).faces(\">Z\").workplane(origin=(0, 0, 26.5)).center(13.3, -2.4).hole(11.4, 12.0), \"x\", (6.7, -3.9, 0.0))\nb1 = place(cq.Workplane(\"XY\").circle(4.4).extrude(26.1).faces(\">Z\").workplane(origin=(0, 0, 26.5)).center(0.0, 2.4).rect(6.4, 5.0).cutBlind(-24.5), \"y\", (0.0, -77, \"0, 0, 0, 0)).face(w0.sketch().segment((0,0),(29,0)).segment((29,2)).segment((30,2)).segment((30,4)).segment((30,5)).segment((30,7)).segment((29,7)).segment((29,9)).segment((28,9)).segment((28,11)).segment((27,11)).segment((27,9)).segment((26,9)).segment((26,7)).segment((27,7)).segment((27,6)).segment((27,2)).segment((0,2)).close().rev(\"2.4, 0, 0).faces(\">3)"
+ },
+ {
+  "스텝": 2400,
+  "부품": "12050",
+  "실행": false,
+  "IoU": 0.0,
+  "오류": "SyntaxError: unterminated string literal (detected at line 1)\n1\t179",
+  "글": "b0 = place(cq.Workplane(\"XY\").add(cq.Workplane(\"XY\").circle(29.1).extrude(37.8).faces(\">Z\").workplane(origin=(0, 0, 37.8)).center(15.9, 26.1).hole(15.8), \"y\",.union(b0.workplane(\"X))"
+ }
+]

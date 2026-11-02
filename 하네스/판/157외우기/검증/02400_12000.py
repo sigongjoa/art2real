@@ -1,0 +1,6 @@
+b0 = place(cq.Workplane("XY").add(cq.Workplane("XY").add(cq.Workplane("XZ").polyline([(0.0, 0.0), (27.1, 0.0), (27.1, 22.1), (18.1, 22.1), (18.1,0.0), (0.0, 0.0)).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(">Z").workplane(origin=(0, 0, 22.5)).center(12.2, -0.2).hole(13.0, 3.0), "z", (16.1, -0.0, 0.0))
+b1 = place(cq.Workplane("XY").circle(31.0).extrude(15.0).faces(">Z").workplane(origin=(0, 0, 15.0)).center(22.0, 0.0, 0.0))
+b1 = place(cq.Workplane("XZ").polyline([(0.0, 0.0), (18.1, 0.0), (181,0.0)).faces(">Z").workplane(origin=(0, 0, 15.5)).center(14.0, -0.0).hole(13.0, 0.0), (0.0, 0.0), (0.0, 1, 0, 0)), "x 26.5, 0.0, -17.0))
+b2 = place(cq.Workplane("XZ").polyline(360, (0, 0, 0)).center(1().finalize().extrude(15.0).faces(">Z").workplane(origin=(0, 0, 15.5)).center(0.0, 0.0).rect(4,21.7).finalize().extrude(20.0).union(w0.sketch().segment((-28,0),(-28,2)).segment((-26,2)).segment((-26,0)).arc((-24,1),(-23,3)).segment((-23,4)).segment((-22,4)).arc((-20,5),(-18,5)).segment((-18,3)).arc((-16,2),(-15,0)).segment((-15,1)).arc((-16,2),(-18,2)).segment((-18,3)).arc((-20,4),(-22,4)).segment((-22,5)).segment((-23,5)).segment((-23,4)).arc((-25,4),(-26,3)).segment((-26,0)).close().assemble().finalize().extrude(10.0)).faces("10.0, -0.0), (-2.0, 0.0), -2.0, 2.2), -2.5, 2.4))
+b2 =6.7), "x", (-24.4, 0.0, -22.0))
+result =2.union(b1.union(b2.union(b3)))
