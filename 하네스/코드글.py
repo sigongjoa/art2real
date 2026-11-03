@@ -59,6 +59,13 @@ def 배치먼저(글):   # 판 151 서식: 첫 줄 layout = [(종류, 축, 자�
     return "layout = [" + ", ".join(배) + "]\n" + "\n".join(몸)
 def 원뿔이름(글):   # 판 158 서식: cq.Workplane("XY").add(cq.Solid.makeCone(r, 0, h)) → cone(r, h)(머리말에 정의) · 11-02 157: 「cq」 다음 드문 갈래 .Solid 를 2,400 스텝으로 못 넘음(CE 33.9 · 나머지 토큰은 다 맞음) → 갈래를 줄 첫머리 몸 종류 자리로
     import re; return re.sub(r'cq\.Workplane\("XY"\)\.add\(cq\.Solid\.makeCone\((-?[\d.]+), 0, (-?[\d.]+)\)\)', r'cone(\1, \2)', 글)
+_위치식 = r'(b\d+ = place\(.*, "\w", \()(-?[\d.]+), (-?[\d.]+), (-?[\d.]+)(\)\))$'
+def _픽(v, 뒤집): a = float(v) / 100; return min(127, max(0, round(((.55 - a) if 뒤집 else (a + .55)) / 1.1 * 128 - .5)))   # 설계116.화소 와 같은 식 · 도면좌표(긴 변 100) 기준
+def _값(p, 뒤집): a = (int(p) + .5) * 1.1 / 128 - .55; return 수(100 * (-a if 뒤집 else a))
+def 위치토큰(글):   # 판 159 서식: 도면좌표 글의 몸 자리 (x, y, z) → 입력 선과 같은 픽셀 토큰 (<x>, <y>, <z>) · x = 위 뷰 가로 · y = 위 뷰 세로(뒤집힘) · z = 앞 뷰 세로(뒤집힘)
+    import re; return "\n".join(re.sub(_위치식, lambda m: f"{m.group(1)}<{_픽(m.group(2), 0)}>, <{_픽(m.group(3), 1)}>, <{_픽(m.group(4), 1)}>{m.group(5)}", l) for l in 글.splitlines())
+def 위치되돌림(글):   # 위치토큰 → 숫자(생성 글을 실행 · 채점하기 전) · 토큰이 아닌 자리는 그대로
+    import re; return re.sub(r'\(\s*<(\d+)>\s*,\s*<(\d+)>\s*,\s*<(\d+)>\s*\)\)', lambda m: f"({_값(m.group(1), 0)}, {_값(m.group(2), 1)}, {_값(m.group(3), 1)}))", 글)
 def 도면좌표(글, 길=100.):   # 판 155: mm · b0 원점 → 도면과 같은 기준(부품 전체 상자 가운데 원점 · 가장 긴 변 = 길) · 10-28 입력(도면)은 정규화인데 정답은 mm 라 몸 자리에 안 보이는 배율이 섞였음
     import re, 설계116 as S
     _, _, c, e = S.메시(실행(글)); k = 길 / e   # 도면(모델123.도면 → 설계116.메시)과 같은 c · e

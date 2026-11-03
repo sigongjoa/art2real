@@ -109,6 +109,17 @@ def _좌표임베딩():
             새 = ids >= s.n0; e = s.원(ids.masked_fill(새, 0))
             return torch.where(새[..., None], s.새.to(e.dtype)[(ids - s.n0).clamp(0, len(s.새) - 1)], e)
     return 좌표임베딩
+def _좌표머리():
+    import torch, torch.nn as nn
+    class 좌표머리(nn.Module):
+        def __init__(s, 원, 임): super().__init__(); s.원 = 원; s.임 = [임]   # 임 은 리스트로(모듈 두 번 등록 안 되게)
+        @property
+        def weight(s): return s.원.weight
+        def forward(s, h):
+            o = s.원(h); 임 = s.임[0]; 새 = h @ 임.새.to(h.dtype).T
+            return torch.cat([o[..., :임.n0], 새.to(o.dtype), o[..., 임.n0 + len(임.새):]], -1)
+    return 좌표머리
+출력좌표 = False   # 서식바꿈 이 정함 · 모델 · 생성 이 읽음
 LoRA대상들 = {"어텐션": ["q_proj", "k_proj", "v_proj", "o_proj"], "전부": ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]}   # 154~ 전부 = MLP 포함(Biderman 등 2024 · claudedocs/research_LoRA대상층_20261027.md) · 입력이 선글이라 비전 인코더 · merger 는 안 거침
 def 모델(rank=16, 토큰="기존", 대상="어텐션"):
     import torch
@@ -124,6 +135,7 @@ def 모델(rank=16, 토큰="기존", 대상="어텐션"):
         assert n0 + 좌표수 <= 원.weight.shape[0], n0
         with torch.no_grad(): 초기 = torch.stack([원.weight[tok(str(i), add_special_tokens=False).input_ids].float().mean(0) for i in range(좌표수)])
         b.model.embed_tokens = _좌표임베딩()(원, n0, 초기)
+        if 출력좌표: b.lm_head = _좌표머리()(b.lm_head, b.model.embed_tokens)   # 159~: 묶인 lm_head 의 좌표 행은 얼린 빈 칸 → 학습하는 새 행으로 logits
     return m, proc
 def 묶(items, proc, eval=False):
     import torch; sys.path.insert(0, 캐); from cadrille import collate
@@ -217,12 +229,12 @@ class 문법제약:   # 149 · 탐욕 생성에서 맨 위 후보부터 「글 �
                     if s.된다(st, t): scores[r, 위[:j]] = -float("inf"); break
         s.본 = L - s.n; return scores
 def 생성(model, proc, items, 배=4, 최대=1024, 제약=False):
-    import torch
+    import torch, 코드글
     model.eval(); out = []
     for s in range(0, len(items), 배):
         b = 묶(items[s:s + 배], proc, eval=True); 인 = {k: b[k] for k in ("input_ids", "attention_mask", "point_clouds", "is_pc", "is_img") if k in b}
         if b.get("pixel_values_videos") is not None: 인 |= {"pixel_values_videos": b["pixel_values_videos"], "video_grid_thw": b["video_grid_thw"]}
-        막 = list(range(151657, len(proc.tokenizer)))   # 좌표 토큰은 입력 전용 — 생성 금지
+        막 = [] if 출력좌표 else list(range(151657, len(proc.tokenizer)))   # 좌표 토큰은 입력 전용 — 생성 금지(159 위치토큰 서식만 허용)
         추 = {}
         if 제약: from transformers import LogitsProcessorList; 추["logits_processor"] = LogitsProcessorList([문법제약(proc.tokenizer, b["input_ids"].shape[1], {proc.tokenizer.eos_token_id, proc.tokenizer.pad_token_id, *([model.generation_config.eos_token_id] if isinstance(model.generation_config.eos_token_id, int) else (model.generation_config.eos_token_id or []))} - {None})])
         try:
@@ -232,7 +244,7 @@ def 생성(model, proc, items, 배=4, 최대=1024, 제약=False):
             g = None
         if g is None:   # except 밖에서 다시(traceback 이 텐서를 잡고 있지 않게) · 하나씩도 넘치면 OOM 표시 — 실행 실패(모델 탓)와 따로 셈
             del 인, b; torch.cuda.empty_cache(); out += 생성(model, proc, items[s:s + 배], 1, 최대, 제약) if 배 > 1 else [OOM]; model.eval(); continue
-        out += proc.batch_decode([o[len(i):] for i, o in zip(b["input_ids"], g)], skip_special_tokens=True)
+        out += [코드글.위치되돌림(x) if 출력좌표 else x for x in proc.batch_decode([o[len(i):] for i, o in zip(b["input_ids"], g)], skip_special_tokens=True)]
         if len(items) > 8 and (s // 배) % 10 == 0: print(f"생성 {len(out)}/{len(items)}", flush=True)   # 10-24 145 생성 1 시간을 못 봤음
     model.train(); return out
 # ── 3. 평가 ─────────────────────────────────────────────
@@ -317,12 +329,14 @@ def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.
     return {"코드_실행률": round(float(np.mean([r["실행"] for r in 쓸])), 4), "코드_IoU": round(float(np.median(iou)), 4), "코드_IoU평균": round(float(iou.mean()), 4), "코드_부피IoU": round(float(np.median([r["부피IoU"] for r in 쓸])), 4), "코드_부피바닥": round(max(바.values()), 4),   # 10-30 판정은 부피 IoU 로 · 바닥은 같은 모양 하나(원기둥 0.15 근처)
             "코드_IoU실행": round(float(np.median(된)), 4) if len(된) else None,   # 실행된 것만의 모양 — 코드_IoU(실패 = 0 중앙)는 실행률 < 0.5 면 늘 0 이라 모양을 못 봄(10-25 감사: 145 0.000 인데 이것은 0.53)
             "코드_OOM": sum(r["OOM"] for r in 줄), "코드_정답실패": sum(r["정답실패"] for r in 줄), "코드_원뿔배움": 배.get("학습", {}).get("원뿔 갈래 .Solid", 배.get("학습", {}).get("원뿔 갈래 cone", {})).get("맞음"),   # 원뿔배움: 학습 부품에서 「cq.」 다음 「.Solid」 를 맞히나(정답 넣어 줌) · 147 · 151 은 0 · 10-27 주석 뒤에 정답실패가 묻혀 빠졌던 것 고침
-            "코드_옆옮김": 옆옮김(글들), "코드_옆옮김정답": 옆옮김([x[3] for x in 시]),   # 10-28 사용자 「겹친다 교집합을 못 배우네」: 152 · 154 는 b1~ 를 z 로만 옮김(97 %+) · 정답은 x · y 도 76 % — b0 기준 x 나 y 로 옮긴 몸 비율
+            "코드_옆옮김": 옆옮김(글들), "코드_옆옮김정답": 옆옮김([__import__("코드글").위치되돌림(x[3]) for x in 시]),   # 10-28 사용자 「겹친다 교집합을 못 배우네」: 152 · 154 는 b1~ 를 z 로만 옮김(97 %+) · 정답은 x · y 도 76 % — b0 기준 x 나 y 로 옮긴 몸 비율
             "코드_몸개수맞음": round(float(np.mean([몸수(g) == 몸수(x[3]) for g, x in zip(글들, 시)])), 4),   # 실행과 상관없이 몸 줄 수가 정답과 같은 비율(10-25 원인 쪼개기: 147 실행된 것 중 39 %)
             "코드_학습loss": round(기록[-1]["학습"], 4), "코드_시험loss": round(기록[-1]["시험"], 4), "시험loss": round(기록[-1]["시험"], 4), "학습loss": round(기록[-1]["학습"], 4)}
 def 서식바꿈(목, s):   # 입력 토큰 · 정답 서식 — 점검 · 학습부품확인 이 같이 씀
     if str(s.get("토큰", "기존")) == "좌표": 목 = [(n, t, 좌표글(l), g) for n, t, l, g in 목]
     서 = str(s.get("서식", "기존"))
+    global 출력좌표; 출력좌표 = 서 == "위치토큰"
+    if 서 == "위치토큰": import 코드글; 목 = [(n, t, l, 코드글.위치토큰(g)) for n, t, l, g in 목]   # 159~: 몸 자리를 입력 선과 같은 픽셀 토큰으로(생성은 좌표 토큰을 쓰고 위치되돌림으로 숫자)
     if 서 == "원뿔이름": import 코드글; 목 = [(n, t, l, 코드글.원뿔이름(g)) for n, t, l, g in 목]   # 158~
     if 서 == "배치먼저": import 코드글; 목 = [(n, t, l, 코드글.배치먼저(g)) for n, t, l, g in 목]   # 151~: 몸 개수 · 배치를 첫 줄에
     if 서 == "읽기먼저":   # 156~ 증류: 큰 모델이 도면 + 정답 코드를 보고 쓴 「도면 읽기」 주석 줄(# …)을 코드 앞에 · 없는 부품은 코드만
