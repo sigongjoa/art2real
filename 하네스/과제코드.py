@@ -119,7 +119,7 @@ def _좌표머리():
             o = s.원(h); 임 = s.임[0]; 새 = h @ 임.새.to(h.dtype).T
             return torch.cat([o[..., :임.n0], 새.to(o.dtype), o[..., 임.n0 + len(임.새):]], -1)
     return 좌표머리
-출력좌표 = False   # 서식바꿈 이 정함 · 모델 · 생성 이 읽음
+출력좌표 = False; 좌표초기 = "숫자평균"   # 서식바꿈 이 정함 · 모델 · 생성 이 읽음
 LoRA대상들 = {"어텐션": ["q_proj", "k_proj", "v_proj", "o_proj"], "전부": ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]}   # 154~ 전부 = MLP 포함(Biderman 등 2024 · claudedocs/research_LoRA대상층_20261027.md) · 입력이 선글이라 비전 인코더 · merger 는 안 거침
 def 모델(rank=16, 토큰="기존", 대상="어텐션"):
     import torch
@@ -134,6 +134,11 @@ def 모델(rank=16, 토큰="기존", 대상="어텐션"):
         tok = proc.tokenizer; tok.add_tokens([f"<{i}>" for i in range(좌표수)]); n0 = tok.convert_tokens_to_ids("<0>"); b = m.get_base_model(); 원 = b.model.embed_tokens
         assert n0 + 좌표수 <= 원.weight.shape[0], n0
         with torch.no_grad(): 초기 = torch.stack([원.weight[tok(str(i), add_special_tokens=False).input_ids].float().mean(0) for i in range(좌표수)])
+        if 좌표초기 == "사인파":   # 160~: 숫자 조각 평균은 128 행이 코사인 0.95 로 거의 같음(147~159) → 값마다 다른 사인파를 더해 행 퍼짐을 어휘와 같게(가까운 값은 닮고 먼 값은 다름)
+            with torch.no_grad():
+                d = 초기.shape[1]; i = torch.arange(좌표수, dtype=torch.float32)[:, None]; f = 1 / (좌표수 ** (torch.arange(d // 2, dtype=torch.float32) / (d // 2)))
+                pe = torch.cat([torch.sin(i * f), torch.cos(i * f)], 1).to(초기.device); pe = pe - pe.mean(0); 표준 = float(원.weight[:150000:75].float().std(0).mean())
+                초기 = 초기 + pe / pe.std(0).mean() * 표준
         b.model.embed_tokens = _좌표임베딩()(원, n0, 초기)
         if 출력좌표: b.lm_head = _좌표머리()(b.lm_head, b.model.embed_tokens)   # 159~: 묶인 lm_head 의 좌표 행은 얼린 빈 칸 → 학습하는 새 행으로 logits
     return m, proc
@@ -335,7 +340,7 @@ def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.
 def 서식바꿈(목, s):   # 입력 토큰 · 정답 서식 — 점검 · 학습부품확인 이 같이 씀
     if str(s.get("토큰", "기존")) == "좌표": 목 = [(n, t, 좌표글(l), g) for n, t, l, g in 목]
     서 = str(s.get("서식", "기존"))
-    global 출력좌표; 출력좌표 = 서 == "위치토큰"
+    global 출력좌표, 좌표초기; 출력좌표 = 서 == "위치토큰"; 좌표초기 = str(s.get("좌표초기", "숫자평균"))
     if 서 == "위치토큰": import 코드글; 목 = [(n, t, l, 코드글.위치토큰(g)) for n, t, l, g in 목]   # 159~: 몸 자리를 입력 선과 같은 픽셀 토큰으로(생성은 좌표 토큰을 쓰고 위치되돌림으로 숫자)
     if 서 == "원뿔이름": import 코드글; 목 = [(n, t, l, 코드글.원뿔이름(g)) for n, t, l, g in 목]   # 158~
     if 서 == "배치먼저": import 코드글; 목 = [(n, t, l, 코드글.배치먼저(g)) for n, t, l, g in 목]   # 151~: 몸 개수 · 배치를 첫 줄에
