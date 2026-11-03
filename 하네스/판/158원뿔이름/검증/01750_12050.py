@@ -1,0 +1,1 @@
+b0 = place(cq.Workplane("XY").box(94.9, 69.2, 4.9, centered=(True, True, False)).faces(">Z").workplane(origin=(0, 0, 4.9)).cutBl2.union(b1)

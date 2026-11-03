@@ -1,0 +1,2 @@
+b0 = place(cq.Workplane("XY").circle(20.0).extrude(10.0).bylinder(10.0).faces(">Z").workplane(origin=(0, 0, 10.0)).box(10.9, 10.9, 10.0), 14.0, 10.0, 14.0, 14.0, 14.0, 14.0, 14.0, 14.0, 14.0), 14.0, 14.0, 14.0), 14.0, 10.9, 14.0), 10.0, 0.0, 0, 0, 0))
+b1 = place(cq.Workplane("XY").circle(30.0).result = b0.union(b1)
