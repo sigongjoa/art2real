@@ -54,7 +54,7 @@ article.분석{max-width:70ch;font-size:1.02rem;line-height:1.8}article.분석 h
 <h3>바꾼 것 하나</h3>
 <p>정답 코드의 원뿔만 <code>.add(cq.Solid.makeCone(...))</code>에서 <strong><code>cone(r, h)</code></strong> 로 바꿨다. 이제 원뿔은 줄 첫머리에서 바로 이름으로 나온다. 데이터, 학습 부품 30개, 시험 부품 100개, 학습 2,400스텝은 157과 같다.</p>
 <h3>결과</h3>
-<figure><img alt="처음 보는 시험 부품에서는 코드가 거의 실행되지 않아 모양 겹침이 0이다" src="비교.png"><figcaption>처음 보는 시험 부품에서는 코드가 거의 실행되지 않아 모양 겹침이 0이다</figcaption></figure>
+<figure><img alt="원뿔을 cone(r, h) 로 쓰자 외운 부품 30 개 중 28 개가 실행됐다(157 은 17 개)" src="외운30.png"><figcaption>원뿔을 cone(r, h) 로 쓰자 외운 부품 30 개 중 28 개가 실행됐다(157 은 17 개)</figcaption></figure>
 <table>
 <thead>
 <tr>
@@ -68,13 +68,34 @@ article.분석{max-width:70ch;font-size:1.02rem;line-height:1.8}article.분석 h
 <tbody>
 <tr>
 <td>원뿔 첫 칸을 맞힘 (배운 부품) · 판정 기준</td>
-<td><strong>1.00</strong></td>
+<td><strong>1.00</strong> (시드 셋 다)</td>
 <td>0.00</td>
 <td>0.90 이상</td>
 <td>✓</td>
 </tr>
 <tr>
-<td>모양 겹침 (시험) · 최종 목표</td>
+<td>외운 부품 30개가 실행됨</td>
+<td><strong>0.93</strong> (28개)</td>
+<td>0.57 (17개)</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>그중 원뿔 부품 12개가 실행됨</td>
+<td><strong>11개</strong></td>
+<td>0개</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>외운 부품 모양 겹침 (중앙)</td>
+<td><strong>0.99</strong></td>
+<td>0.98</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>모양 겹침 (처음 보는 시험 부품) · 최종 목표</td>
 <td>0.00</td>
 <td>0.00</td>
 <td>0.80 이상</td>
@@ -88,45 +109,36 @@ article.분석{max-width:70ch;font-size:1.02rem;line-height:1.8}article.분석 h
 <td>—</td>
 </tr>
 <tr>
-<td>학습 손실</td>
-<td>0.01</td>
-<td>0.04</td>
-<td>—</td>
-<td>—</td>
-</tr>
-<tr>
 <td>시험 손실</td>
-<td>1.41</td>
+<td>1.43</td>
 <td>1.41</td>
 <td>—</td>
 <td>—</td>
 </tr>
 </tbody>
 </table>
-<p><em>손실은 모델이 쓴 코드와 정답이 다른 정도다. 낮을수록 좋다.</em></p>
+<figure><img alt="처음 보는 시험 부품에서는 코드가 거의 실행되지 않아 모양 겹침이 0이다" src="비교.png"><figcaption>처음 보는 시험 부품에서는 코드가 거의 실행되지 않아 모양 겹침이 0이다</figcaption></figure>
 <h3>왜 이렇게 나왔나</h3>
 <p><strong>확인한 것</strong></p>
 <ul>
-<li>원뿔 첫 칸은 배웠다. 157에서는 이 칸이 학습 손실의 대부분을 차지했는데, 이번에 학습 손실이 0.04에서 0.01로 내려갔다.</li>
-<li>처음 보는 부품은 그대로다. 시험 손실은 750스텝에서 0.67로 가장 낮았다가 다시 올라 1.41로 끝났다. 157과 같은 흐름이다. 30개에 맞출수록 새 부품을 못 쓴다.</li>
+<li>157 원뿔 부품이 깨진 원인은 코드 서식이었다. 원뿔을 <code>cone(r, h)</code>로 쓰자 첫 칸을 다 맞혔고(시드 0 · 1 · 2 모두 1.00), 외운 원뿔 부품 12개 중 11개가 실제로 실행됐다(중앙 겹침 0.99). 157에서는 0개였다.</li>
+<li>시드 0이 기준 0.9에 0.12 안쪽이라 하네스 규칙대로 시드 1 · 2도 돌렸다. 셋 다 1.00이다.</li>
+<li>처음 보는 부품은 그대로다. 시험 손실은 750스텝 근처에서 가장 낮았다가 1.43까지 올랐다. 30개에 맞출수록 새 부품을 못 쓴다.</li>
+<li>시험 코드가 깨지는 방식은 「같은 줄 반복」이 아니다. 시드 셋 300개 중 같은 줄을 세 번 넘게 쓴 코드는 0개, 토큰 한도(1024)에 닿은 코드는 30개(10 %)다. 대부분은 한도 전에 문법이 무너진 글로 끝난다. 루프 때문에 실력이 가려진 것이 아니라, 처음 보는 도면을 코드로 옮기는 실력 자체가 아직 없다.</li>
 </ul>
 <p><strong>짐작 (아직 확인 안 함)</strong></p>
 <ul>
-<li>157의 문제는 둘이었던 것 같다. 원뿔 한 칸과, 30개만 외워서 새 부품을 못 쓰는 것. 이번에는 첫째만 풀렸다.</li>
-<li>시험 코드가 어디서 깨지는지는 나눠 보지 않았다. <code>cone</code>은 원래 있는 이름이 아니다. 실행할 때 이 이름이 제대로 정의되는지도 이 기록으로는 알 수 없다.</li>
+<li>남은 실패 둘(01542 겹침 0.25 · 01735 문법 오류)은 원뿔 갈래가 아니라 다른 자리에서 갈린 것 같다. 갈림 자리를 보지 않았다.</li>
 </ul>
 <h3>한계</h3>
 <ul>
-<li>원뿔 첫 칸을 맞혔다는 것만 쟀다. 157의 진짜 문제였던 「원뿔 부품이 실행되는가」는 재지 않았다.</li>
-<li>시험 부품 100개, 학습 부품 30개뿐이다.</li>
-<li>기록에는 한 번만 돌렸다고 되어 있다. 그런데 원뿔 값은 세 번 잰 것으로 나온다(셋 다 1.00). 이 어긋남은 아직 설명하지 못했다.</li>
+<li>학습 부품 30개, 시험 부품 100개뿐이다.</li>
+<li>외운 부품 확인은 시드 0 LoRA 하나로만 했다.</li>
 </ul>
 <h3>배운 것과 다음</h3>
-<p><strong>드문 낱말을 이름 하나로 바꾸니, 같은 학습량으로도 그 칸을 맞혔다.</strong> 다만 코드가 실제로 도는지는 아직 모른다. 그래서 표현을 바꾼 효과는 절반만 확인했다.</p>
+<p><strong>드문 낱말을 줄 첫머리 이름 하나로 바꾸니, 같은 학습량으로 그 칸을 배웠고 외운 원뿔 부품이 실제로 돌았다.</strong> 157 의 「외워도 30 개 중 13 개가 안 돈다」는 서식 문제였고, 이제 외우기는 거의 완성됐다(28/30 · 0.99). 남은 문제는 하나 — 처음 보는 부품을 못 쓴다.</p>
 <ol>
-<li>배운 30개를 다시 채점해, 원뿔 부품 12개가 실행되는지 본다.</li>
-<li>실행 실패를 원인별로 나누고, <code>cone</code> 정의가 실행 환경에 있는지 확인한다.</li>
-<li>학습 부품을 30개에서 늘려 가며, 외우기가 어디서 무너지는지 잰다.</li>
+<li>학습 부품을 30개에서 늘려 가며, 외우기와 처음 보는 부품 성능이 어디서 갈리는지 잰다.</li>
 </ol></article><h2>모델 동작</h2><figure class="개념"><video src="개념.mp4" autoplay loop muted playsinline style="width:100%;max-width:880px;border:1px solid var(--rule);border-radius:10px"></video><figcaption class="주석">이 판 모델이 화소 하나를 판정하는 과정을 기계로 그린 그림(하네스/개념그림/code145) · <a href="개념.gif">gif</a></figcaption></figure><h2>판정 기준</h2><p class="명제"><span>명제</span> 157 설정에서 원뿔 정답 서식만 cone(r, h) 로 바꾸면, 학습 부품에서 원뿔 갈래 토큰을 맞히는 비율(코드_원뿔배움)이 0.9 이상이다(157 은 0.00 · CE 33.9)</p><div class="표"><table><thead><tr><th>지표</th><th>조건</th><th>이 판</th><th>대조</th><th>결과</th></tr></thead><tbody><tr class="기준줄" style="--i:0"><td>코드_원뿔배움</td><td>&gt;= 0.9</td><td><strong>1.000</strong></td><td>0.000</td><td class="결과" style="--i:0"><span class="o" aria-label="통과"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></span></td></tr><tr class="기준줄" style="--i:1"><td>코드_부피IoU</td><td>&gt;= 0.8</td><td><strong>0.000</strong></td><td></td><td class="결과" style="--i:1"><span class="x" aria-label="실패"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 4.5l7 7m0-7l-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span></td></tr></tbody></table></div><p class="주석">기준은 돌리기 전에 커밋됐다(하네스 관문이 확인). 대조는 같은 에폭.</p><h2>숫자: 이 판과 대조</h2><div class="표"><table><thead><tr><th>지표</th><th>이 판</th><th>대조</th><th>차</th></tr></thead><tbody><tr><td>코드_실행률</td><td data-n="0.017">0.017</td><td></td><td class="차"></td></tr><tr><td>코드_IoU</td><td data-n="0.000">0.000</td><td></td><td class="차"></td></tr><tr><td>코드_IoU평균</td><td data-n="0.009">0.009</td><td></td><td class="차"></td></tr><tr><td>코드_부피IoU</td><td data-n="0.000">0.000</td><td></td><td class="차"></td></tr><tr><td>코드_부피바닥</td><td data-n="0.149">0.149</td><td></td><td class="차"></td></tr><tr><td>코드_IoU실행</td><td data-n=""></td><td></td><td class="차"></td></tr><tr><td>코드_OOM</td><td data-n="0.000">0.000</td><td></td><td class="차"></td></tr><tr><td>코드_정답실패</td><td data-n="0.000">0.000</td><td></td><td class="차"></td></tr><tr><td>코드_원뿔배움</td><td data-n="1.000">1.000</td><td>0.000</td><td class="차">+1.000</td></tr><tr><td>코드_옆옮김</td><td data-n="0.972">0.972</td><td></td><td class="차"></td></tr><tr><td>코드_옆옮김정답</td><td data-n="0.787">0.787</td><td></td><td class="차"></td></tr><tr><td>코드_몸개수맞음</td><td data-n="0.313">0.313</td><td></td><td class="차"></td></tr><tr><td>코드_학습loss</td><td data-n="0.013">0.013</td><td></td><td class="차"></td></tr><tr><td>코드_시험loss</td><td data-n="1.408">1.408</td><td></td><td class="차"></td></tr><tr><td>시험loss</td><td data-n="1.408">1.408</td><td></td><td class="차"></td></tr><tr><td>학습loss</td><td data-n="0.013">0.013</td><td></td><td class="차"></td></tr></tbody></table></div><h2>원인 쪼개기 <span class="차">실행된 0 개 · 생성 코드의 몸을 정답 것으로 바꿔 끼움</span></h2><p>몸 개수가 정답과 같음 0% · 모자람 0% · 넘침 0% · 종류 순서까지 같음 0%</p><div class="표"><table><thead><tr><th>개수가 같은 0 개</th><th>IoU 중앙</th></tr></thead><tbody><tr><td>생성 그대로</td><td></td></tr><tr><td>위치만 정답</td><td></td></tr><tr><td>모양식만 정답</td><td></td></tr><tr><td>둘 다 정답</td><td></td></tr></tbody></table></div><figure><img src="원인쪼개기.png" alt="원인 쪼개기: 몸 개수 · 바꿔 끼우기 사다리 · 예시"><figcaption>「둘 다 정답」이 1 에 가까우면 채점기는 맞다 · 위치만 바꿔 크게 오르면 배치가, 모양식만 바꿔 오르면 몸 모양이 범인</figcaption></figure><h2>배웠나 <span class="차">정답 글을 그대로 넣어 줄 때 다음 토큰을 맞히는 비율 · 부품 80 개씩</span></h2><div class="표"><table><thead><tr><th>자리</th><th>학습 부품</th><th>시험 부품</th></tr></thead><tbody><tr><td>몸 줄 끝 괄호</td><td>1.00 <span class="차">(107)</span></td><td>0.96 <span class="차">(276)</span></td></tr><tr><td>원뿔 갈래 cone</td><td>1.00 <span class="차">(13)</span></td><td>0.00 <span class="차">(35)</span></td></tr><tr><td>나머지</td><td>1.00 <span class="차">(14608)</span></td><td>0.77 <span class="차">(35245)</span></td></tr></tbody></table></div><p class="주석">학습 부품에서도 낮으면 덜 배운 것(외우지도 못함) · 학습만 높으면 일반화 문제 · 괄호 안은 토큰 수</p><h2>스텝별 검증 <span class="차">같은 시험 부품 넷 · 250 스텝마다 탐욕 생성 → 실행 → 렌더</span></h2><figure><img src="검증.png" alt="스텝별 검증 렌더 격자"><figcaption>행 = 스텝, 열 = 부품, 맨 위 = 정답. 분홍 = 코드가 실행되지 않음</figcaption></figure><details open><summary>부품 12000 — 스텝별 코드</summary><div class="표"><table><thead><tr><th>스텝</th><th>렌더</th><th>결과</th><th>생성 코드</th></tr></thead><tbody><tr><td>정답</td><td><img src="검증/정답_12000.png" width="140" alt=""></td><td></td><td></td></tr><tr><td>0</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>StdFail_NotDone: GC_MakeArcOfCircle::Value() - no result<br>4 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 import cadquery as cq
   2 w0=cq.Workplane(&#x27;YZ&#x27;,origin=(29,0,0))
   3 w1=cq.Workplane(&#x27;YZ&#x27;,origin=(30,0,0))
