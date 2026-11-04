@@ -1,0 +1,2 @@
+cq.Workplane('YZ',origin=(0,0,0))
+r=w0.workplane(offset=100, 0, 0), (0,0),(-1,0),(-1,1)).close().assemble().finalize().extrude(100).union(w0.workplane(offset=100, 0, 0)).close().assemble()).finalize().extrude(100)).union(w0.workplane(offset=100, 0, 0)).close().assemble().finalize().extrude(100))

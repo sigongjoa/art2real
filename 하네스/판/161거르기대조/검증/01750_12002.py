@@ -1,0 +1,3 @@
+b0 = place(cq.Workplane("XY").box(62.9, 30.1, 21.2, centered=(True, True, False)).faces(">Z").workplane(origin=(0, 0, 21.2)).center(-1.7, -1.7).rect(10.0, 10.0).cutBlind(-11.0).faces(">Z").workplane(origin=(0, 0, 21.2)).center(-1.7, -1.7).hole(10.0), "z", (0.0, 0.0, 0.0))
+b1 = place(cq.Workplane("XZ").polyline([(0.0, 0.0), (28.1, 0.0), (28.1, 21.0), (18.0, 21.0), (18.0, 4.7), (0.0, 4.7)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(">Z").workplane(origin=(0, 0, 21.0)).center(-1.7, 1.7).hole(10.0, 10.0), "z", (0.0, 0.0, 0.0))
+result = b0.union(b1)
