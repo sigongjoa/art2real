@@ -119,7 +119,7 @@ def _좌표머리():
             o = s.원(h); 임 = s.임[0]; 새 = h @ 임.새.to(h.dtype).T
             return torch.cat([o[..., :임.n0], 새.to(o.dtype), o[..., 임.n0 + len(임.새):]], -1)
     return 좌표머리
-출력좌표 = False; 좌표초기 = "숫자평균"   # 서식바꿈 이 정함 · 모델 · 생성 이 읽음
+출력좌표 = False; 좌표초기 = "숫자평균"; 자리폭 = 0.   # 자리폭: 위치토큰 자리 정답을 이웃 토큰에 가우스로 나눔(토큰 단위 σ · 0 = 딱 하나 · 162~)   # 서식바꿈 이 정함 · 모델 · 생성 이 읽음
 LoRA대상들 = {"어텐션": ["q_proj", "k_proj", "v_proj", "o_proj"], "전부": ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]}   # 154~ 전부 = MLP 포함(Biderman 등 2024 · claudedocs/research_LoRA대상층_20261027.md) · 입력이 선글이라 비전 인코더 · merger 는 안 거침
 def 모델(rank=16, 토큰="기존", 대상="어텐션"):
     import torch
@@ -150,7 +150,13 @@ def 손실(model, b):   # 답(코드) 자리만 lm_head → CE · 10-24 선 글 
     base = model.get_base_model(); head = base.lm_head; base.lm_head = torch.nn.Identity()
     try: h = base(**{k: v for k, v in b.items() if k != "labels"}).logits
     finally: base.lm_head = head
-    y = b["labels"][:, 1:]; m = y != -100; return F.cross_entropy(head(h[:, :-1][m]).float(), y[m])
+    y = b["labels"][:, 1:]; m = y != -100; lo = head(h[:, :-1][m]).float(); y = y[m]
+    if not 자리폭: return F.cross_entropy(lo, y)
+    n0 = base.model.embed_tokens.n0; 좌 = (y >= n0) & (y < n0 + 좌표수); 일 = F.cross_entropy(lo[~좌], y[~좌], reduction="sum") if (~좌).any() else lo.sum() * 0
+    if 좌.any():   # 11-04 탐침: 자리 정보는 안에 있는데(R² 0.35) 쓴 숫자는 0.08 — 딱 맞는 토큰 하나만 정답이면 이웃 값도 똑같이 틀림 → 정답 ± 자리폭 에 가우스 몫
+        k = torch.arange(좌표수, device=lo.device); 목 = torch.exp(-.5 * ((k[None] - (y[좌] - n0)[:, None]).float() / 자리폭) ** 2); 목 = 목 / 목.sum(1, keepdim=True)
+        일 = 일 - (목 * F.log_softmax(lo[좌], -1)[:, n0:n0 + 좌표수]).sum()
+    return 일 / len(y)
 OOM = "# OOM\n"   # 메모리가 넘쳐 못 쓴 글 표시 · 평가에서 빼고 코드_OOM 으로 셈(10-25 감사: 빈 글이 실행 실패 0 점으로 섞였음)
 def 코드해시():   # 학습 · 생성 결과를 바꾸는 코드(설정 yaml 말고) — 이어 하기 · 학습 끝난 LoRA · 비교판 시드 값은 이것까지 같을 때만 다시 씀(10-25 감사: 옛 코드 LoRA 를 새 코드에서 읽었음)
     import hashlib; h = hashlib.md5()
@@ -340,7 +346,7 @@ def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.
 def 서식바꿈(목, s):   # 입력 토큰 · 정답 서식 — 점검 · 학습부품확인 이 같이 씀
     if str(s.get("토큰", "기존")) == "좌표": 목 = [(n, t, 좌표글(l), g) for n, t, l, g in 목]
     서 = str(s.get("서식", "기존"))
-    global 출력좌표, 좌표초기; 출력좌표 = 서 == "위치토큰"; 좌표초기 = str(s.get("좌표초기", "숫자평균"))
+    global 출력좌표, 좌표초기, 자리폭; 출력좌표 = 서 == "위치토큰"; 좌표초기 = str(s.get("좌표초기", "숫자평균")); 자리폭 = float(s.get("자리폭", 0))
     if 서 == "위치토큰": import 코드글; 목 = [(n, t, l, 코드글.위치토큰(g)) for n, t, l, g in 목]   # 159~: 몸 자리를 입력 선과 같은 픽셀 토큰으로(생성은 좌표 토큰을 쓰고 위치되돌림으로 숫자)
     if 서 == "원뿔이름": import 코드글; 목 = [(n, t, l, 코드글.원뿔이름(g)) for n, t, l, g in 목]   # 158~
     if 서 == "배치먼저": import 코드글; 목 = [(n, t, l, 코드글.배치먼저(g)) for n, t, l, g in 목]   # 151~: 몸 개수 · 배치를 첫 줄에
