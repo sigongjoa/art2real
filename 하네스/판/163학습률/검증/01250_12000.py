@@ -1,0 +1,7 @@
+b0 = place(cq.Workplane("XY").add(cq.Solid.makeCone(22.9, 0, 22.9)), "z", (-17.8, 14.1, 0.0))
+b1 = place(cq.Workplane("XY").circle(21.1).extrude(47.1).faces(">Z").workplane(origin=(0, 0, 47.1)).center(11.1, 10.5).hole(11.5, 20.0).faces(">Z").workplane(origin=(0, 0, 47.1)).center(10.8, -10.1).hole(11.6, 17.1), "z", (-17.8, 14.1, 0.0))
+b2 = place(cq.Workplane("XY").add(cq.Solid.makeCone(22.9, 0, 28.6)), "y", (-17.8, 14.1, 0.0))
+b3 = place(cq.Workplane("XY").circle(20.0).extrude(28.5).faces(">Z").workplane(origin=(0, 0, 28.5)).center(10.6, 10.6).hole(11.6), "z", (-17.8, 14.1, 0.0))
+b4 = place(cq.Workplane("XY").circle(20.8).extrude(26.6), "z", (-17.8, 14.1, 0.0))
+b5 = place(cq.Workplane("XY").circle(18.8).extrude(18.6), "z", (-17.8, 14.1, 0.0))
+result = b0.union(b1.union(b2.union(b3.union(b4))))

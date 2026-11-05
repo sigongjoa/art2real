@@ -1,0 +1,2 @@
+b0 = place(cq.Workplane("XZ").polyline([(0.0, 0.0), (28.0, 0.0), (28.0, 21.0), (22.0, 21.0), (22.0, 49.7), (0.0, 49.7)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(">Z").workplane(origin=(0, 0, 49.7)).center(1.7, 1.3).hole(10.0, 10.0).faces(">Z").workplane(origin=(0, 0, 49.7)).center(1.7, 1.3).hole(10.0, 1.3), "z", (0.0, 0.0, 0.0))
+result = b0
