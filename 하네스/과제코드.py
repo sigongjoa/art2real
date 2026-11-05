@@ -276,7 +276,7 @@ def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.
     if s.get("학습부품"): 고 = set(json.load(open(f"{뿌리}/out/하네스/{s.학습부품}/부품.json"))); 학 = [x for x in 학 if x[0] in 고]   # 156~ 증류 시범: 읽기가 있는 학습 부품만(대조 판도 같은 부품)
     if s.get("시험수"): 시 = 시[:int(s.시험수)]
     random.seed(int(cfg.학습.get("시드", 0))); torch.manual_seed(int(cfg.학습.get("시드", 0)))
-    model, proc = 모델(int(s.get("랭크", 16)), 토큰, str(s.get("LoRA대상", "어텐션"))); 스텝 = int(cfg.학습.스텝); 누적 = 4
+    model, proc = 모델(int(s.get("랭크", 16)), 토큰, str(s.get("LoRA대상", "어텐션"))); 스텝 = int(cfg.학습.스텝); 누적 = int(cfg.학습.get("누적", 4))
     opt = torch.optim.AdamW([p for p in model.parameters() if p.requires_grad], lr=float(cfg.학습.학습률), weight_decay=0.)
     sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda t: min(1., (t + 1) / 20) * .5 * (1 + math.cos(math.pi * min(t, 스텝 // 누적) / max(스텝 // 누적, 1))))
     고정 = [항목(n, l, g, 입력) for n, _, l, g in 시[:16]]; 기록 = []; 묶음손 = []; t0 = time.time()
