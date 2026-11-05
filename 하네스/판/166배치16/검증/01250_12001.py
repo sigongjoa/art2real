@@ -1,0 +1,1 @@
+b0 = place(cq.Workplane('XY").cylinder(1, 100),(-1, 0),(-1,1)).close().face(w0.sketch().segment((-1,0),(1,0)).segment((1,1)).close().assemble()).finalize().extrude(100).union(w0.workplane(offset=190)).box(16,16,190)).union(w0.workplane(c.union(w0.workplane(c.union(w0.workplane(offset=190))

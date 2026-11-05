@@ -1,0 +1,2 @@
+cylinder(110,10), (56.0, 5.0), (56.0, 1.0), (56.0, 1.0), (56.0, 0.0), (0.0, 0.0),").Z").Z0 = place").Z0 = -Z").Z0 = -10.0), (0, 0.0), (0, 1.0),(-1, 1.0),(-1, 0.0)).close().face(w0.sketch().segment((0,0),(0,1)).),(-1,0)).cq.Workplane('XY',origin=(0,0,0))
+c0, 0),(-1,0)).close().assemble()).finalize().extrude(10).union(w0.workplane(offset=10/2).cylinder(10,10)).union(w0.workplane(offset=10/2).box(100,100,10)).union(w0.workplane(offset=10/2).box(100,100,10)).union(w0.workplane(offset=20/2).box(100,100,20))
