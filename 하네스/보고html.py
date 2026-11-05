@@ -130,6 +130,12 @@ def 원인칸(d):   # 코드생성 판: 원인 쪼개기(코드원인.py) — �
             f'<p>몸 개수가 정답과 같음 {m["같음"]:.0%} · 모자람 {m["모자람"]:.0%} · 넘침 {m["넘침"]:.0%} · 종류 순서까지 같음 {요["종류순서같음"]:.0%}</p>'
             f'<div class="표"><table><thead><tr><th>개수가 같은 {요["개수같은수"]} 개</th><th>IoU 중앙</th></tr></thead><tbody>{줄}</tbody></table></div>'
             '<figure><img src="원인쪼개기.png" alt="원인 쪼개기: 몸 개수 · 바꿔 끼우기 사다리 · 예시"><figcaption>「둘 다 정답」이 1 에 가까우면 채점기는 맞다 · 위치만 바꿔 크게 오르면 배치가, 모양식만 바꿔 오르면 몸 모양이 범인</figcaption></figure>')
+def 곡선칸(d):   # 11-05 바퀴별 곡선(코드곡선.py) — 사용자 「epoch마다 어떻게 바뀌는건지」
+    if not os.path.exists(d + "곡선.json"): return ""
+    곡 = json.load(open(d + "곡선.json", encoding="utf-8")); 줄 = "".join(f"<tr><td>{r['스텝']}</td><td>{r['학습맞음']:.3f}</td><td>{r['시험맞음']:.3f}</td><td>{r['부피IoU']}</td><td>{r['도면몫']:.3f}</td></tr>" for r in 곡)
+    return ('<h2>바퀴별 곡선 <span class="차">정해진 스텝마다 학습 · 시험 토큰 맞음 · 처음 보는 부품 일부 부피 IoU · 도면 몫</span></h2>'
+            '<figure><img src="곡선.png" alt="바퀴별 곡선"><figcaption>맞음이 학습 부품만 오르면 외우기 · 부피 IoU 가 멈추면 학습량이 아닌 다른 벽 · 도면 몫이 커지면 도면을 읽기 시작</figcaption></figure>'
+            f'<div class="표"><table><thead><tr><th>스텝</th><th>학습 맞음</th><th>시험 맞음</th><th>부피 IoU</th><th>도면 몫</th></tr></thead><tbody>{줄}</tbody></table></div>')
 def 배움칸(d):   # 코드생성 판: 배웠나(코드배움.py) — 정답을 넣어 줄 때 결정 자리에서 다음 토큰을 맞히나 · 10-26 사용자 「학습을 못한 거는 아니고?」
     if not os.path.exists(d + "배움.json"): return ""
     r = json.load(open(d + "배움.json", encoding="utf-8")); 칸 = sorted(set(r["학습"]) | set(r["시험"]), key=lambda k: (k == "나머지", k))
@@ -171,7 +177,7 @@ def 만들기(판, d, c, j, 지, 대, 곡, 특, 해석, 다음, 모션=None, 파
         h.append('<h3>하이퍼파라미터</h3><div class="표"><table><tbody>' + "".join(f'<tr><td>{E(k)}</td><td class="왼">{E(f"{v:,}" if isinstance(v, int) else str(v))}</td></tr>' for k, v in 구["표"].items()) + "</tbody></table></div>")
         h.append('<h3>층 <span class="차">입력 1 × 3 × 128 × 128 을 흘려 잼 · torchinfo 꼴</span></h3><div class="표"><table><thead><tr><th>층</th><th>종류</th><th>출력 모양</th><th>파라미터</th></tr></thead><tbody>' + "".join(f'<tr class="깊{r["깊이"]}"><td>{E(r["이름"])}</td><td class="왼">{E(r["종류"])}</td><td>{E(" × ".join(map(str, r["출력"])))}</td><td>{r["파라미터"]:,}</td></tr>' for r in 구["층"]) + "</tbody></table></div>")
         h.append(f'<h3>목표와 학습</h3><ul class="목표"><li>{E(구["목표"])}</li><li>{E(구["학습"])}</li></ul>')
-    h.append(원인칸(d)); h.append(배움칸(d)); h.append(검증칸(d))
+    h.append(원인칸(d)); h.append(곡선칸(d)); h.append(배움칸(d)); h.append(검증칸(d))
     h.append("<h2>학습 곡선</h2>" + (f'<p class="주석">이 판은 학습 없음 — {E(str(c.코드.LoRA))} 의 LoRA 를 그대로 읽어 그 판의 곡선을 옮겨 붙임</p>' if c.get("코드") and c.코드.get("LoRA") else "") + 곡선svg(곡) + '<figure><img src="시트.png" alt="학습 곡선 · 지표 · 12003 세 장 칸 1 주의"><figcaption>판 시트: 하네스가 판 끝에 만든 그림</figcaption></figure>')
     연 = j.get("연기", {})
     h.append("<h2>점검</h2><h3>연기 판</h3>" + f'<div class="줄글"><div><span>첫 loss</span> <b>{수(연.get("첫loss"))}</b></div><div><span>배치 하나 40 걸음 뒤</span> <b>{수(연.get("한배치40걸음"))}</b></div><div><span>VRAM</span> <b>{수(연.get("VRAM_GB"), 2)} GB</b></div></div>')

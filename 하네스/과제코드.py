@@ -259,11 +259,11 @@ def 생성(model, proc, items, 배=4, 최대=1024, 제약=False):
         if len(items) > 8 and (s // 배) % 10 == 0: print(f"생성 {len(out)}/{len(items)}", flush=True)   # 10-24 145 생성 1 시간을 못 봤음
     model.train(); return out
 # ── 3. 평가 ─────────────────────────────────────────────
-def 평가(이름들, 글들):   # 생성 글 · 정답 사양 → 실루엣 IoU(병렬렌더 「글」 · 「조립」)
+def 평가(이름들, 글들, 일꾼=None):   # 일꾼: 렌더 프로세스 수(기본 6) · 11-05 학습 중 곡선은 모델이 메모리를 쥐고 있어 6 개면 ART_MEM_GB 넘음   # 생성 글 · 정답 사양 → 실루엣 IoU(병렬렌더 「글」 · 「조립」)
     import 모델124 as B
     색 = {f"{r['i']:05d}": r for r in B.색인()}
     import 데이터117 as Q, 재채점   # 10-30 새 자: 부피 IoU(옛 실루엣은 같은 모양 하나만 내도 0.41) · 바닥 = 모든 부품에 같은 모양 하나의 가장 좋은 값
-    렌 = B.병렬렌더([("글", g, 1) for g in 글들] + [("조립", 색[n]["코드"], 1) for n in 이름들] + [("글", g, 1) for g in 재채점.바닥.values()]); k = len(글들); 줄 = []
+    렌 = B.병렬렌더([("글", g, 1) for g in 글들] + [("조립", 색[n]["코드"], 1) for n in 이름들] + [("글", g, 1) for g in 재채점.바닥.values()], n=일꾼); k = len(글들); 줄 = []
     부 = lambda r: None if r is None else r[2]; 바 = {b: float(np.median([Q.부피겹(부(렌[2 * k + j]), 부(렌[k + t])) for t in range(k) if 렌[k + t] is not None])) for j, b in enumerate(재채점.바닥)}
     for t, n in enumerate(이름들):
         예, 정 = 렌[t], 렌[k + t]; iou = 0. if 예 is None or 정 is None else float((예[1] & 정[1]).sum() / max((예[1] | 정[1]).sum(), 1))
@@ -280,6 +280,7 @@ def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.
     opt = torch.optim.AdamW([p for p in model.parameters() if p.requires_grad], lr=float(cfg.학습.학습률), weight_decay=0.)
     sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda t: min(1., (t + 1) / 20) * .5 * (1 + math.cos(math.pi * min(t, 스텝 // 누적) / max(스텝 // 누적, 1))))
     고정 = [항목(n, l, g, 입력) for n, _, l, g in 시[:16]]; 기록 = []; 묶음손 = []; t0 = time.time()
+    곡간 = int(cfg.학습.get("곡선", 750)); assert 곡간 % 250 == 0, "학습.곡선 은 250 의 배수(loss 기록 칸 안에서 잰다)"; 곡 = []; 곡경 = 폴더 + "곡선.json"   # 11-05 바퀴별 곡선(코드곡선.py) · 0 = 끔
     검 = 검증부품(시); 검폴더 = 폴더 + "검증/"; os.makedirs(검폴더, exist_ok=True)
     def 검증생성(step):   # 10-24 사용자 「스텝별 validation 결과가 어떻게 바뀌는지 코드랑 렌더 둘 다」 · 고정 시험 부품 넷 · 탐욕 생성
         for (n, _, l, g), 글 in zip(검, 생성(model, proc, [항목(n, l, g, 입력, 정답=False) for n, _, l, g in 검], 제약=제)):
@@ -300,7 +301,7 @@ def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.
             with torch.no_grad(): model.get_base_model().model.embed_tokens.새.copy_(torch.load(다 + "좌표임베딩.pt"))
     elif os.path.exists(이어) and (st := torch.load(이어, weights_only=False))["설정"] == 설정:
         model.load_state_dict(st["가중"], strict=False); opt.load_state_dict(st["opt"]); sched.load_state_dict(st["sched"]); random.setstate(st["random"]); torch.set_rng_state(st["torch"]); torch.cuda.set_rng_state(st["cuda"])
-        시작, 기록, 묶음손 = st["스텝"], st["기록"], st["묶음손"]; t0 -= 기록[-1]["초"]; print("이어 하기", 시작, flush=True)
+        시작, 기록, 묶음손, 곡 = st["스텝"], st["기록"], st["묶음손"], st.get("곡", []); t0 -= 기록[-1]["초"]; print("이어 하기", 시작, flush=True)
     else: 검증생성(0)
     model.train()
     for step in range(시작 + 1, 스텝 + 1):
@@ -310,7 +311,10 @@ def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.
             model.eval()
             with torch.no_grad(): 시손 = float(np.mean([float(손실(model, 묶([it], proc))) for it in 고정]))
             model.train(); 검증생성(step); 기록.append({"에폭": step, "학습": float(np.mean(묶음손[-250:])), "시험": 시손, "초": round(time.time() - t0), "GPU": round(torch.cuda.max_memory_allocated() / 1e9, 2)}); print(기록[-1], flush=True)
-            if step % 500 == 0 and step < 스텝: 원자저장(lambda p: torch.save({"설정": 설정, "스텝": step, "기록": 기록, "묶음손": 묶음손, "가중": {k: v for k, v in model.named_parameters() if v.requires_grad}, "opt": opt.state_dict(), "sched": sched.state_dict(), "random": random.getstate(), "torch": torch.get_rng_state(), "cuda": torch.cuda.get_rng_state()}, p), 이어)   # 500 = 누적 4 의 배수(쌓인 기울기 없음)
+            if 곡간 and (step % 곡간 == 0 or step == 스텝):
+                import 코드곡선; 곡.append({"스텝": step, **코드곡선.재기(model, proc, [(n, l, g) for n, _, l, g in 학], [(n, l, g) for n, _, l, g in 시], 입력, 제)}); print("곡선", 곡[-1], flush=True)
+                원자저장(lambda p: json.dump(곡, open(p, "w", encoding="utf-8"), ensure_ascii=False, indent=1), 곡경); 코드곡선.그림(폴더, 곡, len(학))
+            if step % 500 == 0 and step < 스텝: 원자저장(lambda p: torch.save({"설정": 설정, "스텝": step, "기록": 기록, "묶음손": 묶음손, "곡": 곡, "가중": {k: v for k, v in model.named_parameters() if v.requires_grad}, "opt": opt.state_dict(), "sched": sched.state_dict(), "random": random.getstate(), "torch": torch.get_rng_state(), "cuda": torch.cuda.get_rng_state()}, p), 이어)   # 500 = 누적 4 의 배수(쌓인 기울기 없음)
     del opt, sched; torch.cuda.empty_cache()   # 옵티마이저 상태(GPU)를 비우고 생성 · 10-25 147 시험 생성 OOM
     if not 다했: model.save_pretrained(폴더 + "lora"); open(다 + "설정.yaml", "w", encoding="utf-8").write(설정)
     not 다했 and 토큰 == "좌표" and torch.save(model.get_base_model().model.embed_tokens.새.detach().cpu(), 폴더 + "lora/좌표임베딩.pt"); json.dump(기록, open(폴더 + "학습.json", "w", encoding="utf-8"), ensure_ascii=False); os.path.exists(이어) and os.remove(이어)   # 학습.json 을 먼저(사이에 꺼지면 다 배운 것을 잃음)
