@@ -1,0 +1,7 @@
+b0 = place(cq.Workplane("XY").box(50.0, 31.1, 11.0, centered=(True, True, False)).faces(">Z").workplane(origin=(0, 0, 11.0)).center(1.9, 1.4).hole(6.0, 5.2).edges("|Z").fillet(2.9), "z", (0.0, 0.0, -17.6))
+b1 = place(cq.Workplane("XY").box(43.0, 31.1, 11.0, centered=(True, True, False)).faces(">Z").workplane(origin=(0, 0, 11.0)).center(1.8, 1.3).hole(7.0, 5.2).edges("|Z").fillet(3.8), "x", (0.0, 0.0, 24.0))
+b2 = place(cq.Workplane("XY").box(43.0, 29.2, 11.0, centered=(True, True, False)).faces(">Z").workplane(origin=(0, 0, 11.0)).center(1.8, 1.4).hole(6.0, 5.3).edges("|Z").fillet(2.9), "z", (0.0, 0.0, -10.0))
+b3 = place(cq.Workplane("XY").box(43.9, 31.1, 11.0, centered=(True, True, False)).faces(">Z").workplane(origin=(0, 0, 11.0)).center(1.8, 1.3).hole(6.0, 5.3).edges("|Z").fillet(2.9), "z", (0.0, 0.0, 14.0))
+b4 = place(cq.Workplane("XY").box(41.0, 29.0, 11.0, centered=(True, True, False)).faces(">Z").workplane(origin=(0, 0, 11.0)).center(1.8, 1.3).hole(6.0, 5.3).edges("|Z").fillet(3.9), "z", (0.0, 0.0, 10.0))
+b5 = place(cq.Workplane("XY").box(40.9, 29.3, 11.0, centered=(True, True, False)).faces(">Z").workplane(origin=(0, 0, 11.0)).center(1.9, 1.9).hole(6.0, 5.3).edges("|Z").fillet(3.9), "z", (0.0, 0.0, 38.0))
+result = b0.union(b1.union(b2.union(b3.union(b4.union(b5)))))
