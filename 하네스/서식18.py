@@ -45,38 +45,31 @@ def 바꿈(글):   # CadQuery 정답 글 → 함수18 글 · 모르는 조각이
             else: raise ValueError(f"모르는 조각: {식[:60]}")
         줄들.append("".join(쪽) + f"<{m[3]}> {m[4]} {m[5]} {m[6]}")
     return "\n".join(줄들)
-_토 = re.compile(r"<(\w+)>|(" + 수 + ")")
-def 되돌림(글):   # 함수18 글 → CadQuery 글(result 줄 붙임) · 틀린 꼴이면 ValueError(생성 쪽은 잡아서 실행 실패로)
+숫 = r" -?\d+\.\d"   # 정답 숫자는 늘 코드글.수 = 소수 한 자리 · 앞에 빈칸 하나(11-06 맥락 없는 검토: 「116.503.5」 → center(116.503, 5) 로 조용히 읽었음)
+_줄토 = re.compile(r"(?:<\w+>|" + 숫 + ")+")
+_토 = re.compile(r"<(\w+)>|(" + 숫 + ")")
+_문법 = re.compile(r"Workplane0 (?:XY0 (?:box3|circle1 extrude1|add0 makeCone2)|XZ0 polyline(\d+) close0 revolve0)(?: faces0 top0 workplane1 center2 (?:hole1|hole2|rect2 cutBlind1)| edges0 vert0 fillet1)* [xyz]3")   # 코드글.바탕글 · 특징글 그대로
+def 되돌림(글):   # 함수18 글 → CadQuery 글(result 줄 붙임) · 정답 문법(바탕 → 특징 사슬 → 축) · 몸 이름 b0 b1 … 차례 · 숫자 꼴이 아니면 ValueError
     out = []
-    for l in [x for x in 글.splitlines() if x.strip()]:
-        조 = [(m[1], m[2]) for m in _토.finditer(l)]
-        if "".join(f"<{w}>" if w else "" for w, _ in 조) == "" or 조[0][0] not in 몸이름: raise ValueError(f"몸 이름으로 시작 안 함: {l[:60]}")
-        이름 = 조[0][0]; 묶 = []   # [(낱말, [숫자 글])]
+    for k, l in enumerate([x for x in 글.splitlines() if x.strip()]):
+        if not _줄토.fullmatch(l): raise ValueError(f"낱말 · 숫자 꼴이 아닌 글자: {l[:60]}")
+        조 = [(m[1], m[2].strip() if m[2] else None) for m in _토.finditer(l)]
+        if 조[0] != (f"b{k}", None): raise ValueError(f"{k} 번째 줄은 <b{k}> 로 시작해야 함: {l[:40]}")
+        묶 = []   # [(낱말, [숫자 글])]
         for w, n in 조[1:]:
             if w: 묶.append((w, []))
             elif not 묶: raise ValueError("숫자가 낱말보다 먼저")
             else: 묶[-1][1].append(n)
-        if not 묶 or 묶[-1][0] not in ("x", "y", "z") or len(묶[-1][1]) != 3: raise ValueError(f"줄 끝이 축 + 숫자 셋이 아님: {l[:60]}")
-        축, 자 = 묶.pop(); 식 = ""; i = 0
+        서명 = " ".join(f"{w}{len(a)}" for w, a in 묶); m = _문법.fullmatch(서명)
+        if not m: raise ValueError(f"정답 문법이 아님: {서명[:80]}")
+        if m[1] and (int(m[1]) < 2 or int(m[1]) % 2): raise ValueError("polyline 숫자는 짝수 · 2 개 이상")
+        (축, 자) = 묶.pop(); 식 = ""; i = 0
         while i < len(묶):
             w, a = 묶[i]
-            if w == "Workplane":
-                if i + 1 >= len(묶) or 묶[i + 1][0] not in ("XY", "XZ") or a or 묶[i + 1][1]: raise ValueError("Workplane 뒤에 XY · XZ")
-                식 += f'cq.Workplane("{묶[i + 1][0]}")'; i += 2; continue
-            if w == "add":
-                if i + 1 >= len(묶) or 묶[i + 1][0] != "makeCone" or a: raise ValueError("add 뒤에 makeCone")
-                r = 묶[i + 1][1]
-                if len(r) != 2: raise ValueError("makeCone 숫자 2 개")
-                식 += f".add(cq.Solid.makeCone({r[0]}, 0, {r[1]}))"; i += 2; continue
-            if w == "faces":
-                if i + 1 >= len(묶) or 묶[i + 1][0] != "top" or a or 묶[i + 1][1]: raise ValueError("faces 뒤에 top")
-                식 += '.faces(">Z")'; i += 2; continue
-            if w == "edges":
-                if i + 1 >= len(묶) or 묶[i + 1][0] != "vert" or a or 묶[i + 1][1]: raise ValueError("edges 뒤에 vert")
-                식 += '.edges("|Z")'; i += 2; continue
-            if w not in 개수: raise ValueError(f"이 자리에 올 수 없는 낱말: {w}")
-            lo, hi = 개수[w]
-            if not lo <= len(a) <= hi or (w == "polyline" and len(a) % 2): raise ValueError(f"{w} 숫자 {len(a)} 개")
+            if w == "Workplane": 식 += f'cq.Workplane("{묶[i + 1][0]}")'; i += 2; continue
+            if w == "add": 식 += f".add(cq.Solid.makeCone({묶[i + 1][1][0]}, 0, {묶[i + 1][1][1]}))"; i += 2; continue
+            if w == "faces": 식 += '.faces(">Z")'; i += 2; continue
+            if w == "edges": 식 += '.edges("|Z")'; i += 2; continue
             if w == "box": 식 += f".box({a[0]}, {a[1]}, {a[2]}, centered=(True, True, False))"
             elif w == "polyline": 식 += ".polyline([" + ", ".join(f"({a[j]}, {a[j + 1]})" for j in range(0, len(a), 2)) + "])"
             elif w == "close": 식 += ".close()"
@@ -84,14 +77,13 @@ def 되돌림(글):   # 함수18 글 → CadQuery 글(result 줄 붙임) · 틀�
             elif w == "workplane": 식 += f".workplane(origin=(0, 0, {a[0]}))"
             else: 식 += f".{w}({', '.join(a)})"
             i += 1
-        if not 식.startswith("cq.Workplane("): raise ValueError("몸 식이 Workplane 으로 시작 안 함")
-        out.append(f'{이름} = place({식}, "{축}", ({자[0]}, {자[1]}, {자[2]}))')
+        out.append(f'b{k} = place({식}, "{축}", ({자[0]}, {자[1]}, {자[2]}))')
     if not out: raise ValueError("몸이 없음")
-    이름들 = [l.split(" = ")[0] for l in out]
-    return "\n".join(out) + "\nresult = " + ".union(".join(이름들) + ")" * (len(이름들) - 1)
-def 되돌림_안전(글):   # 생성 글용 — 틀린 꼴이면 실행이 반드시 실패하는 글(구조 채점은 몸 이름 줄만 셈)
+    if len(out) > 6: raise ValueError("몸은 6 개까지(b0~b5)")
+    return "\n".join(out) + "\nresult = " + ".union(".join(f"b{k}" for k in range(len(out))) + ")" * (len(out) - 1)
+def 되돌림_안전(글):   # 생성 글용 — 틀린 꼴이면 몸 줄 없이 주석만(실행 실패 · 구조 채점 몸 0 개 · 검토: 「bN = 망가짐」이 몸 개수 점수를 받았음)
     try: return 되돌림(글)
-    except ValueError as e: return f"# 함수18 되돌림 실패: {e}\n" + "\n".join(f"{m[1]} = 망가짐" for m in re.finditer(r"<(b[0-5])>", 글))
+    except ValueError as e: return f"# 함수18 되돌림 실패: {e}"
 def 감사():   # 기준 1 · 3 · 4 · 5 · 6
     import 과제코드 as K, 코드구조 as S
     fs = sorted(glob.glob(K.자료폴더 + "글도면/*.py")); 같음 = 구 = 0; 길 = []; 밖 = set(); 틀 = []
@@ -104,11 +96,19 @@ def 감사():   # 기준 1 · 3 · 4 · 5 · 6
 def 망가짐시험():   # 기준 6 · 모델이 낼 법한 망가진 줄 → ValueError(되돌림) · 되돌림_안전 은 멈추지 않음
     나쁜 = ["", "<b0>", "<b0><Workplane><XY><box> 1.0 2.0<z> 0.0 0.0 0.0", "<b0><Workplane><XY><circle> 1.0<extrude> 2.0<z> 0.0 0.0", "1.0 <b0>",
            "<b0><Workplane><XY><polyline> 1.0 2.0 3.0<close><revolve><z> 0.0 0.0 0.0", "<b0><Workplane><XY><foo> 1.0<z> 0.0 0.0 0.0", "<b0><box> 1.0 2.0 3.0<z> 0.0 0.0 0.0",
-           "<b0><Workplane><XY><add> 1.0 2.0<z> 0.0 0.0 0.0", "<b0><Workplane><XY><circle> 1.0<extrude> 2.0<z> 0.0 0.0 0.0\n<b1><Workplane><XY><circle> 1.0<extrude>"]
+           "<b0><Workplane><XY><add> 1.0 2.0<z> 0.0 0.0 0.0", "<b0><Workplane><XY><circle> 1.0<extrude> 2.0<z> 0.0 0.0 0.0\n<b1><Workplane><XY><circle> 1.0<extrude>",
+           # 11-06 맥락 없는 검토가 찾은 조용한 통과들
+           "<b0><Workplane><XY><box> 1.0 2.0 3.0<faces><top><workplane> 3.0<center> 116.503.5<hole> 1.0<z> 0.0 0.0 0.0", "<b0><Workplane><XY><circle> 1.0<extrude> 2.0<z> 0.0 0.016.5",
+           "<b0><Workplane><XY><circle> .5<extrude> 2.0<z> 0.0 0.0 0.0", "<b0><Workplane><XY><circle> - 4.0<extrude> 2.0<z> 0.0 0.0 0.0", "<b0><Workplane><XY><circle> 1<extrude> 2.0<z> 0.0 0.0 0.0",
+           "<b0><Workplane><XY><circle> 1.0<extrude> 2.0<z> 0.0 0.0 0.0\n<b0><Workplane><XY><box> 1.0 2.0 3.0<z> 0.0 0.0 0.0", "<b1><Workplane><XY><box> 1.0 2.0 3.0<z> 0.0 0.0 0.0",
+           "<b0><Workplane><XY><circle> 6.1<z> 0.0 0.0 0.0", "<b0><Workplane><XY><box> 1.0 2.0 3.0<center> 1.0 1.0<hole> 2.0<z> 0.0 0.0 0.0", "<b0><Workplane><XY><box> 1.0 2.0 3.0<fillet> 0.5<z> 0.0 0.0 0.0",
+           "<b0><Workplane><XY><box> 1.0 2.0 3.0<faces><top><workplane> 3.0<center> 1.0 1.0<rect> 2.0 2.0<z> 0.0 0.0 0.0", "<b0><Workplane><XY><box> 1.0 2.0 3.0<circle> 1.0<extrude> 2.0<z> 0.0 0.0 0.0",
+           "<b0><Workplane><XZ><box> 1.0 2.0 3.0<z> 0.0 0.0 0.0", "<b0><Workplane><XY><polyline> 0.0 0.0 1.0 0.0 1.0 1.0<close><revolve><z> 0.0 0.0 0.0", "<b0><Workplane><XY><circle> 1.0<extrude> 2.0<z> 0.0 0.0 0.0 x"]
     for x in 나쁜:
         try: 되돌림(x); raise AssertionError(f"막지 못함: {x!r}")
         except ValueError: pass
         assert 되돌림_안전(x).startswith("# 함수18 되돌림 실패"), x
+        assert not re.search(r"^b\d+ = ", 되돌림_안전(x), re.M), x   # 실패하면 몸 줄 0 개
     return len(나쁜)
 if __name__ == "__main__":
     g = 'b0 = place(cq.Workplane("XY").box(34.1, 47.4, 9.0, centered=(True, True, False)).edges("|Z").fillet(2.0), "z", (0.0, 0.0, 0.0))\nb1 = place(cq.Workplane("XY").circle(6.1).extrude(44.7), "z", (0.0, 0.0, 16.5))\nresult = b0.union(b1)'
