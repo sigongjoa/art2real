@@ -339,6 +339,9 @@ def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.
     그림(폴더, 시, 글들, 렌, 줄, 입력); 검증정리(폴더, 검, {x[0]: 렌[len(글들) + t] for t, x in enumerate(시)}, {0} | {r["에폭"] for r in 기록})
     try: import 코드원인; print("원인 쪼개기", 코드원인.재기(폴더, 자료폴더 + {"mm": "글", "도면": "글도면"}[좌] + "/"), flush=True)   # 몸 개수 · 바꿔 끼우기 사다리 → 원인쪼개기.json · png(보고서 칸) · 실패해도 판은 계속
     except Exception as ex: print("⚠ 원인 쪼개기 실패", type(ex).__name__, ex, flush=True)
+    구 = {}
+    try: import 코드구조; 구 = 코드구조.재기(폴더, [x[0] for x in 시], [open(자료폴더 + {"mm": "글", "도면": "글도면"}[좌] + f"/{x[0]}.py", encoding="utf-8").read() for x in 시], 글들); print("구조", 구, flush=True)   # 11-06 몸 개수 · 종류 · 붙임 · 몸별 겹침(+ 바닥) · 사용자 「니가 틀렸다 맞았다 판단을 제대로 못하잖아」
+    except Exception as ex: print("⚠ 구조 채점 실패", type(ex).__name__, ex, flush=True)
     쓸 =[r for r in 줄 if not r["OOM"] and not r["정답실패"]]; iou = np.array([r["IoU"] for r in 쓸]); 된 = np.array([r["IoU"] for r in 쓸 if r["실행"]])   # 모델 탓이 아닌 칸은 뺌
     if len(쓸) < len(줄): print(f"⚠ 집계에서 뺌 — OOM {sum(r['OOM'] for r in 줄)} · 정답 렌더 실패 {sum(r['정답실패'] for r in 줄)}", flush=True)
     return {"코드_실행률": round(float(np.mean([r["실행"] for r in 쓸])), 4), "코드_IoU": round(float(np.median(iou)), 4), "코드_IoU평균": round(float(iou.mean()), 4), "코드_부피IoU": round(float(np.median([r["부피IoU"] for r in 쓸])), 4), "코드_부피바닥": round(max(바.values()), 4),   # 10-30 판정은 부피 IoU 로 · 바닥은 같은 모양 하나(원기둥 0.15 근처)
@@ -346,7 +349,7 @@ def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.
             "코드_OOM": sum(r["OOM"] for r in 줄), "코드_정답실패": sum(r["정답실패"] for r in 줄), "코드_원뿔배움": 배.get("학습", {}).get("원뿔 갈래 .Solid", 배.get("학습", {}).get("원뿔 갈래 cone", {})).get("맞음"),   # 원뿔배움: 학습 부품에서 「cq.」 다음 「.Solid」 를 맞히나(정답 넣어 줌) · 147 · 151 은 0 · 10-27 주석 뒤에 정답실패가 묻혀 빠졌던 것 고침
             "코드_옆옮김": 옆옮김(글들), "코드_옆옮김정답": 옆옮김([__import__("코드글").위치되돌림(x[3]) for x in 시]),   # 10-28 사용자 「겹친다 교집합을 못 배우네」: 152 · 154 는 b1~ 를 z 로만 옮김(97 %+) · 정답은 x · y 도 76 % — b0 기준 x 나 y 로 옮긴 몸 비율
             "코드_몸개수맞음": round(float(np.mean([몸수(g) == 몸수(x[3]) for g, x in zip(글들, 시)])), 4),   # 실행과 상관없이 몸 줄 수가 정답과 같은 비율(10-25 원인 쪼개기: 147 실행된 것 중 39 %)
-            "코드_학습loss": round(기록[-1]["학습"], 4), "코드_시험loss": round(기록[-1]["시험"], 4), "시험loss": round(기록[-1]["시험"], 4), "학습loss": round(기록[-1]["학습"], 4)}
+            **구, "코드_학습loss": round(기록[-1]["학습"], 4), "코드_시험loss": round(기록[-1]["시험"], 4), "시험loss": round(기록[-1]["시험"], 4), "학습loss": round(기록[-1]["학습"], 4)}
 def 서식바꿈(목, s):   # 입력 토큰 · 정답 서식 — 점검 · 학습부품확인 이 같이 씀
     if str(s.get("토큰", "기존")) == "좌표": 목 = [(n, t, 좌표글(l), g) for n, t, l, g in 목]
     서 = str(s.get("서식", "기존"))
