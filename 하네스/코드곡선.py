@@ -9,7 +9,7 @@ def 합(칸):   # 코드배움.재기 결과 {칸: {수, 맞음, CE}} → 전체
 def 재기(model, proc, 학, 시, 입력, 제약=False, N=40, M=20):   # 학 · 시 = [(부품, 선 글, 정답 글)]
     import numpy as np, 코드배움, 과제코드 as K
     학맞, _ = 합(코드배움.재기(model, proc, 학[:N], 입력)); 시맞, 시CE = 합(코드배움.재기(model, proc, 시[:N], 입력))
-    남 = [(n, 시[(i + 1) % N][1], g) for i, (n, _, g) in enumerate(시[:N])]   # 바로 다음 부품의 선 글을 넣음(정답 글은 그대로)
+    남 = [(시[(i + 1) % N][0], 시[(i + 1) % N][1], g) for i, (n, _, g) in enumerate(시[:N])]   # 바로 다음 부품의 입력(이름 = 도면 그림 · 선 글 둘 다)을 넣음 · 정답 글은 그대로 · 11-06 도면 입력이면 이름이 그림을 정함
     _, 남CE = 합(코드배움.재기(model, proc, 남, 입력))
     글들 = K.생성(model, proc, [K.항목(n, l, g, 입력, 정답=False) for n, l, g in 시[:M]], 제약=제약)
     줄, _, _ = K.평가([n for n, _, _ in 시[:M]], 글들, 일꾼=2); 쓸 = [r for r in 줄 if not r["OOM"] and not r["정답실패"]]
