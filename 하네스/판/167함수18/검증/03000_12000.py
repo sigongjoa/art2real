@@ -1,0 +1,5 @@
+b0 = place(cq.Workplane("XZ").polyline([(0.0, 0.0), (22.2, 0.0), (22.2, 15.5), (13.5, 15.5), (13.5, 3.9), (0.0, 3.9)]).close().revolve(360, (0, 0, 0), (0, 1, 0)).faces(">Z").workplane(origin=(0, 0, 15.5)).center(-1.0, -1.6).hole(10.8, 8.3).faces(">Z").workplane(origin=(0, 0, 15.5)).center(10.5, -10.6).hole(11.5, 8.3), "z", (19.5, 0.0, 13.0))
+b1 = place(cq.Workplane("XY").box(47.2, 33.3, 19.8, centered=(True, True, False)).faces(">Z").workplane(origin=(0, 0, 19.8)).center(-10.6, -1.0).hole(10.5, 10.5).faces(">Z").workplane(origin=(0, 0, 19.8)).center(-1.5, 1.0).hole(10.0, 10.5), "z", (-19.5, 0.0, 13.0))
+b2 = place(cq.Workplane("XY").box(50.9, 33.9, 2.1, centered=(True, True, False)).faces(">Z").workplane(origin=(0, 0, 2.1)).center(-1.8, -1.6).hole(10.0, 0.5).faces(">Z").workplane(origin=(0, 0, 2.1)).center(-1.5, -1.9).hole(10.6, 0.5), "z", (-19.5, 0.0, -23.1))
+b3 = place(cq.Workplane("XY").box(52.9, 33.9, 2.1, centered=(True, True, False)).faces(">Z").workplane(origin=(0, 0, 2.1)).center(-10.7, -1.0).hole(10.0, 0.5).faces(">Z").workplane(origin=(0, 0, 2.1)).center(10.6, -1.6).hole(10.6, 0.5), "z", (-19.5, 0.0, -1.9))
+result = b0.union(b1.union(b2.union(b3)))

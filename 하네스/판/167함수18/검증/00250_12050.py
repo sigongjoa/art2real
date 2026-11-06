@@ -1,0 +1,1 @@
+# 함수18 되돌림 실패: 정답 문법이 아님: Workplane0 XY0 box3 faces0 top0 workplane1 center2 hole40 close0 revolve0 y3
