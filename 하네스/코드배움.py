@@ -18,8 +18,12 @@ def 재기(model, proc, 묶음, 입력="선글"):   # 묶음 = [(부품, 입력 
             base = model.get_base_model(); head = base.lm_head; base.lm_head = torch.nn.Identity()
             try: h = base(**{k: v for k, v in b.items() if k != "labels"}).logits
             finally: base.lm_head = head
-            y = b["labels"][0, 1:]; m = y != -100; lo = head(h[0, :-1][m]).float(); y = y[m]
-            맞 = (lo.argmax(-1) == y).tolist(); ce = F.cross_entropy(lo, y, reduction="none").tolist()
+            y = b["labels"][0, 1:]; m = y != -100; y = y[m]
+            if K.허용 is not None:   # 167~ 함수18: 학습과 같게 허용 토큰끼리만 · 15 만 어휘 argmax 는 학습이 안 건드린 토큰이 1 등(167외우기 loss 0.02 인데 맞음 0.64 · 11-06)
+                임 = base.model.embed_tokens; 새 = K.허용 >= 임.n0; W = torch.cat([head.원.weight[K.허용[~새]], 임.새[K.허용[새] - 임.n0].to(head.원.weight.dtype)])
+                lo = (h[0, :-1][m] @ W.T).float(); z = K.허용표[y]; 맞 = (K.허용[lo.argmax(-1)] == y).tolist(); ce = F.cross_entropy(lo, z, reduction="none").tolist()
+            else:
+                lo = head(h[0, :-1][m]).float(); 맞 = (lo.argmax(-1) == y).tolist(); ce = F.cross_entropy(lo, y, reduction="none").tolist()
         ids = y.tolist(); 글 = ""; 자 = []
         for i in ids: 자.append(len(글)); 글 += tok.decode([i])
         표 = {}
