@@ -119,7 +119,7 @@ def _좌표머리():
             o = s.원(h); 임 = s.임[0]; 새 = h @ 임.새.to(h.dtype).T
             return torch.cat([o[..., :임.n0], 새.to(o.dtype), o[..., 임.n0 + len(임.새):]], -1)
     return 좌표머리
-출력좌표 = False; 좌표초기 = "숫자평균"; 자리폭 = 0.   # 자리폭: 위치토큰 자리 정답을 이웃 토큰에 가우스로 나눔(토큰 단위 σ · 0 = 딱 하나 · 162~)   # 서식바꿈 이 정함 · 모델 · 생성 이 읽음
+출력좌표 = False; 좌표초기 = "숫자평균"; 자리폭 = 0.; 출력서식 = "기존"; 허용 = None; 허용표 = None   # 167~ 함수18: 출력을 낱말 30 + 숫자 조각만(허용 · 허용표 는 점검 이 정함)   # 자리폭: 위치토큰 자리 정답을 이웃 토큰에 가우스로 나눔(토큰 단위 σ · 0 = 딱 하나 · 162~)   # 서식바꿈 이 정함 · 모델 · 생성 이 읽음
 LoRA대상들 = {"어텐션": ["q_proj", "k_proj", "v_proj", "o_proj"], "전부": ["q_proj", "k_proj", "v_proj", "o_proj", "gate_proj", "up_proj", "down_proj"]}   # 154~ 전부 = MLP 포함(Biderman 등 2024 · claudedocs/research_LoRA대상층_20261027.md) · 입력이 선글이라 비전 인코더 · merger 는 안 거침
 def 모델(rank=16, 토큰="기존", 대상="어텐션"):
     import torch
@@ -139,8 +139,13 @@ def 모델(rank=16, 토큰="기존", 대상="어텐션"):
                 d = 초기.shape[1]; i = torch.arange(좌표수, dtype=torch.float32)[:, None]; f = 1 / (좌표수 ** (torch.arange(d // 2, dtype=torch.float32) / (d // 2)))
                 pe = torch.cat([torch.sin(i * f), torch.cos(i * f)], 1).to(초기.device); pe = pe - pe.mean(0); 표준 = float(원.weight[:150000:75].float().std(0).mean())
                 초기 = 초기 + pe / pe.std(0).mean() * 표준
+        if 출력서식 == "함수18":   # 낱말 30 개를 좌표 토큰 바로 뒤에 · 처음 값 = 그 낱말이 뜻하는 CadQuery 조각의 원래 임베딩 평균
+            import 서식18; tok.add_tokens(서식18.낱말); 끝 = n0 + 좌표수 + len(서식18.낱말); assert tok.convert_tokens_to_ids(서식18.낱말) == list(range(n0 + 좌표수, 끝)) and 끝 <= 원.weight.shape[0]
+            뜻 = {"Workplane": "cq.Workplane(", "XY": '"XY"', "XZ": '"XZ"', "top": '">Z"', "vert": '"|Z"', "x": '"x"', "y": '"y"', "z": '"z"', "makeCone": "cq.Solid.makeCone(", "close": ".close()", "revolve": ".revolve(360"}
+            with torch.no_grad(): 낱초 = torch.stack([원.weight[tok(뜻.get(w[1:-1], w[1:-1] if w.startswith("<b") else "." + w[1:-1] + "("), add_special_tokens=False).input_ids].float().mean(0) for w in 서식18.낱말])
+            초기 = torch.cat([초기, 낱초.to(초기.dtype)])
         b.model.embed_tokens = _좌표임베딩()(원, n0, 초기)
-        if 출력좌표: b.lm_head = _좌표머리()(b.lm_head, b.model.embed_tokens)   # 159~: 묶인 lm_head 의 좌표 행은 얼린 빈 칸 → 학습하는 새 행으로 logits
+        if 출력좌표 or 출력서식 == "함수18": b.lm_head = _좌표머리()(b.lm_head, b.model.embed_tokens)   # 159~: 묶인 lm_head 의 좌표 행은 얼린 빈 칸 → 학습하는 새 행으로 logits
     return m, proc
 def 묶(items, proc, eval=False):
     import torch; sys.path.insert(0, 캐); from cadrille import collate
@@ -150,7 +155,12 @@ def 손실(model, b):   # 답(코드) 자리만 lm_head → CE · 10-24 선 글 
     base = model.get_base_model(); head = base.lm_head; base.lm_head = torch.nn.Identity()
     try: h = base(**{k: v for k, v in b.items() if k != "labels"}).logits
     finally: base.lm_head = head
-    y = b["labels"][:, 1:]; m = y != -100; lo = head(h[:, :-1][m]).float(); y = y[m]
+    y = b["labels"][:, 1:]; m = y != -100
+    if 허용 is not None:   # 167~ 함수18: 15 만 어휘 말고 정답이 쓰는 토큰(낱말 30 + 숫자 조각 · 끝 토큰)끼리만 · 허용 줄만 곱함(15 만 줄 다 만들면 8.5 GB · 11-06 연기)
+        z = 허용표[y[m]]; assert bool((z >= 0).all()), "정답 토큰이 허용 밖"; 임 = base.model.embed_tokens; 새 = 허용 >= 임.n0
+        W = torch.cat([head.원.weight[허용[~새]], 임.새[허용[새] - 임.n0].to(head.원.weight.dtype)])   # 허용은 정렬돼 있어 원래 토큰이 앞 · 새 토큰이 뒤
+        return F.cross_entropy((h[:, :-1][m] @ W.T).float(), z)
+    lo = head(h[:, :-1][m]).float(); y = y[m]
     if not 자리폭: return F.cross_entropy(lo, y)
     n0 = base.model.embed_tokens.n0; 좌 = (y >= n0) & (y < n0 + 좌표수); 일 = F.cross_entropy(lo[~좌], y[~좌], reduction="sum") if (~좌).any() else lo.sum() * 0
     if 좌.any():   # 11-04 탐침: 자리 정보는 안에 있는데(R² 0.35) 쓴 숫자는 0.08 — 딱 맞는 토큰 하나만 정답이면 이웃 값도 똑같이 틀림 → 정답 ± 자리폭 에 가우스 몫
@@ -160,7 +170,7 @@ def 손실(model, b):   # 답(코드) 자리만 lm_head → CE · 10-24 선 글 
 OOM = "# OOM\n"   # 메모리가 넘쳐 못 쓴 글 표시 · 평가에서 빼고 코드_OOM 으로 셈(10-25 감사: 빈 글이 실행 실패 0 점으로 섞였음)
 def 코드해시():   # 학습 · 생성 결과를 바꾸는 코드(설정 yaml 말고) — 이어 하기 · 학습 끝난 LoRA · 비교판 시드 값은 이것까지 같을 때만 다시 씀(10-25 감사: 옛 코드 LoRA 를 새 코드에서 읽었음)
     import hashlib; h = hashlib.md5()
-    for p in (__file__, f"{뿌리}/하네스/코드글.py", f"{캐}/cadrille.py", f"{캐}/dataset.py"): h.update(open(p, "rb").read())
+    for p in (__file__, f"{뿌리}/하네스/코드글.py", f"{뿌리}/하네스/서식18.py", f"{캐}/cadrille.py", f"{캐}/dataset.py"): h.update(open(p, "rb").read())
     return h.hexdigest()[:10]
 def 원자저장(쓰기, 경로):   # 쓰는 도중 꺼져도 반쯤 쓴 파일이 안 남게(모델124 와 같은 꼴)
     쓰기(경로 + ".tmp"); os.replace(경로 + ".tmp", 경로)
@@ -239,14 +249,27 @@ class 문법제약:   # 149 · 탐욕 생성에서 맨 위 후보부터 「글 �
                 for j, t in enumerate(위):
                     if s.된다(st, t): scores[r, 위[:j]] = -float("inf"); break
         s.본 = L - s.n; return scores
+def 허용만():   # 생성 logits 에서 허용 밖은 -inf(167~ 함수18)
+    import torch
+    class 막기:
+        def __call__(s, ids, scores): 마 = torch.full_like(scores, float("-inf")); 마[:, 허용] = 0; return scores + 마
+    return 막기()
+def 허용정하기(proc, 목):   # 정답 토큰 집합 = 학습 · 시험 정답 글이 쓰는 토큰 ∪ 정답 뒤 끝 토큰(collate labels 로 확인) → 허용 · 허용표
+    import torch; global 허용, 허용표; tok = proc.tokenizer; ids = set()
+    for _, _, _, g in 목: ids |= set(tok(g, add_special_tokens=False).input_ids)
+    for it in [항목(n, l, g, "선글") for n, _, l, g in 목[:8]]:
+        y = 묶([it], proc)["labels"][0]; ids |= set(y[y != -100].tolist())
+    허용 = torch.tensor(sorted(ids), device="cuda"); 허용표 = torch.full((len(tok) + 400,), -1, dtype=torch.long, device="cuda"); 허용표[허용] = torch.arange(len(허용), device="cuda")
+    return len(허용)
 def 생성(model, proc, items, 배=4, 최대=1024, 제약=False):
     import torch, 코드글
     model.eval(); out = []
     for s in range(0, len(items), 배):
         b = 묶(items[s:s + 배], proc, eval=True); 인 = {k: b[k] for k in ("input_ids", "attention_mask", "point_clouds", "is_pc", "is_img") if k in b}
         if b.get("pixel_values_videos") is not None: 인 |= {"pixel_values_videos": b["pixel_values_videos"], "video_grid_thw": b["video_grid_thw"]}
-        막 = [] if 출력좌표 else list(range(151657, len(proc.tokenizer)))   # 좌표 토큰은 입력 전용 — 생성 금지(159 위치토큰 서식만 허용)
+        막 = [] if (출력좌표 or 허용 is not None) else list(range(151657, len(proc.tokenizer)))   # 좌표 토큰은 입력 전용 — 생성 금지(159 위치토큰 서식만 허용)
         추 = {}
+        if 허용 is not None: from transformers import LogitsProcessorList; 추["logits_processor"] = LogitsProcessorList([허용만()])
         if 제약: from transformers import LogitsProcessorList; 추["logits_processor"] = LogitsProcessorList([문법제약(proc.tokenizer, b["input_ids"].shape[1], {proc.tokenizer.eos_token_id, proc.tokenizer.pad_token_id, *([model.generation_config.eos_token_id] if isinstance(model.generation_config.eos_token_id, int) else (model.generation_config.eos_token_id or []))} - {None})])
         try:
             with torch.no_grad(): g = model.generate(**인, max_new_tokens=최대, do_sample=False, use_cache=True, **({"suppress_tokens": 막} if 막 else {}), **추)
@@ -255,7 +278,8 @@ def 생성(model, proc, items, 배=4, 최대=1024, 제약=False):
             g = None
         if g is None:   # except 밖에서 다시(traceback 이 텐서를 잡고 있지 않게) · 하나씩도 넘치면 OOM 표시 — 실행 실패(모델 탓)와 따로 셈
             del 인, b; torch.cuda.empty_cache(); out += 생성(model, proc, items[s:s + 배], 1, 최대, 제약) if 배 > 1 else [OOM]; model.eval(); continue
-        out += [코드글.위치되돌림(x) if 출력좌표 else x for x in proc.batch_decode([o[len(i):] for i, o in zip(b["input_ids"], g)], skip_special_tokens=True)]
+        import 서식18
+        out += [코드글.위치되돌림(x) if 출력좌표 else 서식18.되돌림_안전(x) if 출력서식 == "함수18" else x for x in proc.batch_decode([o[len(i):] for i, o in zip(b["input_ids"], g)], skip_special_tokens=True)]
         if len(items) > 8 and (s // 배) % 10 == 0: print(f"생성 {len(out)}/{len(items)}", flush=True)   # 10-24 145 생성 1 시간을 못 봤음
     model.train(); return out
 # ── 3. 평가 ─────────────────────────────────────────────
@@ -277,6 +301,7 @@ def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.
     if s.get("시험수"): 시 = 시[:int(s.시험수)]
     random.seed(int(cfg.학습.get("시드", 0))); torch.manual_seed(int(cfg.학습.get("시드", 0)))
     model, proc = 모델(int(s.get("랭크", 16)), 토큰, str(s.get("LoRA대상", "어텐션"))); 스텝 = int(cfg.학습.스텝); 누적 = int(cfg.학습.get("누적", 4))
+    if 출력서식 == "함수18": print("함수18 허용 토큰", 허용정하기(proc, 학), flush=True)   # 학습 정답에서만(시험에만 있는 토큰은 0 개 · 11-06 서식18 감사)
     opt = torch.optim.AdamW([p for p in model.parameters() if p.requires_grad], lr=float(cfg.학습.학습률), weight_decay=0.)
     sched = torch.optim.lr_scheduler.LambdaLR(opt, lambda t: min(1., (t + 1) / 20) * .5 * (1 + math.cos(math.pi * min(t, 스텝 // 누적) / max(스텝 // 누적, 1))))
     고정 = [항목(n, l, g, 입력) for n, _, l, g in 시[:16]]; 기록 = []; 묶음손 = []; t0 = time.time()
@@ -347,14 +372,18 @@ def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.
     return {"코드_실행률": round(float(np.mean([r["실행"] for r in 쓸])), 4), "코드_IoU": round(float(np.median(iou)), 4), "코드_IoU평균": round(float(iou.mean()), 4), "코드_부피IoU": round(float(np.median([r["부피IoU"] for r in 쓸])), 4), "코드_부피바닥": round(max(바.values()), 4),   # 10-30 판정은 부피 IoU 로 · 바닥은 같은 모양 하나(원기둥 0.15 근처)
             "코드_IoU실행": round(float(np.median(된)), 4) if len(된) else None,   # 실행된 것만의 모양 — 코드_IoU(실패 = 0 중앙)는 실행률 < 0.5 면 늘 0 이라 모양을 못 봄(10-25 감사: 145 0.000 인데 이것은 0.53)
             "코드_OOM": sum(r["OOM"] for r in 줄), "코드_정답실패": sum(r["정답실패"] for r in 줄), "코드_원뿔배움": 배.get("학습", {}).get("원뿔 갈래 .Solid", 배.get("학습", {}).get("원뿔 갈래 cone", {})).get("맞음"),   # 원뿔배움: 학습 부품에서 「cq.」 다음 「.Solid」 를 맞히나(정답 넣어 줌) · 147 · 151 은 0 · 10-27 주석 뒤에 정답실패가 묻혀 빠졌던 것 고침
-            "코드_옆옮김": 옆옮김(글들), "코드_옆옮김정답": 옆옮김([__import__("코드글").위치되돌림(x[3]) for x in 시]),   # 10-28 사용자 「겹친다 교집합을 못 배우네」: 152 · 154 는 b1~ 를 z 로만 옮김(97 %+) · 정답은 x · y 도 76 % — b0 기준 x 나 y 로 옮긴 몸 비율
-            "코드_몸개수맞음": round(float(np.mean([몸수(g) == 몸수(x[3]) for g, x in zip(글들, 시)])), 4),   # 실행과 상관없이 몸 줄 수가 정답과 같은 비율(10-25 원인 쪼개기: 147 실행된 것 중 39 %)
+            "코드_옆옮김": 옆옮김(글들), "코드_옆옮김정답": 옆옮김([__import__("코드글").위치되돌림(정글(x[3])) for x in 시]),   # 10-28 사용자 「겹친다 교집합을 못 배우네」: 152 · 154 는 b1~ 를 z 로만 옮김(97 %+) · 정답은 x · y 도 76 % — b0 기준 x 나 y 로 옮긴 몸 비율
+            "코드_몸개수맞음": round(float(np.mean([몸수(g) == 몸수(정글(x[3])) for g, x in zip(글들, 시)])), 4),   # 실행과 상관없이 몸 줄 수가 정답과 같은 비율(10-25 원인 쪼개기: 147 실행된 것 중 39 %)
             **구, "코드_학습loss": round(기록[-1]["학습"], 4), "코드_시험loss": round(기록[-1]["시험"], 4), "시험loss": round(기록[-1]["시험"], 4), "학습loss": round(기록[-1]["학습"], 4)}
+def 정글(g):   # 정답 글을 CadQuery 로(함수18 이면 되돌림) · 지표용
+    import 서식18; return 서식18.되돌림(g) if 출력서식 == "함수18" else g
 def 서식바꿈(목, s):   # 입력 토큰 · 정답 서식 — 점검 · 학습부품확인 이 같이 씀
     if str(s.get("토큰", "기존")) == "좌표": 목 = [(n, t, 좌표글(l), g) for n, t, l, g in 목]
     서 = str(s.get("서식", "기존"))
-    global 출력좌표, 좌표초기, 자리폭; 출력좌표 = 서 == "위치토큰"; 좌표초기 = str(s.get("좌표초기", "숫자평균")); 자리폭 = float(s.get("자리폭", 0))
+    global 출력좌표, 좌표초기, 자리폭, 출력서식; 출력서식 = 서; 출력좌표 = 서 == "위치토큰"; 좌표초기 = str(s.get("좌표초기", "숫자평균")); 자리폭 = float(s.get("자리폭", 0))
     if 서 == "위치토큰": import 코드글; 목 = [(n, t, l, 코드글.위치토큰(g)) for n, t, l, g in 목]   # 159~: 몸 자리를 입력 선과 같은 픽셀 토큰으로(생성은 좌표 토큰을 쓰고 위치되돌림으로 숫자)
+    if 서 == "함수18":   # 167~ 함수 18 개 낱말 + 숫자(하네스/서식18.py) · 좌표 토큰 다음에 낱말 30 개를 더함 → 토큰: 좌표 필요
+        assert str(s.get("토큰", "기존")) == "좌표", "함수18 은 토큰: 좌표 와 같이"; import 서식18; 목 = [(n, t, l, 서식18.바꿈(g)) for n, t, l, g in 목]
     if 서 == "원뿔이름": import 코드글; 목 = [(n, t, l, 코드글.원뿔이름(g)) for n, t, l, g in 목]   # 158~
     if 서 == "배치먼저": import 코드글; 목 = [(n, t, l, 코드글.배치먼저(g)) for n, t, l, g in 목]   # 151~: 몸 개수 · 배치를 첫 줄에
     if 서 == "읽기먼저":   # 156~ 증류: 큰 모델이 도면 + 정답 코드를 보고 쓴 「도면 읽기」 주석 줄(# …)을 코드 앞에 · 없는 부품은 코드만

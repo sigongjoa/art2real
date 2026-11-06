@@ -17,6 +17,7 @@ if __name__ == "__main__":
         model, proc = K.모델(int(s.get("랭크", 16)), 토큰, str(s.get("LoRA대상", "어텐션"))); set_peft_model_state_dict(model, load_file(원 + "lora/adapter_model.safetensors", device="cuda"))
         if 토큰 == "좌표":
             with torch.no_grad(): model.get_base_model().model.embed_tokens.새.copy_(torch.load(원 + "lora/좌표임베딩.pt"))
+        if K.출력서식 == "함수18": print("허용 토큰", K.허용정하기(proc, [x for x in 목 if not x[1]]), flush=True)   # 167~ 학습 정답 전부에서(판과 같게)
         model.eval(); 남 = [x for x in 학 if x[0] not in 생]
         for b in range(0, len(남), 8):
             for (n, *_), g in zip(남[b:b + 8], K.생성(model, proc, [K.항목(n, l, g, 입력, 정답=False) for n, _, l, g in 남[b:b + 8]], 제약=str(s.get("디코딩", "탐욕")) == "제약")): 생[n] = g
@@ -25,7 +26,7 @@ if __name__ == "__main__":
     색 = {f"{r['i']:05d}": r for r in B.색인()}; 이 = [x[0] for x in 학]
     렌 = B.병렬렌더([("글", 생[n], 1) for n in 이] + [("조립", 색[n]["코드"], 1) for n in 이]); k = len(이)
     부 = lambda r: None if r is None else r[2]
-    줄 = {n: {"부피IoU": round(Q.부피겹(부(렌[t]), 부(렌[k + t])), 4), "실행": 렌[t] is not None, "정답실패": 렌[k + t] is None, "몸맞음": K.몸수(생[n]) == K.몸수(g)} for t, (n, _, _, g) in enumerate(학)}
+    줄 = {n: {"부피IoU": round(Q.부피겹(부(렌[t]), 부(렌[k + t])), 4), "실행": 렌[t] is not None, "정답실패": 렌[k + t] is None, "몸맞음": K.몸수(생[n]) == K.몸수(K.정글(g))} for t, (n, _, _, g) in enumerate(학)}
     assert not any(z["정답실패"] for z in 줄.values()), "정답 렌더 실패 — 판정 안 함"
     시 = json.load(open(원 + "부피.json", encoding="utf-8"))["요약"]["부피IoU"] if os.path.exists(원 + "부피.json") else None
     요 = {"학습부품수": k, "학습 부피IoU": round(float(np.median([z["부피IoU"] for z in 줄.values()])), 4), "학습 실행률": round(float(np.mean([z["실행"] for z in 줄.values()])), 3),
