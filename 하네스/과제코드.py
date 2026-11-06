@@ -63,7 +63,7 @@ def _정답선하나(n):   # 153: CNN 예측 대신 정답 선지도(선정답/<
     d = np.load(f"{뿌리}/out/하네스/선정답/{n}.npz"); 열 = G.열지도(d["점"][None])[0].astype(np.float32); 줄 = []
     for v in range(3): 줄 += 줄글(V.벡터화(d["지도"][v] > 0, 열[v], d["숨"][v], 2., 이음=True, 숨메움=True), v)
     open(p, "w", encoding="utf-8").write("\n".join(줄))
-def 자료(입력판="137전부합침", 선입력="CNN", 좌표계="mm"):   # 글(정답) · 선(입력) 을 부품 3299 개 모두 · 한 번 만들면 재사용
+def 자료(입력판="137전부합침", 선입력="CNN", 좌표계="mm", 범위="선있음"):   # 범위: 선있음(선 글이 있는 3,299 · 지금까지) | 전부(그림이 있는 학습 부품 11,970 + 같은 시험 299 · 도면 입력 전용 · 11-06)   # 글(정답) · 선(입력) 을 부품 3299 개 모두 · 한 번 만들면 재사용
     import torch, 과제선지도 as G, 분석그림 as A, 모델124 as B
     from omegaconf import OmegaConf
     for d in ("글", "선"): os.makedirs(자료폴더 + d, exist_ok=True)
@@ -78,6 +78,16 @@ def 자료(입력판="137전부합침", 선입력="CNN", 좌표계="mm"):   # �
     z = np.load(자료폴더 + "선지도.npz"); 일꾼(_선하나, [k for k, n in enumerate(z["이름"]) if not os.path.exists(자료폴더 + f"선/{n}.txt")], 초=300)
     if 선입력 == "정답": os.makedirs(자료폴더 + "선정답글", exist_ok=True); 일꾼(_정답선하나, [n for n in 이름들 if not os.path.exists(자료폴더 + f"선정답글/{n}.txt")], 초=300)
     if 좌표계 == "도면": os.makedirs(자료폴더 + "글도면", exist_ok=True); 일꾼(_도면글하나, [n for n in 이름들 if os.path.exists(자료폴더 + f"글/{n}.py") and not (os.path.exists(자료폴더 + f"글도면/{n}.py") and os.path.getsize(자료폴더 + f"글도면/{n}.py")) and not os.path.exists(자료폴더 + f"글도면/{n}.py.err")], 초=300)
+    if 범위 == "전부":   # 11-06 사용자 「학습 데이터를 늘리면 잘되는지 검사를 먼저」 · 같은 생성기로 이미 만든 사양 · 시험 299 는 그대로
+        import 모델124 as B; 전 = sorted(_그림들()); os.makedirs(자료폴더 + "글도면", exist_ok=True)
+        일꾼(_글하나, [n for n in 전 if not os.path.exists(자료폴더 + f"글/{n}.py") and not os.path.exists(자료폴더 + f"글/{n}.py.err")], n=3)
+        if 좌표계 == "도면": 일꾼(_도면글하나, [n for n in 전 if os.path.exists(자료폴더 + f"글/{n}.py") and not (os.path.exists(자료폴더 + f"글도면/{n}.py") and os.path.getsize(자료폴더 + f"글도면/{n}.py")) and not os.path.exists(자료폴더 + f"글도면/{n}.py.err")], 초=300, n=3)
+        글폴 = {"mm": "글", "도면": "글도면"}[좌표계]; 선폴 = {"CNN": "선", "정답": "선정답글"}[선입력]; out = []
+        for n in 전:
+            g = 자료폴더 + f"{글폴}/{n}.py"; l = 자료폴더 + f"{선폴}/{n}.txt"; 시 = int(n) >= B.NT
+            if 시 and not os.path.exists(l): continue   # 시험은 지금까지와 같은 299(모두 선 글 있음)
+            if os.path.exists(g): out.append((n, 시, open(l, encoding="utf-8").read() if os.path.exists(l) else "", open(g, encoding="utf-8").read()))
+        return out
     return 목록({"CNN": "선", "정답": "선정답글"}[선입력], {"mm": "글", "도면": "글도면"}[좌표계])
 def 목록(선폴더="선", 글폴더="글"):   # → [(부품, 시험?, 입력 선 글, 정답 글)] 둘 다 있는 것만
     import 모델124 as B
@@ -86,9 +96,15 @@ def 목록(선폴더="선", 글폴더="글"):   # → [(부품, 시험?, 입력 
         n = os.path.basename(p)[:5]; g = 자료폴더 + f"{글폴더}/{n}.py"
         if os.path.exists(g): out.append((n, int(n) >= B.NT, open(p, encoding="utf-8").read(), open(g, encoding="utf-8").read()))
     return out
+_그림캐시 = {}
+def _그림들():   # 부품 → 3면도(3, 128, 128) · 11-06 선지도.npz(3,299) 대신 모델127 그림.npz(12,269 · 같은 그림) — 「코드.자료: 전부」 가 쓰는 학습 부품 11,970 개도 그림이 있음
+    if not _그림캐시:
+        import 모델127 as M7; z = np.load(M7.D + "그림.npz", mmap_mode="r"); 이 = [str(x) for x in z["이름"]]; X = z["X"]
+        _그림캐시.update({n: X[k] for k, n in enumerate(이)})
+    return _그림캐시
 def 도면그림(n):   # 3면도 → 256 회색 2×2(위 · 앞 / 옆 · 빈칸) · cadrille 영상 입력
     from PIL import Image
-    z = np.load(자료폴더 + "선지도.npz", mmap_mode="r"); x = z["X"][list(z["이름"]).index(n)]; g = np.full((256, 256), 255, np.uint8)
+    x = _그림들()[n]; g = np.full((256, 256), 255, np.uint8)
     for v, (r, c) in enumerate(((0, 0), (0, 1), (1, 0))): g[r * 128:(r + 1) * 128, c * 128:(c + 1) * 128] = 255 - x[v]
     return Image.fromarray(g).convert("RGB")
 # ── 2. 학습 · 생성 ───────────────────────────────────────
@@ -295,7 +311,7 @@ def 평가(이름들, 글들, 일꾼=None):   # 일꾼: 렌더 프로세스 수(
     return 줄, 렌, 바
 def 점검(cfg, 폴더):   # 하네스가 부름: 자료 → LoRA 학습(학습.스텝 · 4 스텝마다 갱신) → 시험 생성 → 실행 · IoU → 그림
     import torch
-    s = cfg.코드; 입력 = str(s.입력); 토큰 = str(s.get("토큰", "기존")); 제 = str(s.get("디코딩", "탐욕")) == "제약"; 좌 = str(s.get("좌표계", "mm")); 목 = 자료(선입력=str(s.get("선입력", "CNN")), 좌표계=좌)
+    s = cfg.코드; 입력 = str(s.입력); 토큰 = str(s.get("토큰", "기존")); 제 = str(s.get("디코딩", "탐욕")) == "제약"; 좌 = str(s.get("좌표계", "mm")); 범 = str(s.get("자료", "선있음")); assert 범 == "선있음" or 입력 == "도면", "자료: 전부 는 도면 입력만(선 글 없는 부품)"; 목 = 자료(선입력=str(s.get("선입력", "CNN")), 좌표계=좌, 범위=범)
     목 = 서식바꿈(목, s); 학 = [x for x in 목 if not x[1]]; 시 = [x for x in 목 if x[1]]
     if s.get("학습부품"): 고 = set(json.load(open(f"{뿌리}/out/하네스/{s.학습부품}/부품.json"))); 학 = [x for x in 학 if x[0] in 고]   # 156~ 증류 시범: 읽기가 있는 학습 부품만(대조 판도 같은 부품)
     if s.get("시험수"): 시 = 시[:int(s.시험수)]
