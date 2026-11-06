@@ -1,0 +1,239 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>판 167외우기 · 하네스 보고서</title><style>
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap");
+:root{--paper:#f6f4ef;--sheet:#fffdf8;--ink:#1d2129;--muted:#585e68;--rule:#dcd7cc;--soft:#ece8de;--pass:#1f7a3e;--pass-bg:#e3f1e6;--fail:#b3261e;--fail-bg:#f7e2de;--tool:#8a5f00;--tool-bg:#f6ecd4;--line1:#2d5fa8;--line2:#c0661b}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 "Pretendard Variable",Pretendard,"Malgun Gothic",system-ui,sans-serif;font-variant-numeric:tabular-nums;word-break:keep-all}
+::selection{background:#1d2129;color:#fffdf8}
+a{color:var(--line1);text-underline-offset:3px}a:focus-visible{outline:2px solid var(--line1);outline-offset:2px;border-radius:2px}
+main{max-width:1040px;margin:0 auto;padding:56px 32px 96px}
+header{padding-bottom:28px;border-bottom:1px solid var(--rule);margin-bottom:8px}
+h1{font-size:clamp(1.9rem,4vw,2.7rem);line-height:1.15;letter-spacing:-.025em;margin:0 0 10px;font-weight:800;text-wrap:balance}
+.lead{font-size:1.15rem;color:var(--muted);margin:0 0 22px;max-width:62ch;text-wrap:pretty}
+.판정{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.05rem;padding:7px 14px 7px 11px;border-radius:999px}
+.판정 svg{width:18px;height:18px}.통과{color:var(--pass);background:var(--pass-bg)}.실패{color:var(--fail);background:var(--fail-bg)}.탐색{color:var(--tool);background:var(--tool-bg)}
+dl.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px 28px;margin:26px 0 0}
+dl.meta div{min-width:0}dl.meta dt{font-size:.82rem;color:var(--muted)}dl.meta dd{margin:2px 0 0;font-weight:600;overflow-wrap:anywhere}
+h2{font-size:1.35rem;letter-spacing:-.015em;margin:56px 0 14px;font-weight:750}
+h3{font-size:1.02rem;margin:30px 0 8px;font-weight:700}
+p,li{max-width:72ch}
+.표{overflow-x:auto;margin:6px 0 4px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{padding:9px 14px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--soft)}
+th:first-child,td:first-child{text-align:left}tr:last-child td{border-bottom:0}
+thead th{font-size:.8rem;font-weight:600;color:var(--muted);background:var(--paper);border-bottom:1px solid var(--rule)}
+td.결과{text-align:center}td.결과 span{display:inline-flex;width:24px;height:24px;border-radius:50%;align-items:center;justify-content:center}td.결과 svg{width:15px;height:15px}
+td.결과 .o{color:var(--pass);background:var(--pass-bg)}td.결과 .x{color:var(--fail);background:var(--fail-bg)}
+.차{color:var(--muted);font-size:.88rem}
+.주석{font-size:.88rem;color:var(--muted);margin:8px 2px 0}.주석 code{overflow-wrap:anywhere}
+.줄글{display:flex;flex-wrap:wrap;gap:6px 26px;margin:4px 0}.줄글 b{font-weight:700}.줄글 span{color:var(--muted)}
+figure{margin:18px 0 0}figure img{display:block;width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;background:#fff}
+figcaption{font-size:.86rem;color:var(--muted);margin-top:8px}
+.곡선{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:14px 12px 6px}
+.곡선 svg{display:block;width:100%;height:auto}.곡선 text{font:15px "Pretendard Variable",Pretendard,sans-serif;fill:var(--muted)}
+.사람{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:6px 22px}
+.사람 ul{padding-left:1.1em}.사람 li{margin:8px 0}.비어{color:var(--muted);font-style:italic;padding:12px 0}
+code,pre{font-family:"JetBrains Mono",D2Coding,Consolas,monospace;font-size:.86rem}
+pre{background:#1d2129;color:#f3efe6;padding:16px 18px;border-radius:10px;overflow-x:auto;line-height:1.55}
+td.열{background:color-mix(in oklab,var(--line1) calc(var(--v)*1%),var(--sheet))}td.열.진{color:#fff}
+main{max-width:1240px;display:grid;grid-template-columns:300px minmax(0,1fr);column-gap:48px;align-items:start}
+main>*{grid-column:2}header{grid-column:1;grid-row:1/200;position:sticky;top:28px;border:1px solid var(--rule);border-radius:14px;background:var(--sheet);padding:24px 22px;margin:0}
+header h1{font-size:1.32rem;line-height:1.4;letter-spacing:-.01em;font-weight:750;margin-bottom:16px}header .lead{font-size:1rem}dl.meta{grid-template-columns:1fr 1fr;gap:12px 16px}main>h2:first-of-type{margin-top:0}
+@media (max-width:900px){main{display:block}header{position:static;margin-bottom:8px}main>h2:first-of-type{margin-top:44px}}
+nav.뒤{margin:0 0 14px}nav.뒤 a{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:.9rem;color:var(--muted);text-decoration:none}nav.뒤 a:hover{color:var(--ink)}nav.뒤 svg{width:16px;height:16px}
+td.왼{text-align:left;white-space:normal}tr.깊2 td:first-child{padding-left:30px;color:var(--muted)}.흐름{max-width:72ch}ul.목표 li{max-width:72ch;margin:6px 0}ul.고리{list-style:none;padding:0;margin:0;display:grid;gap:8px}ul.고리 li{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;align-items:baseline;padding:10px 14px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}ul.고리 li span{font-weight:700}ul.고리 a{overflow-wrap:anywhere}ul.고리 em{color:var(--muted);font-style:normal}
+article.분석{max-width:70ch;font-size:1.02rem;line-height:1.8}article.분석 h3{font-size:1.12rem;margin:28px 0 8px}article.분석 p{margin:0 0 14px}article.분석 ul,article.분석 ol{margin:0 0 14px;padding-left:1.3em}article.분석 li{margin:4px 0}article.분석 img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;margin:8px 0 4px}article.분석 em{color:var(--muted)}article.분석 figure{margin:8px 0 18px}article.분석 figcaption{font-size:.95rem;color:var(--ink);font-weight:600;margin-top:6px;padding-left:10px;border-left:3px solid var(--rule)}article.분석 table{border-collapse:collapse;margin:0 0 14px}article.분석 td,article.분석 th{border-bottom:1px solid var(--rule);padding:6px 12px;text-align:left}
+.명제{margin:0 0 12px;color:var(--muted);font-size:.95rem;max-width:72ch}.명제 span{font-weight:700;color:var(--ink);margin-right:6px}.쇼츠틀{display:grid;grid-template-columns:260px minmax(0,1fr);gap:20px;align-items:start}.쇼츠{width:260px;max-width:100%;border-radius:12px;border:1px solid var(--rule);background:#000}.쇼츠글 td{white-space:normal}@media (max-width:640px){.쇼츠틀{grid-template-columns:1fr}}.구조틀{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:12px;overflow-x:auto}.구조도{display:block;width:100%;min-width:720px;height:auto}.구조틀{background:#fbfaf6}.구조도 text{font-family:inherit;fill:var(--ink)}.구조도 .제{font-size:15px;font-weight:700}.구조도 .작{font-size:12px;fill:var(--muted)}.구조도 .작진{font-size:13px;font-weight:600}.구조도 .묶{font-size:13px;font-weight:600;fill:var(--muted)}
+@media (max-width:640px){main{padding:32px 16px 64px}th,td{padding:8px 10px}h2{margin-top:44px}}
+</style></head><body><main style="--n:2"><header><nav class="뒤"><a href="../../index.html"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3.5L5.5 8l4.5 4.5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>판 목록</a></nav><h1>정답을 함수 18 개 낱말로 써도 학습 부품 서른 개를 외우는지 본다</h1><span class="판정 탐색"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.5 8.5l3 3 6-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>탐색 — 이김 판정 없음 · 기준 못 넘음 · 목표선 0/1</span><dl class="meta"><div><dt>판</dt><dd>167외우기</dd></div><div><dt>가지</dt><dd>B1</dd></div><div><dt>종류</dt><dd>탐색</dd></div><div><dt>바뀐 손잡이</dt><dd>코드.서식: 원뿔이름 → 함수18</dd></div><div><dt>에폭</dt><dd>10</dd></div><div><dt>대조</dt><dd>158원뿔이름</dd></div><div><dt>git</dt><dd>a52c628</dd></div><div><dt>날짜</dt><dd>2026-11-06 18:25</dd></div></dl></header><h2>분석</h2><article class="분석"><h3>한 줄로</h3>
+<p><strong>물음</strong>: 정답 코드를 정해 둔 함수 18개짜리 짧은 서식으로 바꿔 쓰면, 처음 보는 부품에서도 코드가 돌아갈까?</p>
+<p><strong>답</strong>: 아니다. 학습 부품에는 거의 완벽하게 맞췄지만, 처음 보는 부품은 100개 중 4개만 실행됐다. 판정 기준 둘을 다 못 넘었다. 실패다.</p>
+<h3>왜 이 판을 했나</h3>
+<p>우리 모델은 부품 도면 세 장(위 · 앞 · 옆)을 보고 CAD 코드를 쓴다. 앞 판(158)에서는 원뿔 하나만 이름으로 바꿨는데, 외운 부품 30개 중 28개가 실행됐다. 그래서 이번에는 코드 전체를 정해 둔 단어 몇 개로만 쓰게 했다. 고를 단어가 적으면 처음 보는 도면에서도 문법이 덜 무너질 거라고 봤다.</p>
+<h3>바꾼 것 하나</h3>
+<p>정답 코드의 <strong>서식</strong>만 바꿨다. 예전에는 CadQuery 코드를 그대로 썼다.</p>
+<p><code>b1 = place(cq.Workplane("XY").circle(r).extrude(h), "z", (x, y, z))</code></p>
+<p>이번에는 한 줄에 덩어리(몸) 하나를 쓰고, 정해 둔 단어와 숫자만 쓴다. 괄호와 쉼표는 변환기가 채운다.</p>
+<p><code>&lt;b1&gt;&lt;Workplane&gt;&lt;XY&gt;&lt;circle&gt; r&lt;extrude&gt; h&lt;z&gt; x y z</code></p>
+<p>학습 부품 30개, 시험 부품 100개, 학습 2,400스텝은 158과 같다.</p>
+<h3>결과</h3>
+<figure><img alt="처음 보는 부품에서는 이 판도 158도 코드가 거의 돌지 않는다 — 서식을 바꿔도 벽은 그대로다" src="비교.png"><figcaption>처음 보는 부품에서는 이 판도 158도 코드가 거의 돌지 않는다 — 서식을 바꿔도 벽은 그대로다</figcaption></figure>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>이 판 (167)</th>
+<th>대조 (158)</th>
+<th>목표</th>
+<th>넘었나</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>쓴 코드가 실행됨 (시험)</td>
+<td>0.04</td>
+<td>0.02</td>
+<td>0.50 이상</td>
+<td>✗</td>
+</tr>
+<tr>
+<td>모양 겹침 (시험 · 가운데 값)</td>
+<td>0.00</td>
+<td>0.00</td>
+<td>0.80 이상</td>
+<td>✗</td>
+</tr>
+<tr>
+<td>모양 겹침 (시험 · 평균)</td>
+<td>0.02</td>
+<td>0.01</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>실행된 4개의 모양 겹침</td>
+<td>0.57</td>
+<td>—</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>학습 손실</td>
+<td>0.00</td>
+<td>0.01</td>
+<td>—</td>
+<td>—</td>
+</tr>
+<tr>
+<td>시험 손실</td>
+<td>3.12</td>
+<td>1.41</td>
+<td>—</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p><em>실행이 안 된 코드는 겹침을 0으로 친다. 100개 중 96개가 0이라 가운데 값은 0.00이고, 평균은 0.02다.</em></p>
+<h3>왜 이렇게 나왔나</h3>
+<p><strong>확인한 것</strong></p>
+<ul>
+<li>학습 부품을 외우는 쪽으로 너무 치우쳤다. 시험 손실은 500스텝에서 1.12로 가장 낮았다. 그 뒤로 학습 손실이 내려가는 동안 시험 손실은 3.12까지 올랐다.</li>
+<li>시험에서 쓴 코드의 짜임새는 「모든 부품에 똑같은 코드 하나를 내는」 경우보다 못하다. 덩어리 종류(상자인지 원통인지)를 맞힌 점수는 0.03이다. 똑같은 코드 하나를 내면 0.59가 나온다. 어느 덩어리의 어느 면에 붙였는지는 0.17로, 똑같은 코드(0.30)보다 낮다. 덩어리 개수만 0.30으로 똑같은 코드(0.20)보다 낫다.</li>
+</ul>
+<p><strong>짐작 (아직 확인 안 함)</strong></p>
+<ul>
+<li>시험 손실이 158의 두 배인 것은 서식이 바뀌어 토큰 수가 달라졌기 때문일 수 있다. 두 판의 손실을 그대로 견줘도 되는지는 따지지 않았다.</li>
+</ul>
+<h3>한계</h3>
+<ul>
+<li>학습 부품 30개, 시험 부품 100개로 한 번만 돌렸다. 실행 4개 대 2개는 흔들림 안쪽일 수 있다.</li>
+<li>판 전에 「학습 부품 겹침 0.95 이상으로 외운다」고 적어 뒀지만, 이 숫자는 재지 않았다. 외웠다는 말은 학습 손실만 보고 한 짐작이다.</li>
+</ul>
+<h3>배운 것과 다음</h3>
+<p><strong>서식을 짧게 바꿔도 처음 보는 부품은 못 쓴다.</strong> 158과 똑같이, 500스텝 뒤로는 30개를 외우기만 하고 새 부품은 더 못 쓰게 된다. 이번에 바꾼 건 서식 하나뿐이라, 부품 수가 원인인지는 이 판으로 알 수 없다.</p>
+<ol>
+<li>학습 부품 30개의 겹침을 재서 외우기가 됐는지 확인한다.</li>
+<li>시험 손실이 가장 낮은 500스텝 근처에서 멈춘 결과를 잰다.</li>
+<li>그다음에 학습 부품 수를 늘려, 이 벽이 움직이는지 본다.</li>
+</ol></article><h2>모델 동작</h2><figure class="개념"><video src="개념.mp4" autoplay loop muted playsinline style="width:100%;max-width:880px;border:1px solid var(--rule);border-radius:10px"></video><figcaption class="주석">이 판 모델이 화소 하나를 판정하는 과정을 기계로 그린 그림(하네스/개념그림/code145) · <a href="개념.gif">gif</a></figcaption></figure><h2>판정 기준</h2><p class="명제"><span>명제</span> 158 과 같은 부품 30 개 외우기에서 정답 서식만 함수18 로 바꿔도, 시험 부품 코드 실행률이 0.5 이상이고 학습 부품은 부피 IoU 0.95 이상으로 외운다</p><div class="표"><table><thead><tr><th>지표</th><th>조건</th><th>이 판</th><th>대조</th><th>결과</th></tr></thead><tbody><tr class="기준줄" style="--i:0"><td>코드_실행률</td><td>&gt;= 0.5</td><td><strong>0.040</strong></td><td>0.017</td><td class="결과" style="--i:0"><span class="x" aria-label="실패"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 4.5l7 7m0-7l-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span></td></tr><tr class="기준줄" style="--i:1"><td>코드_부피IoU</td><td>&gt;= 0.8</td><td><strong>0.000</strong></td><td></td><td class="결과" style="--i:1"><span class="x" aria-label="실패"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.5 4.5l7 7m0-7l-7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></span></td></tr></tbody></table></div><p class="주석">기준은 돌리기 전에 커밋됐다(하네스 관문이 확인). 대조는 같은 에폭.</p><h2>숫자: 이 판과 대조</h2><div class="표"><table><thead><tr><th>지표</th><th>이 판</th><th>대조</th><th>차</th></tr></thead><tbody><tr><td>코드_실행률</td><td data-n="0.040">0.040</td><td>0.017</td><td class="차">+0.023</td></tr><tr><td>코드_IoU</td><td data-n="0.000">0.000</td><td></td><td class="차"></td></tr><tr><td>코드_IoU평균</td><td data-n="0.022">0.022</td><td></td><td class="차"></td></tr><tr><td>코드_부피IoU</td><td data-n="0.000">0.000</td><td></td><td class="차"></td></tr><tr><td>코드_부피바닥</td><td data-n="0.149">0.149</td><td></td><td class="차"></td></tr><tr><td>코드_IoU실행</td><td data-n="0.570">0.570</td><td></td><td class="차"></td></tr><tr><td>코드_OOM</td><td data-n="0.000">0.000</td><td></td><td class="차"></td></tr><tr><td>코드_정답실패</td><td data-n="0.000">0.000</td><td></td><td class="차"></td></tr><tr><td>코드_원뿔배움</td><td data-n=""></td><td></td><td class="차"></td></tr><tr><td>코드_옆옮김</td><td data-n="1.000">1.000</td><td></td><td class="차"></td></tr><tr><td>코드_옆옮김정답</td><td data-n="0.787">0.787</td><td></td><td class="차"></td></tr><tr><td>코드_몸개수맞음</td><td data-n="0.300">0.300</td><td></td><td class="차"></td></tr><tr><td>구조_몸수맞음</td><td data-n="0.300">0.300</td><td></td><td class="차"></td></tr><tr><td>구조_몸수차</td><td data-n="1.320">1.320</td><td></td><td class="차"></td></tr><tr><td>구조_종류F1</td><td data-n="0.031">0.031</td><td></td><td class="차"></td></tr><tr><td>구조_종류순서</td><td data-n="0.027">0.027</td><td></td><td class="차"></td></tr><tr><td>구조_붙임맞음</td><td data-n="0.170">0.170</td><td></td><td class="차"></td></tr><tr><td>구조_몸겹침</td><td data-n="0.011">0.011</td><td></td><td class="차"></td></tr><tr><td>구조바닥_몸수맞음</td><td data-n="0.200">0.200</td><td></td><td class="차"></td></tr><tr><td>구조바닥_몸수차</td><td data-n="1.490">1.490</td><td></td><td class="차"></td></tr><tr><td>구조바닥_종류F1</td><td data-n="0.586">0.586</td><td></td><td class="차"></td></tr><tr><td>구조바닥_종류순서</td><td data-n="0.396">0.396</td><td></td><td class="차"></td></tr><tr><td>구조바닥_붙임맞음</td><td data-n="0.304">0.304</td><td></td><td class="차"></td></tr><tr><td>구조바닥_몸겹침</td><td data-n="0.104">0.104</td><td></td><td class="차"></td></tr><tr><td>코드_학습loss</td><td data-n="0.003">0.003</td><td></td><td class="차"></td></tr><tr><td>코드_시험loss</td><td data-n="3.117">3.117</td><td></td><td class="차"></td></tr><tr><td>시험loss</td><td data-n="3.117">3.117</td><td></td><td class="차"></td></tr><tr><td>학습loss</td><td data-n="0.003">0.003</td><td></td><td class="차"></td></tr></tbody></table></div><h2>원인 쪼개기 <span class="차">실행된 4 개 · 생성 코드의 몸을 정답 것으로 바꿔 끼움</span></h2><p>몸 개수가 정답과 같음 50% · 모자람 50% · 넘침 0% · 종류 순서까지 같음 25%</p><div class="표"><table><thead><tr><th>개수가 같은 2 개</th><th>IoU 중앙</th></tr></thead><tbody><tr><td>생성 그대로</td><td>0.521</td></tr><tr><td>위치만 정답</td><td>0.521</td></tr><tr><td>모양식만 정답</td><td>1.000</td></tr><tr><td>둘 다 정답</td><td>1.000</td></tr></tbody></table></div><figure><img src="원인쪼개기.png" alt="원인 쪼개기: 몸 개수 · 바꿔 끼우기 사다리 · 예시"><figcaption>「둘 다 정답」이 1 에 가까우면 채점기는 맞다 · 위치만 바꿔 크게 오르면 배치가, 모양식만 바꿔 오르면 몸 모양이 범인</figcaption></figure><h2>바퀴별 곡선 <span class="차">정해진 스텝마다 학습 · 시험 토큰 맞음 · 처음 보는 부품 일부 부피 IoU · 도면 몫</span></h2><figure><img src="곡선.png" alt="바퀴별 곡선"><figcaption>맞음이 학습 부품만 오르면 외우기 · 부피 IoU 가 멈추면 학습량이 아닌 다른 벽 · 도면 몫이 커지면 도면을 읽기 시작</figcaption></figure><div class="표"><table><thead><tr><th>스텝</th><th>학습 맞음</th><th>시험 맞음</th><th>부피 IoU</th><th>도면 몫</th></tr></thead><tbody><tr><td>750</td><td>0.502</td><td>0.377</td><td>0.0</td><td>0.180</td></tr><tr><td>1500</td><td>0.636</td><td>0.413</td><td>0.0</td><td>0.110</td></tr><tr><td>2250</td><td>0.649</td><td>0.420</td><td>0.0</td><td>0.090</td></tr><tr><td>2400</td><td>0.646</td><td>0.419</td><td>0.0</td><td>0.090</td></tr></tbody></table></div><h2>배웠나 <span class="차">정답 글을 그대로 넣어 줄 때 다음 토큰을 맞히는 비율 · 부품 80 개씩</span></h2><div class="표"><table><thead><tr><th>자리</th><th>학습 부품</th><th>시험 부품</th></tr></thead><tbody><tr><td>나머지</td><td>0.65 <span class="차">(9114)</span></td><td>0.42 <span class="차">(21934)</span></td></tr></tbody></table></div><p class="주석">학습 부품에서도 낮으면 덜 배운 것(외우지도 못함) · 학습만 높으면 일반화 문제 · 괄호 안은 토큰 수</p><h2>스텝별 검증 <span class="차">같은 시험 부품 넷 · 250 스텝마다 탐욕 생성 → 실행 → 렌더</span></h2><figure><img src="검증.png" alt="스텝별 검증 렌더 격자"><figcaption>행 = 스텝, 열 = 부품, 맨 위 = 정답. 분홍 = 코드가 실행되지 않음</figcaption></figure><details open><summary>부품 12000 — 스텝별 코드</summary><div class="표"><table><thead><tr><th>스텝</th><th>렌더</th><th>결과</th><th>생성 코드</th></tr></thead><tbody><tr><td>정답</td><td><img src="검증/정답_12000.png" width="140" alt=""></td><td></td><td></td></tr><tr><td>0</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>KeyError: &#x27;result&#x27;</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: 몸 이름으로 시작 안 함: &lt;center&gt;11</pre></td></tr><tr><td>250</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: 줄 끝이 축 + 숫자 셋이 아님: &lt;b0&gt;&lt;Workplane&gt;&lt;XY&gt;&lt;box&gt; 10.7 10.7 10.7 10.7 10.7 10.7 10.7 
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span></pre></td></tr><tr><td>500</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: 이 자리에 올 수 없는 낱말: z
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span>
+  3 b1 = 망가짐</pre></td></tr><tr><td>750</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: 이 자리에 올 수 없는 낱말: x
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span>
+  3 b3 = 망가짐
+  4 b1 = 망가짐
+  5 b3 = 망가짐</pre></td></tr><tr><td>1000</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: 줄 끝이 축 + 숫자 셋이 아님: &lt;b1&gt;&lt;Workplane&gt;&lt;XY&gt;&lt;box&gt; 46.7 40.1 27.7&lt;faces&gt;&lt;top&gt;&lt;workplan
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span>
+  3 b1 = 망가짐
+  4 b2 = 망가짐
+  5 b3 = 망가짐
+  6 b4 = 망가짐</pre></td></tr><tr><td>1250</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: 줄 끝이 축 + 숫자 셋이 아님: &lt;b1&gt;&lt;Workplane&gt;&lt;XY&gt;&lt;box&gt; 46.9 35.4 16.2&lt;faces&gt;&lt;top&gt;&lt;workplan
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span>
+  3 b1 = 망가짐</pre></td></tr><tr><td>1500</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: extrude 숫자 16 개
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span>
+  3 b1 = 망가짐</pre></td></tr><tr><td>1750</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: 이 자리에 올 수 없는 낱말: z
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span>
+  3 b1 = 망가짐</pre></td></tr><tr><td>2000</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: hole 숫자 3 개
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span>
+  3 b1 = 망가짐
+  4 b1 = 망가짐
+  5 b2 = 망가짐
+  6 b3 = 망가짐</pre></td></tr><tr><td>2250</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: extrude 숫자 2 개
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span>
+  3 b1 = 망가짐
+  4 b2 = 망가짐</pre></td></tr><tr><td>2400</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: extrude 숫자 2 개
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span>
+  3 b1 = 망가짐</pre></td></tr></tbody></table></div></details><details><summary>부품 12001 — 스텝별 코드</summary><div class="표"><table><thead><tr><th>스텝</th><th>렌더</th><th>결과</th><th>생성 코드</th></tr></thead><tbody><tr><td>정답</td><td><img src="검증/정답_12001.png" width="140" alt=""></td><td></td><td></td></tr><tr><td>0</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>KeyError: &#x27;result&#x27;</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: 몸 이름으로 시작 안 함: &lt;center&gt;42 -59</pre></td></tr><tr><td>250</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: 줄 끝이 축 + 숫자 셋이 아님: &lt;b0&gt;&lt;Workplane&gt;&lt;XY&gt;&lt;box&gt; 100.0 10.0 10.0 10.0 10.0 10.0 13.0
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span></pre></td></tr><tr><td>500</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: box 숫자 2 개
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span>
+  3 b1 = 망가짐</pre></td></tr><tr><td>750</td><td><img src="검증/00750_12001.png" width="140" alt=""></td><td class="왼">IoU 0.37</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 b0 = place(cq.Workplane(&quot;XY&quot;).box(66.7, 35.5, 35.7, centered=(True, True, False)).faces(&quot;&gt;Z&quot;).workplane(origin=(0, 0, 35.7)).center(13.6, 2.4).hole(13.7, 12.2), &quot;x&quot;, (22.4, 0.0, 0.0))
+  2 result = b0</pre></td></tr><tr><td>1000</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: 줄 끝이 축 + 숫자 셋이 아님: &lt;b0&gt;&lt;Workplane&gt;&lt;XY&gt;&lt;box&gt; 75.5 68.5 30.4&lt;faces&gt; 30.5 2.8&lt;hole
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span>
+  3 b1 = 망가짐
+  4 b1 = 망가짐</pre></td></tr><tr><td>1250</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: 이 자리에 올 수 없는 낱말: z
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span>
+  3 b1 = 망가짐</pre></td></tr><tr><td>1500</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: circle 숫자 11 개
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span>
+  3 b1 = 망가짐</pre></td></tr><tr><td>1750</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: 줄 끝이 축 + 숫자 셋이 아님: &lt;b0&gt;&lt;Workplane&gt;&lt;XY&gt;&lt;circle&gt; 3.0 0.0 3.6 0.0 13.5 0.5 18.7 0.
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span></pre></td></tr><tr><td>2000</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: 줄 끝이 축 + 숫자 셋이 아님: &lt;b0&gt;&lt;Workplane&gt;&lt;XY&gt;&lt;box&gt; 9.9 ..&lt;workplane&gt; 75.4 3.1&lt;z&gt; 0.0 -
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span>
+  3 b2 = 망가짐</pre></td></tr><tr><td>2250</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: box 숫자 2 개
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span></pre></td></tr><tr><td>2400</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: 줄 끝이 축 + 숫자 셋이 아님: &lt;b0&gt;&lt;Workplane&gt;&lt;XY&gt;&lt;circle&gt; 3.0 0.0 3.6 0.0 13.5 5.9 13.5 19
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span>
+  3 b1 = 망가짐</pre></td></tr></tbody></table></div></details><details><summary>부품 12002 — 스텝별 코드</summary><div class="표"><table><thead><tr><th>스텝</th><th>렌더</th><th>결과</th><th>생성 코드</th></tr></thead><tbody><tr><td>정답</td><td><img src="검증/정답_12002.png" width="140" alt=""></td><td></td><td></td></tr><tr><td>0</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>KeyError: &#x27;result&#x27;</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: 몸 이름으로 시작 안 함: &lt;center&gt;110</pre></td></tr><tr><td>250</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: 줄 끝이 축 + 숫자 셋이 아님: &lt;b0&gt;&lt;Workplane&gt;&lt;XY&gt;&lt;box&gt; 10.7 10.7 10.7 10.7 10.7 13.7 10.7 
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span></pre></td></tr><tr><td>500</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: center 숫자 3 개
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span>
+  3 b1 = 망가짐
+  4 b2 = 망가짐</pre></td></tr><tr><td>750</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: box 숫자 2 개
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span>
+  3 b1 = 망가짐</pre></td></tr><tr><td>1000</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: 줄 끝이 축 + 숫자 셋이 아님: &lt;b0&gt;&lt;Workplane&gt;&lt;XY&gt;&lt;box&gt; 82.3 61.5 49.4 27.7&lt;x&gt; 0.0 0.0 27.7
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span>
+  3 b1 = 망가짐
+  4 b2 = 망가짐
+  5 b2 = 망가짐
+  6 b2 = 망가짐</pre></td></tr><tr><td>1250</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: 줄 끝이 축 + 숫자 셋이 아님: &lt;b0&gt;&lt;Workplane&gt;&lt;XZ&gt;&lt;polyline&gt; 0.0 27.7 0.0 27.7 9.1 1.5 9 1.
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span>
+  3 b1 = 망가짐</pre></td></tr><tr><td>1500</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: 줄 끝이 축 + 숫자 셋이 아님: &lt;b1&gt;&lt;Workplane&gt;&lt;XZ&gt;&lt;polyline&gt; 0.0 0.0 29.2 0.0 29.2 25.2 21.
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span>
+  3 b1 = 망가짐</pre></td></tr><tr><td>1750</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: 이 자리에 올 수 없는 낱말: x
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span>
+  3 b1 = 망가짐</pre></td></tr><tr><td>2000</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: 줄 끝이 축 + 숫자 셋이 아님: &lt;b0&gt;&lt;Workplane&gt;&lt;XY&gt;&lt;box&gt; 22. 14.5 20.7 1.4 13.7 1.4 16.7 7.3
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span>
+  3 b2 = 망가짐</pre></td></tr><tr><td>2250</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: 줄 끝이 축 + 숫자 셋이 아님: &lt;b0&gt;&lt;Workplane&gt;&lt;XY&gt;&lt;box&gt; 22. 14.5 20.7 1.4 13.7 11.5 1.7 10.
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span>
+  3 b1 = 망가짐</pre></td></tr><tr><td>2400</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: box 숫자 19 개
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span>
+  3 b1 = 망가짐
+  4 b2 = 망가짐</pre></td></tr></tbody></table></div></details><details><summary>부품 12050 — 스텝별 코드</summary><div class="표"><table><thead><tr><th>스텝</th><th>렌더</th><th>결과</th><th>생성 코드</th></tr></thead><tbody><tr><td>정답</td><td><img src="검증/정답_12050.png" width="140" alt=""></td><td></td><td></td></tr><tr><td>0</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>KeyError: &#x27;result&#x27;</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: 몸 이름으로 시작 안 함: &lt;center&gt;33</pre></td></tr><tr><td>250</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: 줄 끝이 축 + 숫자 셋이 아님: &lt;b0&gt;&lt;Workplane&gt;&lt;XY&gt;&lt;box&gt; 12.7 10.7 12.7 10.7 12.7 10.7 11.7 
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span>
+  3 b1 = 망가짐
+  4 b1 = 망가짐</pre></td></tr><tr><td>500</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: box 숫자 4 개
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span>
+  3 b1 = 망가짐</pre></td></tr><tr><td>750</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: polyline 숫자 9 개
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span>
+  3 b1 = 망가짐
+  4 b3 = 망가짐
+  5 b2 = 망가짐</pre></td></tr><tr><td>1000</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: 줄 끝이 축 + 숫자 셋이 아님: &lt;b0&gt;&lt;Workplane&gt;&lt;XZ&gt;&lt;polyline&gt; 0.0 0.0 9.6 1.7 15.5 6.2 17.5 
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span>
+  3 b1 = 망가짐
+  4 b2 = 망가짐
+  5 b4 = 망가짐</pre></td></tr><tr><td>1250</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: 줄 끝이 축 + 숫자 셋이 아님: &lt;b2&gt;&lt;Workplane&gt;&lt;XZ&gt;&lt;polyline&gt; 0.0 0.0 26.3 0.0 26.3 36.9 41.
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span>
+  3 b1 = 망가짐
+  4 b2 = 망가짐</pre></td></tr><tr><td>1500</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: 줄 끝이 축 + 숫자 셋이 아님: &lt;b0&gt;&lt;Workplane&gt;&lt;XZ&gt;&lt;polyline&gt; 0.0 0.0 27.0 0.0 27.0 29.8 18.
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span>
+  3 b3 = 망가짐</pre></td></tr><tr><td>1750</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: 줄 끝이 축 + 숫자 셋이 아님: &lt;b0&gt;&lt;Workplane&gt;&lt;XZ&gt;&lt;polyline&gt; 0.0 0.0 9.1 0.0 12.8 3.6 15.1 
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span>
+  3 b2 = 망가짐
+  4 b1 = 망가짐
+  5 b2 = 망가짐</pre></td></tr><tr><td>2000</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: hole 숫자 3 개
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span>
+  3 b3 = 망가짐
+  4 b3 = 망가짐</pre></td></tr><tr><td>2250</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: 줄 끝이 축 + 숫자 셋이 아님: &lt;b0&gt;&lt;Workplane&gt;&lt;XZ&gt;&lt;polyline&gt; 0.0 0.0 9.1 0.0 12.8 3.6 15.1 
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span>
+  3 b2 = 망가짐
+  4 b2 = 망가짐
+  5 b3 = 망가짐</pre></td></tr><tr><td>2400</td><td>—</td><td class="왼"><strong>실행 실패</strong><br>NameError: name &#x27;망가짐&#x27; is not defined<br>2 째 줄</td><td class="왼"><pre style="max-height:260px;overflow:auto;font-size:.72rem;white-space:pre;margin:0">  1 # 함수18 되돌림 실패: 줄 끝이 축 + 숫자 셋이 아님: &lt;b0&gt;&lt;Workplane&gt;&lt;XZ&gt;&lt;polyline&gt; 0.0 0.0 9.1 0.0 12.8 3.6 15.1 
+<span style="background:var(--fail-bg);color:var(--fail);display:block">  2 b0 = 망가짐</span>
+  3 b2 = 망가짐
+  4 b1 = 망가짐</pre></td></tr></tbody></table></div></details><h2>학습 곡선</h2><div class="곡선"><svg viewBox="0 0 620 270" role="img" aria-label="에폭별 학습 · 시험 loss"><line x1="52" x2="470" y1="230.0" y2="230.0" style="stroke:var(--soft)"/><text x="44" y="234.0" text-anchor="end">0.0</text><line x1="52" x2="470" y1="176.0" y2="176.0" style="stroke:var(--soft)"/><text x="44" y="180.0" text-anchor="end">0.8</text><line x1="52" x2="470" y1="122.0" y2="122.0" style="stroke:var(--soft)"/><text x="44" y="126.0" text-anchor="end">1.6</text><line x1="52" x2="470" y1="68.0" y2="68.0" style="stroke:var(--soft)"/><text x="44" y="72.0" text-anchor="end">2.3</text><line x1="52" x2="470" y1="14.0" y2="14.0" style="stroke:var(--soft)"/><text x="44" y="18.0" text-anchor="end">3.1</text><text x="52.0" y="250" text-anchor="middle">250</text><text x="100.6" y="250" text-anchor="middle">500</text><text x="149.2" y="250" text-anchor="middle">750</text><text x="197.8" y="250" text-anchor="middle">1000</text><text x="246.4" y="250" text-anchor="middle">1250</text><text x="295.0" y="250" text-anchor="middle">1500</text><text x="343.6" y="250" text-anchor="middle">1750</text><text x="392.2" y="250" text-anchor="middle">2000</text><text x="440.8" y="250" text-anchor="middle">2250</text><text x="470.0" y="250" text-anchor="middle">2400</text><polyline points="52.0,41.9 100.6,172.8 149.2,194.5 197.8,215.2 246.4,224.5 295.0,228.6 343.6,229.6 392.2,229.9 440.8,230.0 470.0,230.0" fill="none" stroke="var(--line1)" stroke-width="2.4" stroke-linejoin="round"/><circle cx="52.0" cy="41.9" r="3" fill="var(--line1)"/><circle cx="100.6" cy="172.8" r="3" fill="var(--line1)"/><circle cx="149.2" cy="194.5" r="3" fill="var(--line1)"/><circle cx="197.8" cy="215.2" r="3" fill="var(--line1)"/><circle cx="246.4" cy="224.5" r="3" fill="var(--line1)"/><circle cx="295.0" cy="228.6" r="3" fill="var(--line1)"/><circle cx="343.6" cy="229.6" r="3" fill="var(--line1)"/><circle cx="392.2" cy="229.9" r="3" fill="var(--line1)"/><circle cx="440.8" cy="230.0" r="3" fill="var(--line1)"/><circle cx="470.0" cy="230.0" r="3" fill="var(--line1)"/><text x="480.0" y="235.0" style="fill:var(--line1);font-weight:600">학습 loss 0.00</text><polyline points="52.0,144.0 100.6,152.9 149.2,134.3 197.8,99.3 246.4,58.7 295.0,34.6 343.6,20.4 392.2,15.1 440.8,14.2 470.0,14.0" fill="none" stroke="var(--line2)" stroke-width="2.4" stroke-linejoin="round"/><circle cx="52.0" cy="144.0" r="3" fill="var(--line2)"/><circle cx="100.6" cy="152.9" r="3" fill="var(--line2)"/><circle cx="149.2" cy="134.3" r="3" fill="var(--line2)"/><circle cx="197.8" cy="99.3" r="3" fill="var(--line2)"/><circle cx="246.4" cy="58.7" r="3" fill="var(--line2)"/><circle cx="295.0" cy="34.6" r="3" fill="var(--line2)"/><circle cx="343.6" cy="20.4" r="3" fill="var(--line2)"/><circle cx="392.2" cy="15.1" r="3" fill="var(--line2)"/><circle cx="440.8" cy="14.2" r="3" fill="var(--line2)"/><circle cx="470.0" cy="14.0" r="3" fill="var(--line2)"/><text x="480.0" y="19.0" style="fill:var(--line2);font-weight:600">시험 loss 3.12</text><text x="261.0" y="268" text-anchor="middle">에폭</text></svg></div><figure><img src="시트.png" alt="학습 곡선 · 지표 · 12003 세 장 칸 1 주의"><figcaption>판 시트: 하네스가 판 끝에 만든 그림</figcaption></figure><h2>점검</h2><h3>연기 판</h3><div class="줄글"><div><span>첫 loss</span> <b></b></div><div><span>배치 하나 40 걸음 뒤</span> <b></b></div><div><span>VRAM</span> <b> GB</b></div></div><h3>층보기 (시험 64 부품 · 4 층)</h3><div class="줄글"><div><span>칸끼리 닮음</span> <b></b></div><div><span>빈 조각 주의 몫</span> <b></b> <span>(빈 조각 0.54)</span></div><div><span>주의 엔트로피</span> <b></b></div><div><span>출력 자리 퍼짐</span> <b></b> <span>(정답 0.148)</span></div></div><h3>탐침 (합성 그림)</h3><div class="줄글"><div><span>블록 4 구조 6 종</span> <b></b></div><div><span>블록 4 곡률 R²</span> <b></b></div><div><span>블록 3</span> <b> · </b></div></div><h2>쇼츠</h2><div class="쇼츠틀"><video class="쇼츠" src="쇼츠.mp4" controls preload="metadata" playsinline></video><div class="쇼츠글"><p class="주석">편 125_판167외우기 · 47.5 초 · 12 줄 · <strong>서재용 업로드 대기</strong> · 하네스가 판 끝에 대본(claude -p) · 대본검사 · 맥락 없는 읽기 · 굽기까지</p><div class="표"><table><thead><tr><th>누구</th><th>말</th></tr></thead><tbody><tr><td class="왼">AI</td><td class="왼">이 도면을 보고 모델이 쓴 코드가 실행이 안 돼요.</td></tr><tr><td class="왼">AI</td><td class="왼">모델은 도면을 보고 입체 부품 모양을 짓는 코드를 써요.</td></tr><tr><td class="왼">AI</td><td class="왼">이 도면은 학습 때 한 번도 안 보여 준 거예요.</td></tr><tr><td class="왼">나</td><td class="왼">코드에 쓸 말이 너무 많아서 헷갈린 거야.</td></tr><tr><td class="왼">나</td><td class="왼">상자, 원통 같은 낱말 몇 개로만 쓰게 바꿔. <strong>[낱말 몇 개만]</strong></td></tr><tr><td class="왼">AI</td><td class="왼">이제 한 줄에 모양 하나, 상자나 원통이라고만 써요.</td></tr><tr><td class="왼">AI</td><td class="왼">괄호 같은 기호는 나중에 프로그램이 붙여 줘요.</td></tr><tr><td class="왼">AI</td><td class="왼">그런데 바꿨는데도 이게 상자인지 원통인지부터 틀려요.</td></tr><tr><td class="왼">AI</td><td class="왼">모든 도면에 똑같은 답 하나를 찍어도 이것보단 잘 맞혀요.</td></tr><tr><td class="왼">나</td><td class="왼">쓸 말이 많아서가 아니었네.</td></tr><tr><td class="왼">AI</td><td class="왼">처음 보는 도면 100개 중 4개만 실행됐어요. 전엔 2개였어요. <strong>[100개 중 4개]</strong></td></tr><tr><td class="왼">AI</td><td class="왼">낱말 몇 개로만 써도, 처음 보는 도면은 못 읽어요.</td></tr></tbody></table></div></div></div><h2>해석</h2><div class="사람"><p class="비어">아직 비어 있음. 보고.md 의 이 칸을 채우면 다시 만들 때 들어온다</p></div><h2>다음 가지</h2><div class="사람"><p class="비어">아직 비어 있음. 보고.md 의 이 칸을 채우면 다시 만들 때 들어온다</p></div><h2>재현</h2><pre>python 하네스/하네스.py --config-name 판_167외우기</pre><p class="주석"><a href="설정.yaml">설정.yaml</a> · <a href="판정.json">판정.json</a> · <a href="보고.md">보고.md</a> · 산출 <code>G:/art2real/out/하네스/167외우기/</code></p><h2>링크</h2><ul class="고리"><li><span>쇼츠</span><em>서재용 업로드 대기</em></li><li><span>GitHub 이슈</span><a href="https://github.com/sigongjoa/art2real/issues/36">https://github.com/sigongjoa/art2real/issues/36</a></li><li><span>커밋</span><em>아직 공개 안 됨</em></li><li><span>판 목록</span><a href="../../index.html">../../index.html</a></li></ul></main></body></html>
