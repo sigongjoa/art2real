@@ -1,0 +1,175 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>m1_tr0218_h000_깊이모서리</title><style>
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap");
+:root{--paper:#f6f4ef;--sheet:#fffdf8;--ink:#1d2129;--muted:#585e68;--rule:#dcd7cc;--soft:#ece8de;--pass:#1f7a3e;--pass-bg:#e3f1e6;--fail:#b3261e;--fail-bg:#f7e2de;--tool:#8a5f00;--tool-bg:#f6ecd4;--line1:#2d5fa8;--line2:#c0661b}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 "Pretendard Variable",Pretendard,"Malgun Gothic",system-ui,sans-serif;font-variant-numeric:tabular-nums;word-break:keep-all}
+::selection{background:#1d2129;color:#fffdf8}
+a{color:var(--line1);text-underline-offset:3px}a:focus-visible{outline:2px solid var(--line1);outline-offset:2px;border-radius:2px}
+main{max-width:1040px;margin:0 auto;padding:56px 32px 96px}
+header{padding-bottom:28px;border-bottom:1px solid var(--rule);margin-bottom:8px}
+h1{font-size:clamp(1.9rem,4vw,2.7rem);line-height:1.15;letter-spacing:-.025em;margin:0 0 10px;font-weight:800;text-wrap:balance}
+.lead{font-size:1.15rem;color:var(--muted);margin:0 0 22px;max-width:62ch;text-wrap:pretty}
+.판정{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.05rem;padding:7px 14px 7px 11px;border-radius:999px}
+.판정 svg{width:18px;height:18px}.통과{color:var(--pass);background:var(--pass-bg)}.실패{color:var(--fail);background:var(--fail-bg)}.탐색{color:var(--tool);background:var(--tool-bg)}
+dl.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px 28px;margin:26px 0 0}
+dl.meta div{min-width:0}dl.meta dt{font-size:.82rem;color:var(--muted)}dl.meta dd{margin:2px 0 0;font-weight:600;overflow-wrap:anywhere}
+h2{font-size:1.35rem;letter-spacing:-.015em;margin:56px 0 14px;font-weight:750}
+h3{font-size:1.02rem;margin:30px 0 8px;font-weight:700}
+p,li{max-width:72ch}
+.표{overflow-x:auto;margin:6px 0 4px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{padding:9px 14px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--soft)}
+th:first-child,td:first-child{text-align:left}tr:last-child td{border-bottom:0}
+thead th{font-size:.8rem;font-weight:600;color:var(--muted);background:var(--paper);border-bottom:1px solid var(--rule)}
+td.결과{text-align:center}td.결과 span{display:inline-flex;width:24px;height:24px;border-radius:50%;align-items:center;justify-content:center}td.결과 svg{width:15px;height:15px}
+td.결과 .o{color:var(--pass);background:var(--pass-bg)}td.결과 .x{color:var(--fail);background:var(--fail-bg)}
+.차{color:var(--muted);font-size:.88rem}
+.주석{font-size:.88rem;color:var(--muted);margin:8px 2px 0}.주석 code{overflow-wrap:anywhere}
+.줄글{display:flex;flex-wrap:wrap;gap:6px 26px;margin:4px 0}.줄글 b{font-weight:700}.줄글 span{color:var(--muted)}
+figure{margin:18px 0 0}figure img{display:block;width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;background:#fff}
+figcaption{font-size:.86rem;color:var(--muted);margin-top:8px}
+.곡선{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:14px 12px 6px}
+.곡선 svg{display:block;width:100%;height:auto}.곡선 text{font:15px "Pretendard Variable",Pretendard,sans-serif;fill:var(--muted)}
+.사람{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:6px 22px}
+.사람 ul{padding-left:1.1em}.사람 li{margin:8px 0}.비어{color:var(--muted);font-style:italic;padding:12px 0}
+code,pre{font-family:"JetBrains Mono",D2Coding,Consolas,monospace;font-size:.86rem}
+pre{background:#1d2129;color:#f3efe6;padding:16px 18px;border-radius:10px;overflow-x:auto;line-height:1.55}
+td.열{background:color-mix(in oklab,var(--line1) calc(var(--v)*1%),var(--sheet))}td.열.진{color:#fff}
+main{max-width:1240px;display:grid;grid-template-columns:300px minmax(0,1fr);column-gap:48px;align-items:start}
+main>*{grid-column:2}header{grid-column:1;grid-row:1/200;position:sticky;top:28px;border:1px solid var(--rule);border-radius:14px;background:var(--sheet);padding:24px 22px;margin:0}
+header h1{font-size:1.32rem;line-height:1.4;letter-spacing:-.01em;font-weight:750;margin-bottom:16px}header .lead{font-size:1rem}dl.meta{grid-template-columns:1fr 1fr;gap:12px 16px}main>h2:first-of-type{margin-top:0}
+@media (max-width:900px){main{display:block}header{position:static;margin-bottom:8px}main>h2:first-of-type{margin-top:44px}}
+nav.뒤{margin:0 0 14px}nav.뒤 a{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:.9rem;color:var(--muted);text-decoration:none}nav.뒤 a:hover{color:var(--ink)}nav.뒤 svg{width:16px;height:16px}
+td.왼{text-align:left;white-space:normal}tr.깊2 td:first-child{padding-left:30px;color:var(--muted)}.흐름{max-width:72ch}ul.목표 li{max-width:72ch;margin:6px 0}ul.고리{list-style:none;padding:0;margin:0;display:grid;gap:8px}ul.고리 li{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;align-items:baseline;padding:10px 14px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}ul.고리 li span{font-weight:700}ul.고리 a{overflow-wrap:anywhere}ul.고리 em{color:var(--muted);font-style:normal}
+article.분석{max-width:70ch;font-size:1.02rem;line-height:1.8}article.분석 h3{font-size:1.12rem;margin:28px 0 8px}article.분석 p{margin:0 0 14px}article.분석 ul,article.분석 ol{margin:0 0 14px;padding-left:1.3em}article.분석 li{margin:4px 0}article.분석 img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;margin:8px 0 4px}article.분석 em{color:var(--muted)}article.분석 figure{margin:8px 0 18px}article.분석 figcaption{font-size:.95rem;color:var(--ink);font-weight:600;margin-top:6px;padding-left:10px;border-left:3px solid var(--rule)}article.분석 table{border-collapse:collapse;margin:0 0 14px}article.분석 td,article.분석 th{border-bottom:1px solid var(--rule);padding:6px 12px;text-align:left}
+.명제{margin:0 0 12px;color:var(--muted);font-size:.95rem;max-width:72ch}.명제 span{font-weight:700;color:var(--ink);margin-right:6px}.쇼츠틀{display:grid;grid-template-columns:260px minmax(0,1fr);gap:20px;align-items:start}.쇼츠{width:260px;max-width:100%;border-radius:12px;border:1px solid var(--rule);background:#000}.쇼츠글 td{white-space:normal}@media (max-width:640px){.쇼츠틀{grid-template-columns:1fr}}.구조틀{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:12px;overflow-x:auto}.구조도{display:block;width:100%;min-width:720px;height:auto}.구조틀{background:#fbfaf6}.구조도 text{font-family:inherit;fill:var(--ink)}.구조도 .제{font-size:15px;font-weight:700}.구조도 .작{font-size:12px;fill:var(--muted)}.구조도 .작진{font-size:13px;font-weight:600}.구조도 .묶{font-size:13px;font-weight:600;fill:var(--muted)}
+@media (max-width:640px){main{padding:32px 16px 64px}th,td{padding:8px 10px}h2{margin-top:44px}}
+.판번호{color:var(--muted);margin:0 0 6px;font-weight:600}.판정{display:block;border-radius:10px;padding:10px 14px;font-weight:600;line-height:1.55;max-width:none}details{margin-top:18px}summary{cursor:pointer;font-weight:700}ul.결정 li{margin:8px 0}img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:8px;background:#fff}</style></head><body><main><header><p class="판번호">m1_tr0218_h000_깊이모서리</p><h1>모서리 근처 깊이가 뭉개지는 까닭은 손실(같은 무게)인가, 디코더의 세밀함인가?</h1><p class="판정 탐색">판정 · 다(둘 다 아님) — 시험 깊이 0~1 px 기준 0.0703 · 손실 0.0702(+0.1 %) · 세밀 0.0719(−2.3 %) · 깊이SSI 둘 다 기준보다 나쁨 · 세밀은 선 조금 오름(모서리 0.959 · 원호 0.910) → 깊이 끝은 선으로 세우고 tr220 · 5,000 스텝에서 메모리 부족으로 멈췄다 이어 감</p><dl class="meta"><div><dt>종류</dt><dd>탐색</dd></div><div><dt>쓰임새</dt><dd>미정</dd></div><div><dt>코드</dt><dd>원화3d/실험_20261013/캐드부품/그림217.py(학습 … 변형 · 잼218)</dd></div></dl><details><summary>결정 표(돌리기 전에 정함)</summary><ul class="결정"><li><b>만약</b> 손실 · 세밀 둘 다 시험 0 ~ 1 px 깊이 오차를 기준보다 15 % 넘게 줄이고 모서리F · 윤곽F 를 0.01 안으로 지키고 깊이SSI 가 기준 이하<br><b>다음</b> 둘 다 맞음 → 둘을 합친 판</li><li><b>만약</b> 하나만 그렇다<br><b>다음</b> 그 쪽이 까닭 → 그것을 바탕에 넣고 tr220(실물 사진)</li><li><b>만약</b> 둘 다 5 % 안<br><b>다음</b> 둘 다 아님 → 깊이 끝은 합칠 때 선으로 세우기로 하고 tr220</li><li><b>만약</b> 그 사이<br><b>다음</b> 씨앗 둘 더(흔들림인지 가름)</li></ul></details></header><h2>분석</h2>
+<h3>한 줄로</h3>
+<p><strong>물음</strong>: tr217 에서 깊이 오차가 모서리 · 윤곽 · 테두리 0 ~ 1 px 에서 0.070(안쪽 0.032 의 2 배)이었다. 손실 무게를 바꾸거나 디코더를 세밀하게 하면 줄어드나?</p>
+<p><strong>답</strong>: 둘 다 아니다(결정 표 「다」). 모서리 근처 깊이 오차가 손실 갈래 0.0702 · 세밀 갈래 0.0719 로 기준 0.0703 과 같다(판정선 −15 %). 손실 갈래는 안쪽 깊이만 나빠졌고(0.032 → 0.036), 세밀 갈래는 깊이는 그대로인 채 선이 조금 나아졌다(모서리 0.952 → 0.959 · 원호 0.885 → 0.910). → 깊이 끝은 합칠 때 선으로 세우기로 하고 tr220(실물 사진)으로.</p>
+<h3>왜 이 판을 했나</h3>
+<p>tr217 의 깊이 끝 뭉개짐이 데이터(학습 부품도 같음) · 스텝(12,000 에서 3 %)이 아닌 편향으로 나와, 손 댈 수 있는 까닭 둘을 한 판에서 겨뤘다(사용자 「두 개 가설 h0 h1 둘 다 해보자고」 「일단은 끝까지 보고 공정하게 비교하자고」).</p>
+<h3>바꾼 것 하나(갈래마다)</h3>
+<p>ㄱ 손실 — 모서리 · 윤곽 · 테두리 2 px 안 깊이 L1 무게 × 5 만 · ㄴ 세밀 — 입력 그림 길 16 → 32 채널 · 2 → 3 층만. 기준 = tr217 6,000 무게. 셋 다 6,000 스텝 · 씨앗 0 · 검증 손실 최소 무게 · 문턱은 검증에서.</p>
+<h3>결과</h3>
+<p><img alt="깊이만 · 6,000 스텝 — 세 갈래 모두 모서리 · 안쪽 원 테두리가 진함" src="깊이218_6000.png" /></p>
+<div class="표"><table>
+<thead>
+<tr>
+<th>시험 198 장</th>
+<th>기준</th>
+<th>ㄱ 손실</th>
+<th>ㄴ 세밀</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>깊이 0 ~ 1 px</td>
+<td>0.0703</td>
+<td>0.0702</td>
+<td>0.0719</td>
+</tr>
+<tr>
+<td>깊이 2 ~ 3 · 4 ~ 6 · 7 px ~</td>
+<td>0.055 · 0.047 · 0.032</td>
+<td>0.056 · 0.049 · 0.036</td>
+<td>0.057 · 0.049 · 0.034</td>
+</tr>
+<tr>
+<td>깊이SSI(전체)</td>
+<td>0.0531</td>
+<td>0.0545</td>
+<td>0.0551</td>
+</tr>
+<tr>
+<td>모서리 · 윤곽 F</td>
+<td>0.952 · 0.949</td>
+<td>0.954 · 0.952</td>
+<td><strong>0.959</strong> · 0.949</td>
+</tr>
+<tr>
+<td>직선 · 원호 F</td>
+<td>0.744 · 0.885</td>
+<td>0.731 · 0.892</td>
+<td>0.753 · <strong>0.910</strong></td>
+</tr>
+<tr>
+<td>학습일부 깊이 0 ~ 1 px</td>
+<td>0.0703</td>
+<td>0.0672</td>
+<td>0.0694</td>
+</tr>
+</tbody>
+</table></div>
+<p>판정: 0 ~ 1 px 줄어든 몫 손실 +0.1 % · 세밀 −2.3 %(판정선 +15 %) · 깊이SSI 둘 다 기준보다 나쁨 → <strong>다: 둘 다 아님</strong>.
+학습 중 깊이만 보기(검증 200 장 · 0 ~ 1 px): 손실 0.077 → 0.076 → 0.073(3 ~ 5 천) · 세밀 0.079 → 0.076 → 0.076.</p>
+<h3>왜 이렇게 나왔나</h3>
+<p><strong>확인한 것</strong></p>
+<ul>
+<li>모서리 근처에 무게를 5 배 줘도 그 띠의 오차가 안 줄었다(학습 부품에서도 0.070 → 0.067 뿐) — 망이 그 띠를 「더 열심히」 맞혀도 못 맞히는 쪽.</li>
+<li>시선과 나란히 꺾이는 면(75° 넘음)은 곡면 0.074 · 평면 0.069 로 정면(0.043 · 0.054)보다 나쁘다(tr217 무게로 잼) — 곡면만의 문제가 아니라 사라지는 면 · 테두리의 문제.</li>
+</ul>
+<p><strong>짐작 (아직 확인 안 함)</strong></p>
+<ul>
+<li>128² 의 테두리 화소는 앞 면과 뒤 면(또는 바탕)에 걸쳐 있어 정답 깊이 한 값이 원래 모호하다(섞인 화소) — 이 띠의 오차 일부는 이 해상도에서 줄일 수 없는 몫일 수 있다. 정답을 512² 로 그려 128² 칸 안 깊이 흩어짐을 재면 그 바닥이 나온다.</li>
+</ul>
+<h3>한계</h3>
+<ul>
+<li>갈래마다 한 가지 처방 · 한 세기(무게 × 5 · 32 채널)만.</li>
+<li>두 갈래는 5,000 스텝에서 메모리 부족으로 멈췄다가 이어 감(옵티마이저 상태까지 이어짐 · 배치 순서만 다름).</li>
+<li>씨앗 하나.</li>
+</ul>
+<h3>배운 것과 다음</h3>
+<p><strong>모서리 근처 깊이는 손실 무게로도 디코더 세밀함으로도 안 줄었다 — 깊이 끝은 선(모서리 · 윤곽)으로 세우는 역할 분담(tr216)이 맞다.</strong> 세밀 갈래는 선을 조금 올려(모서리 0.959 · 원호 0.910) 바탕 후보로 남김.</p>
+<ol>
+<li>tr220 — 실물 사진(렌더로 배운 망을 원화CAD짝 사진에 · 합친 뒤 3D).</li>
+<li>(싼 분석) 테두리 섞인 화소의 깊이 바닥 · 직선 원인(밝기 차이 대 놓침).</li>
+</ol>
+<h2>추가 분석 — 「깊이가 급격히 꺾이는 곳」 가설 (11-17 · 판정 뒤 · 사후 탐색)</h2>
+<p>사용자: 「곡률이 바뀌는 부분은 어렵다는 거는 이해가 되거든 · 지금 못 보는 부분은 곡률이 급격히 바뀌는 부분을 추론하기 어려워하고 있잖아」 → 「가설이 맞으면 218 하네스로 저장하고 보자고」.
+판을 돌린 뒤 세운 가설을 확인한 것이라 미리 정한 판정이 아니다(탐색) — 결정 표 「다」 는 그대로.</p>
+<p><strong>가설</strong>: 깊이 오차는 곡면 · 평면이 아니라 「깊이가 급격히 꺾이는 정도」 를 따라 커진다.
+<strong>잰 법</strong>: 정답 메시를 같은 카메라로 512² 광선 → 광선 거리(양자화 없음)를 128² 로 → 이차 미분 크기 |∂²t/∂x²| + |∂²t/∂y²| + 2|∂²t/∂x∂y| · 바탕과 닿는 칸 = 끊김 · tr217 6,000 무게 · 시험 198 장 모든 화소 · <code>원화3d/실험_20261013/캐드부품/급변217.py</code></p>
+<p><img alt="입력 · 급변 정도(보라가 진할수록 급변) · 깊이 오차(주황) · 급변 정도별 오차 막대" src="급변217.png" /></p>
+<div class="표"><table>
+<thead>
+<tr>
+<th>깊이가 꺾이는 정도(분위)</th>
+<th>하위 25 %</th>
+<th>25 ~ 50 %</th>
+<th>50 ~ 75 %</th>
+<th>75 ~ 90 %</th>
+<th>상위 10 %</th>
+<th>끊김(바탕)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>깊이 오차</td>
+<td>0.044</td>
+<td>0.041</td>
+<td>0.044</td>
+<td>0.056</td>
+<td><strong>0.086</strong></td>
+<td>0.073</td>
+</tr>
+<tr>
+<td>화소</td>
+<td>29.5 만</td>
+<td>22.2 만</td>
+<td>25.8 만</td>
+<td>15.5 만</td>
+<td>10.3 만</td>
+<td>8.6 만</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>판독</strong>: 매끈한 75 % 는 평면 · 곡면 가리지 않고 0.04 로 같고, 급변 상위 10 % 에서 2 배(0.086)로 뛴다 → 가설 맞음. 같은 tr217 무게로 따로 잰 것과도 맞는다 — 면 종류로 가르면 평면 0.041 · 곡면 0.037(곡면이라서가 아님) · 면 기울기 75° 넘는 외곽 0.069 ~ 0.074 · 모서리 · 윤곽 · 테두리 0 ~ 1 px 0.070.
+<strong>예외(짐작 · 안 셈)</strong>: 떨어진 두 부분 사이 앞뒤 거리를 통째로 틀리는 경우(그림 3 번째 아래 돔이 통째로 주황) — 급변과 다른 실패.
+<strong>설계에 주는 뜻</strong>: 급변부 = 선(모서리 · 윤곽)이 짚는 자리 — 깊이는 매끈한 곳(0.04), 급변부의 자리는 선(0.95), 합칠 때 선에서 깊이를 꺾거나 끊는다(tr216 의 3D 역할 분담과 같은 꼴).</p>
+<h2>판 기록</h2>
+<ul>
+<li>카드 · 코드 커밋 abeee51(돌리기 전) · 판정 잼.json · 깊이 추이 out/설명/캐드부품/모델217/깊이추이_218.json(git 밖)</li>
+</ul></main></body></html>

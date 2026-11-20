@@ -1,0 +1,134 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>m1_tr0216_h000_계단선</title><style>
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap");
+:root{--paper:#f6f4ef;--sheet:#fffdf8;--ink:#1d2129;--muted:#585e68;--rule:#dcd7cc;--soft:#ece8de;--pass:#1f7a3e;--pass-bg:#e3f1e6;--fail:#b3261e;--fail-bg:#f7e2de;--tool:#8a5f00;--tool-bg:#f6ecd4;--line1:#2d5fa8;--line2:#c0661b}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 "Pretendard Variable",Pretendard,"Malgun Gothic",system-ui,sans-serif;font-variant-numeric:tabular-nums;word-break:keep-all}
+::selection{background:#1d2129;color:#fffdf8}
+a{color:var(--line1);text-underline-offset:3px}a:focus-visible{outline:2px solid var(--line1);outline-offset:2px;border-radius:2px}
+main{max-width:1040px;margin:0 auto;padding:56px 32px 96px}
+header{padding-bottom:28px;border-bottom:1px solid var(--rule);margin-bottom:8px}
+h1{font-size:clamp(1.9rem,4vw,2.7rem);line-height:1.15;letter-spacing:-.025em;margin:0 0 10px;font-weight:800;text-wrap:balance}
+.lead{font-size:1.15rem;color:var(--muted);margin:0 0 22px;max-width:62ch;text-wrap:pretty}
+.판정{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.05rem;padding:7px 14px 7px 11px;border-radius:999px}
+.판정 svg{width:18px;height:18px}.통과{color:var(--pass);background:var(--pass-bg)}.실패{color:var(--fail);background:var(--fail-bg)}.탐색{color:var(--tool);background:var(--tool-bg)}
+dl.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px 28px;margin:26px 0 0}
+dl.meta div{min-width:0}dl.meta dt{font-size:.82rem;color:var(--muted)}dl.meta dd{margin:2px 0 0;font-weight:600;overflow-wrap:anywhere}
+h2{font-size:1.35rem;letter-spacing:-.015em;margin:56px 0 14px;font-weight:750}
+h3{font-size:1.02rem;margin:30px 0 8px;font-weight:700}
+p,li{max-width:72ch}
+.표{overflow-x:auto;margin:6px 0 4px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{padding:9px 14px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--soft)}
+th:first-child,td:first-child{text-align:left}tr:last-child td{border-bottom:0}
+thead th{font-size:.8rem;font-weight:600;color:var(--muted);background:var(--paper);border-bottom:1px solid var(--rule)}
+td.결과{text-align:center}td.결과 span{display:inline-flex;width:24px;height:24px;border-radius:50%;align-items:center;justify-content:center}td.결과 svg{width:15px;height:15px}
+td.결과 .o{color:var(--pass);background:var(--pass-bg)}td.결과 .x{color:var(--fail);background:var(--fail-bg)}
+.차{color:var(--muted);font-size:.88rem}
+.주석{font-size:.88rem;color:var(--muted);margin:8px 2px 0}.주석 code{overflow-wrap:anywhere}
+.줄글{display:flex;flex-wrap:wrap;gap:6px 26px;margin:4px 0}.줄글 b{font-weight:700}.줄글 span{color:var(--muted)}
+figure{margin:18px 0 0}figure img{display:block;width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;background:#fff}
+figcaption{font-size:.86rem;color:var(--muted);margin-top:8px}
+.곡선{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:14px 12px 6px}
+.곡선 svg{display:block;width:100%;height:auto}.곡선 text{font:15px "Pretendard Variable",Pretendard,sans-serif;fill:var(--muted)}
+.사람{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:6px 22px}
+.사람 ul{padding-left:1.1em}.사람 li{margin:8px 0}.비어{color:var(--muted);font-style:italic;padding:12px 0}
+code,pre{font-family:"JetBrains Mono",D2Coding,Consolas,monospace;font-size:.86rem}
+pre{background:#1d2129;color:#f3efe6;padding:16px 18px;border-radius:10px;overflow-x:auto;line-height:1.55}
+td.열{background:color-mix(in oklab,var(--line1) calc(var(--v)*1%),var(--sheet))}td.열.진{color:#fff}
+main{max-width:1240px;display:grid;grid-template-columns:300px minmax(0,1fr);column-gap:48px;align-items:start}
+main>*{grid-column:2}header{grid-column:1;grid-row:1/200;position:sticky;top:28px;border:1px solid var(--rule);border-radius:14px;background:var(--sheet);padding:24px 22px;margin:0}
+header h1{font-size:1.32rem;line-height:1.4;letter-spacing:-.01em;font-weight:750;margin-bottom:16px}header .lead{font-size:1rem}dl.meta{grid-template-columns:1fr 1fr;gap:12px 16px}main>h2:first-of-type{margin-top:0}
+@media (max-width:900px){main{display:block}header{position:static;margin-bottom:8px}main>h2:first-of-type{margin-top:44px}}
+nav.뒤{margin:0 0 14px}nav.뒤 a{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:.9rem;color:var(--muted);text-decoration:none}nav.뒤 a:hover{color:var(--ink)}nav.뒤 svg{width:16px;height:16px}
+td.왼{text-align:left;white-space:normal}tr.깊2 td:first-child{padding-left:30px;color:var(--muted)}.흐름{max-width:72ch}ul.목표 li{max-width:72ch;margin:6px 0}ul.고리{list-style:none;padding:0;margin:0;display:grid;gap:8px}ul.고리 li{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;align-items:baseline;padding:10px 14px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}ul.고리 li span{font-weight:700}ul.고리 a{overflow-wrap:anywhere}ul.고리 em{color:var(--muted);font-style:normal}
+article.분석{max-width:70ch;font-size:1.02rem;line-height:1.8}article.분석 h3{font-size:1.12rem;margin:28px 0 8px}article.분석 p{margin:0 0 14px}article.분석 ul,article.분석 ol{margin:0 0 14px;padding-left:1.3em}article.분석 li{margin:4px 0}article.분석 img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;margin:8px 0 4px}article.분석 em{color:var(--muted)}article.분석 figure{margin:8px 0 18px}article.분석 figcaption{font-size:.95rem;color:var(--ink);font-weight:600;margin-top:6px;padding-left:10px;border-left:3px solid var(--rule)}article.분석 table{border-collapse:collapse;margin:0 0 14px}article.분석 td,article.분석 th{border-bottom:1px solid var(--rule);padding:6px 12px;text-align:left}
+.명제{margin:0 0 12px;color:var(--muted);font-size:.95rem;max-width:72ch}.명제 span{font-weight:700;color:var(--ink);margin-right:6px}.쇼츠틀{display:grid;grid-template-columns:260px minmax(0,1fr);gap:20px;align-items:start}.쇼츠{width:260px;max-width:100%;border-radius:12px;border:1px solid var(--rule);background:#000}.쇼츠글 td{white-space:normal}@media (max-width:640px){.쇼츠틀{grid-template-columns:1fr}}.구조틀{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:12px;overflow-x:auto}.구조도{display:block;width:100%;min-width:720px;height:auto}.구조틀{background:#fbfaf6}.구조도 text{font-family:inherit;fill:var(--ink)}.구조도 .제{font-size:15px;font-weight:700}.구조도 .작{font-size:12px;fill:var(--muted)}.구조도 .작진{font-size:13px;font-weight:600}.구조도 .묶{font-size:13px;font-weight:600;fill:var(--muted)}
+@media (max-width:640px){main{padding:32px 16px 64px}th,td{padding:8px 10px}h2{margin-top:44px}}
+.판번호{color:var(--muted);margin:0 0 6px;font-weight:600}.판정{display:block;border-radius:10px;padding:10px 14px;font-weight:600;line-height:1.55;max-width:none}details{margin-top:18px}summary{cursor:pointer;font-weight:700}ul.결정 li{margin:8px 0}img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:8px;background:#fff}</style></head><body><main><header><p class="판번호">m1_tr0216_h000_계단선</p><h1>128³ 계단을 다듬어 없앨 때, 정답 모서리 선을 알면 모서리가 더 맞나?</h1><p class="판정 탐색">판정 · 가(선 값 있음) — ㄴ K30 선F1 0.839 대 선 없는 쪽 최선 ㄱ K10 0.516(+0.323 · p ≈ 0) · 표면 0.979 그대로 · ㄱ2 0.510 → tr217 장마다 2D 선 지도로 3D 모서리 합치기</p><dl class="meta"><div><dt>종류</dt><dd>탐색</dd></div><div><dt>쓰임새</dt><dd>미정</dd></div><div><dt>코드</dt><dd>원화3d/실험_20261013/캐드부품/계단선216.py</dd></div></dl><details><summary>결정 표(돌리기 전에 정함)</summary><ul class="결정"><li><b>만약</b> ㄴ − max(ㄱ, ㄱ2) 선F1 중앙 ≥ 0.10 · 모델별 짝 Wilcoxon p &lt; 0.05 · ㄴ 표면F1 중앙 ≥ max(ㄱ, ㄱ2) 표면 − 0.02<br><b>다음</b> 선 출력은 값이 있음 → 장마다 선 지도를 3D 모서리로 합치는 단계(tr217 · 정답 선 지도에서)</li><li><b>만약</b> max(ㄱ, ㄱ2) 선F1 중앙 ≥ ㄴ − 0.03<br><b>다음</b> 선 출력 불필요 → 출력은 점(실루엣 · 깊이)만 · 합친 뒤 모양에서 모서리를 찾는 다듬기 단계를 붙임</li><li><b>만약</b> 그 사이<br><b>다음</b> 모델을 평면 위주 · 곡면 많음으로 갈라 어디서 선이 값 있는지부터</li></ul></details></header><h2>분석</h2>
+<h3>한 줄로</h3>
+<p><strong>물음</strong>: tr215 의 모서리 손실은 대부분 격자 계단(가짜 꺾임)이었다. 선 없이 계단만 없애면 되나, 선을 알아야 모서리를 지키나?</p>
+<p><strong>답</strong>: 선을 알아야 한다(결정 표 「가」). 정답 선 근처를 고정하고 다듬으면 모서리 0.84, 선 없이 다듬기만 하면 0.52 — 차이 +0.32(p ≪ 0.001), 표면은 셋 다 0.98 그대로. 선 없이 다듬으면 계단과 함께 진짜 모서리도 둥글어진다(재현 0.90 → 0.68). 모양 스스로 모서리를 찾아 지키는 쪽(ㄱ2)도 0.51 로 못 지켰다.</p>
+<h3>왜 이 판을 했나</h3>
+<p>tr215 결정 표 「나」 + 사용자 「둘 다 테스트 해보면 되잖아」 — 「계단만 없앰」 과 「선으로 세움」 을 한 판에서 가른다. 선 없는 쪽이 허수아비가 되지 않게, 모양에서 스스로 모서리를 찾아 지키는 갈래(ㄱ2)를 함께 넣고, 다듬기 횟수 K(10 · 30)는 갈래마다 가장 좋은 것으로 골랐다.</p>
+<h3>바꾼 것 하나</h3>
+<p>다듬을 때 「어느 꼭짓점을 고정하나」 만 바꿨다 — ㄱ 없음 · ㄱ2 다듬기 10 번 한 모양에서 30° 넘게 꺾인 변 · ㄴ 정답 모서리에서 한 칸(0.0086) 안. 합치기(tr213 · 9 장 · 128³) · 다듬기(타우빈) · 자(표면F_5만 · 선F_5만)는 같다.</p>
+<h3>결과</h3>
+<p><img alt="줄마다 모델 하나 · 왼쪽부터 정답 모서리 · 기준 · ㄱ · ㄱ2 · ㄴ — ㄴ 만 정답 모서리 모양(타이어 안쪽 원 · 톱니 테)이 남음" src="그림.png" /></p>
+<div class="표"><table>
+<thead>
+<tr>
+<th>하드서페이스 132 · 중앙</th>
+<th>표면 F@1 %</th>
+<th>모서리 F@1 %</th>
+<th>정밀</th>
+<th>재현</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>기준(tr215)</td>
+<td>0.976</td>
+<td>0.408</td>
+<td>0.261</td>
+<td>0.903</td>
+</tr>
+<tr>
+<td>ㄱ 다듬기만(K10)</td>
+<td>0.979</td>
+<td>0.516</td>
+<td>0.425</td>
+<td>0.677</td>
+</tr>
+<tr>
+<td>ㄱ 다듬기만(K30)</td>
+<td>0.979</td>
+<td>0.508</td>
+<td>0.649</td>
+<td>0.560</td>
+</tr>
+<tr>
+<td>ㄱ2 모양이 찾은 모서리 고정(K30)</td>
+<td>0.980</td>
+<td>0.510</td>
+<td>0.423</td>
+<td>0.716</td>
+</tr>
+<tr>
+<td><strong>ㄴ 정답 선 근처 고정(K30)</strong></td>
+<td>0.979</td>
+<td><strong>0.839</strong></td>
+<td>0.798</td>
+<td>0.919</td>
+</tr>
+</tbody>
+</table></div>
+<p>판정: ㄴ − 선 없는 쪽 최선(ㄱ K10) = <strong>+0.323</strong> · 모델별 짝 Wilcoxon p ≈ 0 · 표면 안 떨어짐 · 멀쩡함(ㄴ &gt; 기준) 통과 → <strong>가: 선 출력은 값이 있다</strong>.</p>
+<h3>왜 이렇게 나왔나</h3>
+<p><strong>확인한 것</strong></p>
+<ul>
+<li>다듬기는 계단(가짜)과 모서리(진짜)를 가르지 못한다 — ㄱ 은 K 를 늘릴수록 정밀은 오르고(0.43 → 0.65) 재현은 떨어진다(0.68 → 0.56). 둘 다 「꺾임」 이기 때문.</li>
+<li>모양만 보고 모서리를 고르는 것(ㄱ2)은 계단 꺾임과 진짜 꺾임을 못 가른다 — 고정한 꼭짓점 몫이 정답 쪽(ㄴ)과 비슷한데(모델 하나에서 7.8 % 대 7.2 %) 자리가 다르다.</li>
+<li>선을 알면 「여기만 지켜라」 가 되어 계단은 지우고 모서리는 남는다(정밀 0.80 · 재현 0.92).</li>
+</ul>
+<p><strong>짐작 (아직 확인 안 함)</strong></p>
+<ul>
+<li>더 나은 「모양에서 모서리 찾기」(법선 필터 · 평면 · 원통 맞춤)라면 ㄱ2 가 따라올 수 있다 — 이번 ㄱ2 는 단순한 방식 하나다.</li>
+</ul>
+<h3>한계</h3>
+<ul>
+<li><strong>천장이다</strong>: ㄴ 은 정답 3D 모서리를 그대로 썼다. 실제로는 장마다 2D 선 지도 → 3D 모서리로 합쳐야 하고, 사진에서 뽑은 선은 틀린다.</li>
+<li>128³ 격자 · 9 장 정답 시점 · 정답 깊이 · 카메라를 앎.</li>
+<li>ㄱ2 는 모양에서 모서리를 찾는 방법 하나만 시험.</li>
+</ul>
+<h3>배운 것과 다음</h3>
+<p><strong>계단을 지우면서 모서리를 지키려면 「모서리가 어디 있는지」 를 밖에서 알아야 했다 — 출력에 선(모서리)을 넣을 값이 천장에서 확인됐다(+0.32).</strong> 그래서 장마다 지도 여섯 장(점 + 선) 형태를 이어 간다.</p>
+<ol>
+<li>tr217 — 장마다 정답 2D 모서리 지도(지도5)를 3D 모서리로 합치기: 3D 정답 선 대신 9 장의 2D 선으로도 ㄴ 만큼 가나(합치기 단계의 천장).</li>
+<li>그다음 사진 → 지도 여섯 장 학습(학습 · 검증 · 시험 같은 자).</li>
+</ol>
+<h2>판 기록</h2>
+<ul>
+<li>카드 · 코드 커밋 19364f2 · 2c5c269(YAML 형식만, 돌리기 전) · 코드 원화3d/실험_20261013/캐드부품/계단선216.py</li>
+<li>모델별 out/설명/캐드부품/모델216/잼_모델별.json(git 밖) · 요약 잼.json · 그림 그림.png</li>
+</ul></main></body></html>

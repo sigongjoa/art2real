@@ -1,0 +1,118 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>실험 m2_tr0181_h000_새자</title><style>
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap");
+:root{--paper:#f6f4ef;--sheet:#fffdf8;--ink:#1d2129;--muted:#585e68;--rule:#dcd7cc;--soft:#ece8de;--pass:#1f7a3e;--pass-bg:#e3f1e6;--fail:#b3261e;--fail-bg:#f7e2de;--tool:#8a5f00;--tool-bg:#f6ecd4;--line1:#2d5fa8;--line2:#c0661b}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 "Pretendard Variable",Pretendard,"Malgun Gothic",system-ui,sans-serif;font-variant-numeric:tabular-nums;word-break:keep-all}
+::selection{background:#1d2129;color:#fffdf8}
+a{color:var(--line1);text-underline-offset:3px}a:focus-visible{outline:2px solid var(--line1);outline-offset:2px;border-radius:2px}
+main{max-width:1040px;margin:0 auto;padding:56px 32px 96px}
+header{padding-bottom:28px;border-bottom:1px solid var(--rule);margin-bottom:8px}
+h1{font-size:clamp(1.9rem,4vw,2.7rem);line-height:1.15;letter-spacing:-.025em;margin:0 0 10px;font-weight:800;text-wrap:balance}
+.lead{font-size:1.15rem;color:var(--muted);margin:0 0 22px;max-width:62ch;text-wrap:pretty}
+.판정{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.05rem;padding:7px 14px 7px 11px;border-radius:999px}
+.판정 svg{width:18px;height:18px}.통과{color:var(--pass);background:var(--pass-bg)}.실패{color:var(--fail);background:var(--fail-bg)}.탐색{color:var(--tool);background:var(--tool-bg)}
+dl.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px 28px;margin:26px 0 0}
+dl.meta div{min-width:0}dl.meta dt{font-size:.82rem;color:var(--muted)}dl.meta dd{margin:2px 0 0;font-weight:600;overflow-wrap:anywhere}
+h2{font-size:1.35rem;letter-spacing:-.015em;margin:56px 0 14px;font-weight:750}
+h3{font-size:1.02rem;margin:30px 0 8px;font-weight:700}
+p,li{max-width:72ch}
+.표{overflow-x:auto;margin:6px 0 4px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{padding:9px 14px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--soft)}
+th:first-child,td:first-child{text-align:left}tr:last-child td{border-bottom:0}
+thead th{font-size:.8rem;font-weight:600;color:var(--muted);background:var(--paper);border-bottom:1px solid var(--rule)}
+td.결과{text-align:center}td.결과 span{display:inline-flex;width:24px;height:24px;border-radius:50%;align-items:center;justify-content:center}td.결과 svg{width:15px;height:15px}
+td.결과 .o{color:var(--pass);background:var(--pass-bg)}td.결과 .x{color:var(--fail);background:var(--fail-bg)}
+.차{color:var(--muted);font-size:.88rem}
+.주석{font-size:.88rem;color:var(--muted);margin:8px 2px 0}.주석 code{overflow-wrap:anywhere}
+.줄글{display:flex;flex-wrap:wrap;gap:6px 26px;margin:4px 0}.줄글 b{font-weight:700}.줄글 span{color:var(--muted)}
+figure{margin:18px 0 0}figure img{display:block;width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;background:#fff}
+figcaption{font-size:.86rem;color:var(--muted);margin-top:8px}
+.곡선{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:14px 12px 6px}
+.곡선 svg{display:block;width:100%;height:auto}.곡선 text{font:15px "Pretendard Variable",Pretendard,sans-serif;fill:var(--muted)}
+.사람{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:6px 22px}
+.사람 ul{padding-left:1.1em}.사람 li{margin:8px 0}.비어{color:var(--muted);font-style:italic;padding:12px 0}
+code,pre{font-family:"JetBrains Mono",D2Coding,Consolas,monospace;font-size:.86rem}
+pre{background:#1d2129;color:#f3efe6;padding:16px 18px;border-radius:10px;overflow-x:auto;line-height:1.55}
+td.열{background:color-mix(in oklab,var(--line1) calc(var(--v)*1%),var(--sheet))}td.열.진{color:#fff}
+main{max-width:1240px;display:grid;grid-template-columns:300px minmax(0,1fr);column-gap:48px;align-items:start}
+main>*{grid-column:2}header{grid-column:1;grid-row:1/200;position:sticky;top:28px;border:1px solid var(--rule);border-radius:14px;background:var(--sheet);padding:24px 22px;margin:0}
+header h1{font-size:1.32rem;line-height:1.4;letter-spacing:-.01em;font-weight:750;margin-bottom:16px}header .lead{font-size:1rem}dl.meta{grid-template-columns:1fr 1fr;gap:12px 16px}main>h2:first-of-type{margin-top:0}
+@media (max-width:900px){main{display:block}header{position:static;margin-bottom:8px}main>h2:first-of-type{margin-top:44px}}
+nav.뒤{margin:0 0 14px}nav.뒤 a{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:.9rem;color:var(--muted);text-decoration:none}nav.뒤 a:hover{color:var(--ink)}nav.뒤 svg{width:16px;height:16px}
+td.왼{text-align:left;white-space:normal}tr.깊2 td:first-child{padding-left:30px;color:var(--muted)}.흐름{max-width:72ch}ul.목표 li{max-width:72ch;margin:6px 0}ul.고리{list-style:none;padding:0;margin:0;display:grid;gap:8px}ul.고리 li{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;align-items:baseline;padding:10px 14px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}ul.고리 li span{font-weight:700}ul.고리 a{overflow-wrap:anywhere}ul.고리 em{color:var(--muted);font-style:normal}
+article.분석{max-width:70ch;font-size:1.02rem;line-height:1.8}article.분석 h3{font-size:1.12rem;margin:28px 0 8px}article.분석 p{margin:0 0 14px}article.분석 ul,article.분석 ol{margin:0 0 14px;padding-left:1.3em}article.분석 li{margin:4px 0}article.분석 img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;margin:8px 0 4px}article.분석 em{color:var(--muted)}article.분석 figure{margin:8px 0 18px}article.분석 figcaption{font-size:.95rem;color:var(--ink);font-weight:600;margin-top:6px;padding-left:10px;border-left:3px solid var(--rule)}article.분석 table{border-collapse:collapse;margin:0 0 14px}article.분석 td,article.분석 th{border-bottom:1px solid var(--rule);padding:6px 12px;text-align:left}
+.명제{margin:0 0 12px;color:var(--muted);font-size:.95rem;max-width:72ch}.명제 span{font-weight:700;color:var(--ink);margin-right:6px}.쇼츠틀{display:grid;grid-template-columns:260px minmax(0,1fr);gap:20px;align-items:start}.쇼츠{width:260px;max-width:100%;border-radius:12px;border:1px solid var(--rule);background:#000}.쇼츠글 td{white-space:normal}@media (max-width:640px){.쇼츠틀{grid-template-columns:1fr}}.구조틀{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:12px;overflow-x:auto}.구조도{display:block;width:100%;min-width:720px;height:auto}.구조틀{background:#fbfaf6}.구조도 text{font-family:inherit;fill:var(--ink)}.구조도 .제{font-size:15px;font-weight:700}.구조도 .작{font-size:12px;fill:var(--muted)}.구조도 .작진{font-size:13px;font-weight:600}.구조도 .묶{font-size:13px;font-weight:600;fill:var(--muted)}
+@media (max-width:640px){main{padding:32px 16px 64px}th,td{padding:8px 10px}h2{margin-top:44px}}
+.실험번호{color:var(--muted);margin:0 0 6px;font-weight:600}.판정{display:block;border-radius:10px;padding:10px 14px;font-weight:600;line-height:1.55;max-width:none}details{margin-top:18px}summary{cursor:pointer;font-weight:700}ul.결정 li{margin:8px 0}td.결과{font-weight:700;white-space:nowrap}td.지지{color:#1f7a3e}td.기각{color:#b42318}td.일부{color:#b25e09}td.미검증{color:var(--muted)}img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:8px;background:#fff}</style></head><body><main><header><p class="실험번호">실험 m2_tr0181_h000_새자</p><h1>181 새 자 — 부피 IoU 하나 대신 「같다」를 무엇으로 잴까 (11-10 · 자181.py · 손으로 정리 · 학습 없음)</h1><dl class="meta"><div><dt>종류</dt><dd></dd></div><div><dt>쓰임새</dt><dd></dd></div><div><dt>코드</dt><dd></dd></div></dl></header><h2>분석</h2>
+<h3>한 줄로</h3>
+<p><strong>물음</strong>: 부피 IoU 하나로는 얇은 부품이 0 점이 되고 구멍 메운 답이 통과하고 평균 붕괴를 늦게 봤다. 「같은 물건인가」를 무엇으로 재야 하나?</p>
+<p><strong>답</strong>: 「같다」 = 덩어리 · 구멍 수가 정답과 같고, 양쪽 표면 거리의 99 % 분위가 부품 가장 긴 변의 3 % 이하. 이 자로 우리 생성기 시험 99 를 다시 재니 172 20 바퀴 12 % · 127 3 % · 상자 하나 2 % 였고, 막는 것은 치수 · 자리 · 구멍 숫자였다.</p>
+<h3>왜 이 판을 했나</h3>
+<p>172~180 을 부피 IoU 하나로 돌리다 주먹구구가 됐다(사용자 「원점에서 다시」). 사용자: 「IoU 를 포함하는 다른 메트릭 · 시각적인 것」 · 「우리가 만든 복잡한 것들에 대해 0.9」. 대상은 조립124(몸 1~6 을 붙여 합친 우리 부품 생성기) 시험 12000~12099(그림 없는 12084 빼고 99).</p>
+<h3>바꾼 것 하나</h3>
+<p>자. 조사(서브 에이전트 셋 · 로컬 보고서)에서 부피 IoU 는 사람 판단과 순위 상관 0.34 · 사람끼리도 80~91 % 만 일치 · VLM 판정은 거의 찍기. 그래서 사람 O/X 로 맞추려던 계획(시트 6 장)은 사용자 결정 「내 눈도 100 점이 아님 · 메트릭으로」로 버리고, 허용 오차로 정의했다(공학의 공차와 같은 생각). 정답과 예측은 같은 틀에 놓는다(각자 상자로 맞추던 옛 결함 없앰).</p>
+<h3>결과</h3>
+<p><img alt="t 3 % 에서 172 20 바퀴만 12 % · 정답 칸에 치수 · 자리 · 구멍 숫자를 하나씩만 모델 값으로 끼워도 30~40 % 로 떨어진다" src="비교.png" /></p>
+<div class="표"><table>
+<thead>
+<tr>
+<th>시험 99</th>
+<th>t 1 %</th>
+<th>2 %</th>
+<th><strong>3 %</strong></th>
+<th>5 %</th>
+<th>위상 같음</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>172 · 20 바퀴</td>
+<td>0</td>
+<td>1</td>
+<td><strong>12.1</strong></td>
+<td>24.2</td>
+<td>62.6</td>
+</tr>
+<tr>
+<td>127</td>
+<td>0</td>
+<td>0</td>
+<td>3.0</td>
+<td>10.1</td>
+<td>52.5</td>
+</tr>
+<tr>
+<td>상자 하나</td>
+<td>0</td>
+<td>1</td>
+<td>2.0</td>
+<td>4.0</td>
+<td>58.6</td>
+</tr>
+</tbody>
+</table></div>
+<p>허용 오차 그림에서 3 % 안쪽에서 떨어진 쌍은 눈으로 똑같았고 5~10 % 부근부터 차이가 보였다. 사용자가 3 % 로 정함(뒤에 tr182 · 183 을 거쳐 주 목표는 5 % 「모양 맞음」 · 3 % 는 보조로 바뀜).</p>
+<h3>왜 이렇게 나왔나</h3>
+<p><strong>확인한 것</strong></p>
+<ul>
+<li>정답 칸을 그대로 지으면 「같다」 시험 100 % · 배운 부품 98 % — 칸 형식은 모양을 다 담는다.</li>
+<li>무리 하나씩 모델 값: 치수 28 % · 자리 31 % · 구멍 · 홈 40 % · 종류 52 % · 축 62 % · 몸 수 92 % · 필렛 100 %. 배운 부품에서도 비슷하다(모델 그대로 5 %).</li>
+<li>그림 크기 기준은 통일돼 있다: 부품 가장 긴 변 = 116 px(98 부품 10~90 % 115.3~117.3).</li>
+<li>위상(구멍 수)만으로 떨어진 부품은 0 — 구멍을 틀린 부품은 표면 거리에서도 이미 떨어져 있었다. 구멍 수 셈은 몸 사이 틈에 예민하다.</li>
+</ul>
+<p><strong>짐작 (아직 확인 안 함)</strong></p>
+<ul>
+<li>숫자가 안 맞는 것은 loss 가 모양이 아니라 칸 번호끼리 숫자를 견주기 때문일 수 있다.</li>
+</ul>
+<h3>한계</h3>
+<ul>
+<li>긴 변 비라 얇은 판의 두께 오차를 놓친다 · 막힌 구멍은 위상에 안 잡힌다.</li>
+<li>모서리 칸은 합친 몸 이음에서 메시가 끊겨 빠진다.</li>
+</ul>
+<h3>배운 것과 다음</h3>
+<p><strong>막는 것은 문법이 아니라 숫자(치수 · 자리 · 구멍)다.</strong></p>
+<ol>
+<li>학습량이 막나? → tr182.</li>
+</ol></main></body></html>

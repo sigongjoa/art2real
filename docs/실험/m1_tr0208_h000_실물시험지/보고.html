@@ -1,0 +1,119 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>tr208 실물 시험지 얼리기 — 원화CAD짝 시험 나눔(모델 292 · 사진 641) (11-16 · 실물208.py · 손으로 정리)</title><style>
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap");
+:root{--paper:#f6f4ef;--sheet:#fffdf8;--ink:#1d2129;--muted:#585e68;--rule:#dcd7cc;--soft:#ece8de;--pass:#1f7a3e;--pass-bg:#e3f1e6;--fail:#b3261e;--fail-bg:#f7e2de;--tool:#8a5f00;--tool-bg:#f6ecd4;--line1:#2d5fa8;--line2:#c0661b}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 "Pretendard Variable",Pretendard,"Malgun Gothic",system-ui,sans-serif;font-variant-numeric:tabular-nums;word-break:keep-all}
+::selection{background:#1d2129;color:#fffdf8}
+a{color:var(--line1);text-underline-offset:3px}a:focus-visible{outline:2px solid var(--line1);outline-offset:2px;border-radius:2px}
+main{max-width:1040px;margin:0 auto;padding:56px 32px 96px}
+header{padding-bottom:28px;border-bottom:1px solid var(--rule);margin-bottom:8px}
+h1{font-size:clamp(1.9rem,4vw,2.7rem);line-height:1.15;letter-spacing:-.025em;margin:0 0 10px;font-weight:800;text-wrap:balance}
+.lead{font-size:1.15rem;color:var(--muted);margin:0 0 22px;max-width:62ch;text-wrap:pretty}
+.판정{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.05rem;padding:7px 14px 7px 11px;border-radius:999px}
+.판정 svg{width:18px;height:18px}.통과{color:var(--pass);background:var(--pass-bg)}.실패{color:var(--fail);background:var(--fail-bg)}.탐색{color:var(--tool);background:var(--tool-bg)}
+dl.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px 28px;margin:26px 0 0}
+dl.meta div{min-width:0}dl.meta dt{font-size:.82rem;color:var(--muted)}dl.meta dd{margin:2px 0 0;font-weight:600;overflow-wrap:anywhere}
+h2{font-size:1.35rem;letter-spacing:-.015em;margin:56px 0 14px;font-weight:750}
+h3{font-size:1.02rem;margin:30px 0 8px;font-weight:700}
+p,li{max-width:72ch}
+.표{overflow-x:auto;margin:6px 0 4px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{padding:9px 14px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--soft)}
+th:first-child,td:first-child{text-align:left}tr:last-child td{border-bottom:0}
+thead th{font-size:.8rem;font-weight:600;color:var(--muted);background:var(--paper);border-bottom:1px solid var(--rule)}
+td.결과{text-align:center}td.결과 span{display:inline-flex;width:24px;height:24px;border-radius:50%;align-items:center;justify-content:center}td.결과 svg{width:15px;height:15px}
+td.결과 .o{color:var(--pass);background:var(--pass-bg)}td.결과 .x{color:var(--fail);background:var(--fail-bg)}
+.차{color:var(--muted);font-size:.88rem}
+.주석{font-size:.88rem;color:var(--muted);margin:8px 2px 0}.주석 code{overflow-wrap:anywhere}
+.줄글{display:flex;flex-wrap:wrap;gap:6px 26px;margin:4px 0}.줄글 b{font-weight:700}.줄글 span{color:var(--muted)}
+figure{margin:18px 0 0}figure img{display:block;width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;background:#fff}
+figcaption{font-size:.86rem;color:var(--muted);margin-top:8px}
+.곡선{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:14px 12px 6px}
+.곡선 svg{display:block;width:100%;height:auto}.곡선 text{font:15px "Pretendard Variable",Pretendard,sans-serif;fill:var(--muted)}
+.사람{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:6px 22px}
+.사람 ul{padding-left:1.1em}.사람 li{margin:8px 0}.비어{color:var(--muted);font-style:italic;padding:12px 0}
+code,pre{font-family:"JetBrains Mono",D2Coding,Consolas,monospace;font-size:.86rem}
+pre{background:#1d2129;color:#f3efe6;padding:16px 18px;border-radius:10px;overflow-x:auto;line-height:1.55}
+td.열{background:color-mix(in oklab,var(--line1) calc(var(--v)*1%),var(--sheet))}td.열.진{color:#fff}
+main{max-width:1240px;display:grid;grid-template-columns:300px minmax(0,1fr);column-gap:48px;align-items:start}
+main>*{grid-column:2}header{grid-column:1;grid-row:1/200;position:sticky;top:28px;border:1px solid var(--rule);border-radius:14px;background:var(--sheet);padding:24px 22px;margin:0}
+header h1{font-size:1.32rem;line-height:1.4;letter-spacing:-.01em;font-weight:750;margin-bottom:16px}header .lead{font-size:1rem}dl.meta{grid-template-columns:1fr 1fr;gap:12px 16px}main>h2:first-of-type{margin-top:0}
+@media (max-width:900px){main{display:block}header{position:static;margin-bottom:8px}main>h2:first-of-type{margin-top:44px}}
+nav.뒤{margin:0 0 14px}nav.뒤 a{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:.9rem;color:var(--muted);text-decoration:none}nav.뒤 a:hover{color:var(--ink)}nav.뒤 svg{width:16px;height:16px}
+td.왼{text-align:left;white-space:normal}tr.깊2 td:first-child{padding-left:30px;color:var(--muted)}.흐름{max-width:72ch}ul.목표 li{max-width:72ch;margin:6px 0}ul.고리{list-style:none;padding:0;margin:0;display:grid;gap:8px}ul.고리 li{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;align-items:baseline;padding:10px 14px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}ul.고리 li span{font-weight:700}ul.고리 a{overflow-wrap:anywhere}ul.고리 em{color:var(--muted);font-style:normal}
+article.분석{max-width:70ch;font-size:1.02rem;line-height:1.8}article.분석 h3{font-size:1.12rem;margin:28px 0 8px}article.분석 p{margin:0 0 14px}article.분석 ul,article.분석 ol{margin:0 0 14px;padding-left:1.3em}article.분석 li{margin:4px 0}article.분석 img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;margin:8px 0 4px}article.분석 em{color:var(--muted)}article.분석 figure{margin:8px 0 18px}article.분석 figcaption{font-size:.95rem;color:var(--ink);font-weight:600;margin-top:6px;padding-left:10px;border-left:3px solid var(--rule)}article.분석 table{border-collapse:collapse;margin:0 0 14px}article.분석 td,article.분석 th{border-bottom:1px solid var(--rule);padding:6px 12px;text-align:left}
+.명제{margin:0 0 12px;color:var(--muted);font-size:.95rem;max-width:72ch}.명제 span{font-weight:700;color:var(--ink);margin-right:6px}.쇼츠틀{display:grid;grid-template-columns:260px minmax(0,1fr);gap:20px;align-items:start}.쇼츠{width:260px;max-width:100%;border-radius:12px;border:1px solid var(--rule);background:#000}.쇼츠글 td{white-space:normal}@media (max-width:640px){.쇼츠틀{grid-template-columns:1fr}}.구조틀{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:12px;overflow-x:auto}.구조도{display:block;width:100%;min-width:720px;height:auto}.구조틀{background:#fbfaf6}.구조도 text{font-family:inherit;fill:var(--ink)}.구조도 .제{font-size:15px;font-weight:700}.구조도 .작{font-size:12px;fill:var(--muted)}.구조도 .작진{font-size:13px;font-weight:600}.구조도 .묶{font-size:13px;font-weight:600;fill:var(--muted)}
+@media (max-width:640px){main{padding:32px 16px 64px}th,td{padding:8px 10px}h2{margin-top:44px}}
+main{display:block;max-width:820px;padding:28px 16px 64px}main>*{grid-column:auto}header{position:static;margin:0 0 18px}main img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:8px;background:#fff}main table{border-collapse:collapse;margin:12px 0;display:block;overflow-x:auto}main td,main th{border:1px solid var(--rule);padding:6px 10px}</style></head><body><main><header><h1>tr208 실물 시험지 얼리기 — 원화CAD짝 시험 나눔(모델 292 · 사진 641) (11-16 · 실물208.py · 손으로 정리)</h1></header><h2>분석</h2>
+<h3>한 줄로</h3>
+<p><strong>물음</strong>: 실물 사진 · 렌더 · 컨셉아트 같은 「정해지지 않은 입력」에서 앞단을 잴 시험지를, 정답이 맞는지까지 확인해서 얼릴 수 있나?</p>
+<p><strong>답</strong>: 얼렸다. 사진 641 장에 꼬리표(종류 · 물체 수 · 배경 · 갈래)를 달고, 모델 292 개에서 물체 틀 정답(점유 96³ · 축당 단면 8 장 · 3면도)을 만들었다. 정답이 메시와 맞는지 여섯 방향 실루엣으로 검사해 263 개(사진 583 장)를 「믿음」 으로 표시했다. 정답이 CAD 가 아니라 메시라서 CAD 코드는 여기서 못 잰다.</p>
+<h3>왜 이 판을 했나</h3>
+<p>사용자 11-16: 「최대한 모르고 추정하는 문제로」 「실물로 시작해야지 · 상용 모델이고 사용자는 실물이나 컨셉아트」 「원화CAD짝에서 시작」. tr204 까지의 시험은 우리 렌더러 한 가지였다.</p>
+<h3>바꾼 것 하나</h3>
+<p>시험지만 새로 얼렸다(모델 · 학습 없음).</p>
+<ul>
+<li>사진: 원화CAD짝 짝목록의 시험 나눔 그대로(모델184/사진_X.npy 의 641 장).</li>
+<li>꼬리표: 맥락 없는 검토자가 시트 27 장을 보고 달음. 종류에 「그림 · 일러스트」 칸을 둠(AI 가 만든 듯한 일러스트가 섞여 있음).</li>
+<li>정답: 메시 → 기준 틀(위축 · 대칭각 · 앞뒤돌림 — 원화짝_기준축 과 같은 식) → 가운데 0 · 최대 길이 1 → 점유 96³(광선 5 개 투표) · 단면 8 장(물체 범위 안) · 3면도 복사. 얼린 곳 <code>D:/datasets/원화CAD짝/시험지_1116/</code>.</li>
+</ul>
+<h3>결과</h3>
+<p><img alt="꼬리표 시트 한 장(사진 120~143): 실물 사진 · 렌더 · 슬라이서 화면 · AI 일러스트가 섞인 실제 입력" src="꼬리표시트_예.png" /></p>
+<table>
+<thead>
+<tr>
+<th>꼬리표</th>
+<th>전체 641</th>
+<th>정답 믿음 583</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>실물 사진 · 렌더 · CAD·슬라이서 화면 · 그림·일러스트</td>
+<td>395 · 140 · 92 · 14</td>
+<td>360 · 130 · 81 · 12</td>
+</tr>
+<tr>
+<td>물체 1 · 여럿</td>
+<td>558 · 83</td>
+<td>510 · 73</td>
+</tr>
+<tr>
+<td>배경 단순 · 복잡</td>
+<td>434 · 207</td>
+<td>395 · 188</td>
+</tr>
+<tr>
+<td>하드서페이스 · 유기체 · 섞임</td>
+<td>322 · 245 · 74</td>
+<td>278 · 232 · 73</td>
+</tr>
+</tbody>
+</table>
+<p><img alt="정답 점검: 원래 메시 · 점유를 다시 메시로 · z · x · y 가운데 단면 — 1 · 2 줄 얇은 껍질은 점유가 빔, 8 · 10 줄 물 새는 메시는 없는 부피가 생김" src="정답점검.png" /></p>
+<h3>왜 이렇게 나왔나</h3>
+<p><strong>확인한 것</strong></p>
+<ul>
+<li>정답 292 개 모두 만들어짐 · 물 새지 않는 메시 219 개.</li>
+<li>점검 그림에서 두 실패를 봤다: 얇은 껍질(1012330 · 319675)은 벽이 격자 한 칸(크기의 ~1 %)보다 얇아 점유가 빔, 물 새는 메시(775139 배 · 442659 조각상)는 광선 투표가 틀려 없는 부피가 붙음.</li>
+<li>믿음 검사(메시와 점유-메시를 같은 틀로 여섯 방향 렌더 · 실루엣 IoU 가장 나쁜 쪽 ≥ 0.9)가 이 넷을 모두 떨어뜨리고, 칼 · 트럭 · 방패 받침 · 어몽어스는 통과시켰다.</li>
+<li>꼬리표 대조(「확신 낮음」 12 장을 내가 봄): 10 장 같음 · 다름 2(#250 「실물 사진」 → AI 일러스트로 보임 · #195 사진인지 렌더인지 모름).</li>
+</ul>
+<p><img alt="꼬리표 대조 12 장(확신 낮음에서 고르게)" src="꼬리표대조.png" /></p>
+<p><strong>짐작 (아직 확인 안 함)</strong></p>
+<ul>
+<li>꼬리표 「확신 낮음」 271 장 중 1~2 할은 종류가 틀렸을 수 있다(실물 사진 ↔ AI 그림 경계).</li>
+</ul>
+<h3>한계</h3>
+<ul>
+<li>정답이 메시 · 시점은 DINO 로 맞춘 추정값(정답 시점 아님).</li>
+<li>믿음 검사는 엄격하다: 정답이 멀쩡한 1616021(스포일러)이 얇은 판이 옆으로 보이는 한 방향(0.81) 때문에 떨어짐 — 결과를 보고 문턱을 바꾸지 않았다.</li>
+<li>라이선스: 원화CAD짝은 비상업(CC BY-NC) 2,957 개가 가장 많다 — 이 시험지는 평가용으로만.</li>
+</ul>
+<h3>배운 것과 다음</h3>
+<p><strong>정해지지 않은 실제 입력의 시험지가 생겼다 — 다음은 여기서 지금 무엇이 되는지(바닥)부터.</strong></p>
+<ol>
+<li>바닥 재기: L1 · S1 · tr184 ⑤ · 검색(가장 닮은 학습 모델) · 평균 모양을 이 시험지에(각자 크기 맞춤 · 24 돌림 최선 · 부피 · 단면 IoU · 꼬리표별 · 겹침 시트 + 도구 대조).</li>
+<li>그다음 D0 → D1(단면 길).</li>
+</ol></main></body></html>

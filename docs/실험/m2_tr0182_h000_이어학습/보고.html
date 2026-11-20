@@ -1,0 +1,130 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>실험 m2_tr0182_h000_이어학습</title><style>
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap");
+:root{--paper:#f6f4ef;--sheet:#fffdf8;--ink:#1d2129;--muted:#585e68;--rule:#dcd7cc;--soft:#ece8de;--pass:#1f7a3e;--pass-bg:#e3f1e6;--fail:#b3261e;--fail-bg:#f7e2de;--tool:#8a5f00;--tool-bg:#f6ecd4;--line1:#2d5fa8;--line2:#c0661b}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 "Pretendard Variable",Pretendard,"Malgun Gothic",system-ui,sans-serif;font-variant-numeric:tabular-nums;word-break:keep-all}
+::selection{background:#1d2129;color:#fffdf8}
+a{color:var(--line1);text-underline-offset:3px}a:focus-visible{outline:2px solid var(--line1);outline-offset:2px;border-radius:2px}
+main{max-width:1040px;margin:0 auto;padding:56px 32px 96px}
+header{padding-bottom:28px;border-bottom:1px solid var(--rule);margin-bottom:8px}
+h1{font-size:clamp(1.9rem,4vw,2.7rem);line-height:1.15;letter-spacing:-.025em;margin:0 0 10px;font-weight:800;text-wrap:balance}
+.lead{font-size:1.15rem;color:var(--muted);margin:0 0 22px;max-width:62ch;text-wrap:pretty}
+.판정{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.05rem;padding:7px 14px 7px 11px;border-radius:999px}
+.판정 svg{width:18px;height:18px}.통과{color:var(--pass);background:var(--pass-bg)}.실패{color:var(--fail);background:var(--fail-bg)}.탐색{color:var(--tool);background:var(--tool-bg)}
+dl.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px 28px;margin:26px 0 0}
+dl.meta div{min-width:0}dl.meta dt{font-size:.82rem;color:var(--muted)}dl.meta dd{margin:2px 0 0;font-weight:600;overflow-wrap:anywhere}
+h2{font-size:1.35rem;letter-spacing:-.015em;margin:56px 0 14px;font-weight:750}
+h3{font-size:1.02rem;margin:30px 0 8px;font-weight:700}
+p,li{max-width:72ch}
+.표{overflow-x:auto;margin:6px 0 4px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{padding:9px 14px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--soft)}
+th:first-child,td:first-child{text-align:left}tr:last-child td{border-bottom:0}
+thead th{font-size:.8rem;font-weight:600;color:var(--muted);background:var(--paper);border-bottom:1px solid var(--rule)}
+td.결과{text-align:center}td.결과 span{display:inline-flex;width:24px;height:24px;border-radius:50%;align-items:center;justify-content:center}td.결과 svg{width:15px;height:15px}
+td.결과 .o{color:var(--pass);background:var(--pass-bg)}td.결과 .x{color:var(--fail);background:var(--fail-bg)}
+.차{color:var(--muted);font-size:.88rem}
+.주석{font-size:.88rem;color:var(--muted);margin:8px 2px 0}.주석 code{overflow-wrap:anywhere}
+.줄글{display:flex;flex-wrap:wrap;gap:6px 26px;margin:4px 0}.줄글 b{font-weight:700}.줄글 span{color:var(--muted)}
+figure{margin:18px 0 0}figure img{display:block;width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;background:#fff}
+figcaption{font-size:.86rem;color:var(--muted);margin-top:8px}
+.곡선{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:14px 12px 6px}
+.곡선 svg{display:block;width:100%;height:auto}.곡선 text{font:15px "Pretendard Variable",Pretendard,sans-serif;fill:var(--muted)}
+.사람{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:6px 22px}
+.사람 ul{padding-left:1.1em}.사람 li{margin:8px 0}.비어{color:var(--muted);font-style:italic;padding:12px 0}
+code,pre{font-family:"JetBrains Mono",D2Coding,Consolas,monospace;font-size:.86rem}
+pre{background:#1d2129;color:#f3efe6;padding:16px 18px;border-radius:10px;overflow-x:auto;line-height:1.55}
+td.열{background:color-mix(in oklab,var(--line1) calc(var(--v)*1%),var(--sheet))}td.열.진{color:#fff}
+main{max-width:1240px;display:grid;grid-template-columns:300px minmax(0,1fr);column-gap:48px;align-items:start}
+main>*{grid-column:2}header{grid-column:1;grid-row:1/200;position:sticky;top:28px;border:1px solid var(--rule);border-radius:14px;background:var(--sheet);padding:24px 22px;margin:0}
+header h1{font-size:1.32rem;line-height:1.4;letter-spacing:-.01em;font-weight:750;margin-bottom:16px}header .lead{font-size:1rem}dl.meta{grid-template-columns:1fr 1fr;gap:12px 16px}main>h2:first-of-type{margin-top:0}
+@media (max-width:900px){main{display:block}header{position:static;margin-bottom:8px}main>h2:first-of-type{margin-top:44px}}
+nav.뒤{margin:0 0 14px}nav.뒤 a{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:.9rem;color:var(--muted);text-decoration:none}nav.뒤 a:hover{color:var(--ink)}nav.뒤 svg{width:16px;height:16px}
+td.왼{text-align:left;white-space:normal}tr.깊2 td:first-child{padding-left:30px;color:var(--muted)}.흐름{max-width:72ch}ul.목표 li{max-width:72ch;margin:6px 0}ul.고리{list-style:none;padding:0;margin:0;display:grid;gap:8px}ul.고리 li{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;align-items:baseline;padding:10px 14px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}ul.고리 li span{font-weight:700}ul.고리 a{overflow-wrap:anywhere}ul.고리 em{color:var(--muted);font-style:normal}
+article.분석{max-width:70ch;font-size:1.02rem;line-height:1.8}article.분석 h3{font-size:1.12rem;margin:28px 0 8px}article.분석 p{margin:0 0 14px}article.분석 ul,article.분석 ol{margin:0 0 14px;padding-left:1.3em}article.분석 li{margin:4px 0}article.분석 img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;margin:8px 0 4px}article.분석 em{color:var(--muted)}article.분석 figure{margin:8px 0 18px}article.분석 figcaption{font-size:.95rem;color:var(--ink);font-weight:600;margin-top:6px;padding-left:10px;border-left:3px solid var(--rule)}article.분석 table{border-collapse:collapse;margin:0 0 14px}article.분석 td,article.분석 th{border-bottom:1px solid var(--rule);padding:6px 12px;text-align:left}
+.명제{margin:0 0 12px;color:var(--muted);font-size:.95rem;max-width:72ch}.명제 span{font-weight:700;color:var(--ink);margin-right:6px}.쇼츠틀{display:grid;grid-template-columns:260px minmax(0,1fr);gap:20px;align-items:start}.쇼츠{width:260px;max-width:100%;border-radius:12px;border:1px solid var(--rule);background:#000}.쇼츠글 td{white-space:normal}@media (max-width:640px){.쇼츠틀{grid-template-columns:1fr}}.구조틀{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:12px;overflow-x:auto}.구조도{display:block;width:100%;min-width:720px;height:auto}.구조틀{background:#fbfaf6}.구조도 text{font-family:inherit;fill:var(--ink)}.구조도 .제{font-size:15px;font-weight:700}.구조도 .작{font-size:12px;fill:var(--muted)}.구조도 .작진{font-size:13px;font-weight:600}.구조도 .묶{font-size:13px;font-weight:600;fill:var(--muted)}
+@media (max-width:640px){main{padding:32px 16px 64px}th,td{padding:8px 10px}h2{margin-top:44px}}
+.실험번호{color:var(--muted);margin:0 0 6px;font-weight:600}.판정{display:block;border-radius:10px;padding:10px 14px;font-weight:600;line-height:1.55;max-width:none}details{margin-top:18px}summary{cursor:pointer;font-weight:700}ul.결정 li{margin:8px 0}td.결과{font-weight:700;white-space:nowrap}td.지지{color:#1f7a3e}td.기각{color:#b42318}td.일부{color:#b25e09}td.미검증{color:var(--muted)}img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:8px;background:#fff}</style></head><body><main><header><p class="실험번호">실험 m2_tr0182_h000_이어학습</p><h1>182 이어 학습 — 172 를 오래 돌리면 「같다」가 오르나 (11-10 · 모델182.py · 손으로 정리)</h1><dl class="meta"><div><dt>종류</dt><dd></dd></div><div><dt>쓰임새</dt><dd></dd></div><div><dt>코드</dt><dd></dd></div></dl></header><h2>분석</h2>
+<h3>한 줄로</h3>
+<p><strong>물음</strong>: 172 는 배운 부품도 「같다」 5 % 뿐이었다. 덜 배워서인가?</p>
+<p><strong>답</strong>: 아니다. 75 바퀴까지 돌려 배운 부품의 종류 · 축은 거의 다 맞히게 됐지만(0.99 · 1.00), 배운 부품 「같다」는 9~13 % 에서 멈췄다. 처음 보는 시험은 50 바퀴 17.2 % 가 정점이고 그 뒤 내려갔다. 판정: 학습량은 3 % 벽을 못 연다 · 50 바퀴 뒤 외움.</p>
+<h3>왜 이 판을 했나</h3>
+<p>tr181 에서 「같다」 자를 새로 정했다(덩어리 · 구멍 수가 같고 표면이 어디서든 크기의 3 % 안). 그 자로 172 를 재니 시험 12.1 % · 배운 부품 5 % 였고, 정답 칸에 모델 값을 하나씩 끼워 보니 치수 · 자리 · 구멍 숫자가 각각 혼자서 절반 넘게 깎았다. 172 는 127 망에 자료만 늘려 20 바퀴 돌린 것이라 학습량부터 물었다. 우리 목표는 그림(3면도) → CAD 코드.</p>
+<h3>바꾼 것 하나</h3>
+<p>학습량. 172 의 20 바퀴 무게에서 이어 21 바퀴부터 돌렸다(200 바퀴 계획 · 75 바퀴에서 사용자가 멈춤). 망 · loss · 학습률 · 자료는 172 와 같다.</p>
+<h3>결과</h3>
+<p><img alt="배운 부품은 10 % 이내가 오르지만 3 % 는 평평 · 시험은 50 바퀴 정점 뒤 내려가고 시험 loss 는 계속 오른다" src="비교.png" /></p>
+<div class="표"><table>
+<thead>
+<tr>
+<th>「같다」 3 %</th>
+<th>20</th>
+<th>30</th>
+<th>40</th>
+<th>50</th>
+<th>60</th>
+<th>70</th>
+<th>판정선</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>시험 99</td>
+<td>12.1</td>
+<td>15.2</td>
+<td>15.2</td>
+<td><strong>17.2</strong></td>
+<td>14.1</td>
+<td>13.1</td>
+<td>≥ 17.1</td>
+</tr>
+<tr>
+<td>배운 부품 100</td>
+<td>5</td>
+<td>7</td>
+<td>12</td>
+<td>11</td>
+<td>13</td>
+<td>9</td>
+<td>≥ 30</td>
+</tr>
+<tr>
+<td>시험 · 10 % 이내</td>
+<td>40</td>
+<td>50</td>
+<td>53</td>
+<td>53</td>
+<td>51</td>
+<td>51</td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<p>「같다」 = 판정기준181(자181.py <code>같다</code>): 덩어리 수 · 구멍 수가 정답과 같고, 예측 표면 → 정답 · 정답 표면 → 예측 거리의 99 % 분위가 둘 다 부품 가장 긴 변의 3 % 이하.</p>
+<h3>왜 이렇게 나왔나</h3>
+<p><strong>확인한 것</strong></p>
+<ul>
+<li>시험 loss 4.62(20) → 6.11(70) 오름은 고르기 항목이다: 종류 0.94 → 1.55 · 축 0.52 → 0.88 · 구멍 있음 0.79 → 1.30. 숫자 항목은 그대로(치수 0.41 → 0.38 · 자리 0.71 → 0.66). 종류를 틀린 칸에서 모델이 건 확신은 0.64 → 0.83 — 틀릴 때 더 확신해서 loss 가 큰다.</li>
+<li>배운 부품의 치수 오차 6.5 → 6 % · 자리 3 % 넘는 몸 58 → 40 % 로, 숫자는 외우지도 못한다.</li>
+<li>그림 격자(같은 부품 20 · 50 · 70 바퀴)에서 배운 부품은 70 바퀴에 눈으로 거의 정답인데 어긋남 4~7 % 로 바퀴마다 흔들린다. 처음 보는 몸 많은 부품(몸 5~6)은 몸이 빠지거나 뭉친 채로 남았다.</li>
+<li>loss 는 칸 번호끼리 숫자를 견준다 — 모양을 안 본다. 몸을 맞게 내고 칸만 바뀐 경우가 배운 부품 37 % · 시험 56 %.</li>
+</ul>
+<p><strong>짐작 (아직 확인 안 함)</strong></p>
+<ul>
+<li>숫자 흔들림은 loss 가 모양이 아니라 칸 숫자를 보기 때문일 수 있다.</li>
+<li>자리를 절대 좌표로 내는 것이 자리 오차의 원인일 수 있다(정답은 붙임 규칙으로 자리가 정해진다).</li>
+</ul>
+<h3>한계</h3>
+<ul>
+<li>시험 99 · 한 부품 = 1 %p. 17.2 → 13.1 은 4 개 차이.</li>
+<li>시드 하나 · 75 바퀴에서 멈춤(200 바퀴는 안 봄).</li>
+<li>50 바퀴 정점을 시험으로 골라 내세우지 않는다.</li>
+</ul>
+<h3>배운 것과 다음</h3>
+<p><strong>학습량은 고르기를 외우게 할 뿐, 숫자 정밀도와 처음 보는 복잡한 구조는 못 연다.</strong></p>
+<ol>
+<li>사용자 결정(11-10): 정밀도는 서비스(공차 · 스냅 · 코드 편집 · LLM 고침)가 맡고, 모델은 구조를 맞게 낸다 → 주 목표를 「모양 맞음」(위상 + 5 %)으로 · 3 % 는 보조.</li>
+<li>tr183: 자리 좌표 대신 붙임(몇 번 몸의 어느 면)을 고르게 — 고치기 쉬운 코드 + 자리 오차 제거.</li>
+<li>183 뒤에는 3면도 → CAD 가 아니라 실제 이미지 입력부터 파이프라인 개발.</li>
+</ol></main></body></html>

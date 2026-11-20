@@ -1,0 +1,131 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>m1_tr0221_h000_실패종류</title><style>
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap");
+:root{--paper:#f6f4ef;--sheet:#fffdf8;--ink:#1d2129;--muted:#585e68;--rule:#dcd7cc;--soft:#ece8de;--pass:#1f7a3e;--pass-bg:#e3f1e6;--fail:#b3261e;--fail-bg:#f7e2de;--tool:#8a5f00;--tool-bg:#f6ecd4;--line1:#2d5fa8;--line2:#c0661b}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 "Pretendard Variable",Pretendard,"Malgun Gothic",system-ui,sans-serif;font-variant-numeric:tabular-nums;word-break:keep-all}
+::selection{background:#1d2129;color:#fffdf8}
+a{color:var(--line1);text-underline-offset:3px}a:focus-visible{outline:2px solid var(--line1);outline-offset:2px;border-radius:2px}
+main{max-width:1040px;margin:0 auto;padding:56px 32px 96px}
+header{padding-bottom:28px;border-bottom:1px solid var(--rule);margin-bottom:8px}
+h1{font-size:clamp(1.9rem,4vw,2.7rem);line-height:1.15;letter-spacing:-.025em;margin:0 0 10px;font-weight:800;text-wrap:balance}
+.lead{font-size:1.15rem;color:var(--muted);margin:0 0 22px;max-width:62ch;text-wrap:pretty}
+.판정{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.05rem;padding:7px 14px 7px 11px;border-radius:999px}
+.판정 svg{width:18px;height:18px}.통과{color:var(--pass);background:var(--pass-bg)}.실패{color:var(--fail);background:var(--fail-bg)}.탐색{color:var(--tool);background:var(--tool-bg)}
+dl.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px 28px;margin:26px 0 0}
+dl.meta div{min-width:0}dl.meta dt{font-size:.82rem;color:var(--muted)}dl.meta dd{margin:2px 0 0;font-weight:600;overflow-wrap:anywhere}
+h2{font-size:1.35rem;letter-spacing:-.015em;margin:56px 0 14px;font-weight:750}
+h3{font-size:1.02rem;margin:30px 0 8px;font-weight:700}
+p,li{max-width:72ch}
+.표{overflow-x:auto;margin:6px 0 4px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{padding:9px 14px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--soft)}
+th:first-child,td:first-child{text-align:left}tr:last-child td{border-bottom:0}
+thead th{font-size:.8rem;font-weight:600;color:var(--muted);background:var(--paper);border-bottom:1px solid var(--rule)}
+td.결과{text-align:center}td.결과 span{display:inline-flex;width:24px;height:24px;border-radius:50%;align-items:center;justify-content:center}td.결과 svg{width:15px;height:15px}
+td.결과 .o{color:var(--pass);background:var(--pass-bg)}td.결과 .x{color:var(--fail);background:var(--fail-bg)}
+.차{color:var(--muted);font-size:.88rem}
+.주석{font-size:.88rem;color:var(--muted);margin:8px 2px 0}.주석 code{overflow-wrap:anywhere}
+.줄글{display:flex;flex-wrap:wrap;gap:6px 26px;margin:4px 0}.줄글 b{font-weight:700}.줄글 span{color:var(--muted)}
+figure{margin:18px 0 0}figure img{display:block;width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;background:#fff}
+figcaption{font-size:.86rem;color:var(--muted);margin-top:8px}
+.곡선{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:14px 12px 6px}
+.곡선 svg{display:block;width:100%;height:auto}.곡선 text{font:15px "Pretendard Variable",Pretendard,sans-serif;fill:var(--muted)}
+.사람{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:6px 22px}
+.사람 ul{padding-left:1.1em}.사람 li{margin:8px 0}.비어{color:var(--muted);font-style:italic;padding:12px 0}
+code,pre{font-family:"JetBrains Mono",D2Coding,Consolas,monospace;font-size:.86rem}
+pre{background:#1d2129;color:#f3efe6;padding:16px 18px;border-radius:10px;overflow-x:auto;line-height:1.55}
+td.열{background:color-mix(in oklab,var(--line1) calc(var(--v)*1%),var(--sheet))}td.열.진{color:#fff}
+main{max-width:1240px;display:grid;grid-template-columns:300px minmax(0,1fr);column-gap:48px;align-items:start}
+main>*{grid-column:2}header{grid-column:1;grid-row:1/200;position:sticky;top:28px;border:1px solid var(--rule);border-radius:14px;background:var(--sheet);padding:24px 22px;margin:0}
+header h1{font-size:1.32rem;line-height:1.4;letter-spacing:-.01em;font-weight:750;margin-bottom:16px}header .lead{font-size:1rem}dl.meta{grid-template-columns:1fr 1fr;gap:12px 16px}main>h2:first-of-type{margin-top:0}
+@media (max-width:900px){main{display:block}header{position:static;margin-bottom:8px}main>h2:first-of-type{margin-top:44px}}
+nav.뒤{margin:0 0 14px}nav.뒤 a{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:.9rem;color:var(--muted);text-decoration:none}nav.뒤 a:hover{color:var(--ink)}nav.뒤 svg{width:16px;height:16px}
+td.왼{text-align:left;white-space:normal}tr.깊2 td:first-child{padding-left:30px;color:var(--muted)}.흐름{max-width:72ch}ul.목표 li{max-width:72ch;margin:6px 0}ul.고리{list-style:none;padding:0;margin:0;display:grid;gap:8px}ul.고리 li{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;align-items:baseline;padding:10px 14px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}ul.고리 li span{font-weight:700}ul.고리 a{overflow-wrap:anywhere}ul.고리 em{color:var(--muted);font-style:normal}
+article.분석{max-width:70ch;font-size:1.02rem;line-height:1.8}article.분석 h3{font-size:1.12rem;margin:28px 0 8px}article.분석 p{margin:0 0 14px}article.분석 ul,article.분석 ol{margin:0 0 14px;padding-left:1.3em}article.분석 li{margin:4px 0}article.분석 img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;margin:8px 0 4px}article.분석 em{color:var(--muted)}article.분석 figure{margin:8px 0 18px}article.분석 figcaption{font-size:.95rem;color:var(--ink);font-weight:600;margin-top:6px;padding-left:10px;border-left:3px solid var(--rule)}article.분석 table{border-collapse:collapse;margin:0 0 14px}article.분석 td,article.분석 th{border-bottom:1px solid var(--rule);padding:6px 12px;text-align:left}
+.명제{margin:0 0 12px;color:var(--muted);font-size:.95rem;max-width:72ch}.명제 span{font-weight:700;color:var(--ink);margin-right:6px}.쇼츠틀{display:grid;grid-template-columns:260px minmax(0,1fr);gap:20px;align-items:start}.쇼츠{width:260px;max-width:100%;border-radius:12px;border:1px solid var(--rule);background:#000}.쇼츠글 td{white-space:normal}@media (max-width:640px){.쇼츠틀{grid-template-columns:1fr}}.구조틀{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:12px;overflow-x:auto}.구조도{display:block;width:100%;min-width:720px;height:auto}.구조틀{background:#fbfaf6}.구조도 text{font-family:inherit;fill:var(--ink)}.구조도 .제{font-size:15px;font-weight:700}.구조도 .작{font-size:12px;fill:var(--muted)}.구조도 .작진{font-size:13px;font-weight:600}.구조도 .묶{font-size:13px;font-weight:600;fill:var(--muted)}
+@media (max-width:640px){main{padding:32px 16px 64px}th,td{padding:8px 10px}h2{margin-top:44px}}
+.판번호{color:var(--muted);margin:0 0 6px;font-weight:600}.판정{display:block;border-radius:10px;padding:10px 14px;font-weight:600;line-height:1.55;max-width:none}details{margin-top:18px}summary{cursor:pointer;font-weight:700}ul.결정 li{margin:8px 0}img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:8px;background:#fff}</style></head><body><main><header><p class="판번호">m1_tr0221_h000_실패종류</p><h1>실물에서 윤곽을 놓치는 사진은 배경 떼기 · 질감 · 원근 · 렌더에 드문 그림 가운데 무엇을 따라 갈리나?</h1><p class="판정 탐색">판정 · 입력종류(규칙) — 렌더 아님 −0.174 [−0.268, −0.075] · Canny 도 −0.176 · 원근 −0.135 · 드문그림 −0.132 · 질감 −0.112 구간 0 밖 · 배경떼기 −0.090 구간 걸침 → 원근 카메라 섞기(정답 어긋남 먼저 눈으로) · 눈으로: 윤곽 낮은 6 장 중 5 장 배경 안 떼짐(상자 채움 ≥ 0.97 · 132 중 20 · 판정 묶음 중 6) → 정답 엉뚱 · 6 장 빼도 tr220 「다」 그대로(윤곽 0.750 대 Canny 0.654) · 배경떼기 ~ 원근 상관 0.96(같은 것을 잼 · 제 실수)</p><dl class="meta"><div><dt>종류</dt><dd>탐색</dd></div><div><dt>쓰임새</dt><dd>미정</dd></div><div><dt>코드</dt><dd>원화3d/실험_20261013/캐드부품/실패221.py</dd></div></dl><details><summary>결정 표(돌리기 전에 정함)</summary><ul class="결정"><li><b>만약</b> 질감 차가 다섯 가운데 가장 크고 95 % 구간이 0 밖<br><b>다음</b> 학습 렌더를 실물답게(색 · 질감 · 조명 · 배경 무작위) 다시 학습하는 판</li><li><b>만약</b> 드문그림 차가 가장 크고 구간이 0 밖(질감은 아님)<br><b>다음</b> 생성기 모양 · 짜임 넓히기(구멍 줄 · 우리 · 결 같은 반복 구조)</li><li><b>만약</b> 배경떼기 차가 가장 크고 구간이 0 밖<br><b>다음</b> 망 말고 앞단(배경 떼기) 고치기 판</li><li><b>만약</b> 원근 또는 입력종류 차가 가장 크고 구간이 0 밖<br><b>다음</b> 학습 렌더에 원근 카메라를 섞는 판(정답 쪽 어긋남인지 먼저 눈으로)</li><li><b>만약</b> 어느 요인도 구간이 0 밖이 아님<br><b>다음</b> 윤곽F 낮은 10 장을 맥락 없는 서브 에이전트가 눈으로 분류</li></ul></details></header><h2>분석</h2>
+<h3>한 줄로</h3>
+<p><strong>물음</strong>: 실물에서 윤곽을 놓치는 사진은 배경 떼기 · 질감 · 원근 · 렌더에 드문 그림 가운데 무엇을 따라 갈리나?</p>
+<p><strong>답</strong>: 미리 정한 규칙으로는 「입력 종류」 다. 렌더가 아닌 사진이 윤곽 F 가 0.17 낮았고(구간 −0.27 ~ −0.08), 결정 표대로면 다음은 「원근 카메라 섞기, 단 정답 어긋남부터 눈으로」 다. 그런데 눈으로 보니 더 앞선 문제가 있었다. 윤곽이 가장 낮은 6 장 가운데 5 장은 배경이 아예 안 떼진 사진이었고, 그래서 정답 자체가 엉뚱했다. 시험지부터 고쳐야 한다.</p>
+<h3>왜 이 판을 했나</h3>
+<p>tr220 에서 렌더로 배운 망은 실물 윤곽이 0.71(렌더 0.95)이었고, 결정 표 「다」 가 나왔다. 「다」 의 다음 일은 실패한 사진을 종류별로 세는 것이다. 어디서 무너지는지 알아야 다음 판(실물다운 렌더 · 생성기 넓히기 · 앞단 고치기 · 원근 카메라) 가운데 하나를 고를 수 있다.</p>
+<h3>바꾼 것 하나</h3>
+<p>망은 다시 돌리지 않았다. tr220 의 사진별 기록에 요인 다섯을 붙여, 요인마다 46 장을 중앙값으로 반씩 나누고 윤곽 F 차를 쟀다. 요인은 미리 정했다: 배경 떼기(RMBG 실루엣과 정답 실루엣 IoU), 질감(Canny 선 가운데 정답 선 밖 몫), 원근(자세 맞춤 IoU), 드문 그림(학습 렌더 4,000 장과 DINOv2 거리), 입력 종류.</p>
+<h3>결과</h3>
+<p><img alt="위: 요인별 윤곽 F(주황 = 우리, 회색 = Canny) — 넷이 비슷한 크기로 갈린다. 아래: 윤곽이 가장 낮은 6 장 — 다섯은 배경이 안 떼진 사진이다" src="그림.png" /></p>
+<div class="표"><table>
+<thead>
+<tr>
+<th>판정 묶음 46 장</th>
+<th>나쁜 쪽 − 좋은 쪽 윤곽 F</th>
+<th>95 % 구간</th>
+<th>같은 나눔 Canny</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>입력 종류(렌더 아님)</td>
+<td><strong>−0.17</strong></td>
+<td>−0.27 ~ −0.08</td>
+<td>−0.18</td>
+</tr>
+<tr>
+<td>원근(자세 맞춤 낮음)</td>
+<td>−0.13</td>
+<td>−0.23 ~ −0.04</td>
+<td>−0.10</td>
+</tr>
+<tr>
+<td>드문 그림(멀다)</td>
+<td>−0.13</td>
+<td>−0.23 ~ −0.03</td>
+<td>−0.11</td>
+</tr>
+<tr>
+<td>질감(많다)</td>
+<td>−0.11</td>
+<td>−0.21 ~ −0.01</td>
+<td>−0.14</td>
+</tr>
+<tr>
+<td>배경 떼기(낮음)</td>
+<td>−0.09</td>
+<td>−0.19 ~ +0.02</td>
+<td>−0.06</td>
+</tr>
+</tbody>
+</table></div>
+<p>차가 음수면 나쁜 쪽 사진에서 윤곽 F 가 그만큼 낮다는 뜻이다. 넷이 구간 0 밖이고 크기도 서로 겹친다.</p>
+<h3>왜 이렇게 나왔나</h3>
+<p><strong>확인한 것</strong></p>
+<ul>
+<li>1 등인 입력 종류는 Canny 도 똑같이 떨어진다(−0.17 대 −0.18). 우리 망만의 약점이 아니라, 실물 사진이 어떤 방법에나 어렵거나 정답이 덜 맞는 쪽이다.</li>
+<li>윤곽이 가장 낮은 6 장을 원본 사진 · 배경 떼기 · 정답과 나란히 놓고 봤다. #68 · #199 · #335 · #517 은 RMBG 가 배경을 하나도 안 떼서 사진 전체가 물체로 잡혔다. 그 네모에 정답 메시를 맞추니 정답이 엉뚱한 모양이 됐다(#517 은 작은 부품인데 정답은 판 전체). #493 은 쟁반이 사진을 꽉 채워 같은 꼴이다. 진짜 망 실패는 #397(반지 안쪽 윤곽 놓침) 하나다.</li>
+<li>배경 떼기 마스크가 경계 상자를 97 % 넘게 채우는 사진은 132 장 가운데 20 장, 판정 묶음 46 장 가운데 6 장이다.</li>
+<li>그 6 장을 빼도(사후 확인) tr220 판정은 그대로다: 윤곽 0.750 대 Canny 0.654(렌더 0.949 에 못 미침 → 「다」), 깊이 0.128 대 Depth Anything 0.109.</li>
+<li>6 장을 뺀 40 장에서 요인 표를 다시 보면(사후 · 탐색) 드문 그림은 사라지고(−0.03 · 구간 0 걸침), 사진 실루엣이 정사영 정답과 덜 맞는 쪽(배경 떼기 · 원근)에서 우리만 더 떨어진다(우리 −0.12 ~ −0.13 대 Canny −0.05 ~ −0.09 · Canny 쪽은 구간 0 걸침).</li>
+<li>드문 그림은 사진끼리 견줘서는 가릴 수 없다. 사진은 모두 학습 렌더에서 멀다(가장 가까운 사진도 0.22 · tr217 시험 렌더는 90 % 가 0.21 안).</li>
+</ul>
+<p><strong>짐작 (아직 확인 안 함)</strong></p>
+<ul>
+<li>깨끗한 40 장에서 우리만 더 떨어지는 「실루엣이 정사영과 덜 맞는 사진」 은 원근이 센 사진일 것이다. 학습은 정사영 렌더뿐이었다.</li>
+</ul>
+<h3>한계</h3>
+<ul>
+<li>제 실수 둘. (1) 배경 떼기와 원근 요인이 사실상 같은 것을 쟀다(순위 상관 0.96). 둘 다 「RMBG 마스크 대 자세 맞춘 정답 실루엣」 이다. (2) tr220 의 판정 묶음 거름(자세 IoU ≥ 0.85)이 배경 안 떼진 사진을 못 걸렀다. 자세를 같은 마스크에 맞췄으니 네모 마스크에 네모 정답이 맞아 IoU 가 높게 나온다.</li>
+<li>46 장(깨끗한 것 40 장)이라 요인끼리 순위를 가릴 힘이 약하다. 요인끼리도 얽혀 있다(실물 사진이 질감도 많고 렌더에서도 멀다).</li>
+<li>40 장 표와 6 장 빼기는 결과를 보고 한 사후 확인이다.</li>
+</ul>
+<h3>배운 것과 다음</h3>
+<p><strong>실물 윤곽 실패의 맨 앞은 망이 아니라 시험지였다. 배경이 안 떼진 사진에 정답을 억지로 맞춰서, 무엇을 놓쳤는지 셀 수조차 없는 사진이 판정 묶음에 섞여 있었다.</strong></p>
+<ol>
+<li>시험지 고치기: 배경 떼기가 상자를 97 % 넘게 채운 20 장을 표시하고, 판정 묶음 거름에 넣는다(tr220 숫자는 그대로 · 다음 판부터).</li>
+<li>결정 표 다음(원근 카메라 섞기)은 깨끗한 40 장에서도 같은 쪽을 가리킨다. 학습 렌더 일부를 원근 카메라로 다시 그려 학습하는 판(222)을 준비한다.</li>
+<li>실물다운 렌더(색 · 질감 · 조명)는 질감 요인이 1 등이 아니어서 미룬다.</li>
+</ol>
+<h2>판 기록</h2>
+<ul>
+<li>카드 · 코드 커밋 8a12c6a(돌리기 전) · 판정 잼.json · 그림 그림.png · 사진별 요인 out/설명/캐드부품/모델221/요인_사진별.json · 상자채움.json(git 밖).</li>
+</ul></main></body></html>

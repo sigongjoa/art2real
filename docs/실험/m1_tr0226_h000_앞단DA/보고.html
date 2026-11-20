@@ -1,0 +1,127 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>m1_tr0226_h000_앞단DA</title><style>
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap");
+:root{--paper:#f6f4ef;--sheet:#fffdf8;--ink:#1d2129;--muted:#585e68;--rule:#dcd7cc;--soft:#ece8de;--pass:#1f7a3e;--pass-bg:#e3f1e6;--fail:#b3261e;--fail-bg:#f7e2de;--tool:#8a5f00;--tool-bg:#f6ecd4;--line1:#2d5fa8;--line2:#c0661b}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 "Pretendard Variable",Pretendard,"Malgun Gothic",system-ui,sans-serif;font-variant-numeric:tabular-nums;word-break:keep-all}
+::selection{background:#1d2129;color:#fffdf8}
+a{color:var(--line1);text-underline-offset:3px}a:focus-visible{outline:2px solid var(--line1);outline-offset:2px;border-radius:2px}
+main{max-width:1040px;margin:0 auto;padding:56px 32px 96px}
+header{padding-bottom:28px;border-bottom:1px solid var(--rule);margin-bottom:8px}
+h1{font-size:clamp(1.9rem,4vw,2.7rem);line-height:1.15;letter-spacing:-.025em;margin:0 0 10px;font-weight:800;text-wrap:balance}
+.lead{font-size:1.15rem;color:var(--muted);margin:0 0 22px;max-width:62ch;text-wrap:pretty}
+.판정{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.05rem;padding:7px 14px 7px 11px;border-radius:999px}
+.판정 svg{width:18px;height:18px}.통과{color:var(--pass);background:var(--pass-bg)}.실패{color:var(--fail);background:var(--fail-bg)}.탐색{color:var(--tool);background:var(--tool-bg)}
+dl.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px 28px;margin:26px 0 0}
+dl.meta div{min-width:0}dl.meta dt{font-size:.82rem;color:var(--muted)}dl.meta dd{margin:2px 0 0;font-weight:600;overflow-wrap:anywhere}
+h2{font-size:1.35rem;letter-spacing:-.015em;margin:56px 0 14px;font-weight:750}
+h3{font-size:1.02rem;margin:30px 0 8px;font-weight:700}
+p,li{max-width:72ch}
+.표{overflow-x:auto;margin:6px 0 4px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{padding:9px 14px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--soft)}
+th:first-child,td:first-child{text-align:left}tr:last-child td{border-bottom:0}
+thead th{font-size:.8rem;font-weight:600;color:var(--muted);background:var(--paper);border-bottom:1px solid var(--rule)}
+td.결과{text-align:center}td.결과 span{display:inline-flex;width:24px;height:24px;border-radius:50%;align-items:center;justify-content:center}td.결과 svg{width:15px;height:15px}
+td.결과 .o{color:var(--pass);background:var(--pass-bg)}td.결과 .x{color:var(--fail);background:var(--fail-bg)}
+.차{color:var(--muted);font-size:.88rem}
+.주석{font-size:.88rem;color:var(--muted);margin:8px 2px 0}.주석 code{overflow-wrap:anywhere}
+.줄글{display:flex;flex-wrap:wrap;gap:6px 26px;margin:4px 0}.줄글 b{font-weight:700}.줄글 span{color:var(--muted)}
+figure{margin:18px 0 0}figure img{display:block;width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;background:#fff}
+figcaption{font-size:.86rem;color:var(--muted);margin-top:8px}
+.곡선{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:14px 12px 6px}
+.곡선 svg{display:block;width:100%;height:auto}.곡선 text{font:15px "Pretendard Variable",Pretendard,sans-serif;fill:var(--muted)}
+.사람{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:6px 22px}
+.사람 ul{padding-left:1.1em}.사람 li{margin:8px 0}.비어{color:var(--muted);font-style:italic;padding:12px 0}
+code,pre{font-family:"JetBrains Mono",D2Coding,Consolas,monospace;font-size:.86rem}
+pre{background:#1d2129;color:#f3efe6;padding:16px 18px;border-radius:10px;overflow-x:auto;line-height:1.55}
+td.열{background:color-mix(in oklab,var(--line1) calc(var(--v)*1%),var(--sheet))}td.열.진{color:#fff}
+main{max-width:1240px;display:grid;grid-template-columns:300px minmax(0,1fr);column-gap:48px;align-items:start}
+main>*{grid-column:2}header{grid-column:1;grid-row:1/200;position:sticky;top:28px;border:1px solid var(--rule);border-radius:14px;background:var(--sheet);padding:24px 22px;margin:0}
+header h1{font-size:1.32rem;line-height:1.4;letter-spacing:-.01em;font-weight:750;margin-bottom:16px}header .lead{font-size:1rem}dl.meta{grid-template-columns:1fr 1fr;gap:12px 16px}main>h2:first-of-type{margin-top:0}
+@media (max-width:900px){main{display:block}header{position:static;margin-bottom:8px}main>h2:first-of-type{margin-top:44px}}
+nav.뒤{margin:0 0 14px}nav.뒤 a{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:.9rem;color:var(--muted);text-decoration:none}nav.뒤 a:hover{color:var(--ink)}nav.뒤 svg{width:16px;height:16px}
+td.왼{text-align:left;white-space:normal}tr.깊2 td:first-child{padding-left:30px;color:var(--muted)}.흐름{max-width:72ch}ul.목표 li{max-width:72ch;margin:6px 0}ul.고리{list-style:none;padding:0;margin:0;display:grid;gap:8px}ul.고리 li{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;align-items:baseline;padding:10px 14px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}ul.고리 li span{font-weight:700}ul.고리 a{overflow-wrap:anywhere}ul.고리 em{color:var(--muted);font-style:normal}
+article.분석{max-width:70ch;font-size:1.02rem;line-height:1.8}article.분석 h3{font-size:1.12rem;margin:28px 0 8px}article.분석 p{margin:0 0 14px}article.분석 ul,article.분석 ol{margin:0 0 14px;padding-left:1.3em}article.분석 li{margin:4px 0}article.분석 img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;margin:8px 0 4px}article.분석 em{color:var(--muted)}article.분석 figure{margin:8px 0 18px}article.분석 figcaption{font-size:.95rem;color:var(--ink);font-weight:600;margin-top:6px;padding-left:10px;border-left:3px solid var(--rule)}article.분석 table{border-collapse:collapse;margin:0 0 14px}article.분석 td,article.분석 th{border-bottom:1px solid var(--rule);padding:6px 12px;text-align:left}
+.명제{margin:0 0 12px;color:var(--muted);font-size:.95rem;max-width:72ch}.명제 span{font-weight:700;color:var(--ink);margin-right:6px}.쇼츠틀{display:grid;grid-template-columns:260px minmax(0,1fr);gap:20px;align-items:start}.쇼츠{width:260px;max-width:100%;border-radius:12px;border:1px solid var(--rule);background:#000}.쇼츠글 td{white-space:normal}@media (max-width:640px){.쇼츠틀{grid-template-columns:1fr}}.구조틀{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:12px;overflow-x:auto}.구조도{display:block;width:100%;min-width:720px;height:auto}.구조틀{background:#fbfaf6}.구조도 text{font-family:inherit;fill:var(--ink)}.구조도 .제{font-size:15px;font-weight:700}.구조도 .작{font-size:12px;fill:var(--muted)}.구조도 .작진{font-size:13px;font-weight:600}.구조도 .묶{font-size:13px;font-weight:600;fill:var(--muted)}
+@media (max-width:640px){main{padding:32px 16px 64px}th,td{padding:8px 10px}h2{margin-top:44px}}
+.판번호{color:var(--muted);margin:0 0 6px;font-weight:600}.판정{display:block;border-radius:10px;padding:10px 14px;font-weight:600;line-height:1.55;max-width:none}details{margin-top:18px}summary{cursor:pointer;font-weight:700}ul.결정 li{margin:8px 0}img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:8px;background:#fff}</style></head><body><main><header><p class="판번호">m1_tr0226_h000_앞단DA</p><h1>Depth Anything 깊이를 망 입력 앞단에 넣으면 예측 깊이 오차가 1 % 목표선 쪽으로 줄어드나?</h1><p class="판정 탐색">판정 · 다 — 132 모델 × 9 시점 깊이 오차 222 11.7 % → 226 10.6 %(0.904 배 · 10 % 줄음) · DA 만 10.2 % · 합친 표면 F 0.214 · 0.225 · 0.244 · 렌더 윤곽 그대로(0.947) · 실물 윤곽 0.811 → 0.798 · 실물 깊이 0.114 → 0.104(DA 0.099) → 한 장 깊이는 10 % 안팎에서 멈춤 · 다음: 3 면도 → tr182 까지 이어 쓰임새로 목표선 다시 · 그다음 여러 시점 맞춤 깊이 · 선으로 경계</p><dl class="meta"><div><dt>종류</dt><dd>탐색</dd></div><div><dt>쓰임새</dt><dd>미정</dd></div><div><dt>코드</dt><dd>원화3d/실험_20261013/캐드부품/앞단226.py</dd></div></dl><details><summary>결정 표(돌리기 전에 정함)</summary><ul class="결정"><li><b>만약</b> 226 망 깊이 오차 중앙 ≤ 2 %<br><b>다음</b> 목표선 근처 → 축척 찾기(상대 → 절대 · 정답 없이) · 실물 합치기 판</li><li><b>만약</b> 226 망 깊이 오차 ≤ 0.7 × tr222(30 % 넘게 줄음) 이지만 2 % 넘음<br><b>다음</b> 앞단 DA 는 도움 · 아직 멂 → DA 앞단을 둔 채 여러 시점이 서로 맞추는 깊이 판</li><li><b>만약</b> 226 망 깊이 오차 &gt; 0.7 × tr222<br><b>다음</b> 앞단 DA 효과 없음 → 여러 시점이 맞추는 깊이 · 선으로 경계 세우기 쪽</li></ul></details></header><h2>분석</h2>
+<h3>한 줄로</h3>
+<p><strong>물음</strong>: Depth Anything 깊이를 망 입력 앞단에 넣으면 예측 깊이 오차가 1 % 목표선 쪽으로 줄어드나?</p>
+<p><strong>답</strong>: 거의 안 줄어든다(결정 표 「다」). 132 모델 × 9 시점에서 깊이 오차가 11.7 % → 10.6 % 로 10 % 줄었을 뿐이다. Depth Anything 만 써도 10.2 % 다. 목표선 1 % 와는 여전히 열 배 차이다. 한 장에서 깊이를 추정하는 방법으로는, 그 앞에 무엇을 넣든 1 % 에 닿지 않는다.</p>
+<h3>왜 이 판을 했나</h3>
+<p>tr225 에서 9 시점을 합친 3D 가 버티려면 깊이 오차가 깊이 범위의 1 % 안이어야 했다. tr222 망은 11.7 % 였다. 깊이 정밀화의 첫 후보로, 사용자가 실물 사진으로 학습된 Depth Anything 을 망 앞단에 넣자고 했다(tr222 에서 실물 깊이는 Depth Anything 이 이겼다).</p>
+<h3>바꾼 것 하나</h3>
+<p>망 입력에 Depth Anything 깊이 한 장을 더했다(회색 렌더와 함께 두 채널). DA 깊이는 DINOv2 특징(16²)과 64² · 128² 입력 길에 한 채널씩 들어간다. 나머지(얼린 DINOv2 · 디코더 · 손실 · 정사영 + 원근 반씩 · 6,000 스텝 · 씨앗 0)는 tr222 와 같다. Depth Anything 은 얼려 두었다(V2-Small).</p>
+<h3>결과</h3>
+<p><img alt="깊이 오차는 세 방법 모두 10 ~ 12 % 로 목표선(초록 점선 1 %)의 열 배 · 오른쪽 오차 지도도 세 방법이 비슷하게 넓게 틀어짐" src="그림.png" /></p>
+<div class="표"><table>
+<thead>
+<tr>
+<th></th>
+<th>tr222 망</th>
+<th>Depth Anything 만</th>
+<th>tr226 망(DA 앞단)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>깊이 오차(132 모델 × 9 시점 · 판정)</strong></td>
+<td>11.7 %</td>
+<td>10.2 %</td>
+<td><strong>10.6 %</strong></td>
+</tr>
+<tr>
+<td>합친 3D 표면 F(정답 실루엣 · 평균 합치기)</td>
+<td>0.214</td>
+<td>0.225</td>
+<td>0.244</td>
+</tr>
+<tr>
+<td>렌더 시험 깊이SSI(정사영 · 원근)</td>
+<td>0.056 · 0.055</td>
+<td>0.080 · 0.075</td>
+<td>0.053 · 0.050</td>
+</tr>
+<tr>
+<td>렌더 시험 윤곽 F(정사영 · 원근)</td>
+<td>0.947 · 0.954</td>
+<td>—</td>
+<td>0.947 · 0.953</td>
+</tr>
+<tr>
+<td>실물 55 장 윤곽 F · 깊이SSI</td>
+<td>0.811 · 0.114</td>
+<td>— · 0.099</td>
+<td>0.798 · 0.104</td>
+</tr>
+</tbody>
+</table></div>
+<p>판정선: 2 % 아래(가) · tr222 의 0.7 배 아래(나) · 그 밖(다). 226 은 0.904 배라 「다」 다.</p>
+<h3>왜 이렇게 나왔나</h3>
+<p><strong>확인한 것</strong></p>
+<ul>
+<li>깊이 오차는 세 방법 모두 10 ~ 12 % 다. 오른쪽 오차 지도를 보면 세 방법이 비슷한 꼴로 넓게 틀어진다. tr225 에서 가장 해로웠던 「매끈한 오차」 꼴이다.</li>
+<li>앞단 DA 는 렌더에서 망 깊이를 조금 낫게 했고(원근 0.055 → 0.050), 실물 깊이도 DA 수준으로 끌어올렸다(0.114 → 0.104). 윤곽은 렌더에서 그대로, 실물에서 0.811 → 0.798 로 조금 내려갔다.</li>
+<li>망이 DA 위에 보탠 몫은 거의 없다. tr226(10.6 %)이 DA 만(10.2 %)보다 오히려 조금 크다.</li>
+</ul>
+<p><strong>짐작 (아직 확인 안 함)</strong></p>
+<ul>
+<li>한 장의 그림으로는 물체의 앞뒤 거리가 본디 모호하다(같은 그림을 만드는 모양이 여럿). 그래서 학습한 깊이든 DA 든 10 % 안팎에서 멈추는 것 같다. 1 % 에 가려면 여러 시점이 서로 맞춰 주는 정보(같은 점을 여러 장에서 보는 삼각 측량)나, 선처럼 자리가 정확한 정보가 필요할 것이다.</li>
+</ul>
+<h3>한계</h3>
+<ul>
+<li>DA 는 V2-Small 하나, 입력 448² 하나만 썼다.</li>
+<li>깊이 오차는 정답 축척(시점마다 두 숫자)을 준 뒤의 값이다. 축척까지 스스로 찾으면 더 나빠진다.</li>
+<li>전처리 중 GPU 메모리가 넘쳐(한 번에 그림 128 장) 32 장 묶음으로 이어 돌렸다(결과 같음).</li>
+</ul>
+<h3>배운 것과 다음</h3>
+<p><strong>한 장에서 추정하는 깊이는 앞단에 Depth Anything 을 넣어도 10 % 안팎에서 멈춘다. 1 % 목표선은 이 길로는 못 간다.</strong></p>
+<ol>
+<li>먼저 목표선 자체를 쓰임새로 다시 잰다(사용자 11-18 「이 데이터를 바탕으로 3 면도 만드는 것도 다음 프로세스」). 합친 3D → 3 면도 → tr182(3 면도 → CadQuery)까지 이어서, 깊이 오차가 몇 % 면 CAD 가 맞게 나오는지 본다. 지금 1 % 는 표면 1 % 자에서 나온 선이라, 3 면도에는 더 느슨할 수 있다.</li>
+<li>(결정 표 「다」) 그래도 깊이가 모자라면, 여러 시점이 서로 맞추는 깊이(같은 점을 여러 장에서 찾아 깊이를 구함)와 선으로 경계를 세우는 합치기(tr216 정답 선 0.839)를 본다.</li>
+</ol>
+<h2>판 기록</h2>
+<ul>
+<li>카드 · 코드 커밋 6f9dcf4(돌리기 전) · DA 전처리 8 분 · 학습 28 분 · 잼 약 20 분 · 판정 잼.json · 그림 그림.png · 학습 보기 https://claude.ai/artifact/XBpJVXEjLBrxDCs4tdAbSV · 모델별 out/설명/캐드부품/모델226/(git 밖).</li>
+</ul></main></body></html>

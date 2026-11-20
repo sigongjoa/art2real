@@ -1,0 +1,142 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>m1_tr0236_h001_질의디코더</title><style>
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap");
+:root{--paper:#f6f4ef;--sheet:#fffdf8;--ink:#1d2129;--muted:#585e68;--rule:#dcd7cc;--soft:#ece8de;--pass:#1f7a3e;--pass-bg:#e3f1e6;--fail:#b3261e;--fail-bg:#f7e2de;--tool:#8a5f00;--tool-bg:#f6ecd4;--line1:#2d5fa8;--line2:#c0661b}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 "Pretendard Variable",Pretendard,"Malgun Gothic",system-ui,sans-serif;font-variant-numeric:tabular-nums;word-break:keep-all}
+::selection{background:#1d2129;color:#fffdf8}
+a{color:var(--line1);text-underline-offset:3px}a:focus-visible{outline:2px solid var(--line1);outline-offset:2px;border-radius:2px}
+main{max-width:1040px;margin:0 auto;padding:56px 32px 96px}
+header{padding-bottom:28px;border-bottom:1px solid var(--rule);margin-bottom:8px}
+h1{font-size:clamp(1.9rem,4vw,2.7rem);line-height:1.15;letter-spacing:-.025em;margin:0 0 10px;font-weight:800;text-wrap:balance}
+.lead{font-size:1.15rem;color:var(--muted);margin:0 0 22px;max-width:62ch;text-wrap:pretty}
+.판정{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.05rem;padding:7px 14px 7px 11px;border-radius:999px}
+.판정 svg{width:18px;height:18px}.통과{color:var(--pass);background:var(--pass-bg)}.실패{color:var(--fail);background:var(--fail-bg)}.탐색{color:var(--tool);background:var(--tool-bg)}
+dl.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px 28px;margin:26px 0 0}
+dl.meta div{min-width:0}dl.meta dt{font-size:.82rem;color:var(--muted)}dl.meta dd{margin:2px 0 0;font-weight:600;overflow-wrap:anywhere}
+h2{font-size:1.35rem;letter-spacing:-.015em;margin:56px 0 14px;font-weight:750}
+h3{font-size:1.02rem;margin:30px 0 8px;font-weight:700}
+p,li{max-width:72ch}
+.표{overflow-x:auto;margin:6px 0 4px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{padding:9px 14px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--soft)}
+th:first-child,td:first-child{text-align:left}tr:last-child td{border-bottom:0}
+thead th{font-size:.8rem;font-weight:600;color:var(--muted);background:var(--paper);border-bottom:1px solid var(--rule)}
+td.결과{text-align:center}td.결과 span{display:inline-flex;width:24px;height:24px;border-radius:50%;align-items:center;justify-content:center}td.결과 svg{width:15px;height:15px}
+td.결과 .o{color:var(--pass);background:var(--pass-bg)}td.결과 .x{color:var(--fail);background:var(--fail-bg)}
+.차{color:var(--muted);font-size:.88rem}
+.주석{font-size:.88rem;color:var(--muted);margin:8px 2px 0}.주석 code{overflow-wrap:anywhere}
+.줄글{display:flex;flex-wrap:wrap;gap:6px 26px;margin:4px 0}.줄글 b{font-weight:700}.줄글 span{color:var(--muted)}
+figure{margin:18px 0 0}figure img{display:block;width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;background:#fff}
+figcaption{font-size:.86rem;color:var(--muted);margin-top:8px}
+.곡선{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:14px 12px 6px}
+.곡선 svg{display:block;width:100%;height:auto}.곡선 text{font:15px "Pretendard Variable",Pretendard,sans-serif;fill:var(--muted)}
+.사람{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:6px 22px}
+.사람 ul{padding-left:1.1em}.사람 li{margin:8px 0}.비어{color:var(--muted);font-style:italic;padding:12px 0}
+code,pre{font-family:"JetBrains Mono",D2Coding,Consolas,monospace;font-size:.86rem}
+pre{background:#1d2129;color:#f3efe6;padding:16px 18px;border-radius:10px;overflow-x:auto;line-height:1.55}
+td.열{background:color-mix(in oklab,var(--line1) calc(var(--v)*1%),var(--sheet))}td.열.진{color:#fff}
+main{max-width:1240px;display:grid;grid-template-columns:300px minmax(0,1fr);column-gap:48px;align-items:start}
+main>*{grid-column:2}header{grid-column:1;grid-row:1/200;position:sticky;top:28px;border:1px solid var(--rule);border-radius:14px;background:var(--sheet);padding:24px 22px;margin:0}
+header h1{font-size:1.32rem;line-height:1.4;letter-spacing:-.01em;font-weight:750;margin-bottom:16px}header .lead{font-size:1rem}dl.meta{grid-template-columns:1fr 1fr;gap:12px 16px}main>h2:first-of-type{margin-top:0}
+@media (max-width:900px){main{display:block}header{position:static;margin-bottom:8px}main>h2:first-of-type{margin-top:44px}}
+nav.뒤{margin:0 0 14px}nav.뒤 a{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:.9rem;color:var(--muted);text-decoration:none}nav.뒤 a:hover{color:var(--ink)}nav.뒤 svg{width:16px;height:16px}
+td.왼{text-align:left;white-space:normal}tr.깊2 td:first-child{padding-left:30px;color:var(--muted)}.흐름{max-width:72ch}ul.목표 li{max-width:72ch;margin:6px 0}ul.고리{list-style:none;padding:0;margin:0;display:grid;gap:8px}ul.고리 li{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;align-items:baseline;padding:10px 14px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}ul.고리 li span{font-weight:700}ul.고리 a{overflow-wrap:anywhere}ul.고리 em{color:var(--muted);font-style:normal}
+article.분석{max-width:70ch;font-size:1.02rem;line-height:1.8}article.분석 h3{font-size:1.12rem;margin:28px 0 8px}article.분석 p{margin:0 0 14px}article.분석 ul,article.분석 ol{margin:0 0 14px;padding-left:1.3em}article.분석 li{margin:4px 0}article.분석 img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;margin:8px 0 4px}article.분석 em{color:var(--muted)}article.분석 figure{margin:8px 0 18px}article.분석 figcaption{font-size:.95rem;color:var(--ink);font-weight:600;margin-top:6px;padding-left:10px;border-left:3px solid var(--rule)}article.분석 table{border-collapse:collapse;margin:0 0 14px}article.분석 td,article.분석 th{border-bottom:1px solid var(--rule);padding:6px 12px;text-align:left}
+.명제{margin:0 0 12px;color:var(--muted);font-size:.95rem;max-width:72ch}.명제 span{font-weight:700;color:var(--ink);margin-right:6px}.쇼츠틀{display:grid;grid-template-columns:260px minmax(0,1fr);gap:20px;align-items:start}.쇼츠{width:260px;max-width:100%;border-radius:12px;border:1px solid var(--rule);background:#000}.쇼츠글 td{white-space:normal}@media (max-width:640px){.쇼츠틀{grid-template-columns:1fr}}.구조틀{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:12px;overflow-x:auto}.구조도{display:block;width:100%;min-width:720px;height:auto}.구조틀{background:#fbfaf6}.구조도 text{font-family:inherit;fill:var(--ink)}.구조도 .제{font-size:15px;font-weight:700}.구조도 .작{font-size:12px;fill:var(--muted)}.구조도 .작진{font-size:13px;font-weight:600}.구조도 .묶{font-size:13px;font-weight:600;fill:var(--muted)}
+@media (max-width:640px){main{padding:32px 16px 64px}th,td{padding:8px 10px}h2{margin-top:44px}}
+.판번호{color:var(--muted);margin:0 0 6px;font-weight:600}.판정{display:block;border-radius:10px;padding:10px 14px;font-weight:600;line-height:1.55;max-width:none}details{margin-top:18px}summary{cursor:pointer;font-weight:700}ul.결정 li{margin:8px 0}img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:8px;background:#fff}</style></head><body><main><header><p class="판번호">m1_tr0236_h001_질의디코더</p><h1>tr184 꼴(얼린 DINOv2 + 질의 토큰 디코더)을 우리 렌더 세 묶음으로 더 배우고(A) 시점 입력까지 더하면(B), 그림 한 장 → 3 면도 시험 선 F 가 tr184 그대로보다 오르나?</h1><p class="판정 탐색">판정 · 가 — 시험 정사영 한 장 3 면도 선 F tr184 그대로 0.622 · A 0.633 · B 0.733(B − A +0.100 · B − tr184 +0.111) · 방향 맞음 0.63 · 0.65 · 0.96 · 무너짐 없음 · 베끼기 없음 · 단 그림은 선이 아니라 덩어리 → B 꼴 위에 다음(선 가늘게 먼저)</p><dl class="meta"><div><dt>종류</dt><dd>탐색</dd></div><div><dt>쓰임새</dt><dd>미정</dd></div><div><dt>코드</dt><dd>원화3d/실험_20261013/캐드부품/질의236.py</dd></div></dl></header><h2>분석</h2>
+<h3>한 줄로</h3>
+<p><strong>물음</strong>: tr184 꼴(얼린 DINOv2 + 질의 토큰 디코더)을 우리 렌더 세 묶음으로 더 배우고(A) 시점 입력까지 더하면(B), 그림 한 장 → 3 면도 시험 선 F 가 tr184 그대로보다 오르나?</p>
+<p><strong>답</strong>: 시점 입력이 크게 돕는다(결정 표 「가」). B 는 0.733 으로 tr184 그대로(0.622)보다 +0.111, A(0.633)보다 +0.100 이다. 앞뒤를 맞히는 몫이 0.63 → 0.96 으로 뛰었다. 다만 그림을 보면 선이 아니라 굵은 덩어리로 그린다.</p>
+<h3>왜 이 판을 했나</h3>
+<p>통째 U-Net(tr234 · 235)은 입력 선을 베끼거나 평균 그림으로 숨어 바닥(0.459)도 못 넘었다. tr184(질의 디코더)가 0.608 로 가장 높아서, 사용자가 「tr184 꼴 키우기」를 골랐다. tr184 는 시점을 모른 채 배웠다.</p>
+<h3>바꾼 것 하나</h3>
+<p>A 는 tr184 무게에서 우리 렌더 세 묶음(정사영 · 원근 · 축 시점)으로 더 배웠다. B 는 A 와 같고, 시점(방위 · 고도 · 원근 여부 · 눈 거리)을 질의 192 개에 FiLM 으로 넣었다(처음엔 0 이라 A 와 같음). A 는 GPU 0 · B 는 GPU 1 에서 나란히 돌았다.</p>
+<h3>결과</h3>
+<p><img alt="시점 입력(B)이 0.622 → 0.733 · 방향 맞음 0.63 → 0.96 · 아래: 셋 다 선이 아니라 덩어리" src="그림.png" /></p>
+<div class="표"><table>
+<thead>
+<tr>
+<th>시험 99 · 한 장</th>
+<th>tr184 그대로</th>
+<th>A</th>
+<th><strong>B</strong></th>
+<th>바닥</th>
+<th>여러 장 길</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>3 면도 선 F · 정사영</td>
+<td>0.622</td>
+<td>0.633</td>
+<td><strong>0.733</strong></td>
+<td>0.459</td>
+<td>0.872</td>
+</tr>
+<tr>
+<td>원근 · 축 시점</td>
+<td>0.599 · 0.530</td>
+<td>0.625 · 0.589</td>
+<td>0.733 · 0.689</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>방향 맞음(정사영)</td>
+<td>0.63</td>
+<td>0.65</td>
+<td><strong>0.96</strong></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>다양성(정답 0.666)</td>
+<td>0.404</td>
+<td>0.391</td>
+<td>0.524</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>베끼기 F(정답 0.460)</td>
+<td>0.498</td>
+<td>0.505</td>
+<td>0.512</td>
+<td></td>
+<td></td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li>검증 곡선: A 는 2,000 스텝 0.643 에서 평평해 5,000 에서 멈췄다. B 는 상한 12,000 까지 계속 올랐다(0.645 → 0.729).</li>
+</ul>
+<h3>왜 이렇게 나왔나</h3>
+<p><strong>확인한 것</strong></p>
+<ul>
+<li>시점을 모르면 물체의 앞뒤를 63 % 만 맞힌다. 시점을 넣으면 96 % 다. 오른 몫의 대부분이 방향이다.</li>
+<li>세 묶음으로 더 배우기만 한 A 는 정사영 +0.01 · 축 시점 +0.06 으로, 축 시점 그림을 배운 만큼만 올랐다.</li>
+<li>질의 디코더는 베끼지 않는다(베끼기 F 0.51 ≈ 정답 0.46). tr234 U-Net(0.76)과 다르다.</li>
+<li>그림에서 세 갈래 모두 선이 아니라 칠한 덩어리(회색 + 파랑)를 그린다. 2 화소 자는 덩어리가 선을 덮으면 맞음으로 쳐서 숫자가 덩어리를 덜 벌한다.</li>
+</ul>
+<p><strong>짐작 (아직 확인 안 함)</strong></p>
+<ul>
+<li>질의 하나가 16 × 16 화소 조각을 통째로 내서 선이 굵게 번진다. tr184 손실(양성 무게 5)도 굵게 그리는 쪽을 민다.</li>
+</ul>
+<h3>한계</h3>
+<ul>
+<li>시험 99 · 씨앗 하나 · B 는 상한에서 끊김(더 오를 여지).</li>
+<li>덩어리 그림은 3 면도로 쓰기 어렵다. 숫자 0.733 을 「선을 잘 그린다」로 읽으면 안 된다.</li>
+</ul>
+<h3>배운 것과 다음</h3>
+<p><strong>한 장 → 3 면도에서 시점 입력은 필수다(앞뒤 0.63 → 0.96 · F +0.11). 다만 지금 그림은 선이 아니라 덩어리다.</strong></p>
+<ol>
+<li>결정 표 「가」: B 꼴 위에 다음 — 먼저 선을 가늘게(질의 출력 해상도 · 손실), 그다음 DA 깊이 · 사진 섞기 · 더 길게.</li>
+<li>같은 표: 바닥 0.459 · tr234 0.445 · tr184 0.622 · A 0.633 · <strong>B 0.733</strong> · 여러 장 0.872.</li>
+</ol>
+<h2>판 기록</h2>
+<ul>
+<li>카드 · 코드 a2abc67 · A GPU 0(5,000 스텝 · 20 분) · B GPU 1(12,000 스텝 · 60 분) · 시험 GPU 1</li>
+<li>학습 보기: 모델236/A · B/넘겨보기.html</li>
+</ul></main></body></html>

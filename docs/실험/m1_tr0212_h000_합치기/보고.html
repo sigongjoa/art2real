@@ -1,0 +1,147 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>실험 m1_tr0212_h000_합치기</title><style>
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap");
+:root{--paper:#f6f4ef;--sheet:#fffdf8;--ink:#1d2129;--muted:#585e68;--rule:#dcd7cc;--soft:#ece8de;--pass:#1f7a3e;--pass-bg:#e3f1e6;--fail:#b3261e;--fail-bg:#f7e2de;--tool:#8a5f00;--tool-bg:#f6ecd4;--line1:#2d5fa8;--line2:#c0661b}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 "Pretendard Variable",Pretendard,"Malgun Gothic",system-ui,sans-serif;font-variant-numeric:tabular-nums;word-break:keep-all}
+::selection{background:#1d2129;color:#fffdf8}
+a{color:var(--line1);text-underline-offset:3px}a:focus-visible{outline:2px solid var(--line1);outline-offset:2px;border-radius:2px}
+main{max-width:1040px;margin:0 auto;padding:56px 32px 96px}
+header{padding-bottom:28px;border-bottom:1px solid var(--rule);margin-bottom:8px}
+h1{font-size:clamp(1.9rem,4vw,2.7rem);line-height:1.15;letter-spacing:-.025em;margin:0 0 10px;font-weight:800;text-wrap:balance}
+.lead{font-size:1.15rem;color:var(--muted);margin:0 0 22px;max-width:62ch;text-wrap:pretty}
+.판정{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.05rem;padding:7px 14px 7px 11px;border-radius:999px}
+.판정 svg{width:18px;height:18px}.통과{color:var(--pass);background:var(--pass-bg)}.실패{color:var(--fail);background:var(--fail-bg)}.탐색{color:var(--tool);background:var(--tool-bg)}
+dl.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px 28px;margin:26px 0 0}
+dl.meta div{min-width:0}dl.meta dt{font-size:.82rem;color:var(--muted)}dl.meta dd{margin:2px 0 0;font-weight:600;overflow-wrap:anywhere}
+h2{font-size:1.35rem;letter-spacing:-.015em;margin:56px 0 14px;font-weight:750}
+h3{font-size:1.02rem;margin:30px 0 8px;font-weight:700}
+p,li{max-width:72ch}
+.표{overflow-x:auto;margin:6px 0 4px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{padding:9px 14px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--soft)}
+th:first-child,td:first-child{text-align:left}tr:last-child td{border-bottom:0}
+thead th{font-size:.8rem;font-weight:600;color:var(--muted);background:var(--paper);border-bottom:1px solid var(--rule)}
+td.결과{text-align:center}td.결과 span{display:inline-flex;width:24px;height:24px;border-radius:50%;align-items:center;justify-content:center}td.결과 svg{width:15px;height:15px}
+td.결과 .o{color:var(--pass);background:var(--pass-bg)}td.결과 .x{color:var(--fail);background:var(--fail-bg)}
+.차{color:var(--muted);font-size:.88rem}
+.주석{font-size:.88rem;color:var(--muted);margin:8px 2px 0}.주석 code{overflow-wrap:anywhere}
+.줄글{display:flex;flex-wrap:wrap;gap:6px 26px;margin:4px 0}.줄글 b{font-weight:700}.줄글 span{color:var(--muted)}
+figure{margin:18px 0 0}figure img{display:block;width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;background:#fff}
+figcaption{font-size:.86rem;color:var(--muted);margin-top:8px}
+.곡선{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:14px 12px 6px}
+.곡선 svg{display:block;width:100%;height:auto}.곡선 text{font:15px "Pretendard Variable",Pretendard,sans-serif;fill:var(--muted)}
+.사람{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:6px 22px}
+.사람 ul{padding-left:1.1em}.사람 li{margin:8px 0}.비어{color:var(--muted);font-style:italic;padding:12px 0}
+code,pre{font-family:"JetBrains Mono",D2Coding,Consolas,monospace;font-size:.86rem}
+pre{background:#1d2129;color:#f3efe6;padding:16px 18px;border-radius:10px;overflow-x:auto;line-height:1.55}
+td.열{background:color-mix(in oklab,var(--line1) calc(var(--v)*1%),var(--sheet))}td.열.진{color:#fff}
+main{max-width:1240px;display:grid;grid-template-columns:300px minmax(0,1fr);column-gap:48px;align-items:start}
+main>*{grid-column:2}header{grid-column:1;grid-row:1/200;position:sticky;top:28px;border:1px solid var(--rule);border-radius:14px;background:var(--sheet);padding:24px 22px;margin:0}
+header h1{font-size:1.32rem;line-height:1.4;letter-spacing:-.01em;font-weight:750;margin-bottom:16px}header .lead{font-size:1rem}dl.meta{grid-template-columns:1fr 1fr;gap:12px 16px}main>h2:first-of-type{margin-top:0}
+@media (max-width:900px){main{display:block}header{position:static;margin-bottom:8px}main>h2:first-of-type{margin-top:44px}}
+nav.뒤{margin:0 0 14px}nav.뒤 a{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:.9rem;color:var(--muted);text-decoration:none}nav.뒤 a:hover{color:var(--ink)}nav.뒤 svg{width:16px;height:16px}
+td.왼{text-align:left;white-space:normal}tr.깊2 td:first-child{padding-left:30px;color:var(--muted)}.흐름{max-width:72ch}ul.목표 li{max-width:72ch;margin:6px 0}ul.고리{list-style:none;padding:0;margin:0;display:grid;gap:8px}ul.고리 li{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;align-items:baseline;padding:10px 14px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}ul.고리 li span{font-weight:700}ul.고리 a{overflow-wrap:anywhere}ul.고리 em{color:var(--muted);font-style:normal}
+article.분석{max-width:70ch;font-size:1.02rem;line-height:1.8}article.분석 h3{font-size:1.12rem;margin:28px 0 8px}article.분석 p{margin:0 0 14px}article.분석 ul,article.분석 ol{margin:0 0 14px;padding-left:1.3em}article.분석 li{margin:4px 0}article.분석 img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;margin:8px 0 4px}article.분석 em{color:var(--muted)}article.분석 figure{margin:8px 0 18px}article.분석 figcaption{font-size:.95rem;color:var(--ink);font-weight:600;margin-top:6px;padding-left:10px;border-left:3px solid var(--rule)}article.분석 table{border-collapse:collapse;margin:0 0 14px}article.분석 td,article.분석 th{border-bottom:1px solid var(--rule);padding:6px 12px;text-align:left}
+.명제{margin:0 0 12px;color:var(--muted);font-size:.95rem;max-width:72ch}.명제 span{font-weight:700;color:var(--ink);margin-right:6px}.쇼츠틀{display:grid;grid-template-columns:260px minmax(0,1fr);gap:20px;align-items:start}.쇼츠{width:260px;max-width:100%;border-radius:12px;border:1px solid var(--rule);background:#000}.쇼츠글 td{white-space:normal}@media (max-width:640px){.쇼츠틀{grid-template-columns:1fr}}.구조틀{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:12px;overflow-x:auto}.구조도{display:block;width:100%;min-width:720px;height:auto}.구조틀{background:#fbfaf6}.구조도 text{font-family:inherit;fill:var(--ink)}.구조도 .제{font-size:15px;font-weight:700}.구조도 .작{font-size:12px;fill:var(--muted)}.구조도 .작진{font-size:13px;font-weight:600}.구조도 .묶{font-size:13px;font-weight:600;fill:var(--muted)}
+@media (max-width:640px){main{padding:32px 16px 64px}th,td{padding:8px 10px}h2{margin-top:44px}}
+.실험번호{color:var(--muted);margin:0 0 6px;font-weight:600}.판정{display:block;border-radius:10px;padding:10px 14px;font-weight:600;line-height:1.55;max-width:none}details{margin-top:18px}summary{cursor:pointer;font-weight:700}ul.결정 li{margin:8px 0}td.결과{font-weight:700;white-space:nowrap}td.지지{color:#1f7a3e}td.기각{color:#b42318}td.일부{color:#b25e09}td.미검증{color:var(--muted)}img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:8px;background:#fff}</style></head><body><main><header><p class="실험번호">실험 m1_tr0212_h000_합치기</p><h1>정확한 시점의 실루엣 · 깊이를 합치면 몇 장으로 어디까지 가나?</h1><p class="판정 탐색">판정 · Q1 7 장으로도 모자람 · Q2 깊이 필요(정정: tr213)</p><dl class="meta"><div><dt>종류</dt><dd>확인</dd></div><div><dt>쓰임새</dt><dd>미정</dd></div><div><dt>코드</dt><dd></dd></div></dl></header><blockquote>
+<p><strong>정정(11-17 · tr213):</strong> 이 판의 합치기 코드는 여유 1.5 칸으로 표면을 부풀려 F@1 % 를 낮게 냈다(제 실수 · 같은 코드로 축 시점을 합치는 도구 대조가 없었음). 0.5 칸으로 고쳐 다시 잰 숫자: 3 장 0.490 → 0.568 · 7 장 0.551 → 0.629 · 9 장(위 · 아래 더함) 0.691 ≈ 축 6 방향 0.689. 아래 표는 고치기 전 숫자 그대로 둔다 → <code>하네스/실험/m1_tr0213_h000_시점배치/보고.md</code>.</p>
+</blockquote>
+<h2>분석</h2>
+<h3>한 줄로</h3>
+<p><strong>물음</strong>: 사진마다 보이는 것(실루엣 · 깊이)을 완벽히 뽑고 시점도 정확히 안다면, 여러 장을 합쳐 모양이 어디까지 나오나? 몇 장이면 되나?</p>
+<p><strong>답</strong>: 깊이까지 합치면 3 장 0.49 · 7 장 0.55(하드서페이스 F@1 % 중앙)로, 축 6 방향 정답 묶음(0.69)에 7 장으로도 못 닿는다(Q1 「7 장으로도 모자람」). 실루엣만 합치면 7 장도 0.16 이라 장마다 깊이가 꼭 필요하다(Q2 +0.37 · p 2e-23). 한 장(보이는 것만)은 0.05 다.</p>
+<h3>왜 이 판을 했나</h3>
+<p>tr210 에서 사진 한 장 → 묶음을 통째로 배우면 덩어리 · 검색 수준이었다. 사용자 원칙(11-16 · 11-17): 안 보이는 면을 통째로 추측하지 않고, 장마다 보이는 것만 추론해서 합친다 — 가(한 장 → 다른 시점 · 단면을 생성해 합침) · 나(받은 여러 장을 합침) 둘 다. 두 길이 같이 쓰는 「합치기」 칸이 ① 장마다 뽑기 · ② 시점 맞추기가 완벽할 때 어디까지 가는지 먼저 쟀다(사용자 「1번만 하자고」).</p>
+<h3>바꾼 것 하나</h3>
+<p>입력을 「정답 메시에서 뽑은 정확한 시점의 실루엣 · 깊이」로 두고 장수와 합치는 정보만 바꿨다. 시점 = 입력(방위 a0 · 고도 20° · a0 30 · 120 · 210 · 300 네 개 평균) + Zero123++ 와 같은 6 방향(+30 · 90 · 150 · 210 · 270 · 330 · 고도 20 · −10 번갈아). 1 장 = 입력 · 3 장 = 입력 + 90 · 270 · 7 장 = 입력 + 6. 합치기 = 실루엣 밖을 깎기(실루엣만) · 보이는 면보다 앞 공간도 깎기(실루엣 + 깊이) · 128³. 대조 = 축 6 방향 정답 묶음(tr210 천장과 같은 것). 자 = tr210 과 같은 표면 점 1 만 개 F@1 % · 결과와 정답이 같은 틀이라 돌림 찾기는 안 함.</p>
+<h3>결과</h3>
+<p><img alt="흐름 예 #17 구멍 L 받침 — 1 장은 보이는 면 뒤를 통째로 채운 덩어리 · 실루엣만은 구멍 사이가 메워짐 · 7 장 실루엣 + 깊이는 축 6 방향과 같음(0.60)" src="흐름.png" /></p>
+<div class="표"><table>
+<thead>
+<tr>
+<th>하드서페이스 132 모델 · F@1 % 중앙(평균)</th>
+<th>실루엣만</th>
+<th>실루엣 + 깊이</th>
+<th>부피 IoU(깊이)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1 장(입력만)</td>
+<td>0.052(0.056)</td>
+<td>0.054(0.059)</td>
+<td>0.23</td>
+</tr>
+<tr>
+<td>3 장</td>
+<td>0.099(0.116)</td>
+<td><strong>0.490</strong>(0.490)</td>
+<td>0.65</td>
+</tr>
+<tr>
+<td>7 장</td>
+<td>0.159(0.201)</td>
+<td><strong>0.551</strong>(0.567)</td>
+<td>0.75</td>
+</tr>
+<tr>
+<td>대조: 축 6 방향 정답 묶음</td>
+<td></td>
+<td>0.689(0.683)</td>
+<td>—</td>
+</tr>
+</tbody>
+</table></div>
+<div class="표"><table>
+<thead>
+<tr>
+<th>통과선</th>
+<th>값</th>
+<th>판정</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Q1 실루엣 + 깊이 ≥ 축 6 중앙 − 0.05(= 0.639) 인 가장 적은 장수</td>
+<td>7 장 0.551</td>
+<td>7 장으로도 모자람</td>
+</tr>
+<tr>
+<td>Q2 3 장 (실루엣 + 깊이) − (실루엣만) ≥ 0.05 · p &lt; 0.05</td>
+<td>+0.374 · p 2.1e-23</td>
+<td>깊이 필요</td>
+</tr>
+</tbody>
+</table></div>
+<p>전체 263 모델도 같은 방향(축 6 0.726 · 3 장 0.529 · 7 장 0.611 · 1 장 0.058). 입력 방위(30 · 120 · 210 · 300)에 따른 차이는 0.002 안 — 입력 방향에 둔감.</p>
+<h3>왜 이렇게 나왔나</h3>
+<p><strong>확인한 것</strong></p>
+<ul>
+<li>실루엣만으로는 오목한 곳 · 구멍 안 · 판 사이가 다 메워진다(흐름 예: 7 장 실루엣만 부피 IoU 0.39) — 장마다 깊이가 정보의 대부분이다(+0.37).</li>
+<li>한 장은 보이는 면 뒤를 끝까지 채운 덩어리다(0.05 · 부피 IoU 0.23) — 아무 추론 없이 보이는 것만으로 얻는 바닥이다. 가(생성) 길은 이 바닥에서 출발해 생성한 시점으로 0.49~0.55 쪽으로 가야 한다.</li>
+</ul>
+<p><strong>짐작 (아직 확인 안 함)</strong></p>
+<ul>
+<li>7 장이 축 6 방향에 못 미치는 까닭은 시점 배치일 수 있다: 7 장은 고도 20 · −10 뿐이라 위 · 아래에서 본 깊이가 없고, 축 정렬이 아니라 물체의 평평한 면을 비스듬히만 본다. 위 · 아래 한 장씩 더하면 닿는지는 안 쟀다.</li>
+<li>비스듬한 시점의 깊이 깎기는 화소(256²) · 칸(128³) 사이 어긋남을 1.5 칸 틈으로만 메운다 — 그 오차도 일부일 수 있다.</li>
+</ul>
+<h3>한계</h3>
+<ul>
+<li>① 장마다 뽑기 · ② 시점 맞추기가 완벽하다고 둔 천장이다 — 진짜 사진의 깊이 추정 · 시점 오차는 없다.</li>
+<li>정사영 카메라 · 같은 틀 채점(돌림 찾기 없음)이라 tr210 의 「돌림 24 중 최선」 숫자(ㄱ 0.110 등)와 바로 비교하면 안 된다.</li>
+<li>결정적 계산 · 한 번 돌림. 첫 돌림은 제 실수로 병렬 함수에 모델 이름을 두 번 넘겨 263 개 모두 인자 오류 → 고쳐 다시 돌림(통과선 · 자 그대로).</li>
+</ul>
+<h3>배운 것과 다음</h3>
+<p><strong>합치기 칸은 장마다 깊이가 있어야 서고(실루엣만은 0.16), 7 장이면 축 6 방향 정답 묶음의 80 %(0.55 / 0.69)까지 간다 — 가 · 나 길의 천장은 이 줄이다.</strong></p>
+<ol>
+<li>시점 배치: 위 · 아래 시점을 더하거나 축 정렬 시점을 섞으면 7 장 → 축 6 수준에 닿는지(학습 없음 · 짧음).</li>
+<li>가: Zero123++ 생성 시점(씨앗 여러 개)을 ① 에 넣어 이 천장(같은 시점 배치)과 비교 — 생성한 시점이 진짜 시점을 얼마나 대신하나.</li>
+<li>나: 원화CAD짝 모델당 사진 2 장 남짓으로 ② 시점 맞추기부터.</li>
+</ol>
+<h2>판 기록</h2>
+<ul>
+<li>통과선 커밋 98a72f9(돌리기 전) · 코드 <code>원화3d/실험_20261013/캐드부품/합치기212.py</code> · 판정 원문 <code>잼.json</code> · 모델별 <code>out/설명/캐드부품/모델212/잼_모델별.json</code>(git 밖)</li>
+<li>대상: tr208 정답 믿음 모델 263(하드서페이스 132 = tr211 목록과 같은 모델) · 정답 tr208 메시 · 묶음 · 깎기는 묶음210</li>
+</ul></main></body></html>
