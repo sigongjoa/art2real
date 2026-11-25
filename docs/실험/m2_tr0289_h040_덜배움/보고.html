@@ -1,0 +1,116 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>실험 m2_tr0289_h040_덜배움</title><style>
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap");
+:root{--paper:#f6f4ef;--sheet:#fffdf8;--ink:#1d2129;--muted:#585e68;--rule:#dcd7cc;--soft:#ece8de;--pass:#1f7a3e;--pass-bg:#e3f1e6;--fail:#b3261e;--fail-bg:#f7e2de;--tool:#8a5f00;--tool-bg:#f6ecd4;--line1:#2d5fa8;--line2:#c0661b}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 "Pretendard Variable",Pretendard,"Malgun Gothic",system-ui,sans-serif;font-variant-numeric:tabular-nums;word-break:keep-all}
+::selection{background:#1d2129;color:#fffdf8}
+a{color:var(--line1);text-underline-offset:3px}a:focus-visible{outline:2px solid var(--line1);outline-offset:2px;border-radius:2px}
+main{max-width:1040px;margin:0 auto;padding:56px 32px 96px}
+header{padding-bottom:28px;border-bottom:1px solid var(--rule);margin-bottom:8px}
+h1{font-size:clamp(1.9rem,4vw,2.7rem);line-height:1.15;letter-spacing:-.025em;margin:0 0 10px;font-weight:800;text-wrap:balance}
+.lead{font-size:1.15rem;color:var(--muted);margin:0 0 22px;max-width:62ch;text-wrap:pretty}
+.판정{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.05rem;padding:7px 14px 7px 11px;border-radius:999px}
+.판정 svg{width:18px;height:18px}.통과{color:var(--pass);background:var(--pass-bg)}.실패{color:var(--fail);background:var(--fail-bg)}.탐색{color:var(--tool);background:var(--tool-bg)}
+dl.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px 28px;margin:26px 0 0}
+dl.meta div{min-width:0}dl.meta dt{font-size:.82rem;color:var(--muted)}dl.meta dd{margin:2px 0 0;font-weight:600;overflow-wrap:anywhere}
+h2{font-size:1.35rem;letter-spacing:-.015em;margin:56px 0 14px;font-weight:750}
+h3{font-size:1.02rem;margin:30px 0 8px;font-weight:700}
+p,li{max-width:72ch}
+.표{overflow-x:auto;margin:6px 0 4px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{padding:9px 14px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--soft)}
+th:first-child,td:first-child{text-align:left}tr:last-child td{border-bottom:0}
+thead th{font-size:.8rem;font-weight:600;color:var(--muted);background:var(--paper);border-bottom:1px solid var(--rule)}
+td.결과{text-align:center}td.결과 span{display:inline-flex;width:24px;height:24px;border-radius:50%;align-items:center;justify-content:center}td.결과 svg{width:15px;height:15px}
+td.결과 .o{color:var(--pass);background:var(--pass-bg)}td.결과 .x{color:var(--fail);background:var(--fail-bg)}
+.차{color:var(--muted);font-size:.88rem}
+.주석{font-size:.88rem;color:var(--muted);margin:8px 2px 0}.주석 code{overflow-wrap:anywhere}
+.줄글{display:flex;flex-wrap:wrap;gap:6px 26px;margin:4px 0}.줄글 b{font-weight:700}.줄글 span{color:var(--muted)}
+figure{margin:18px 0 0}figure img{display:block;width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;background:#fff}
+figcaption{font-size:.86rem;color:var(--muted);margin-top:8px}
+.곡선{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:14px 12px 6px}
+.곡선 svg{display:block;width:100%;height:auto}.곡선 text{font:15px "Pretendard Variable",Pretendard,sans-serif;fill:var(--muted)}
+.사람{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:6px 22px}
+.사람 ul{padding-left:1.1em}.사람 li{margin:8px 0}.비어{color:var(--muted);font-style:italic;padding:12px 0}
+code,pre{font-family:"JetBrains Mono",D2Coding,Consolas,monospace;font-size:.86rem}
+pre{background:#1d2129;color:#f3efe6;padding:16px 18px;border-radius:10px;overflow-x:auto;line-height:1.55}
+td.열{background:color-mix(in oklab,var(--line1) calc(var(--v)*1%),var(--sheet))}td.열.진{color:#fff}
+main{max-width:1240px;display:grid;grid-template-columns:300px minmax(0,1fr);column-gap:48px;align-items:start}
+main>*{grid-column:2}header{grid-column:1;grid-row:1/200;position:sticky;top:28px;border:1px solid var(--rule);border-radius:14px;background:var(--sheet);padding:24px 22px;margin:0}
+header h1{font-size:1.32rem;line-height:1.4;letter-spacing:-.01em;font-weight:750;margin-bottom:16px}header .lead{font-size:1rem}dl.meta{grid-template-columns:1fr 1fr;gap:12px 16px}main>h2:first-of-type{margin-top:0}
+@media (max-width:900px){main{display:block}header{position:static;margin-bottom:8px}main>h2:first-of-type{margin-top:44px}}
+nav.뒤{margin:0 0 14px}nav.뒤 a{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:.9rem;color:var(--muted);text-decoration:none}nav.뒤 a:hover{color:var(--ink)}nav.뒤 svg{width:16px;height:16px}
+td.왼{text-align:left;white-space:normal}tr.깊2 td:first-child{padding-left:30px;color:var(--muted)}.흐름{max-width:72ch}ul.목표 li{max-width:72ch;margin:6px 0}ul.고리{list-style:none;padding:0;margin:0;display:grid;gap:8px}ul.고리 li{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;align-items:baseline;padding:10px 14px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}ul.고리 li span{font-weight:700}ul.고리 a{overflow-wrap:anywhere}ul.고리 em{color:var(--muted);font-style:normal}
+article.분석{max-width:70ch;font-size:1.02rem;line-height:1.8}article.분석 h3{font-size:1.12rem;margin:28px 0 8px}article.분석 p{margin:0 0 14px}article.분석 ul,article.분석 ol{margin:0 0 14px;padding-left:1.3em}article.분석 li{margin:4px 0}article.분석 img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;margin:8px 0 4px}article.분석 em{color:var(--muted)}article.분석 figure{margin:8px 0 18px}article.분석 figcaption{font-size:.95rem;color:var(--ink);font-weight:600;margin-top:6px;padding-left:10px;border-left:3px solid var(--rule)}article.분석 table{border-collapse:collapse;margin:0 0 14px}article.분석 td,article.분석 th{border-bottom:1px solid var(--rule);padding:6px 12px;text-align:left}
+.명제{margin:0 0 12px;color:var(--muted);font-size:.95rem;max-width:72ch}.명제 span{font-weight:700;color:var(--ink);margin-right:6px}.쇼츠틀{display:grid;grid-template-columns:260px minmax(0,1fr);gap:20px;align-items:start}.쇼츠{width:260px;max-width:100%;border-radius:12px;border:1px solid var(--rule);background:#000}.쇼츠글 td{white-space:normal}@media (max-width:640px){.쇼츠틀{grid-template-columns:1fr}}.구조틀{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:12px;overflow-x:auto}.구조도{display:block;width:100%;min-width:720px;height:auto}.구조틀{background:#fbfaf6}.구조도 text{font-family:inherit;fill:var(--ink)}.구조도 .제{font-size:15px;font-weight:700}.구조도 .작{font-size:12px;fill:var(--muted)}.구조도 .작진{font-size:13px;font-weight:600}.구조도 .묶{font-size:13px;font-weight:600;fill:var(--muted)}
+@media (max-width:640px){main{padding:32px 16px 64px}th,td{padding:8px 10px}h2{margin-top:44px}}
+.실험번호{color:var(--muted);margin:0 0 6px;font-weight:600}.목표줄{margin:0 0 10px;padding:8px 12px;border-radius:8px;background:#eef1f6;font-size:14px;line-height:1.5}.목표줄.경고{background:#fff4e5;border-left:4px solid #ec8a12}.판정{display:block;border-radius:10px;padding:10px 14px;font-weight:600;line-height:1.55;max-width:none}details{margin-top:18px}summary{cursor:pointer;font-weight:700}ul.결정 li{margin:8px 0}td.결과{font-weight:700;white-space:nowrap}td.지지{color:#1f7a3e}td.기각{color:#b42318}td.일부{color:#b25e09}td.약함{color:#b25e09}td.보류{color:#3d5a80}td.미검증{color:var(--muted)}img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:8px;background:#fff}</style></head><body><main><header><p class="실험번호">실험 m2_tr0289_h040_덜배움</p><p class="목표줄 경고">목표 G1.2 view 모음 → 파츠별 CAD code(CadQuery · 그 전 「3 면도 → 파츠별 CAD」 · 지금 M2 는 위 · 앞 · 옆 고정 세 장만 받음 → 아무 각도 N 장으로 바꿀 것 · 11-20) · G1 첫 제품 — 피규어 · 메카 사진 여러 장 + 치수 → 숨은선 3 면도 + 파츠별 CAD · G0 임의의 이미지 → CAD 코드 · 빌린 가정 4: 정사영 · 시점앎 · 흰바탕 · 렌더화풍 · 갚는 계획: 진단 · 목표 시험지 292 렌더 · 시점 앎 — 다음 실물 사진 · 각도 추정 · 목표 시험지 값: 안 잼 (!)</p><h1>바탕 m2 를 20 · 40 · 60 바퀴 무게로 목표 시험지 view 길에 넣으면, 바퀴가 늘수록 목표판 모양이 오르나(덜 배움인가)?</h1><p class="판정 탐색">판정 · m2-H40 지지(view 60 − 20 +0.059 [+0.051, +0.069]) — 바탕 m2 는 덜 배웠다 · 더 배운 무게일수록 목표판 모양이 오름(view 0.394 → 0.453 · 기준점 0.415 → 0.486) · 다만 view 는 40 바퀴가 평평(한 학습 안 흔들림) · 60 너머는 모름 · 기준점이 view 보다 +0.033 · 다음: 어휘 천장(m2-H42)으로 더 배워 오를 수 있는 끝을 재고 · 제대로 학습(기준점 · 검증 멈춤 · 씨앗 둘)</p><dl class="meta"><div><dt>종류</dt><dd>진단</dd></div><div><dt>쓰임새</dt><dd>고칠 길 고르기</dd></div><div><dt>코드</dt><dd>원화3d/실험_20261013/캐드부품/덜배움289.py</dd></div></dl><div class="표"><table class="가설"><thead><tr><th>가설</th><th>주장</th><th>결과</th><th>근거</th></tr></thead><tbody><tr><td>m2-H40</td><td>바탕 m2 가 목표 시험지에서 막히는 것은 덜 배운 탓이다 — 같은 학습을 더 하면 목표판 모양이 오른다</td><td class="결과 지지">지지</td><td>목표판 빠른 IoU 평균(가운데) view 20 0.394(0.401) · 40 0.393(0.384) · 60 0.453(0.453) — 20 → 40 평평 · 40 → 60 에서 오름 · 기준점 20 0.415 · 40 0.454 · 60 0.486(0.505) 고르게 오름 · 기준점 60 − view 60 +0.033 [0.024, 0.043](H15 미리 보기 · 판정 아님) · 생성기 시험 99 종류 맞음 view 0.352 · 0.349 · 0.363 · 기준점 0.381 · 0.311 · 0.323 · 기준점 몸 자리 L2 0.229 · 0.230 · 0.234 · 바닥 0.352 · 자 검사 ρ 0.993</td></tr></tbody></table></div></header><h2>분석</h2>
+<h3>한 줄로</h3>
+<p><strong>물음</strong>: 바탕 m2 를 같은 학습의 20 · 40 · 60 바퀴 무게로 목표 시험지 view 길에 넣으면, 바퀴가 늘수록 목표판 모양이 오르나?</p>
+<p><strong>답</strong>: 오른다 — 지지. 20 바퀴 0.394 → 60 바퀴 0.453(+0.059 [+0.051, +0.069])이다. 바탕 m2 는 덜 배운 시제품이다. 다만 40 바퀴는 20 바퀴와 같아서, 한 번 돌린 학습의 저장 무게 사이 흔들림이 섞여 있다.</p>
+<h3>왜 이 실험을 했나</h3>
+<p>tr288 에서 목표 시험지 view 길의 끝에서 끝 잃음은 전부 m2 몫(0.55)이었다. m2 는 11-20 저녁 비교 실험의 한 팔로 60 바퀴만 배운 뒤 무게가 안 바뀌었다. m2 가 막히는 까닭 후보 넷(덜 배움 · 처음 보는 선 · 어휘 · 생성기 밖) 중 가장 싼 「덜 배움」부터 갈랐다. 이미 저장된 무게로 바로 잴 수 있다.</p>
+<h3>바꾼 것 하나</h3>
+<p>m2 무게만 바꿨다. 같은 학습(tr263 view 갈래)의 20 · 40 · 60 바퀴 저장 무게다. 입력은 tr288 의 m1 view 선과 렌더 각도다. 자는 「빠른 실루엣 IoU」 — m2 칸을 바로 3면도 실루엣으로 그려 정답 3면도와 견준다. CAD 짓기(292 에 1 시간 반) 대신 쓰려고 돌리기 전에 자 검사를 했다. tr288 같은 출력에서 CAD 기반 IoU 와 순서가 같았고(ρ 0.99), 모델을 섞은 음성 대조는 ρ 0 근처였다. 카드는 숫자를 보기 전에 커밋했다(7734c175).</p>
+<h3>결과</h3>
+<p><img alt="바퀴가 늘수록 목표판 모양이 오른다 — 기준점 망이 모든 바퀴에서 더 높다" src="결과.png" /></p>
+<div class="표"><table>
+<thead>
+<tr>
+<th>목표 시험지 292</th>
+<th>20 바퀴</th>
+<th>40 바퀴</th>
+<th>60 바퀴</th>
+<th>판정</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>view(바탕)</td>
+<td>0.394</td>
+<td>0.393</td>
+<td>0.453</td>
+<td>60 − 20 +0.059 [+0.051, +0.069] · 지지</td>
+</tr>
+<tr>
+<td>기준점(같이 · H15 미리 보기)</td>
+<td>0.415</td>
+<td>0.454</td>
+<td>0.486</td>
+<td>기준점 60 − view 60 +0.033 [+0.024, +0.043]</td>
+</tr>
+</tbody>
+</table></div>
+<p>바닥(아무 다른 모델의 정답 실루엣)은 0.352 다.</p>
+<h3>왜 이렇게 나왔나</h3>
+<p><strong>확인한 것</strong></p>
+<ul>
+<li>더 배운 무게일수록 목표판 모양이 오른다. view +0.06, 기준점 +0.07 이다.</li>
+<li>기준점 망은 모든 바퀴에서 view 망보다 높고 고르게 오른다.</li>
+<li>생성기 시험 99 의 몸 종류 맞음은 바퀴 따라 평평하다(view 0.35 · 0.35 · 0.36).</li>
+</ul>
+<p><strong>짐작 (아직 확인 안 함)</strong></p>
+<ul>
+<li>view 가 20 → 40 에서 평평한 것은 한 학습 · 씨앗 하나의 저장 무게 사이 흔들림일 것이다.</li>
+<li>목표판이 오르는 것은 몸 종류보다 자리 · 크기가 나아져서일 것이다(종류 맞음은 평평).</li>
+</ul>
+<h3>한계</h3>
+<ul>
+<li>한 학습 안의 바퀴 비교다. 학습률은 일정했고 검증으로 멈추지 않았다. 60 바퀴 너머는 모른다.</li>
+<li>빠른 자는 특징 · 필렛 · 숨은 모양을 안 그린다(자 검사 ρ 0.99 로 거친 모양 순서는 같음).</li>
+<li>입력은 렌더 · 시점 앎이다.</li>
+</ul>
+<h3>배운 것과 다음</h3>
+<p><strong>바탕 m2 는 덜 배운 시제품이다 — 더 배우면 목표판이 오르고, 기준점 구조가 더 낫다.</strong></p>
+<ol>
+<li>어휘 천장(m2-H42): 7 종류 × 6 몸을 실제 물체에 가장 잘 맞추면 어디까지 가나 — 더 배워서 오를 수 있는 끝을 먼저 잰다.</li>
+<li>제대로 학습: 기준점을 켜고 검증으로 멈출 때까지 · 씨앗 둘 — 바탕 장부 적용 대기 H15.</li>
+<li>처음 보는 선(m2-H41) · 실제 데이터(m2-H43)는 그 뒤.</li>
+</ol>
+<h2>실험 기록</h2>
+<ul>
+<li>카드(결과 전 커밋 7734c175 · m2-H40_A_Ca · 입력꼴 칸) · 덜배움289.py(자검사 · 흐름 · 재기 · 그림) · 잼.json · 흐름.png · 결과.png · 원본 out/설명/캐드부품/모델289(자검사.json · 셈.npz)</li>
+<li>가설 번호를 모델마다 따로 · 늘 모델을 붙여 씀(m2-H40) · Lean 이름은 tr0289.m2_H40(가설식.이름 이 - 를 _ 로).</li>
+<li>결과 그림은 판정 뒤 두 칸으로 줄임(view 쪽 생성기 몸 자리 L2 값이 없어 그 칸을 뺌) — 결론그림 자를 곳 폭 1100 으로 고침.</li>
+</ul></main></body></html>

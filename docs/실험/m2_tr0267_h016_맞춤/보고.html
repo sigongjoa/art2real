@@ -1,0 +1,138 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>실험 m2_tr0267_h016_맞춤</title><style>
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap");
+:root{--paper:#f6f4ef;--sheet:#fffdf8;--ink:#1d2129;--muted:#585e68;--rule:#dcd7cc;--soft:#ece8de;--pass:#1f7a3e;--pass-bg:#e3f1e6;--fail:#b3261e;--fail-bg:#f7e2de;--tool:#8a5f00;--tool-bg:#f6ecd4;--line1:#2d5fa8;--line2:#c0661b}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 "Pretendard Variable",Pretendard,"Malgun Gothic",system-ui,sans-serif;font-variant-numeric:tabular-nums;word-break:keep-all}
+::selection{background:#1d2129;color:#fffdf8}
+a{color:var(--line1);text-underline-offset:3px}a:focus-visible{outline:2px solid var(--line1);outline-offset:2px;border-radius:2px}
+main{max-width:1040px;margin:0 auto;padding:56px 32px 96px}
+header{padding-bottom:28px;border-bottom:1px solid var(--rule);margin-bottom:8px}
+h1{font-size:clamp(1.9rem,4vw,2.7rem);line-height:1.15;letter-spacing:-.025em;margin:0 0 10px;font-weight:800;text-wrap:balance}
+.lead{font-size:1.15rem;color:var(--muted);margin:0 0 22px;max-width:62ch;text-wrap:pretty}
+.판정{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.05rem;padding:7px 14px 7px 11px;border-radius:999px}
+.판정 svg{width:18px;height:18px}.통과{color:var(--pass);background:var(--pass-bg)}.실패{color:var(--fail);background:var(--fail-bg)}.탐색{color:var(--tool);background:var(--tool-bg)}
+dl.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px 28px;margin:26px 0 0}
+dl.meta div{min-width:0}dl.meta dt{font-size:.82rem;color:var(--muted)}dl.meta dd{margin:2px 0 0;font-weight:600;overflow-wrap:anywhere}
+h2{font-size:1.35rem;letter-spacing:-.015em;margin:56px 0 14px;font-weight:750}
+h3{font-size:1.02rem;margin:30px 0 8px;font-weight:700}
+p,li{max-width:72ch}
+.표{overflow-x:auto;margin:6px 0 4px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{padding:9px 14px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--soft)}
+th:first-child,td:first-child{text-align:left}tr:last-child td{border-bottom:0}
+thead th{font-size:.8rem;font-weight:600;color:var(--muted);background:var(--paper);border-bottom:1px solid var(--rule)}
+td.결과{text-align:center}td.결과 span{display:inline-flex;width:24px;height:24px;border-radius:50%;align-items:center;justify-content:center}td.결과 svg{width:15px;height:15px}
+td.결과 .o{color:var(--pass);background:var(--pass-bg)}td.결과 .x{color:var(--fail);background:var(--fail-bg)}
+.차{color:var(--muted);font-size:.88rem}
+.주석{font-size:.88rem;color:var(--muted);margin:8px 2px 0}.주석 code{overflow-wrap:anywhere}
+.줄글{display:flex;flex-wrap:wrap;gap:6px 26px;margin:4px 0}.줄글 b{font-weight:700}.줄글 span{color:var(--muted)}
+figure{margin:18px 0 0}figure img{display:block;width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;background:#fff}
+figcaption{font-size:.86rem;color:var(--muted);margin-top:8px}
+.곡선{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:14px 12px 6px}
+.곡선 svg{display:block;width:100%;height:auto}.곡선 text{font:15px "Pretendard Variable",Pretendard,sans-serif;fill:var(--muted)}
+.사람{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:6px 22px}
+.사람 ul{padding-left:1.1em}.사람 li{margin:8px 0}.비어{color:var(--muted);font-style:italic;padding:12px 0}
+code,pre{font-family:"JetBrains Mono",D2Coding,Consolas,monospace;font-size:.86rem}
+pre{background:#1d2129;color:#f3efe6;padding:16px 18px;border-radius:10px;overflow-x:auto;line-height:1.55}
+td.열{background:color-mix(in oklab,var(--line1) calc(var(--v)*1%),var(--sheet))}td.열.진{color:#fff}
+main{max-width:1240px;display:grid;grid-template-columns:300px minmax(0,1fr);column-gap:48px;align-items:start}
+main>*{grid-column:2}header{grid-column:1;grid-row:1/200;position:sticky;top:28px;border:1px solid var(--rule);border-radius:14px;background:var(--sheet);padding:24px 22px;margin:0}
+header h1{font-size:1.32rem;line-height:1.4;letter-spacing:-.01em;font-weight:750;margin-bottom:16px}header .lead{font-size:1rem}dl.meta{grid-template-columns:1fr 1fr;gap:12px 16px}main>h2:first-of-type{margin-top:0}
+@media (max-width:900px){main{display:block}header{position:static;margin-bottom:8px}main>h2:first-of-type{margin-top:44px}}
+nav.뒤{margin:0 0 14px}nav.뒤 a{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:.9rem;color:var(--muted);text-decoration:none}nav.뒤 a:hover{color:var(--ink)}nav.뒤 svg{width:16px;height:16px}
+td.왼{text-align:left;white-space:normal}tr.깊2 td:first-child{padding-left:30px;color:var(--muted)}.흐름{max-width:72ch}ul.목표 li{max-width:72ch;margin:6px 0}ul.고리{list-style:none;padding:0;margin:0;display:grid;gap:8px}ul.고리 li{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;align-items:baseline;padding:10px 14px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}ul.고리 li span{font-weight:700}ul.고리 a{overflow-wrap:anywhere}ul.고리 em{color:var(--muted);font-style:normal}
+article.분석{max-width:70ch;font-size:1.02rem;line-height:1.8}article.분석 h3{font-size:1.12rem;margin:28px 0 8px}article.분석 p{margin:0 0 14px}article.분석 ul,article.분석 ol{margin:0 0 14px;padding-left:1.3em}article.분석 li{margin:4px 0}article.분석 img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;margin:8px 0 4px}article.분석 em{color:var(--muted)}article.분석 figure{margin:8px 0 18px}article.분석 figcaption{font-size:.95rem;color:var(--ink);font-weight:600;margin-top:6px;padding-left:10px;border-left:3px solid var(--rule)}article.분석 table{border-collapse:collapse;margin:0 0 14px}article.분석 td,article.분석 th{border-bottom:1px solid var(--rule);padding:6px 12px;text-align:left}
+.명제{margin:0 0 12px;color:var(--muted);font-size:.95rem;max-width:72ch}.명제 span{font-weight:700;color:var(--ink);margin-right:6px}.쇼츠틀{display:grid;grid-template-columns:260px minmax(0,1fr);gap:20px;align-items:start}.쇼츠{width:260px;max-width:100%;border-radius:12px;border:1px solid var(--rule);background:#000}.쇼츠글 td{white-space:normal}@media (max-width:640px){.쇼츠틀{grid-template-columns:1fr}}.구조틀{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:12px;overflow-x:auto}.구조도{display:block;width:100%;min-width:720px;height:auto}.구조틀{background:#fbfaf6}.구조도 text{font-family:inherit;fill:var(--ink)}.구조도 .제{font-size:15px;font-weight:700}.구조도 .작{font-size:12px;fill:var(--muted)}.구조도 .작진{font-size:13px;font-weight:600}.구조도 .묶{font-size:13px;font-weight:600;fill:var(--muted)}
+@media (max-width:640px){main{padding:32px 16px 64px}th,td{padding:8px 10px}h2{margin-top:44px}}
+.실험번호{color:var(--muted);margin:0 0 6px;font-weight:600}.목표줄{margin:0 0 10px;padding:8px 12px;border-radius:8px;background:#eef1f6;font-size:14px;line-height:1.5}.목표줄.경고{background:#fff4e5;border-left:4px solid #ec8a12}.판정{display:block;border-radius:10px;padding:10px 14px;font-weight:600;line-height:1.55;max-width:none}details{margin-top:18px}summary{cursor:pointer;font-weight:700}ul.결정 li{margin:8px 0}td.결과{font-weight:700;white-space:nowrap}td.지지{color:#1f7a3e}td.기각{color:#b42318}td.일부{color:#b25e09}td.약함{color:#b25e09}td.보류{color:#3d5a80}td.미검증{color:var(--muted)}img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:8px;background:#fff}</style></head><body><main><header><p class="실험번호">실험 m2_tr0267_h016_맞춤</p><p class="목표줄 경고">목표 G1.2 view 모음 → 파츠별 CAD code(CadQuery · 그 전 「3 면도 → 파츠별 CAD」 · 지금 M2 는 위 · 앞 · 옆 고정 세 장만 받음 → 아무 각도 N 장으로 바꿀 것 · 11-20) · G1 첫 제품 — 피규어 · 메카 사진 여러 장 + 치수 → 숨은선 3 면도 + 파츠별 CAD · G0 임의의 이미지 → CAD 코드 · 빌린 가정 4: 생성기기하 · 정답3D · 시점앎 · 정사영 · 갚는 계획: 길 셋(가 · 나 · 다) 비교의 세 번째 · 정답 view · 정답 각도 · 생성기 부품 — 고른 길은 m1 view · 추정 각도 · 원화CAD짝 시험지로 다시 봄 · 실루엣 그리기는 생성기 몸 모양을 따라 씀(실제 부품엔 몸 모양 어휘가 더 필요) · 목표 시험지 값: 안 잼 (!)</p><h1>길 「다」 — 망은 고르기(몸 있음 · 종류 · 축)만 쓰고, 몸 자리 · 치수는 두 view 실루엣에 맞춰 찾으면 망이 낸 숫자보다 정확한가?</h1><p class="판정 탐색">판정 · H16 기각(미리 정한 자 · 칸 번호끼리 시험 몸 자리 1.01 배) — 맞추기는 몸을 실루엣 자리로 옮기지만 망이 칸에 매긴 몸 · 종류가 틀려 칸 번호로는 안 나아짐 · 같이 적은 CAD 모양 맞음은 시험 0.03 → 0.11(정답 고르기면 0.26) · 숫자를 재는 길은 고르기(몸 종류 · 칸 매김)가 맞아야 섬 · 판정 뒤 몸끼리 짝지은 셈 0.56 배는 판정 아님 · 다음: 세 길 정리 → 고르기 일반화(데이터 양) · 맞추기에 안쪽 선</p><dl class="meta"><div><dt>종류</dt><dd>탐색</dd></div><div><dt>쓰임새</dt><dd>미정</dd></div><div><dt>코드</dt><dd>원화3d/실험_20261013/캐드부품/맞춤267.py</dd></div></dl><div class="표"><table class="가설"><thead><tr><th>가설</th><th>주장</th><th>결과</th><th>근거</th></tr></thead><tbody><tr><td>H16</td><td>숫자를 view 실루엣에 맞춰 재면 망이 낸 숫자보다 훨씬 정확하다</td><td class="결과 기각">기각</td><td>시험 몸 자리 망 0.220 → 맞춤 0.222 · 배운 부품 0.186 → 0.075(0.40 [0.27, 0.59]) · 정답 고르기면 시험 0.226 → 0.162(0.72 [0.59, 0.90]) · 같이 CAD 모양 맞음 시험 망 0.03 → 맞춤 0.11 · 정답 고르기 + 맞춤 0.26 · 배운 부품 0.01 → 0.16 · 0.25 · 표면 거리 가운데 시험 0.274 → 0.164 · 맞춤 손실(BCE) 시험 1.03 → 0.10 · 판정 뒤 새로 잼(판정 아님): 칸 번호 대신 몸끼리 짝지으면 시험 몸 자리 0.184 → 0.102 · 정답 고르기 + 맞춤 0.090</td></tr></tbody></table></div></header><h2>분석</h2>
+<h3>한 줄로</h3>
+<p><strong>물음</strong>: 망은 몸 있음 · 종류 · 축만 고르고, 몸 자리 · 치수는 두 view 실루엣에 맞춰 찾으면, 망이 낸 숫자보다 정확한가?</p>
+<p><strong>답</strong>: 미리 정한 자로는 아니다(H16 기각 · 시험 1.01 배). 맞추기가 몸을 실루엣 자리로 옮기기는 한다. 하지만 망이 칸마다 매긴 몸과 종류가 틀려서, 칸 번호끼리 비교하면 나아지지 않는다. 같이 적은 CAD 모양 맞음은 시험 0.03 → 0.11 로 올랐고, 고르기가 맞으면(정답 고르기) 0.26 이다. 숫자를 재는 길은 고르기가 맞아야 선다.</p>
+<h3>왜 이 실험을 했나</h3>
+<p>m2-tr261 에서 m2 를 막는 것은 숫자 칸(특히 몸 자리)이었다. m2-tr263 에서 view 망은 몸들을 가운데로 몰았다. 몸 자리 · 치수는 view 와 각도만 있으면 재서 정해지는 값이다(「정답이 있는 일은 학습하지 않는다」). 세 길 중 마지막, 「다 = 숫자는 재기」 를 시험했다.</p>
+<h3>바꾼 것 하나</h3>
+<p>숫자를 내는 쪽. 망(m2-tr263 view 갈래 60 바퀴)이 낸 몸 자리 · 치수를 출발점으로, 몸마다 부드러운 안팎을 그려 두 view 실루엣과 겹치도록 경사 하강으로 옮긴다(300 걸음 · 학습 없음). 몸 모양은 생성기와 같은 꼴(상자 · 회전체)이다. 정답 숫자로 그리면 실루엣이 과녁과 IoU 0.94 로 겹치는 것을 먼저 확인했다. 망 · 부품 · 짓기 · 채점은 m2-tr263 과 같다.</p>
+<h3>결과</h3>
+<p><img alt="맞춘 숫자는 실루엣을 과녁에 붙이지만, 시험에서 칸 번호로 잰 몸 자리 오차는 그대로다. CAD 모양 맞음은 오른다" src="결과.png" /></p>
+<div class="표"><table>
+<thead>
+<tr>
+<th>시험 99</th>
+<th>망 그대로</th>
+<th>망 + 맞춤(길 다)</th>
+<th>정답 고르기 + 망 숫자</th>
+<th>정답 고르기 + 맞춤</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>몸 자리 오차(칸 번호끼리)</td>
+<td>0.220</td>
+<td>0.222</td>
+<td>0.226</td>
+<td>0.162</td>
+</tr>
+<tr>
+<td>CAD 모양 맞음</td>
+<td>0.03</td>
+<td>0.11</td>
+<td>0.05</td>
+<td>0.26</td>
+</tr>
+<tr>
+<td>표면 거리 가운데</td>
+<td>0.27</td>
+<td>0.16</td>
+<td>0.27</td>
+<td>0.13</td>
+</tr>
+</tbody>
+</table></div>
+<div class="표"><table>
+<thead>
+<tr>
+<th>가설</th>
+<th>결과</th>
+<th>판정선</th>
+<th>판정</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H16 맞춤 / 그대로(시험 몸 자리)</td>
+<td>1.01 [0.92, 1.20]</td>
+<td>≤ 0.6 지지 · ≥ 0.9 기각</td>
+<td>기각</td>
+</tr>
+</tbody>
+</table></div>
+<p>배운 부품에서는 0.186 → 0.075(0.40 배)로 크게 줄었다. 모양 맞음은 위상(몸 개수 · 붙임)과 표면 거리 5 % 를 함께 맞춘 부품의 비율이다.</p>
+<h3>왜 이렇게 나왔나</h3>
+<p><strong>확인한 것</strong></p>
+<ul>
+<li>실루엣은 맞춰진다. 맞춤 손실이 시험 1.03 → 0.10 으로 내려갔고, 그림의 부품도 view 2 겹침 IoU 0.64 → 0.85 다.</li>
+<li>고르기가 맞으면 칸 번호로 재도 나아진다. 정답 고르기로 맞추면 시험 몸 자리가 0.72 배 [0.59, 0.90] 이다. 망 고르기의 시험 몸 종류 맞음은 0.36 이라, 칸 k 에 놓인 몸이 정답의 칸 k 몸이 아닌 경우가 많다.</li>
+<li>판정 뒤 새로 잼(판정 아님): 칸 번호 대신 예측 몸과 정답 몸을 가장 가까운 것끼리 짝지으면, 시험 몸 자리가 0.184 → 0.102 로 줄었다. 맞추기는 몸을 「어느」 정답 몸 자리로는 옮긴다.</li>
+</ul>
+<p><strong>짐작 (아직 확인 안 함)</strong></p>
+<ul>
+<li>처음엔 맞추기가 숫자를 바로 풀 거라 봤지만, 실루엣만 보면 천장이 낮다. 배운 부품을 정답 고르기로 맞춰도 모양 맞음 0.25 다. 겹쳐 가려진 몸, 안쪽 선, 구멍은 실루엣에 안 드러나기 때문으로 보인다.</li>
+</ul>
+<h3>한계</h3>
+<ul>
+<li>실루엣만 맞춘다(안쪽 선 · 구멍 · 홈 안 봄). 64² 해상도 · 300 걸음 · 정답 view · 정답 각도 · 생성기 부품.</li>
+<li>view 의 13 % 는 창 테두리에 잘려, 채운 과녁이 덜 채워진다(그림의 view 1).</li>
+<li>미리 정한 자는 칸 번호끼리 비교라, 칸 매김이 틀린 몸을 맞춰도 점수를 못 받는다. 짝지은 셈은 판정 뒤에 새로 잰 것이라 판정에 쓰지 않았다.</li>
+</ul>
+<h3>배운 것과 다음</h3>
+<p><strong>숫자를 재는 길은 고르기(몸 종류 · 칸 매김)가 맞아야 선다. 길 다만으로는 처음 보는 부품을 못 푼다.</strong></p>
+<ol>
+<li>세 길(가 · 나 · 다)을 정리한다. 세 길 모두 처음 보는 부품의 고르기에서 막혔다.</li>
+<li>고르기 일반화(부품 수 · 생성기 11 만)와, 맞추기에 안쪽 선을 더하는 것을 다음 후보로 둔다.</li>
+</ol>
+<h2>실험 기록</h2>
+<ul>
+<li>카드 · 맞춤267.py(검사 · 흐름 · 맞추기 · 잼 · 재기 · 그림) · 잼.json · 흐름.png · 결과.png · 원본 out/설명/캐드부품/모델267(맞춤_학습 · 시험 × 망 · 정답구조 · 잼 · 맞춤손실 · 검사_IoU)</li>
+<li>맞추기는 GPU 0 · 1 에 나눠 돌렸다(시험 · 정답구조 판만 GPU 1). 맞춤손실.json 의 앞 세 판은 맞추기.log 에서 옮겼다.</li>
+</ul></main></body></html>

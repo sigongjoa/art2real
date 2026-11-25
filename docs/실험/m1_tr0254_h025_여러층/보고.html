@@ -1,0 +1,124 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>실험 m1_tr0254_h025_여러층</title><style>
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap");
+:root{--paper:#f6f4ef;--sheet:#fffdf8;--ink:#1d2129;--muted:#585e68;--rule:#dcd7cc;--soft:#ece8de;--pass:#1f7a3e;--pass-bg:#e3f1e6;--fail:#b3261e;--fail-bg:#f7e2de;--tool:#8a5f00;--tool-bg:#f6ecd4;--line1:#2d5fa8;--line2:#c0661b}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 "Pretendard Variable",Pretendard,"Malgun Gothic",system-ui,sans-serif;font-variant-numeric:tabular-nums;word-break:keep-all}
+::selection{background:#1d2129;color:#fffdf8}
+a{color:var(--line1);text-underline-offset:3px}a:focus-visible{outline:2px solid var(--line1);outline-offset:2px;border-radius:2px}
+main{max-width:1040px;margin:0 auto;padding:56px 32px 96px}
+header{padding-bottom:28px;border-bottom:1px solid var(--rule);margin-bottom:8px}
+h1{font-size:clamp(1.9rem,4vw,2.7rem);line-height:1.15;letter-spacing:-.025em;margin:0 0 10px;font-weight:800;text-wrap:balance}
+.lead{font-size:1.15rem;color:var(--muted);margin:0 0 22px;max-width:62ch;text-wrap:pretty}
+.판정{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.05rem;padding:7px 14px 7px 11px;border-radius:999px}
+.판정 svg{width:18px;height:18px}.통과{color:var(--pass);background:var(--pass-bg)}.실패{color:var(--fail);background:var(--fail-bg)}.탐색{color:var(--tool);background:var(--tool-bg)}
+dl.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px 28px;margin:26px 0 0}
+dl.meta div{min-width:0}dl.meta dt{font-size:.82rem;color:var(--muted)}dl.meta dd{margin:2px 0 0;font-weight:600;overflow-wrap:anywhere}
+h2{font-size:1.35rem;letter-spacing:-.015em;margin:56px 0 14px;font-weight:750}
+h3{font-size:1.02rem;margin:30px 0 8px;font-weight:700}
+p,li{max-width:72ch}
+.표{overflow-x:auto;margin:6px 0 4px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{padding:9px 14px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--soft)}
+th:first-child,td:first-child{text-align:left}tr:last-child td{border-bottom:0}
+thead th{font-size:.8rem;font-weight:600;color:var(--muted);background:var(--paper);border-bottom:1px solid var(--rule)}
+td.결과{text-align:center}td.결과 span{display:inline-flex;width:24px;height:24px;border-radius:50%;align-items:center;justify-content:center}td.결과 svg{width:15px;height:15px}
+td.결과 .o{color:var(--pass);background:var(--pass-bg)}td.결과 .x{color:var(--fail);background:var(--fail-bg)}
+.차{color:var(--muted);font-size:.88rem}
+.주석{font-size:.88rem;color:var(--muted);margin:8px 2px 0}.주석 code{overflow-wrap:anywhere}
+.줄글{display:flex;flex-wrap:wrap;gap:6px 26px;margin:4px 0}.줄글 b{font-weight:700}.줄글 span{color:var(--muted)}
+figure{margin:18px 0 0}figure img{display:block;width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;background:#fff}
+figcaption{font-size:.86rem;color:var(--muted);margin-top:8px}
+.곡선{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:14px 12px 6px}
+.곡선 svg{display:block;width:100%;height:auto}.곡선 text{font:15px "Pretendard Variable",Pretendard,sans-serif;fill:var(--muted)}
+.사람{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:6px 22px}
+.사람 ul{padding-left:1.1em}.사람 li{margin:8px 0}.비어{color:var(--muted);font-style:italic;padding:12px 0}
+code,pre{font-family:"JetBrains Mono",D2Coding,Consolas,monospace;font-size:.86rem}
+pre{background:#1d2129;color:#f3efe6;padding:16px 18px;border-radius:10px;overflow-x:auto;line-height:1.55}
+td.열{background:color-mix(in oklab,var(--line1) calc(var(--v)*1%),var(--sheet))}td.열.진{color:#fff}
+main{max-width:1240px;display:grid;grid-template-columns:300px minmax(0,1fr);column-gap:48px;align-items:start}
+main>*{grid-column:2}header{grid-column:1;grid-row:1/200;position:sticky;top:28px;border:1px solid var(--rule);border-radius:14px;background:var(--sheet);padding:24px 22px;margin:0}
+header h1{font-size:1.32rem;line-height:1.4;letter-spacing:-.01em;font-weight:750;margin-bottom:16px}header .lead{font-size:1rem}dl.meta{grid-template-columns:1fr 1fr;gap:12px 16px}main>h2:first-of-type{margin-top:0}
+@media (max-width:900px){main{display:block}header{position:static;margin-bottom:8px}main>h2:first-of-type{margin-top:44px}}
+nav.뒤{margin:0 0 14px}nav.뒤 a{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:.9rem;color:var(--muted);text-decoration:none}nav.뒤 a:hover{color:var(--ink)}nav.뒤 svg{width:16px;height:16px}
+td.왼{text-align:left;white-space:normal}tr.깊2 td:first-child{padding-left:30px;color:var(--muted)}.흐름{max-width:72ch}ul.목표 li{max-width:72ch;margin:6px 0}ul.고리{list-style:none;padding:0;margin:0;display:grid;gap:8px}ul.고리 li{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;align-items:baseline;padding:10px 14px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}ul.고리 li span{font-weight:700}ul.고리 a{overflow-wrap:anywhere}ul.고리 em{color:var(--muted);font-style:normal}
+article.분석{max-width:70ch;font-size:1.02rem;line-height:1.8}article.분석 h3{font-size:1.12rem;margin:28px 0 8px}article.분석 p{margin:0 0 14px}article.분석 ul,article.분석 ol{margin:0 0 14px;padding-left:1.3em}article.분석 li{margin:4px 0}article.분석 img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;margin:8px 0 4px}article.분석 em{color:var(--muted)}article.분석 figure{margin:8px 0 18px}article.분석 figcaption{font-size:.95rem;color:var(--ink);font-weight:600;margin-top:6px;padding-left:10px;border-left:3px solid var(--rule)}article.분석 table{border-collapse:collapse;margin:0 0 14px}article.분석 td,article.분석 th{border-bottom:1px solid var(--rule);padding:6px 12px;text-align:left}
+.명제{margin:0 0 12px;color:var(--muted);font-size:.95rem;max-width:72ch}.명제 span{font-weight:700;color:var(--ink);margin-right:6px}.쇼츠틀{display:grid;grid-template-columns:260px minmax(0,1fr);gap:20px;align-items:start}.쇼츠{width:260px;max-width:100%;border-radius:12px;border:1px solid var(--rule);background:#000}.쇼츠글 td{white-space:normal}@media (max-width:640px){.쇼츠틀{grid-template-columns:1fr}}.구조틀{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:12px;overflow-x:auto}.구조도{display:block;width:100%;min-width:720px;height:auto}.구조틀{background:#fbfaf6}.구조도 text{font-family:inherit;fill:var(--ink)}.구조도 .제{font-size:15px;font-weight:700}.구조도 .작{font-size:12px;fill:var(--muted)}.구조도 .작진{font-size:13px;font-weight:600}.구조도 .묶{font-size:13px;font-weight:600;fill:var(--muted)}
+@media (max-width:640px){main{padding:32px 16px 64px}th,td{padding:8px 10px}h2{margin-top:44px}}
+.실험번호{color:var(--muted);margin:0 0 6px;font-weight:600}.목표줄{margin:0 0 10px;padding:8px 12px;border-radius:8px;background:#eef1f6;font-size:14px;line-height:1.5}.목표줄.경고{background:#fff4e5;border-left:4px solid #ec8a12}.판정{display:block;border-radius:10px;padding:10px 14px;font-weight:600;line-height:1.55;max-width:none}details{margin-top:18px}summary{cursor:pointer;font-weight:700}ul.결정 li{margin:8px 0}td.결과{font-weight:700;white-space:nowrap}td.지지{color:#1f7a3e}td.기각{color:#b42318}td.일부{color:#b25e09}td.약함{color:#b25e09}td.보류{color:#3d5a80}td.미검증{color:var(--muted)}img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:8px;background:#fff}</style></head><body><main><header><p class="실험번호">실험 m1_tr0254_h025_여러층</p><p class="목표줄 경고">목표 G1.1a 한 장 → 3 면도 · G1.1 사진 → 3 면도(중간 표현) · G1 첫 제품 — 피규어 · 메카 사진 여러 장 + 치수 → 숨은선 3 면도 + 파츠별 CAD · G0 임의의 이미지 → CAD 코드 · 빌린 가정 5: 생성기기하 · 흰바탕 · 렌더화풍 · 정사영 · 시점앎 · 갚는 계획: 학습은 생성기 렌더 그대로(데이터 안 건드림) · 판정은 목표 시험지(원화CAD짝 피규어 · 메카 292 렌더)로 — 생성기기하는 판정에서 갚음 · 흰바탕 · 렌더화풍 · 시점앎은 실물 사진으로 그 뒤 · 정사영은 원근 렌더로 그 뒤 · 목표 시험지 값: 안 잼 (!)</p><h1>얼린 DINOv2 의 2 · 4 층 토큰을 디코더 메모리에 더해 배우면, 목표 시험지 한 장 3 면도가 선 자리를 더 짚나?</h1><p class="판정 탐색">판정 · H25 기각(목표 짚음 K 0.143 · C 0.141 · 차 +0.002 [0.0005, 0.0035]) · H26 기각(그림 판정 C · K 모두 2.09 · 차 0 · 판정자 사이 ρ 0.72) — 2 · 4 층 토큰을 디코더 메모리에 0 에서 시작해 더하고 8,000 스텝 배워도 목표 시험지 3 면도는 대조와 같은 덩어리 · 생성기 지킴은 통과(0.769 대 0.765) · 앞쪽 층에 선 자리 재료가 있는데(탐침 0.70 · 0.74) 디코더가 쓰지 않음 · 새 칸 무게는 마지막 층 칸의 1/4 아래까지만 자람 · 다음 = 재료를 못 쓰는 까닭 가르기(시점 옮기기 없는 입력 시점 과제로 같은 두 갈래 · 새 칸 학습률)</p><dl class="meta"><div><dt>종류</dt><dd>탐색</dd></div><div><dt>쓰임새</dt><dd>미정</dd></div><div><dt>코드</dt><dd>원화3d/실험_20261013/캐드부품/층254.py</dd></div></dl><div class="표"><table class="가설"><thead><tr><th>가설</th><th>주장</th><th>결과</th><th>근거</th></tr></thead><tbody><tr><td>H25</td><td>디코더에 앞쪽 층(2 · 4) 토큰을 주면 선 자리 재료가 생겨 출력 3 면도가 선 자리를 더 짚는다</td><td class="결과 기각">기각</td><td>목표 292 모델 짚음 P5 0.1355 · C 0.1406 · K 0.1426 · 뷰별(위 · 앞 · 옆) C 0.129 · 0.148 · 0.145 / K 0.128 · 0.151 · 0.149 · 입력 맞춤별 차 0 ~ 0.4 -0.001 · 0.4 ~ 0.8 +0.003 · 0.8 ~ 1 +0.005 · 굵기 벌점 자 C 0.248 · K 0.236(차 -0.012 [-0.015, -0.010]) · 굵기(목표) C 9.48 · K 10.09 · 생성기 시험 F C 0.765 · K 0.769(지킴 통과) · 생성기 검증 F 8,000 스텝 C 0.760 · K 0.762</td></tr><tr><td>H26</td><td>앞쪽 층 토큰을 주면 사람 눈에도 덩어리가 선 그림으로 바뀐다</td><td class="결과 기각">기각</td><td>40 모델 × 2 갈래 · 그림 판정 평균 C 2.087 · K 2.087 · 두 판정자 모두 같은 물체의 두 칸에 같은 점수</td></tr></tbody></table></div></header><h2>분석</h2>
+<h3>한 줄로</h3>
+<p><strong>물음</strong>: 얼린 DINOv2 의 2 · 4 층 토큰을 디코더 메모리에 더해 배우면, 목표 시험지 한 장 3 면도가 선 자리를 더 짚나?</p>
+<p><strong>답</strong>: 아니다(H25 · H26 기각). 8,000 스텝을 배운 뒤 목표 시험지 짚음은 손잡이를 넣은 쪽 0.143, 대조 0.141 이었다. 맥락 없는 판정자 둘의 그림 판정도 두 갈래 모두 2.09 로 같았다. 재료는 앞쪽 층에 있는데(탐침 0.70) 디코더가 쓰지 않았다.</p>
+<h3>왜 이 실험을 했나</h3>
+<p>tr252 에서 선 자리가 얼린 인코더의 앞쪽 층에 남아 있다는 걸 봤고, tr253 에서 생성기로만 배운 읽기도 피규어에 건너간다는 걸 봤다. 우리 디코더는 마지막 층 토큰만 받는다. 그래서 앞쪽 층을 함께 주는 첫 고침 학습을 작게 돌렸다(도입 관문 D1). 목표는 사진 한 장에서 3 면도, 그다음 CAD 코드다.</p>
+<h3>바꾼 것 하나</h3>
+<p>디코더가 보는 메모리에 2 층과 4 층 토큰을 더했다(층 정규화 + 선형 768 → 384). 새 칸은 0 에서 시작해서 처음 출력은 P5 와 똑같다(검사로 확인, 최대 차 0.0). 대조 C 는 손잡이 없이 같은 조건으로 이어 배웠다. 두 갈래 모두 P5 무게, 새 AdamW, 8,000 스텝, 같은 배치 순서다.</p>
+<h3>결과</h3>
+<p><img alt="손잡이를 넣은 K 와 대조 C 의 목표 시험지 3 면도가 같은 덩어리이고, 짚음 막대가 0.14 에 함께 머문다" src="결과.png" /></p>
+<div class="표"><table>
+<thead>
+<tr>
+<th></th>
+<th>K</th>
+<th>C</th>
+<th>판정선</th>
+<th>판정</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H25 목표 짚음</td>
+<td>0.143</td>
+<td>0.141</td>
+<td>차 +0.05 넘게</td>
+<td>기각(+0.002 [0.0005, 0.0035])</td>
+</tr>
+<tr>
+<td>H26 그림 판정(1 ~ 5)</td>
+<td>2.09</td>
+<td>2.09</td>
+<td>차 +0.5 넘게</td>
+<td>기각(0.0 · 판정자 사이 ρ 0.72)</td>
+</tr>
+<tr>
+<td>지킴 · 생성기 시험 F</td>
+<td>0.769</td>
+<td>0.765</td>
+<td>C − 0.03 아래로 안 떨어짐</td>
+<td>통과</td>
+</tr>
+</tbody>
+</table></div>
+<p>짚음은 정답 선 자리의 확률이 둘레보다 얼마나 높은지를 잰다(정답 1.0 · 2 화소 굵힘 0.43 · 다 칠함 0). 출력 3 면도의 확률 그대로라 문턱이 끼지 않는다.</p>
+<h3>왜 이렇게 나왔나</h3>
+<p><strong>확인한 것</strong></p>
+<ul>
+<li>디코더 출력의 짚음은 P5 0.136 → C 0.141 → K 0.143 이다. 앞쪽 층 탐침(0.70 · 0.74)과는 거리가 멀다.</li>
+<li>굵기 벌점 자는 K 가 오히려 0.012 낮고, 목표 굵기도 K 가 10.1 로 C 의 9.5 보다 굵다.</li>
+<li>새 칸의 무게 크기는 8,000 스텝 끝에 2 층 3.74 · 4 층 3.50 이다. 마지막 층 칸 16.1 의 1/4 아래다. 0 에서 학습률 1e-4 로 천천히만 자랐다.</li>
+<li>입력이 출력 뷰 축에 맞을수록 차가 조금 크다(+0.005 대 −0.001). 판정선에 한참 못 미친다.</li>
+<li>3,000 스텝과 8,000 스텝 그림 모두 눈으로 C 와 구별되지 않는다. 판정자 둘도 같은 물체의 두 칸에 같은 점수를 줬다.</li>
+</ul>
+<p><strong>짐작 (아직 확인 안 함)</strong></p>
+<ul>
+<li>생성기 학습 신호가 가는 선을 요구하지 않는다. 생성기에서도 디코더 짚음은 0.22 였고(tr252), 이번 생성기 검증 F 는 K 가 0.003 높을 뿐이다. 굵은 띠로도 손실이 충분히 낮으니 새 재료를 쓸 까닭이 약하다.</li>
+<li>디코더가 입력 시점의 선 자리를 위 · 앞 · 옆 뷰로 옮겨 놓는 길이 없다. 질의는 고정 벡터 + 시점 FiLM 이다. 맞춤이 클수록 차가 조금 큰 것은 이 짐작과 맞지만 약하다.</li>
+<li>새 칸이 덜 배웠을 수도 있다.</li>
+</ul>
+<h3>한계</h3>
+<ul>
+<li>한 번만 돌렸다(씨앗 0). 8,000 스텝은 작은 판이다.</li>
+<li>새 칸 학습률을 따로 주지 않았다. 덜 배움과 「줘도 안 씀」 을 이번 판으로는 가를 수 없다.</li>
+<li>관문 메모: 기댄 tr252/H21 · tr253/H23 은 지지지만, 실험 사슬(tr246 ← tr241/H2 보류)을 따라 「재검토」 로 표시된다. 판정은 그 자를 쓰지 않는다(카드 「관문 메모」).</li>
+</ul>
+<h3>배운 것과 다음</h3>
+<p><strong>선 자리 재료를 디코더에 넣어 주는 것만으로는 덩어리가 풀리지 않는다. 디코더가 재료를 쓰지 않는 까닭을 먼저 갈라야 한다.</strong></p>
+<ol>
+<li>시점 옮기기 없는 과제로 같은 두 갈래를 배운다. 출력을 입력 시점의 선 지도로 바꾼다. K 가 C 보다 크게 짚으면 막힌 곳은 뷰 옮기기이고(→ 장마다 추론 → 합치기), 같으면 디코더 · 학습 신호 쪽이다.</li>
+<li>같은 판에서 새 칸 학습률을 10 배로 준 갈래를 하나 더 둔다(덜 배움 가르기).</li>
+<li>사슬의 재검토(tr241/H2 보류)를 어떻게 풀지는 사용자와 정한다.</li>
+</ol>
+<h2>실험 기록</h2>
+<ul>
+<li>카드 · 층254.py(검사 · 흐름 · 학습 · 시험 · 시트 · 재기 · 그림) · 잼.json · 흐름.png · 결과.png · 판정/(시트 8 · 판정 A · B) · 원본 out/설명/캐드부품/모델254(K · C 스텝 무게 · 목표예측 · 점수.npz)</li>
+</ul></main></body></html>

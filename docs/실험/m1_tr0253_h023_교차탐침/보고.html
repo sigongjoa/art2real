@@ -1,0 +1,113 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>실험 m1_tr0253_h023_교차탐침</title><style>
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap");
+:root{--paper:#f6f4ef;--sheet:#fffdf8;--ink:#1d2129;--muted:#585e68;--rule:#dcd7cc;--soft:#ece8de;--pass:#1f7a3e;--pass-bg:#e3f1e6;--fail:#b3261e;--fail-bg:#f7e2de;--tool:#8a5f00;--tool-bg:#f6ecd4;--line1:#2d5fa8;--line2:#c0661b}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 "Pretendard Variable",Pretendard,"Malgun Gothic",system-ui,sans-serif;font-variant-numeric:tabular-nums;word-break:keep-all}
+::selection{background:#1d2129;color:#fffdf8}
+a{color:var(--line1);text-underline-offset:3px}a:focus-visible{outline:2px solid var(--line1);outline-offset:2px;border-radius:2px}
+main{max-width:1040px;margin:0 auto;padding:56px 32px 96px}
+header{padding-bottom:28px;border-bottom:1px solid var(--rule);margin-bottom:8px}
+h1{font-size:clamp(1.9rem,4vw,2.7rem);line-height:1.15;letter-spacing:-.025em;margin:0 0 10px;font-weight:800;text-wrap:balance}
+.lead{font-size:1.15rem;color:var(--muted);margin:0 0 22px;max-width:62ch;text-wrap:pretty}
+.판정{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.05rem;padding:7px 14px 7px 11px;border-radius:999px}
+.판정 svg{width:18px;height:18px}.통과{color:var(--pass);background:var(--pass-bg)}.실패{color:var(--fail);background:var(--fail-bg)}.탐색{color:var(--tool);background:var(--tool-bg)}
+dl.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px 28px;margin:26px 0 0}
+dl.meta div{min-width:0}dl.meta dt{font-size:.82rem;color:var(--muted)}dl.meta dd{margin:2px 0 0;font-weight:600;overflow-wrap:anywhere}
+h2{font-size:1.35rem;letter-spacing:-.015em;margin:56px 0 14px;font-weight:750}
+h3{font-size:1.02rem;margin:30px 0 8px;font-weight:700}
+p,li{max-width:72ch}
+.표{overflow-x:auto;margin:6px 0 4px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{padding:9px 14px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--soft)}
+th:first-child,td:first-child{text-align:left}tr:last-child td{border-bottom:0}
+thead th{font-size:.8rem;font-weight:600;color:var(--muted);background:var(--paper);border-bottom:1px solid var(--rule)}
+td.결과{text-align:center}td.결과 span{display:inline-flex;width:24px;height:24px;border-radius:50%;align-items:center;justify-content:center}td.결과 svg{width:15px;height:15px}
+td.결과 .o{color:var(--pass);background:var(--pass-bg)}td.결과 .x{color:var(--fail);background:var(--fail-bg)}
+.차{color:var(--muted);font-size:.88rem}
+.주석{font-size:.88rem;color:var(--muted);margin:8px 2px 0}.주석 code{overflow-wrap:anywhere}
+.줄글{display:flex;flex-wrap:wrap;gap:6px 26px;margin:4px 0}.줄글 b{font-weight:700}.줄글 span{color:var(--muted)}
+figure{margin:18px 0 0}figure img{display:block;width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;background:#fff}
+figcaption{font-size:.86rem;color:var(--muted);margin-top:8px}
+.곡선{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:14px 12px 6px}
+.곡선 svg{display:block;width:100%;height:auto}.곡선 text{font:15px "Pretendard Variable",Pretendard,sans-serif;fill:var(--muted)}
+.사람{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:6px 22px}
+.사람 ul{padding-left:1.1em}.사람 li{margin:8px 0}.비어{color:var(--muted);font-style:italic;padding:12px 0}
+code,pre{font-family:"JetBrains Mono",D2Coding,Consolas,monospace;font-size:.86rem}
+pre{background:#1d2129;color:#f3efe6;padding:16px 18px;border-radius:10px;overflow-x:auto;line-height:1.55}
+td.열{background:color-mix(in oklab,var(--line1) calc(var(--v)*1%),var(--sheet))}td.열.진{color:#fff}
+main{max-width:1240px;display:grid;grid-template-columns:300px minmax(0,1fr);column-gap:48px;align-items:start}
+main>*{grid-column:2}header{grid-column:1;grid-row:1/200;position:sticky;top:28px;border:1px solid var(--rule);border-radius:14px;background:var(--sheet);padding:24px 22px;margin:0}
+header h1{font-size:1.32rem;line-height:1.4;letter-spacing:-.01em;font-weight:750;margin-bottom:16px}header .lead{font-size:1rem}dl.meta{grid-template-columns:1fr 1fr;gap:12px 16px}main>h2:first-of-type{margin-top:0}
+@media (max-width:900px){main{display:block}header{position:static;margin-bottom:8px}main>h2:first-of-type{margin-top:44px}}
+nav.뒤{margin:0 0 14px}nav.뒤 a{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:.9rem;color:var(--muted);text-decoration:none}nav.뒤 a:hover{color:var(--ink)}nav.뒤 svg{width:16px;height:16px}
+td.왼{text-align:left;white-space:normal}tr.깊2 td:first-child{padding-left:30px;color:var(--muted)}.흐름{max-width:72ch}ul.목표 li{max-width:72ch;margin:6px 0}ul.고리{list-style:none;padding:0;margin:0;display:grid;gap:8px}ul.고리 li{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;align-items:baseline;padding:10px 14px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}ul.고리 li span{font-weight:700}ul.고리 a{overflow-wrap:anywhere}ul.고리 em{color:var(--muted);font-style:normal}
+article.분석{max-width:70ch;font-size:1.02rem;line-height:1.8}article.분석 h3{font-size:1.12rem;margin:28px 0 8px}article.분석 p{margin:0 0 14px}article.분석 ul,article.분석 ol{margin:0 0 14px;padding-left:1.3em}article.분석 li{margin:4px 0}article.분석 img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;margin:8px 0 4px}article.분석 em{color:var(--muted)}article.분석 figure{margin:8px 0 18px}article.분석 figcaption{font-size:.95rem;color:var(--ink);font-weight:600;margin-top:6px;padding-left:10px;border-left:3px solid var(--rule)}article.분석 table{border-collapse:collapse;margin:0 0 14px}article.분석 td,article.분석 th{border-bottom:1px solid var(--rule);padding:6px 12px;text-align:left}
+.명제{margin:0 0 12px;color:var(--muted);font-size:.95rem;max-width:72ch}.명제 span{font-weight:700;color:var(--ink);margin-right:6px}.쇼츠틀{display:grid;grid-template-columns:260px minmax(0,1fr);gap:20px;align-items:start}.쇼츠{width:260px;max-width:100%;border-radius:12px;border:1px solid var(--rule);background:#000}.쇼츠글 td{white-space:normal}@media (max-width:640px){.쇼츠틀{grid-template-columns:1fr}}.구조틀{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:12px;overflow-x:auto}.구조도{display:block;width:100%;min-width:720px;height:auto}.구조틀{background:#fbfaf6}.구조도 text{font-family:inherit;fill:var(--ink)}.구조도 .제{font-size:15px;font-weight:700}.구조도 .작{font-size:12px;fill:var(--muted)}.구조도 .작진{font-size:13px;font-weight:600}.구조도 .묶{font-size:13px;font-weight:600;fill:var(--muted)}
+@media (max-width:640px){main{padding:32px 16px 64px}th,td{padding:8px 10px}h2{margin-top:44px}}
+.실험번호{color:var(--muted);margin:0 0 6px;font-weight:600}.목표줄{margin:0 0 10px;padding:8px 12px;border-radius:8px;background:#eef1f6;font-size:14px;line-height:1.5}.목표줄.경고{background:#fff4e5;border-left:4px solid #ec8a12}.판정{display:block;border-radius:10px;padding:10px 14px;font-weight:600;line-height:1.55;max-width:none}details{margin-top:18px}summary{cursor:pointer;font-weight:700}ul.결정 li{margin:8px 0}td.결과{font-weight:700;white-space:nowrap}td.지지{color:#1f7a3e}td.기각{color:#b42318}td.일부{color:#b25e09}td.약함{color:#b25e09}td.보류{color:#3d5a80}td.미검증{color:var(--muted)}img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:8px;background:#fff}</style></head><body><main><header><p class="실험번호">실험 m1_tr0253_h023_교차탐침</p><p class="목표줄 경고">목표 G1.1a 한 장 → 3 면도 · G1.1 사진 → 3 면도(중간 표현) · G1 첫 제품 — 피규어 · 메카 사진 여러 장 + 치수 → 숨은선 3 면도 + 파츠별 CAD · G0 임의의 이미지 → CAD 코드 · 빌린 가정 4: 흰바탕 · 렌더화풍 · 정사영 · 시점앎 · 갚는 계획: 학습 없음 · 판정은 목표 시험지(원화CAD짝 292 렌더) · 탐침 무게는 생성기 렌더에서만 — 흰바탕 · 렌더화풍 · 시점앎은 실물 사진으로 그 뒤 · 정사영은 원근 렌더로 그 뒤 · 목표 시험지 값: 안 잼 (!)</p><h1>생성기 렌더로만 배운 탐침도 목표 시험지에서 앞쪽 층의 선 자리를 꺼내나?</h1><p class="판정 탐색">판정 · H23 지지(생성기로만 배운 2 층 탐침 0.74 − 마지막 0.17 = +0.57 [0.56, 0.58] · 날 화소 0.45 · 소벨 0.53 보다 높음 · 자리만 0.02) · H24 기각(같은 2 층에서 목표 안에서 배운 탐침 0.70 이 오히려 0.05 낮음) — 생성기 기본 도형으로 배운 앞쪽 층 선 읽기가 피규어 · 메카에 잃지 않고 건너감 · 메카 가운데 촘촘한 디테일 선은 놓침(128² 과녁 한계) · 다음 = tr254 여러 층 특징 학습(2 · 4 층 토큰을 디코더에 · 인코더 얼림 · P5 이어 배운 대조 · 도입 관문 D1)</p><dl class="meta"><div><dt>종류</dt><dd>진단</dd></div><div><dt>쓰임새</dt><dd>미정</dd></div><div><dt>코드</dt><dd>원화3d/실험_20261013/캐드부품/교차253.py</dd></div></dl><div class="표"><table class="가설"><thead><tr><th>가설</th><th>주장</th><th>결과</th><th>근거</th></tr></thead><tbody><tr><td>H23</td><td>생성기에서 배운 선 읽기도 피규어에 건너간다 — 생성기로 배운 탐침도 목표에서 앞쪽 층이 마지막 층보다 크게 높다</td><td class="결과 지지">지지</td><td>목표 시험 모델 146 · 생성기 학습 반 150 부품으로 배운 탐침 짚음 2 층 0.743 · 4 층 0.617 · 6 층 0.410 · 8 층 0.296 · 10 층 0.219 · 12 층 0.184 · 마지막 0.175 · 2 층 토큰 하나(이웃 없음) 0.756 · 날 화소 0.446 · 소벨 0.532 · 자리만 0.021 · 생성기 검증 오차도 2 층이 가장 낮음(1.98 · 마지막 3.40)</td></tr><tr><td>H24</td><td>생성기에서 배운 선 읽기는 피규어로 넘어가며 크게 줄어든다 — 앞쪽 층에서도 목표 안에서 배운 탐침보다 크게 낮다</td><td class="결과 기각">기각</td><td>같은 람다 범위(1 ~ 10⁶) · 목표 안에서 배운 탐침 2 층 0.698 · 4 층 0.628 · 6 층 0.462 · 8 층 0.347 · 10 층 0.263 · 12 층 0.127 · 마지막 0.122 · 2 층 하나 0.709 · 날 화소 0.419 · 소벨 0.452 · 같은 차(목표 안 − 생성기로) 마지막 -0.053 · 2 층 하나 -0.047 · 날 화소 -0.027 · 소벨 -0.080 · 6 · 8 · 10 층은 목표 안이 높음(+0.05)</td></tr></tbody></table></div></header><h2>분석</h2>
+<h3>한 줄로</h3>
+<p><strong>물음</strong>: 생성기 렌더로만 배운 탐침도 목표 시험지에서 앞쪽 층의 선 자리를 꺼내나?</p>
+<p><strong>답</strong>: 꺼낸다(H23 지지). 생성기로만 배운 2 층 탐침이 목표에서 0.74를 짚었고, 마지막 층은 0.17이었다. 목표 시험지 안에서 배운 탐침(0.70)보다 오히려 조금 높아서, 건너가며 잃는다는 H24는 기각이다. 다만 메카 가운데의 촘촘한 디테일 선은 놓쳤다.</p>
+<h3>왜 이 실험을 했나</h3>
+<p>tr252에서 선 자리가 얼린 인코더의 앞쪽 층에 남아 있다는 걸 봤다. 그런데 그 탐침은 목표 시험지 절반으로 배운 것이다. 우리 망은 생성기의 기본 도형 렌더로만 배운다(데이터는 건드리지 않는다). 그래서 생성기에서 배운 선 읽기가 피규어에도 통하는지를, 학습(tr254)에 앞서 CPU로 먼저 가렸다.</p>
+<h3>바꾼 것 하나</h3>
+<p>탐침의 무게를 배우는 곳만 바꿨다. 생성기 학습 반 150 부품에서 배우고, 목표 시험 모델 146에서는 재기만 했다. 토큰, 탐침 셈, 반 나눔은 tr252와 같다. λ 범위는 10⁶까지 넓혔고, 목표 안 탐침도 같은 범위로 다시 쟀다. 층은 생성기 쪽 검증 오차로 골랐다.</p>
+<h3>결과</h3>
+<p><img alt="생성기로 배운 2 층 탐침(파랑)이 목표 안에서 배운 탐침(주황)보다 높고, 메카 가운데 디테일 선에 놓침(빨강)이 몰린다" src="결과.png" /></p>
+<div class="표"><table>
+<thead>
+<tr>
+<th></th>
+<th>결과</th>
+<th>판정선</th>
+<th>판정</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>H23 생성기로 배운 (2 층 − 마지막 층)</td>
+<td>+0.57 [0.56, 0.58]</td>
+<td>+0.10 넘게</td>
+<td>지지</td>
+</tr>
+<tr>
+<td>H24 2 층 (목표 안 − 생성기로)</td>
+<td>−0.05 [−0.05, −0.04]</td>
+<td>+0.10 넘게면 지지 · 0.03 아래면 기각</td>
+<td>기각</td>
+</tr>
+</tbody>
+</table></div>
+<p>짚음은 tr249에서 자 검사를 통과한 자다. 정답은 1.0, 2 화소 굵힘은 0.43, 다 칠하면 0이다.</p>
+<h3>왜 이렇게 나왔나</h3>
+<p><strong>확인한 것</strong></p>
+<ul>
+<li>생성기로 배운 층별 짚음: 2 층 0.74 → 4 층 0.62 → 6 층 0.41 → 8 층 0.30 → 마지막 0.17. 날 화소 0.45, 소벨 0.53보다 2 층이 높다.</li>
+<li>이웃 없이 2 층 토큰 하나로도 0.76이 나온다. 국소로 읽는 법이 건너간다.</li>
+<li>자리만 준 대조는 0.02다. 그림 내용이 만든 값이다.</li>
+<li>6 ~ 10 층은 목표 안 탐침이 0.05쯤 높다. 깊은 층일수록 덜 건너간다.</li>
+<li>메카 #48은 0.70, 프로펠러 #219는 0.77이다. 확대 혼동 그림에서는 큰 윤곽과 모서리가 맞고, 메카 가운데 촘촘한 선에 놓침이 몰렸다.</li>
+</ul>
+<p><strong>짐작 (아직 확인 안 함)</strong></p>
+<ul>
+<li>생성기 선은 깔끔해서 탐침이 또렷한 모서리를 배운다. 목표의 128² 과녁은 디테일이 이미 뭉개져 있어, 목표 안 탐침은 흐리게 배운다.</li>
+<li>깊은 층은 「무엇인가」에 따라 달라지는 몫이 커서 모양이 바뀌면 덜 건너간다.</li>
+</ul>
+<h3>한계</h3>
+<ul>
+<li>선형 탐침이고, 입력 시점의 보이는 선만 잰다. 시점 옮기기와 숨은선은 들어 있지 않다.</li>
+<li>128² 과녁은 디테일 선을 이미 뭉갠다. 디테일 선이 건너가는지는 이 실험으로 모른다.</li>
+<li>λ를 넓히자 목표 안 12 층과 마지막 층은 10⁵를 골라 0.13 · 0.12로 내려갔다(tr252는 0.22 · 0.21). λ는 평균 제곱 오차로 고르고 판정은 짚음으로 하기 때문이다. 판정에 쓴 2 층은 양쪽 모두 10⁴다.</li>
+</ul>
+<h3>배운 것과 다음</h3>
+<p><strong>생성기 기본 도형으로 배운 앞쪽 층 선 읽기는 피규어에도 잃지 않고 건너간다. 여러 층 특징 학습으로 갈 근거가 섰다.</strong></p>
+<ol>
+<li>tr254 — 2 · 4 층 토큰을 디코더에 함께 넣는다(인코더는 얼린 채). P5를 같은 스텝만큼 이어 배운 대조와 견준다(도입 관문 D1).</li>
+<li>판정은 목표 시험지 짚음, 굵기 벌점 자, 맥락 없는 그림 판정에 생성기 시험 지킴을 더한다.</li>
+<li>디테일 선은 더 높은 해상도 과녁이 있어야 잴 수 있다. tr254 뒤에 따로 다룬다.</li>
+</ol>
+<h2>실험 기록</h2>
+<ul>
+<li>카드 · 교차253.py(흐름 · 탐침 · 재기 · 지도더 · 그림) · 잼.json · 흐름.png · 결과.png · 원본 out/설명/캐드부품/모델253</li>
+</ul></main></body></html>

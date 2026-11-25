@@ -1,0 +1,145 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>실험 m2_tr0282_h033_몸분류</title><style>
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap");
+:root{--paper:#f6f4ef;--sheet:#fffdf8;--ink:#1d2129;--muted:#585e68;--rule:#dcd7cc;--soft:#ece8de;--pass:#1f7a3e;--pass-bg:#e3f1e6;--fail:#b3261e;--fail-bg:#f7e2de;--tool:#8a5f00;--tool-bg:#f6ecd4;--line1:#2d5fa8;--line2:#c0661b}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 "Pretendard Variable",Pretendard,"Malgun Gothic",system-ui,sans-serif;font-variant-numeric:tabular-nums;word-break:keep-all}
+::selection{background:#1d2129;color:#fffdf8}
+a{color:var(--line1);text-underline-offset:3px}a:focus-visible{outline:2px solid var(--line1);outline-offset:2px;border-radius:2px}
+main{max-width:1040px;margin:0 auto;padding:56px 32px 96px}
+header{padding-bottom:28px;border-bottom:1px solid var(--rule);margin-bottom:8px}
+h1{font-size:clamp(1.9rem,4vw,2.7rem);line-height:1.15;letter-spacing:-.025em;margin:0 0 10px;font-weight:800;text-wrap:balance}
+.lead{font-size:1.15rem;color:var(--muted);margin:0 0 22px;max-width:62ch;text-wrap:pretty}
+.판정{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.05rem;padding:7px 14px 7px 11px;border-radius:999px}
+.판정 svg{width:18px;height:18px}.통과{color:var(--pass);background:var(--pass-bg)}.실패{color:var(--fail);background:var(--fail-bg)}.탐색{color:var(--tool);background:var(--tool-bg)}
+dl.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px 28px;margin:26px 0 0}
+dl.meta div{min-width:0}dl.meta dt{font-size:.82rem;color:var(--muted)}dl.meta dd{margin:2px 0 0;font-weight:600;overflow-wrap:anywhere}
+h2{font-size:1.35rem;letter-spacing:-.015em;margin:56px 0 14px;font-weight:750}
+h3{font-size:1.02rem;margin:30px 0 8px;font-weight:700}
+p,li{max-width:72ch}
+.표{overflow-x:auto;margin:6px 0 4px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{padding:9px 14px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--soft)}
+th:first-child,td:first-child{text-align:left}tr:last-child td{border-bottom:0}
+thead th{font-size:.8rem;font-weight:600;color:var(--muted);background:var(--paper);border-bottom:1px solid var(--rule)}
+td.결과{text-align:center}td.결과 span{display:inline-flex;width:24px;height:24px;border-radius:50%;align-items:center;justify-content:center}td.결과 svg{width:15px;height:15px}
+td.결과 .o{color:var(--pass);background:var(--pass-bg)}td.결과 .x{color:var(--fail);background:var(--fail-bg)}
+.차{color:var(--muted);font-size:.88rem}
+.주석{font-size:.88rem;color:var(--muted);margin:8px 2px 0}.주석 code{overflow-wrap:anywhere}
+.줄글{display:flex;flex-wrap:wrap;gap:6px 26px;margin:4px 0}.줄글 b{font-weight:700}.줄글 span{color:var(--muted)}
+figure{margin:18px 0 0}figure img{display:block;width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;background:#fff}
+figcaption{font-size:.86rem;color:var(--muted);margin-top:8px}
+.곡선{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:14px 12px 6px}
+.곡선 svg{display:block;width:100%;height:auto}.곡선 text{font:15px "Pretendard Variable",Pretendard,sans-serif;fill:var(--muted)}
+.사람{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:6px 22px}
+.사람 ul{padding-left:1.1em}.사람 li{margin:8px 0}.비어{color:var(--muted);font-style:italic;padding:12px 0}
+code,pre{font-family:"JetBrains Mono",D2Coding,Consolas,monospace;font-size:.86rem}
+pre{background:#1d2129;color:#f3efe6;padding:16px 18px;border-radius:10px;overflow-x:auto;line-height:1.55}
+td.열{background:color-mix(in oklab,var(--line1) calc(var(--v)*1%),var(--sheet))}td.열.진{color:#fff}
+main{max-width:1240px;display:grid;grid-template-columns:300px minmax(0,1fr);column-gap:48px;align-items:start}
+main>*{grid-column:2}header{grid-column:1;grid-row:1/200;position:sticky;top:28px;border:1px solid var(--rule);border-radius:14px;background:var(--sheet);padding:24px 22px;margin:0}
+header h1{font-size:1.32rem;line-height:1.4;letter-spacing:-.01em;font-weight:750;margin-bottom:16px}header .lead{font-size:1rem}dl.meta{grid-template-columns:1fr 1fr;gap:12px 16px}main>h2:first-of-type{margin-top:0}
+@media (max-width:900px){main{display:block}header{position:static;margin-bottom:8px}main>h2:first-of-type{margin-top:44px}}
+nav.뒤{margin:0 0 14px}nav.뒤 a{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:.9rem;color:var(--muted);text-decoration:none}nav.뒤 a:hover{color:var(--ink)}nav.뒤 svg{width:16px;height:16px}
+td.왼{text-align:left;white-space:normal}tr.깊2 td:first-child{padding-left:30px;color:var(--muted)}.흐름{max-width:72ch}ul.목표 li{max-width:72ch;margin:6px 0}ul.고리{list-style:none;padding:0;margin:0;display:grid;gap:8px}ul.고리 li{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;align-items:baseline;padding:10px 14px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}ul.고리 li span{font-weight:700}ul.고리 a{overflow-wrap:anywhere}ul.고리 em{color:var(--muted);font-style:normal}
+article.분석{max-width:70ch;font-size:1.02rem;line-height:1.8}article.분석 h3{font-size:1.12rem;margin:28px 0 8px}article.분석 p{margin:0 0 14px}article.분석 ul,article.분석 ol{margin:0 0 14px;padding-left:1.3em}article.분석 li{margin:4px 0}article.분석 img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;margin:8px 0 4px}article.분석 em{color:var(--muted)}article.분석 figure{margin:8px 0 18px}article.분석 figcaption{font-size:.95rem;color:var(--ink);font-weight:600;margin-top:6px;padding-left:10px;border-left:3px solid var(--rule)}article.분석 table{border-collapse:collapse;margin:0 0 14px}article.분석 td,article.분석 th{border-bottom:1px solid var(--rule);padding:6px 12px;text-align:left}
+.명제{margin:0 0 12px;color:var(--muted);font-size:.95rem;max-width:72ch}.명제 span{font-weight:700;color:var(--ink);margin-right:6px}.쇼츠틀{display:grid;grid-template-columns:260px minmax(0,1fr);gap:20px;align-items:start}.쇼츠{width:260px;max-width:100%;border-radius:12px;border:1px solid var(--rule);background:#000}.쇼츠글 td{white-space:normal}@media (max-width:640px){.쇼츠틀{grid-template-columns:1fr}}.구조틀{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:12px;overflow-x:auto}.구조도{display:block;width:100%;min-width:720px;height:auto}.구조틀{background:#fbfaf6}.구조도 text{font-family:inherit;fill:var(--ink)}.구조도 .제{font-size:15px;font-weight:700}.구조도 .작{font-size:12px;fill:var(--muted)}.구조도 .작진{font-size:13px;font-weight:600}.구조도 .묶{font-size:13px;font-weight:600;fill:var(--muted)}
+@media (max-width:640px){main{padding:32px 16px 64px}th,td{padding:8px 10px}h2{margin-top:44px}}
+.실험번호{color:var(--muted);margin:0 0 6px;font-weight:600}.목표줄{margin:0 0 10px;padding:8px 12px;border-radius:8px;background:#eef1f6;font-size:14px;line-height:1.5}.목표줄.경고{background:#fff4e5;border-left:4px solid #ec8a12}.판정{display:block;border-radius:10px;padding:10px 14px;font-weight:600;line-height:1.55;max-width:none}details{margin-top:18px}summary{cursor:pointer;font-weight:700}ul.결정 li{margin:8px 0}td.결과{font-weight:700;white-space:nowrap}td.지지{color:#1f7a3e}td.기각{color:#b42318}td.일부{color:#b25e09}td.약함{color:#b25e09}td.보류{color:#3d5a80}td.미검증{color:var(--muted)}img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:8px;background:#fff}</style></head><body><main><header><p class="실험번호">실험 m2_tr0282_h033_몸분류</p><p class="목표줄 경고">목표 G1.2 view 모음 → 파츠별 CAD code(CadQuery · 그 전 「3 면도 → 파츠별 CAD」 · 지금 M2 는 위 · 앞 · 옆 고정 세 장만 받음 → 아무 각도 N 장으로 바꿀 것 · 11-20) · G1 첫 제품 — 피규어 · 메카 사진 여러 장 + 치수 → 숨은선 3 면도 + 파츠별 CAD · G0 임의의 이미지 → CAD 코드 · 빌린 가정 3: 생성기기하 · 정답3D · 정사영 · 갚는 계획: 진단 · 정답 상자(정답 나누기) · 생성기 부품 · 시험 = tr279 와 같은 600 — 높으면 망 상자(tr277 맞춘 · dd 의 망 없는 상자)로 바꿔 진척판 2,024 에 점(Fi) → 흐린 view · m1 view 로 버팀(Sc) · 목표 시험지 값: 안 잼 (!)</p><h1>그림에서 정답 상자로 잘라 낸 몸 그림으로 몸 하나 분류기를 학습하면, 처음 보는 부품의 정답 상자로 잘라 낸 몸 종류를 맞히나?</h1><p class="판정 탐색">판정 · H33 지지(0.894 [0.882, 0.906] · 지지선 0.80) — 그림에서 정답 상자로 잘라 낸 몸 그림으로 배운 몸 분류기는 처음 보는 부품 몸 종류를 0.89 로 맞힘(같은 몸 통째 망 0.35) · tr279 실패의 큰 몫은 잘린 그림을 본 적 없음 · 용량 아님(넓혀도 0.90) · 망 상자로 잘라도 자리짝종류 0.532 → 0.566(판정 아님) · 상자 맞는 몸은 0.94 · 10 화소 넘게 어긋난 몸은 0.22 · 다음: 망 상자로 잘라 몸 분류기로 종류를 바꾸는 고침(Fi · tr0284 · H35)을 진척판 2,024 로 · 상자가 믿을 만할 때만 바꾸는 갈래 · dd 의 선 주인 가리기로 상자 오차 줄이기</p><dl class="meta"><div><dt>종류</dt><dd>진단</dd></div><div><dt>쓰임새</dt><dd>고칠 길 고르기</dd></div><div><dt>코드</dt><dd>원화3d/실험_20261013/캐드부품/몸분류282.py</dd></div></dl><div class="표"><table class="가설"><thead><tr><th>가설</th><th>주장</th><th>결과</th><th>근거</th></tr></thead><tbody><tr><td>H33</td><td>그림에서 잘라 낸 몸 그림에도 종류 정보가 남아 있어, 그 그림으로 배운 분류기는 처음 보는 부품의 몸 종류를 맞힌다</td><td class="결과 지지">지지</td><td>같은 몸 통째 망 0.347 · 넓은 분류기(약 1,100 만 · 10 바퀴 · 배치 128 둘로 기울기 모음) 0.903 [0.892, 0.914] · 학습 20 바퀴 학습 맞음 0.997 · 검증 0.902(5 바퀴부터 0.90 안팎) · 몸 크기별 몸 분류기 0.687(0 ~ 0.3 · 99) · 0.875(0.3 ~ 0.5) · 0.927(0.5 ~ 0.8) · 0.951(0.8 ~ · 81) · 종류별 상자 0.959 · 원기둥 0.796 · 원뿔 0.916 · 돔 0.928 · 컵 0.875 · 계단축 0.834 · 그릇 0.930 · Fi 미리 보기(판정 아님 · 망 상자 tr277 맞춘): 자리짝종류 0.532 → 0.566 · 차 구간 [0.013, 0.054] · 판정 뒤 상자 오차별(dd tr281 · 짝지은 몸 2,472): 1.5 화소 안 791 망 0.834 → 분류기 0.942 · 1.5 ~ 3 252 0.607 → 0.790 · 3 ~ 10 641 0.371 → 0.426 · 10 넘음 788 0.341 → 0.220</td></tr></tbody></table></div></header><h2>분석</h2>
+<h3>한 줄로</h3>
+<p><strong>물음</strong>: 그림에서 정답 상자로 잘라 낸 몸 그림으로 「몸 하나 분류기」를 배우면, 처음 보는 부품의 잘라 낸 몸 종류를 맞히나?</p>
+<p><strong>답</strong>: 맞힌다 — 지지. 시험 몸 2,620 개에서 0.89 [0.88, 0.91] 를 맞혔다. 같은 몸을 지금 통째 망에 보이면 0.35 다. tr279 가 실패한 큰 까닭은 「잘린 그림을 본 적 없음」 이었다.</p>
+<h3>왜 이 실험을 했나</h3>
+<p>tr279 에서 통째 그림 망에 잘라 낸 몸을 보이니 오히려 나빠졌다(정답 상자로 잘라도 0.35). 정답 메시로 그린 몸은 0.92 였다. 갈래가 둘 남았다. 망이 잘린 그림을 본 적이 없어서인가, 아니면 그림에서 자른 선에는 종류 정보가 모자라서인가. 뒤쪽이면 「그림에서 나누기」 길 전체가 막힌다.</p>
+<h3>바꾼 것 하나</h3>
+<p>몸 종류를 읽는 망만 바꿨다. 학습 부품(번호 &lt; 11000 · 몸 2 개 이상)의 몸 36,960 개를 tr279 와 같은 길로 잘라, 작은 분류기(약 275 만 개 숫자 · m2 와 같은 CNN 블록)를 20 바퀴 배웠다. 시험 부품 · 정답 상자 · 자르기는 tr279 와 같다. 카드는 돌리기 전에 커밋했다(62f9b834).</p>
+<h3>결과</h3>
+<p><img alt="잘린 그림으로 배운 몸 분류기는 0.89 — 같은 몸 통째 망 0.35" src="결과.png" /></p>
+<div class="표"><table>
+<thead>
+<tr>
+<th>시험 몸 2,620</th>
+<th>몸 분류기</th>
+<th>통째 망(대조)</th>
+<th>판정선</th>
+<th>넘었나</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>몸 종류 맞음</td>
+<td>0.89 [0.88, 0.91]</td>
+<td>0.35</td>
+<td>≥ 0.80 · 아래 ≥ 0.75</td>
+<td>예(지지)</td>
+</tr>
+</tbody>
+</table></div>
+<p>사용자 물음 「모델 용량이 너무 작지 않아?」 에 답하려고 4 배 넓힌 분류기(약 1,100 만)도 같이 돌렸다. 0.90 으로 +0.01 이다. 작은 분류기는 학습 몸을 0.997 까지 맞히는데 검증은 5 바퀴부터 0.90 에 멈췄다 — 용량이 모자라는 게 아니라 외우는 쪽이다.</p>
+<h3>왜 이렇게 나왔나</h3>
+<p><strong>확인한 것</strong></p>
+<ul>
+<li>잘라 낸 그림에도 종류 정보가 있다. 배우면 0.89 로, 정답 메시로 그린 몸(0.92)과 3 점 차이다.</li>
+<li>작은 몸일수록 어렵다. 가장 긴 변이 부품의 0.3 안이면 0.69, 0.8 넘으면 0.95.</li>
+<li>판정 밖으로, 정답 상자 대신 망 상자(tr277 이 맞춘 것)로 잘라도 자리짝종류가 0.53 → 0.57(+0.034 [0.013, 0.054])로 올랐다. 나누기 쪽 시도가 바탕을 넘은 건 처음이다.</li>
+</ul>
+<p><strong>판정 뒤 — 상자 오차별</strong> (dd 의 tr281 상자 오차 · 짝지은 몸 2,472)</p>
+<div class="표"><table>
+<thead>
+<tr>
+<th>망 상자 오차</th>
+<th>몸</th>
+<th>망 종류 맞음</th>
+<th>몸 분류기</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1.5 화소 안</td>
+<td>791(32 %)</td>
+<td>0.83</td>
+<td>0.94</td>
+</tr>
+<tr>
+<td>1.5 ~ 3</td>
+<td>252(10 %)</td>
+<td>0.61</td>
+<td>0.79</td>
+</tr>
+<tr>
+<td>3 ~ 10</td>
+<td>641(26 %)</td>
+<td>0.37</td>
+<td>0.43</td>
+</tr>
+<tr>
+<td>10 넘음</td>
+<td>788(32 %)</td>
+<td>0.34</td>
+<td>0.22</td>
+</tr>
+</tbody>
+</table></div>
+<p>상자가 맞으면 크게 낫고, 10 화소 넘게 어긋나면 더 나빠진다.</p>
+<p><strong>짐작 (아직 확인 안 함)</strong></p>
+<ul>
+<li>상자가 믿을 만한 몸에서만 분류기 종류로 바꾸면 +0.034 보다 더 오를 것이다.</li>
+</ul>
+<h3>한계</h3>
+<ul>
+<li>정답 상자는 정답 나누기다(천장). 상자가 몸 꼴(가로세로 비)을 알려 준다.</li>
+<li>분류기 하나 · 씨 하나 · 600 부분집합. 학습 그림은 옛 생성기 그대로.</li>
+<li>넓은 팔은 10 바퀴 · 배치 128 둘로 기울기를 모음(8 GB 에 안 들어가서 · GroupNorm 이라 같은 셈).</li>
+</ul>
+<h3>배운 것과 다음</h3>
+<p><strong>그림에서 나누기 길은 살아 있다 — 잘린 몸 그림으로 배우면 0.89 · 막힘은 이제 상자다.</strong></p>
+<ol>
+<li>고침(Fi · tr0284 · H35): 망 상자로 잘라 몸 분류기로 종류를 바꾸는 것을 진척판 2,024 로 잰다. 상자가 믿을 만할 때만 바꾸는 갈래를 같이.</li>
+<li>상자 오차 줄이기: dd 의 선 주인 가리기(tr0283)와 붙인다 — 10 화소 넘는 32 % 가 남은 몫.</li>
+</ol>
+<h2>실험 기록</h2>
+<ul>
+<li>카드(돌리기 전 커밋 62f9b834 · H33_A_Ce · 식 · 판정식 · 결과 전 넓은 팔 더함) · 몸분류282.py(상자 · 자르기 · 흐름 · 학습 · 재기 · 그림 · 자검사) · 잼.json · 흐름.png · 결과.png · 원본 out/설명/캐드부품/모델282(몸.npz 40,314 · 몸망.pt · 몸망_폭2.pt · 학습.json · 재기.npz · 상자오차별.json)</li>
+<li>자 검사 몸종류맞음 통과(오라클 1.0 · 열화 0.789 · 0.608 · 무작위 0.145 · 가장 흔한 종류 0.224).</li>
+<li>학습 부품 10,510 몸 상자 못 지음 0 · 넓은 팔은 처음 GPU 를 상자 맞추기와 나눠 쓰다 메모리 넘쳐(OOM) 둘로 나눠 다시 돌림.</li>
+</ul></main></body></html>
