@@ -1,0 +1,138 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>실험 m2_tr0312_h065_흔들기</title><style>
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap");
+:root{--paper:#f6f4ef;--sheet:#fffdf8;--ink:#1d2129;--muted:#585e68;--rule:#dcd7cc;--soft:#ece8de;--pass:#1f7a3e;--pass-bg:#e3f1e6;--fail:#b3261e;--fail-bg:#f7e2de;--tool:#8a5f00;--tool-bg:#f6ecd4;--line1:#2d5fa8;--line2:#c0661b}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 "Pretendard Variable",Pretendard,"Malgun Gothic",system-ui,sans-serif;font-variant-numeric:tabular-nums;word-break:keep-all}
+::selection{background:#1d2129;color:#fffdf8}
+a{color:var(--line1);text-underline-offset:3px}a:focus-visible{outline:2px solid var(--line1);outline-offset:2px;border-radius:2px}
+main{max-width:1040px;margin:0 auto;padding:56px 32px 96px}
+header{padding-bottom:28px;border-bottom:1px solid var(--rule);margin-bottom:8px}
+h1{font-size:clamp(1.9rem,4vw,2.7rem);line-height:1.15;letter-spacing:-.025em;margin:0 0 10px;font-weight:800;text-wrap:balance}
+.lead{font-size:1.15rem;color:var(--muted);margin:0 0 22px;max-width:62ch;text-wrap:pretty}
+.판정{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.05rem;padding:7px 14px 7px 11px;border-radius:999px}
+.판정 svg{width:18px;height:18px}.통과{color:var(--pass);background:var(--pass-bg)}.실패{color:var(--fail);background:var(--fail-bg)}.탐색{color:var(--tool);background:var(--tool-bg)}
+dl.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px 28px;margin:26px 0 0}
+dl.meta div{min-width:0}dl.meta dt{font-size:.82rem;color:var(--muted)}dl.meta dd{margin:2px 0 0;font-weight:600;overflow-wrap:anywhere}
+h2{font-size:1.35rem;letter-spacing:-.015em;margin:56px 0 14px;font-weight:750}
+h3{font-size:1.02rem;margin:30px 0 8px;font-weight:700}
+p,li{max-width:72ch}
+.표{overflow-x:auto;margin:6px 0 4px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{padding:9px 14px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--soft)}
+th:first-child,td:first-child{text-align:left}tr:last-child td{border-bottom:0}
+thead th{font-size:.8rem;font-weight:600;color:var(--muted);background:var(--paper);border-bottom:1px solid var(--rule)}
+td.결과{text-align:center}td.결과 span{display:inline-flex;width:24px;height:24px;border-radius:50%;align-items:center;justify-content:center}td.결과 svg{width:15px;height:15px}
+td.결과 .o{color:var(--pass);background:var(--pass-bg)}td.결과 .x{color:var(--fail);background:var(--fail-bg)}
+.차{color:var(--muted);font-size:.88rem}
+.주석{font-size:.88rem;color:var(--muted);margin:8px 2px 0}.주석 code{overflow-wrap:anywhere}
+.줄글{display:flex;flex-wrap:wrap;gap:6px 26px;margin:4px 0}.줄글 b{font-weight:700}.줄글 span{color:var(--muted)}
+figure{margin:18px 0 0}figure img{display:block;width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;background:#fff}
+figcaption{font-size:.86rem;color:var(--muted);margin-top:8px}
+.곡선{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:14px 12px 6px}
+.곡선 svg{display:block;width:100%;height:auto}.곡선 text{font:15px "Pretendard Variable",Pretendard,sans-serif;fill:var(--muted)}
+.사람{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:6px 22px}
+.사람 ul{padding-left:1.1em}.사람 li{margin:8px 0}.비어{color:var(--muted);font-style:italic;padding:12px 0}
+code,pre{font-family:"JetBrains Mono",D2Coding,Consolas,monospace;font-size:.86rem}
+pre{background:#1d2129;color:#f3efe6;padding:16px 18px;border-radius:10px;overflow-x:auto;line-height:1.55}
+td.열{background:color-mix(in oklab,var(--line1) calc(var(--v)*1%),var(--sheet))}td.열.진{color:#fff}
+main{max-width:1240px;display:grid;grid-template-columns:300px minmax(0,1fr);column-gap:48px;align-items:start}
+main>*{grid-column:2}header{grid-column:1;grid-row:1/200;position:sticky;top:28px;border:1px solid var(--rule);border-radius:14px;background:var(--sheet);padding:24px 22px;margin:0}
+header h1{font-size:1.32rem;line-height:1.4;letter-spacing:-.01em;font-weight:750;margin-bottom:16px}header .lead{font-size:1rem}dl.meta{grid-template-columns:1fr 1fr;gap:12px 16px}main>h2:first-of-type{margin-top:0}
+@media (max-width:900px){main{display:block}header{position:static;margin-bottom:8px}main>h2:first-of-type{margin-top:44px}}
+nav.뒤{margin:0 0 14px}nav.뒤 a{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:.9rem;color:var(--muted);text-decoration:none}nav.뒤 a:hover{color:var(--ink)}nav.뒤 svg{width:16px;height:16px}
+td.왼{text-align:left;white-space:normal}tr.깊2 td:first-child{padding-left:30px;color:var(--muted)}.흐름{max-width:72ch}ul.목표 li{max-width:72ch;margin:6px 0}ul.고리{list-style:none;padding:0;margin:0;display:grid;gap:8px}ul.고리 li{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;align-items:baseline;padding:10px 14px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}ul.고리 li span{font-weight:700}ul.고리 a{overflow-wrap:anywhere}ul.고리 em{color:var(--muted);font-style:normal}
+article.분석{max-width:70ch;font-size:1.02rem;line-height:1.8}article.분석 h3{font-size:1.12rem;margin:28px 0 8px}article.분석 p{margin:0 0 14px}article.분석 ul,article.분석 ol{margin:0 0 14px;padding-left:1.3em}article.분석 li{margin:4px 0}article.분석 img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;margin:8px 0 4px}article.분석 em{color:var(--muted)}article.분석 figure{margin:8px 0 18px}article.분석 figcaption{font-size:.95rem;color:var(--ink);font-weight:600;margin-top:6px;padding-left:10px;border-left:3px solid var(--rule)}article.분석 table{border-collapse:collapse;margin:0 0 14px}article.분석 td,article.분석 th{border-bottom:1px solid var(--rule);padding:6px 12px;text-align:left}
+.명제{margin:0 0 12px;color:var(--muted);font-size:.95rem;max-width:72ch}.명제 span{font-weight:700;color:var(--ink);margin-right:6px}.쇼츠틀{display:grid;grid-template-columns:260px minmax(0,1fr);gap:20px;align-items:start}.쇼츠{width:260px;max-width:100%;border-radius:12px;border:1px solid var(--rule);background:#000}.쇼츠글 td{white-space:normal}@media (max-width:640px){.쇼츠틀{grid-template-columns:1fr}}.구조틀{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:12px;overflow-x:auto}.구조도{display:block;width:100%;min-width:720px;height:auto}.구조틀{background:#fbfaf6}.구조도 text{font-family:inherit;fill:var(--ink)}.구조도 .제{font-size:15px;font-weight:700}.구조도 .작{font-size:12px;fill:var(--muted)}.구조도 .작진{font-size:13px;font-weight:600}.구조도 .묶{font-size:13px;font-weight:600;fill:var(--muted)}
+@media (max-width:640px){main{padding:32px 16px 64px}th,td{padding:8px 10px}h2{margin-top:44px}}
+.실험번호{color:var(--muted);margin:0 0 6px;font-weight:600}.목표줄{margin:0 0 10px;padding:8px 12px;border-radius:8px;background:#eef1f6;font-size:14px;line-height:1.5}.목표줄.경고{background:#fff4e5;border-left:4px solid #ec8a12}.판정{display:block;border-radius:10px;padding:10px 14px;font-weight:600;line-height:1.55;max-width:none}details{margin-top:18px}summary{cursor:pointer;font-weight:700}ul.결정 li{margin:8px 0}td.결과{font-weight:700;white-space:nowrap}td.지지{color:#1f7a3e}td.기각{color:#b42318}td.일부{color:#b25e09}td.약함{color:#b25e09}td.보류{color:#3d5a80}td.미검증{color:var(--muted)}img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:8px;background:#fff}</style></head><body><main><header><p class="실험번호">실험 m2_tr0312_h065_흔들기</p><p class="목표줄 경고">목표 G1.2 view 모음 → 파츠별 CAD code(CadQuery · 그 전 「3 면도 → 파츠별 CAD」 · 지금 M2 는 위 · 앞 · 옆 고정 세 장만 받음 → 아무 각도 N 장으로 바꿀 것 · 11-20) · G1 첫 제품 — 피규어 · 메카 사진 여러 장 + 치수 → 숨은선 3 면도 + 파츠별 CAD · G0 임의의 이미지 → CAD 코드 · 빌린 가정 5: 정사영 · 시점앎 · 흰바탕 · 렌더화풍 · 정답3D · 갚는 계획: 진단 · 정답 만들기 — 고주파 놓침 원인이 정해지면 그 고침으로 CAD code 정답 변환(m2 학습 · 비교는 그 뒤 카드) · 목표 시험지 값: 안 잼 (!)</p><h1>바탕 맞춤(배관2 메시 · 출발 16 + 표면 F + R7 + R4 + R5)에서 과녁 표면 곁 흔들기 σ 만 0.02 → 0.005 로 줄이면 정답 고주파 칸의 맞음이 오르나?</h1><dl class="meta"><div><dt>종류</dt><dd>진단</dd></div><div><dt>쓰임새</dt><dd>고칠 길 고르기</dd></div><div><dt>코드</dt><dd></dd></div></dl><div class="표"><table class="가설"><thead><tr><th>가설</th><th>주장</th><th>결과</th><th>근거</th></tr></thead><tbody><tr><td>m2-H65</td><td>흔들기 σ 가 얇은 곳의 「안」 가르침을 지워 고주파를 놓친다 — σ 를 줄이면 고주파 칸 맞음이 오른다</td><td class="결과 기각">기각</td><td>연습 앞 32 메시 · 덩이 3,146 · 고주파 위 25 % 덩이 IoU 0.3093 → 0.2908(차 −0.0185 &lt; 0.03) · 매끈 아래 25 % 0.7168 → 0.6710(−0.0458) · 새 자 0.7286 → 0.6707 · 하네스 실패 두 팔 0 · CAD 안 끝남 0 · 0 · 조용한 실패 0 · 잼에서 셈: 차이의 차이(고주파차 − 매끈차) +0.027 · 비율 고주파 −6.0 % · 매끈 −6.4 % · 참고 흔들기_메시.json σ 0.01 R 위/아래 0.665 배</td></tr></tbody></table></div><details><summary>결정 표(돌리기 전에 정함)</summary><ul class="결정"><li><b>만약</b> 지지<br><b>다음</b> 바탕을 σ 0.005 로 바꾸고 H_a(고주파 잔차 몸) 카드로</li><li><b>만약</b> 기각<br><b>다음</b> 흔들기는 원인 아님 — 과녁 점 수 · 칸당 점 몫(H_C1 의 다른 갈래) 또는 어휘(얇은 판 · S6)로</li></ul></details></header><h2>분석</h2>
+<h3>한 줄로</h3>
+<p><strong>물음</strong>: 정답 변환 맞춤에서 과녁 표면 곁 점의 흔들기 σ 만 0.02 → 0.005 로 줄이면 정답 고주파 칸의 맞음이 오르나?</p>
+<p><strong>답</strong>: 아니다. 고주파 위 25 % 덩이 IoU 는 0.3093 → 0.2908(차 −0.0185)로 오히려 조금 내려갔고, 매끈 칸은 0.7168 → 0.6710(−0.0458)으로 더 내려갔다. 고주파차가 기각선 0.03 아래라 <strong>m2-H65 기각</strong>.</p>
+<h3>왜 이 실험을 했나</h3>
+<p>사용자 가설은 「고주파 부분에서 학습을 못한다」였다. 물체를 8³ 덩이로 나눠 보니 정답 고주파 위 25 % 덩이 IoU 는 0.309, 아래 25 % 는 0.717 이었고(30/32 물체), 볼록 껍질보다도 고주파 칸에서 졌다(대조 규칙상 「맞춤 탓」 쪽 · 원인은 짐작). 원인 셈에서 맞춤이 받는 「안」 이름표 과녁 점이 고주파 덩이에서 매끈 덩이의 0.43 배뿐이었다(H_C1). 흔들기 σ 0.02 가 얇은 곳 두께보다 커서 「안」 점이 밖으로 튀어 나간다고 보았고, 공짜 확인에서 σ 0.005 로 줄이면 그 배가 0.809 로 오르는 것을 보았다. 그래서 σ 하나만 바꿔 맞춤을 다시 돌렸다.</p>
+<h3>바꾼 것 하나</h3>
+<p><code>_과녁점2</code> 의 표면 곁 점 흔들기 σ 0.02 → 0.005. 출발 씨 101 ~ 116 · 묶음 8 · 표면 F 고르기 · R7 · R4 · R5 · 끝 단계 상한 6 GB 는 바탕(배관2 메시 팔)과 같다.</p>
+<h3>결과</h3>
+<p><img alt="왼쪽: 정답 덩이 고주파 몫 10 분위마다 덩이 IoU — 빨강(σ 0.005)이 거의 모든 분위에서 회색(바탕) 아래. 오른쪽: 물체별 새 자 — 점 대부분이 대각선 아래" src="결과_pc.png" /></p>
+<div class="표"><table>
+<thead>
+<tr>
+<th></th>
+<th>바탕 σ 0.02</th>
+<th>σ 0.005</th>
+<th>차</th>
+<th>문턱</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>고주파 위 25 % 덩이 IoU</td>
+<td>0.3093</td>
+<td>0.2908</td>
+<td>−0.0185</td>
+<td>지지 ≥ 0.10 · 기각 &lt; 0.03 → 기각</td>
+</tr>
+<tr>
+<td>매끈 아래 25 % 덩이 IoU</td>
+<td>0.7168</td>
+<td>0.6710</td>
+<td>−0.0458</td>
+<td>지지에 ≥ −0.01 필요</td>
+</tr>
+<tr>
+<td>새 자 F@0.02_정답틀 평균</td>
+<td>0.7286</td>
+<td>0.6707</td>
+<td>−0.0579 [−0.0791, −0.0338]</td>
+<td>같이 적음</td>
+</tr>
+</tbody>
+</table></div>
+<p>덩이 3,146 개(정답 안 · 밖이 섞인 8³ 덩이). 하네스 실패 두 팔 0, CAD 안 끝남 0 · 0, 조용한 실패 0. 바탕 위 25 % 0.3093 은 옛 진단 셈 0.309 와 같다(같은 자). 물체 재표집 구간(참고): 고주파차 [−0.0444, 0.0030], 매끈차 [−0.0730, −0.0240].</p>
+<h3>왜 이렇게 나왔나</h3>
+<p><strong>확인한 것</strong></p>
+<ul>
+<li>과녁의 「안」 점 몫(R)은 σ 를 줄이면 고주파 칸에서 0.43 → 0.81 배로 오른다(공짜 확인 54933d14 · 과녁 점에서 센 값). 과녁의 「안」 점 몫은 늘었는데, σ 0.005 한 값 · 한 번 돌림에서 고주파 칸은 오르지 않았다. 맞춤 loss 가 그 덩이에 실제로 더 무게를 줬는지는 재지 않았다.</li>
+<li>σ 를 줄이자 매끈 칸과 새 자가 함께 내려갔다(새 자 구간 전체가 0 아래). 비율로는 고주파 −6.0 % · 매끈 −6.4 % 로 거의 같고, 차이의 차이는 고주파 쪽이 +0.027 덜 잃었다. 0.63 분위에서는 σ 0.005 가 바탕 위다.</li>
+<li>R7 후보 시간 상한(60 초)에 걸린 후보는 두 팔 모두 0(「시간 상한」 은 하네스 실패로 세고, 하네스 실패 두 팔 0). GPU 0 을 게임과 같이 쓴 것은 걸음 수 · 씨를 바꾸지 않는다.</li>
+<li>이 결과는 카드가 미리 적은 섞임(「σ 를 줄이면 두꺼운 곳 「밖」 가르침도 줄 수 있음」) 꼴 그대로다. 판정식에는 전체 악화 때의 무효 줄이 없어 기각은 판정식대로지만, <strong>「σ 를 줄인 부작용(전반 악화)이 고주파 쪽 효과를 가렸다」 는 해석은 이 실험으로 배제하지 못한다.</strong></li>
+</ul>
+<p><strong>짐작 (아직 확인 안 함)</strong></p>
+<ul>
+<li>σ 0.005 는 표면 곁 점이 표면에 붙어 있어, 표면에서 조금 떨어진 곳의 안 · 밖 가르침이 줄어든다. 그 때문에 맞춤이 표면 위치를 덜 정확히 잡아 매끈 칸까지 내려갔을 수 있다. 세지 않았다.</li>
+<li>고주파 칸이 안 오르는 것은 가르침이 아니라 표현 쪽(몸 수 · 어휘가 얇은 판 · 가는 줄을 못 그림)일 수 있다. 세지 않았다.</li>
+</ul>
+<h3>한계</h3>
+<ul>
+<li>연습 앞 32 · 메시 입력만 · 한 번씩 돌림. 과녁이 달라지면 출발 고르기 · R7 경로도 바뀐다(카드 섞임).</li>
+<li>덩이 IoU 는 64³(칸 0.019) 해상도라 σ 0.005 보다 거칠다.</li>
+<li>GPU 0 은 같은 시각 게임과 같이 쓰여 느렸다. 걸음 수 · 씨는 같고 R7 시간 상한 걸림은 두 팔 0 이지만, GPU 비결정성까지 같다고 확인하지는 않았다.</li>
+<li>각 팔을 한 번씩만 돌렸다. 같은 설정 두 번의 돌림 간 잡음은 재지 않았다 — 구간은 물체 재표집뿐이다.</li>
+<li>바탕 팔은 물체 1 · 13 · 18 · 22 의 끝 단계를 6 GB 로 「다시 돎」 했고, σ 팔은 처음부터 6 GB 로 돌았다. 두 팔의 이력이 다르다.</li>
+<li>σ 는 0.005 하나만 썼다(공짜 확인에서는 σ 0.01 도 R 0.665 배로 셌다).</li>
+<li>물체별로 σ 팔이 나은 6 개(12 · 15 · 16 · 18 · 20 · 30)는 대부분 바탕 점수가 낮은 물체다(평균으로 돌아오는 효과일 수 있음).</li>
+<li>판정 스크립트를 처음 돌릴 때 관문 도장이 빠져 있어(제 실수) 도장을 넣고 같은 셈을 다시 돌렸다. 숫자는 두 번 다 같다.</li>
+</ul>
+<h3>배운 것과 다음</h3>
+<p><strong>σ 0.005 로 과녁 「안」 점 몫을 늘려도 고주파 칸은 안 올랐고 맞춤 전체가 나빠졌다.</strong> 흔들기를 줄이는 것은 고칠 길이 아니다. 다만 「안」 가르침 양이 원인 중 하나인지는 전반 악화에 가려 닫히지 않았다. 바탕은 σ 0.02 그대로 둔다.</p>
+<p>카드 결정(기각)대로 다음 후보:</p>
+<ol>
+<li>과녁 점 수 · 칸당 점 몫(H_C1 의 다른 갈래).</li>
+<li>어휘 — 얇은 판 · S6(H_b).</li>
+<li>(카드 결정 밖 제안) 두 단계(H_a: 고주파 칸 잔차 몸) — 같은 몸 예산 대조 필요.</li>
+</ol>
+<h2>검토 (11-26 맥락 없는 서브 에이전트 · 카드 · 잼 · 보고 · 결과_pc.png · 판정312.py · 흔들기배관2.py 만 봄)</h2>
+<p>「기각」 은 카드 판정식대로 공정하다(고주파차 −0.0185 &lt; 0.03 · 물체 재표집 구간 위끝 +0.003 도 0.03 아래). 숫자는 잼 · 그림과 맞고, 빈 입체로 떨어진 물체는 두 팔 0 개(검토자가 mtime 조건을 다시 돌림). 지적은 결론의 세기에 있었다.</p>
+<h2>고친 줄 (검토 반영)</h2>
+<ol>
+<li>「결과 숫자에 영향 없음」 단정 → R7 시간 상한 걸림 두 팔 0 을 세어 적고, GPU 비결정성은 한계로.</li>
+<li>결과가 카드 섞임 꼴(전반 악화 · 비율로 같은 하락)이라 「부작용이 고주파 효과를 가렸다」 를 배제 못 함 → 확인한 것에 적음.</li>
+<li>「주된 원인이라는 주장은 깨졌다」 · 「흔들기는 원인이 아니다」 → σ 0.005 한 값 · 한 번에서 안 올랐다까지로 낮춤.</li>
+<li>한계 셋 더함: 돌림 간 잡음 안 잼 · 바탕 4 물체 다시 돎 · σ 하나.</li>
+<li>「가르침의 양」 → 「과녁의 「안」 점 몫」.</li>
+<li>「맞춤 탓」 → 대조 규칙상 · 원인은 짐작.</li>
+<li>σ 팔이 나은 6 물체는 바탕 낮은 물체(평균 회귀 가능).</li>
+<li>잼에 빈 입체 수 칸 · 0.309 비교 참/거짓 칸이 없음 — 고치지 않음(판정 뒤 스크립트를 바꾸지 않음 · 값은 여기 적음: 빈 입체 0 · 0.3093 ≈ 0.309 참).</li>
+<li>H_a 는 카드 결정 밖 제안으로 표시.</li>
+</ol></main></body></html>
