@@ -1,0 +1,164 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>실험 m2_tr0322_h075_축만</title><style>
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/variable/pretendardvariable-dynamic-subset.min.css");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600&display=swap");
+:root{--paper:#f6f4ef;--sheet:#fffdf8;--ink:#1d2129;--muted:#585e68;--rule:#dcd7cc;--soft:#ece8de;--pass:#1f7a3e;--pass-bg:#e3f1e6;--fail:#b3261e;--fail-bg:#f7e2de;--tool:#8a5f00;--tool-bg:#f6ecd4;--line1:#2d5fa8;--line2:#c0661b}
+*{box-sizing:border-box}html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 "Pretendard Variable",Pretendard,"Malgun Gothic",system-ui,sans-serif;font-variant-numeric:tabular-nums;word-break:keep-all}
+::selection{background:#1d2129;color:#fffdf8}
+a{color:var(--line1);text-underline-offset:3px}a:focus-visible{outline:2px solid var(--line1);outline-offset:2px;border-radius:2px}
+main{max-width:1040px;margin:0 auto;padding:56px 32px 96px}
+header{padding-bottom:28px;border-bottom:1px solid var(--rule);margin-bottom:8px}
+h1{font-size:clamp(1.9rem,4vw,2.7rem);line-height:1.15;letter-spacing:-.025em;margin:0 0 10px;font-weight:800;text-wrap:balance}
+.lead{font-size:1.15rem;color:var(--muted);margin:0 0 22px;max-width:62ch;text-wrap:pretty}
+.판정{display:inline-flex;align-items:center;gap:8px;font-weight:700;font-size:1.05rem;padding:7px 14px 7px 11px;border-radius:999px}
+.판정 svg{width:18px;height:18px}.통과{color:var(--pass);background:var(--pass-bg)}.실패{color:var(--fail);background:var(--fail-bg)}.탐색{color:var(--tool);background:var(--tool-bg)}
+dl.meta{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px 28px;margin:26px 0 0}
+dl.meta div{min-width:0}dl.meta dt{font-size:.82rem;color:var(--muted)}dl.meta dd{margin:2px 0 0;font-weight:600;overflow-wrap:anywhere}
+h2{font-size:1.35rem;letter-spacing:-.015em;margin:56px 0 14px;font-weight:750}
+h3{font-size:1.02rem;margin:30px 0 8px;font-weight:700}
+p,li{max-width:72ch}
+.표{overflow-x:auto;margin:6px 0 4px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}
+table{border-collapse:collapse;width:100%;font-size:.95rem}
+th,td{padding:9px 14px;text-align:right;white-space:nowrap;border-bottom:1px solid var(--soft)}
+th:first-child,td:first-child{text-align:left}tr:last-child td{border-bottom:0}
+thead th{font-size:.8rem;font-weight:600;color:var(--muted);background:var(--paper);border-bottom:1px solid var(--rule)}
+td.결과{text-align:center}td.결과 span{display:inline-flex;width:24px;height:24px;border-radius:50%;align-items:center;justify-content:center}td.결과 svg{width:15px;height:15px}
+td.결과 .o{color:var(--pass);background:var(--pass-bg)}td.결과 .x{color:var(--fail);background:var(--fail-bg)}
+.차{color:var(--muted);font-size:.88rem}
+.주석{font-size:.88rem;color:var(--muted);margin:8px 2px 0}.주석 code{overflow-wrap:anywhere}
+.줄글{display:flex;flex-wrap:wrap;gap:6px 26px;margin:4px 0}.줄글 b{font-weight:700}.줄글 span{color:var(--muted)}
+figure{margin:18px 0 0}figure img{display:block;width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;background:#fff}
+figcaption{font-size:.86rem;color:var(--muted);margin-top:8px}
+.곡선{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:14px 12px 6px}
+.곡선 svg{display:block;width:100%;height:auto}.곡선 text{font:15px "Pretendard Variable",Pretendard,sans-serif;fill:var(--muted)}
+.사람{background:var(--sheet);border:1px solid var(--rule);border-radius:10px;padding:6px 22px}
+.사람 ul{padding-left:1.1em}.사람 li{margin:8px 0}.비어{color:var(--muted);font-style:italic;padding:12px 0}
+code,pre{font-family:"JetBrains Mono",D2Coding,Consolas,monospace;font-size:.86rem}
+pre{background:#1d2129;color:#f3efe6;padding:16px 18px;border-radius:10px;overflow-x:auto;line-height:1.55}
+td.열{background:color-mix(in oklab,var(--line1) calc(var(--v)*1%),var(--sheet))}td.열.진{color:#fff}
+main{max-width:1240px;display:grid;grid-template-columns:300px minmax(0,1fr);column-gap:48px;align-items:start}
+main>*{grid-column:2}header{grid-column:1;grid-row:1/200;position:sticky;top:28px;border:1px solid var(--rule);border-radius:14px;background:var(--sheet);padding:24px 22px;margin:0}
+header h1{font-size:1.32rem;line-height:1.4;letter-spacing:-.01em;font-weight:750;margin-bottom:16px}header .lead{font-size:1rem}dl.meta{grid-template-columns:1fr 1fr;gap:12px 16px}main>h2:first-of-type{margin-top:0}
+@media (max-width:900px){main{display:block}header{position:static;margin-bottom:8px}main>h2:first-of-type{margin-top:44px}}
+nav.뒤{margin:0 0 14px}nav.뒤 a{display:inline-flex;align-items:center;gap:6px;font-weight:600;font-size:.9rem;color:var(--muted);text-decoration:none}nav.뒤 a:hover{color:var(--ink)}nav.뒤 svg{width:16px;height:16px}
+td.왼{text-align:left;white-space:normal}tr.깊2 td:first-child{padding-left:30px;color:var(--muted)}.흐름{max-width:72ch}ul.목표 li{max-width:72ch;margin:6px 0}ul.고리{list-style:none;padding:0;margin:0;display:grid;gap:8px}ul.고리 li{display:grid;grid-template-columns:110px minmax(0,1fr);gap:12px;align-items:baseline;padding:10px 14px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}ul.고리 li span{font-weight:700}ul.고리 a{overflow-wrap:anywhere}ul.고리 em{color:var(--muted);font-style:normal}
+article.분석{max-width:70ch;font-size:1.02rem;line-height:1.8}article.분석 h3{font-size:1.12rem;margin:28px 0 8px}article.분석 p{margin:0 0 14px}article.분석 ul,article.분석 ol{margin:0 0 14px;padding-left:1.3em}article.분석 li{margin:4px 0}article.분석 img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;margin:8px 0 4px}article.분석 em{color:var(--muted)}article.분석 figure{margin:8px 0 18px}article.분석 figcaption{font-size:.95rem;color:var(--ink);font-weight:600;margin-top:6px;padding-left:10px;border-left:3px solid var(--rule)}article.분석 table{border-collapse:collapse;margin:0 0 14px}article.분석 td,article.분석 th{border-bottom:1px solid var(--rule);padding:6px 12px;text-align:left}
+.명제{margin:0 0 12px;color:var(--muted);font-size:.95rem;max-width:72ch}.명제 span{font-weight:700;color:var(--ink);margin-right:6px}.쇼츠틀{display:grid;grid-template-columns:260px minmax(0,1fr);gap:20px;align-items:start}.쇼츠{width:260px;max-width:100%;border-radius:12px;border:1px solid var(--rule);background:#000}.쇼츠글 td{white-space:normal}@media (max-width:640px){.쇼츠틀{grid-template-columns:1fr}}.구조틀{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:12px;overflow-x:auto}.구조도{display:block;width:100%;min-width:720px;height:auto}.구조틀{background:#fbfaf6}.구조도 text{font-family:inherit;fill:var(--ink)}.구조도 .제{font-size:15px;font-weight:700}.구조도 .작{font-size:12px;fill:var(--muted)}.구조도 .작진{font-size:13px;font-weight:600}.구조도 .묶{font-size:13px;font-weight:600;fill:var(--muted)}
+@media (max-width:640px){main{padding:32px 16px 64px}th,td{padding:8px 10px}h2{margin-top:44px}}
+.실험번호{color:var(--muted);margin:0 0 6px;font-weight:600}.목표줄{margin:0 0 10px;padding:8px 12px;border-radius:8px;background:#eef1f6;font-size:14px;line-height:1.5}.목표줄.경고{background:#fff4e5;border-left:4px solid #ec8a12}.판정{display:block;border-radius:10px;padding:10px 14px;font-weight:600;line-height:1.55;max-width:none}details{margin-top:18px}summary{cursor:pointer;font-weight:700}ul.결정 li{margin:8px 0}td.결과{font-weight:700;white-space:nowrap}td.지지{color:#1f7a3e}td.기각{color:#b42318}td.일부{color:#b25e09}td.약함{color:#b25e09}td.보류{color:#3d5a80}td.미검증{color:var(--muted)}img{max-width:100%;height:auto;border:1px solid var(--rule);border-radius:8px;background:#fff}</style></head><body><main><header><p class="실험번호">실험 m2_tr0322_h075_축만</p><p class="목표줄 경고">목표 G1.2 view 모음 → 파츠별 CAD code(CadQuery · 그 전 「3 면도 → 파츠별 CAD」 · 지금 M2 는 위 · 앞 · 옆 고정 세 장만 받음 → 아무 각도 N 장으로 바꿀 것 · 11-20) · G1 첫 제품 — 피규어 · 메카 사진 여러 장 + 치수 → 숨은선 3 면도 + 파츠별 CAD · G0 임의의 이미지 → CAD 코드 · 빌린 가정 5: 정사영 · 시점앎 · 흰바탕 · 렌더화풍 · 정답3D · 갚는 계획: 진단 · 정답 만들기 — 껍데기를 그릴 어휘가 정해지면 그 어휘로 CAD code 정답 변환(m2 학습 · 비교는 그 뒤 카드) · 목표 시험지 값: 안 잼 (!)</p><h1>tr315 의 ④ 오름은 주로 뺌 몸의 축(방향) 덕인가 — 지금 씨앗의 축만 정답으로 주면 오름의 몇 할을 되찾나?</h1><dl class="meta"><div><dt>종류</dt><dd>진단</dd></div><div><dt>쓰임새</dt><dd>원인 나누기(개입 · tr315 정답 출발의 성분 중 축 몫)</dd></div><div><dt>코드</dt><dd></dd></div></dl><div class="표"><table class="가설"><thead><tr><th>가설</th><th>주장</th><th>결과</th><th>근거</th></tr></thead><tbody><tr><td>m2-H75</td><td>tr315 오름은 주로 뺌 몸 축 덕이다 — 축만 정답으로 주면 tr315 오름의 70 % 이상을 되찾는다</td><td class="결과 기각">기각</td><td>S6 합성 정답 32 · 짝 지은 씨앗 85 의 축만 정답 ④ 되맞춤 새 자 평균 0.8662(tr314 0.8588 · tr315 0.9214) · 축몫 0.1189(≤ 0.3 → 기각) · 축몫 구간 [−0.1179, 0.3081] · 넷차 +0.0074 구간 [−0.0065, 0.0215] · 오름 16 · 내림 11 · 같음 5 · 물체별 차 중앙값 +0.0044 · 0.9 넘은 물체 7/32(tr314 7 · 새로 넘음 3 · 14 · 29 · 떨어짐 10 · 15 · 26) · 가장 큰 오름 29 +0.1284 · 16 +0.0937 · 21 +0.0686 · 가장 큰 내림 10 −0.0623 · 8 −0.0605 · 23 −0.0471 · 최소 0.7846(물체 20) · tr315 보다 높은 물체 2 · 뺌 찾음 36/93(tr314 28 · tr315 74) · 남은 뺌 몸 평균 2.78(tr314 2.41 · tr315 2.5) · 하네스 실패 0 · CAD 안 끝남 0 · 조용한 실패 0 · 판 폴더 0.07 GB · 끝 단계 23.7 분(13:19:22 → 13:43:02 · tr314 23 분) · 판정 밖(b322분석 · 씨앗 축 = 키움301._놓기 규칙 · 자취 걸음 0 짝 칸 축 = 정답 축 85/85 확인): 짝 85 중 씨앗 축 ≠ 정답 축 47 · 같음 38 · 바뀐 짝 없는 물체 5(1 · 19 · 24 · 25 · 27) 은 점수가 tr314 와 같음(최대 차 0 · 0.8313) · 바뀐 짝 ≥ 1 인 27 물체 몫 0.138(0.8638 → 0.8727 · tr315 0.9278) · 바뀐 짝 있는 27 물체 몫 구간 [−0.134, 0.351] · 끝칸(같은 칸 번호 짝 · b322끝) 바뀐 짝 47 켜져 남음 tr314 25 · tr322 32 · 그중 정답 축 1 · 32 · tr314 씨앗 축 23 · 같던 짝 38 켜져 남음 25 · 26(모두 정답 축) · 정답 축 몸 31 늘어남 · 점수 차 +0.0074</td></tr></tbody></table></div><details><summary>결정 표(돌리기 전에 정함)</summary><ul class="결정"><li><b>만약</b> 지지<br><b>다음</b> 축이 주된 원인 — 입력에서 축을 잡는 씨앗 고침 카드</li><li><b>만약</b> 기각<br><b>다음</b> 축 혼자는 아님</li><li><b>만약</b> 약함<br><b>다음</b> 섞임 — 숫자 그대로 적고 사용자와 고름</li></ul></details></header><h2>분석</h2>
+<h3>한 줄로</h3>
+<p><strong>물음</strong>: tr315 에서 뺌 몸을 정답 그대로 출발시키자 관문 ④ 가 0.8588 → 0.9214 로 올랐다. 그 오름은 주로 뺌 몸의 축(방향) 덕인가? 지금 씨앗에서 축만 정답으로 주면 오름의 몇 할을 되찾나?</p>
+<p><strong>답</strong>: 12 % 만 되찾았다(축몫 0.12 · 구간 [−0.12, 0.31]). 평균은 0.8662 이다. 축몫이 기각 선(0.3) 아래라 판정은 기각이다. 결과 전에 적은 예측도 기각이었다. 축이 실제로 바뀐 짝이 있는 27 물체만 봐도 몫은 0.14 다(판정 밖 · 구간 [−0.13, 0.35]). 끝에서 정답 축으로 남은 몸은 크게 늘었지만 점수는 거의 그대로다.</p>
+<h3>왜 이 실험을 했나</h3>
+<p>우리 목표는 메시를 부품 CAD 코드로 바꾸는 것이다. 이 판들은 그 정답을 만드는 변환이 얼마나 충실한지 본다. tr316 ~ 318 에서 뺌 몸의 자리 · 종류 · 크기를 하나씩 정답으로 줬지만 셋 다 혼자서는 오르지 않았다. tr318 에서 축이 정답과 다른 짝은 크기가 더 벗어났다. 그래서 사용자가 고른 A 네 판 가운데 셋째(A3)로 축 하나만 정답으로 줬다.</p>
+<p>낱말 몇 개를 먼저 풀어 둔다.</p>
+<ul>
+<li><strong>④</strong> 는 본 판 전에 거치는 관문이다. 뺌 어휘로 직접 만든 합성 정답 32 개(물체 0 ~ 31)를 같은 맞춤으로 다시 맞춰(되맞춤) 정답을 되찾는지 본다.</li>
+<li><strong>뺌 몸</strong> 은 더한 몸에서 파내는 몸이다. <strong>씨앗</strong> 은 입력에서 파인 점을 k-평균으로 네 덩이로 나눠 뺌 몸을 처음 놓는 자리다. 씨앗의 축은 덩이의 가장 긴 쪽이다.</li>
+<li><strong>축</strong> 은 몸 틀의 세로 방향(z · x · y 중 하나)이다.</li>
+<li><strong>끝 단계</strong> 는 고른 출발을 다듬는 단계다. 입력 점수가 오르면 몸을 끄거나 뒤집고(R7), 점수를 거의 안 바꾸는 몸은 지운다(가지치기).</li>
+</ul>
+<h3>바꾼 것 하나</h3>
+<p>씨앗 넷과 정답 뺌 몸을 가운데 거리로 짝지었다(tr317 · 318 과 같은 짝 85). 짝 지은 씨앗의 축만 정답 축으로 박았다. 크기는 같은 씨앗 덩이를 그 축 틀로 다시 읽었다. 자리 · 종류 · 몸 수는 지금 씨앗 그대로다. 85 짝 가운데 38 은 씨앗 축이 이미 정답 축과 같아 tr314 와 같은 출발이고, 47 만 바뀌었다. 나머지는 tr314 와 같다.</p>
+<h3>결과</h3>
+<p><img alt="축만 정답으로 주면 오름의 12 % 만 되찾는다 — 축이 바뀐 27 물체도 14 %(오른쪽 세로축 0.80 부터)" src="결과_pc.png" /></p>
+<p>왼쪽 그림의 가로축은 tr314 점수가 낮은 물체부터 늘어놓은 순서다. 초록(이 판)은 회색(tr314) 위아래로 흩어져 있고, 검은 ×(tr315)에 닿은 물체는 드물다. 오른쪽은 물체를 축이 바뀐 짝이 있는지로 나눈 평균이다(판정 밖). 바뀐 짝이 없는 5 물체는 초록과 회색이 같아(왼쪽에서도 초록이 회색을 덮음), 27 물체 묶음에서도 초록은 회색에 가깝다.</p>
+<div class="표"><table>
+<thead>
+<tr>
+<th></th>
+<th>축만(이 실험)</th>
+<th>씨앗 출발(tr314)</th>
+<th>정답 그대로(tr315)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>되맞춤 새 자 평균</td>
+<td>0.8662</td>
+<td>0.8588</td>
+<td>0.9214</td>
+</tr>
+<tr>
+<td>되찾은 몫</td>
+<td>0.12 [−0.12, 0.31]</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr>
+<td>0.9 넘은 물체</td>
+<td>7/32</td>
+<td>7/32</td>
+<td>27/32</td>
+</tr>
+<tr>
+<td>뺌 자리 찾음</td>
+<td>36/93</td>
+<td>28/93</td>
+<td>74/93</td>
+</tr>
+<tr>
+<td>끝에 남은 뺌 몸(물체 평균)</td>
+<td>2.78</td>
+<td>2.41</td>
+<td>2.5</td>
+</tr>
+<tr>
+<td>하네스 실패 · CAD 안 끝남</td>
+<td>0 · 0</td>
+<td>0 · 0</td>
+<td>0 · 0</td>
+</tr>
+</tbody>
+</table></div>
+<p>새 자는 정답 메시와 맞춘 메시의 표면 점이 서로 0.02 안에 드는 정도를 F 점수(0 ~ 1)로 잰 값이다. 거리 단위는 정답을 둘러싼 상자의 가장 긴 변을 1 로 둔 것이다. 되찾은 몫은 (이 판 − tr314) ÷ (tr315 − tr314) 다. 대괄호는 물체를 짝지어 다시 뽑은(부트스트랩 2,000 번) 95 % 구간이다.</p>
+<h3>왜 이렇게 나왔나</h3>
+<p><strong>확인한 것</strong></p>
+<ul>
+<li>짝 차는 +0.0074, 구간은 [−0.0065, 0.0215] 로 0 을 걸친다. 오름 16 · 내림 11 · 같음 5, 물체별 차 중앙값 +0.0044 다. 0.9 를 새로 넘은 물체는 3 · 14 · 29, 떨어진 물체는 10 · 15 · 26 이다. 가장 큰 오름은 29(+0.13), 가장 큰 내림은 10(−0.06)이다.</li>
+<li>축이 바뀐 짝이 없는 5 물체(1 · 19 · 24 · 25 · 27): 점수가 tr314 와 같다(최대 차 0). 출발이 같다는 것은 놓기 코드 규칙에서 미룬 것이다(tr314 는 자취가 없어 직접 견주지 않음).</li>
+<li>축이 바뀐 짝이 하나라도 있는 27 물체: 몫 0.14 다(0.8638 → 0.8727 · tr315 0.9278 · 구간 [−0.13, 0.35]).</li>
+<li>끝칸(고른 출발 · 끝 단계 뒤 · 같은 칸 번호의 몸을 짝으로 봄): 축이 바뀐 짝 47 가운데 켜진 뺌으로 남은 몸은 tr314 25 · 이 판 32 다. 그중 정답 축인 몸은 tr314 1 · 이 판 32 다. tr314 의 나머지 24 개 중 23 개는 씨앗 축 그대로였다. 이 판에서 꺼지지 않은 몸은 모두 정답 축이고, 빠진 15 개는 축이 바뀐 것이 아니라 꺼진 것이다. 축이 같던 짝 38 은 tr314 25 · 이 판 26 이 켜져 남았고 모두 정답 축이다.</li>
+<li>끝에 정답 축으로 남은 몸이 31 개 늘었는데 점수 차는 +0.0074 다. 뺌 자리 찾음은 28 → 36 으로 늘었다.</li>
+<li>몸마다 축 몫을 센 방법: 씨앗 축은 맞춤이 씨앗을 놓는 규칙(덩이 가장 긴 쪽)으로 다시 셌다. 이 판 자취 걸음 0 에서 짝 칸의 축이 정답 축과 85/85 같은 것을 확인했다.</li>
+</ul>
+<p><strong>짐작 (아직 확인 안 함)</strong></p>
+<ul>
+<li>정답 축 몸이 31 개 늘고 찾음이 8 개 늘었는데도 점수가 거의 안 오른다(잼). 그래서 축 하나만 맞아서는 자리 · 크기 · 종류가 틀린 몸이 정답 몸 노릇을 못 하는 것으로 보인다. 축이 맞은 몸의 자리 · 크기가 정답에 얼마나 가까운지는 재지 않았다.</li>
+<li>자리 · 종 · 크기(tr316 ~ 318 카드) · 축(이 판) 넷 다 혼자는 기각이고, 몸 수만 씨앗으로 둔 tr320 은 64 % 를 되찾았다. 그래서 오름은 성분 하나가 아니라 여럿이 함께 맞을 때 나오는 것으로 보인다. 다만 tr320 과 이 판은 바꾼 것이 달라 같은 기준의 비교가 아니다.</li>
+</ul>
+<h3>한계</h3>
+<ul>
+<li>정답에서 축을 빌린 진단이다. 실제 물체에 그대로 쓸 수 없다.</li>
+<li>짝을 고를 때 정답 가운데를 썼다.</li>
+<li>축을 바꾸면 같은 덩이를 다른 축 틀로 읽어 크기 값도 바뀐다(세계 상자는 같음). 축과 크기 틀이 엮여 있다.</li>
+<li>85 짝 중 47 짝만 실제로 바뀌었다. 판정 몫은 바뀌지 않은 물체 5 개를 포함한 32 물체 평균이다.</li>
+<li>묶음별 몫 · 끝칸 셈은 판정 밖이고 결과 뒤에 셌다. 묶음 구간은 재지 않았다.</li>
+<li>오른쪽 그림의 세로축은 0.80 부터라 막대 차가 커 보인다.</li>
+<li>판정 구간 [−0.12, 0.31] 의 위끝이 기각 선 0.3 을 넘는다. 기각은 점 몫 기준이고, 30 % 남짓까지는 배제하지 못한다.</li>
+<li>정답이 아닌 쪽으로 출발을 흔든 대조(틀린 축 · 무작위 축)가 없다. 물체마다 ±0.06 쯤 오르내린 것이 정답 축 효과인지 출발 흔들림인지 가르지 못한다.</li>
+<li>묶음(바뀐 짝 있음 · 없음)은 결과를 본 뒤 나눴다.</li>
+<li>한 번만 돌렸다. tr314 를 지금 코드로 다시 돌리지 않았다. 다만 출발이 같은 5 물체는 점수가 똑같아 같은 코드에서 결과가 되풀이됨은 확인된다.</li>
+<li>끝 단계는 23.7 분 걸렸다(tr314 23 분). tr321 · tr323 GPU 단계와 겹쳤고 CAD 안 끝남은 0 이다.</li>
+</ul>
+<h3>배운 것과 다음</h3>
+<p><strong>축만 정답으로 주면 오름의 12 % 만 되찾는다(점 몫이 기각 선 아래 · 구간 위끝 0.31). 자리 · 종 · 크기 · 축 넷 모두 혼자서는 점 몫이 기각 선 아래다.</strong></p>
+<ol>
+<li>성분 하나만 맞춰서는 오르지 않는다(넷 다 기각 · 자리 · 종 · 크기는 tr316 ~ 318 카드 · 축은 이 판). tr320 에서 몸 수만 남기고 나머지를 다 주면 64 % 를 되찾았다(다른 판 · 짐작으로 이음).</li>
+<li>tr321(종류만 씨앗) · tr323(몸 수만 정답)이 남았다. A 네 판 결과를 다 본 뒤 감시 세션이 사용자에게 다음을 묻는다.</li>
+<li>바탕은 지금 맞춤 코드 그대로 둔다.</li>
+</ol>
+<h2>검토 (11-27 맥락 없는 서브 에이전트 · 보고 · 카드 · 잼 · 넷 셋 · 결과_pc.png · b322분석.py · b322.json · 그림322.py · 껍데기313 · 키움301 · 끝칸 · 자취만 봄)</h2>
+<ul>
+<li>숫자는 모두 다시 센 값과 같음 · b322분석.py 셈 버그 없음(칸 번호 · 씨앗 축 규칙 · 끝칸 축).</li>
+<li>가장 큼: 「47 중 32 가 정답 축 그대로 남음」 은 축 유지 비율처럼 읽힘 — 켜져 남은 몸은 모두 정답 축이고 나머지는 꺼짐. tr314 끝칸 대조 빠짐(바뀐 짝 47: 켜짐 25 → 32 · 정답 축 1 → 32).</li>
+<li>「잼: 넷 다 기각」 출처는 다른 판 카드 · 굵은 결론 「못 만든다」 는 구간 위끝 0.31 이라 단정 과함 · 「출발 같음」 은 코드에서 미룸 · 찾음 28 → 36 해석 없음.</li>
+<li>그림: 오른쪽 제목 셋째 줄 · 바뀐 짝 없는 5 물체는 왼쪽에서 초록이 회색을 덮음 · 작은 글씨.</li>
+<li>빠진 한계: 판정 구간이 기각 선을 걸침 · 흔든 대조 없음 · 묶음 구간 [−0.13, 0.35] · 묶음은 결과 뒤 나눔.</li>
+</ul>
+<h2>고친 줄 (검토 반영)</h2>
+<ul>
+<li>끝칸 문장 → 켜져 남은 몸 · 그중 정답 축 · tr314 대조(내가 다시 셈 b322끝.py · 바뀐 짝 tr314 25 · 1 · 씨앗 축 23 / tr322 32 · 32 · 0 · 같던 짝 25 · 26 모두 정답 축)를 확인한 것에 넣음 · 짐작 1 의 근거로 이음.</li>
+<li>묶음 구간 <a href="내가 다시 셈">−0.13, 0.35</a> · 출발 같음은 코드에서 미룸 · 넷 다 기각 출처 · 굵은 결론 「점 몫이 기각 선 아래」.</li>
+<li>한계 셋 더함 · 그림 오른쪽 제목 셋째 줄 · 막대 글씨 크기.</li>
+</ul></main></body></html>
