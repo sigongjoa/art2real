@@ -1,0 +1,25 @@
+<!doctype html><html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>S6 갈래 마감</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;600;700&display=swap"><style>
+:root{--paper:#f6f4ef;--sheet:#fffdf8;--ink:#1d2129;--muted:#585e68;--rule:#dcd7cc}
+@media (prefers-color-scheme:dark){:root{--paper:#15181d;--sheet:#1c2027;--ink:#e8e4da;--muted:#a3a8b1;--rule:#343a44;color-scheme:dark}}
+body{margin:0;background:var(--paper);color:var(--ink);font:16px/1.65 "IBM Plex Sans KR","Malgun Gothic",sans-serif;word-break:keep-all}
+main{max-width:960px;margin:0 auto;padding:48px 16px 96px}h1{font-size:clamp(1.6rem,4vw,2.2rem);margin:0 0 8px}p{max-width:70ch}.곁{color:var(--muted)}
+img{width:100%;height:auto;border:1px solid var(--rule);border-radius:10px;background:#fff}picture{display:block;margin:20px 0}
+.표{overflow-x:auto}table{border-collapse:collapse;width:100%;background:var(--sheet);font-size:.92rem}th,td{border:1px solid var(--rule);padding:6px 10px;text-align:left;white-space:nowrap}
+</style></head><body><main>
+<h1>S6 갈래 마감 — 뺌 몸 진단(11-27)</h1>
+<p class="곁">합성 정답 32 개를 같은 맞춤으로 다시 맞춘 관문 ④ 에서, 뺌 몸을 정답 그대로 출발시키면 0.8588 → 0.9214 로 오른다. 그 오름이 어느 성분에서 오는지 판 여덟 개로 나눠 봤다. 숫자는 각 판의 잼.json 에서 그대로 옮겼다.</p>
+<picture><source media="(max-width:700px)" srcset="결과_폰.png"><img src="결과_pc.png" alt="진단 판 여덟 개의 되찾은 몫과 구간 · 보이는 정도별 찾음"></picture>
+<h2>진단 판</h2><div class="표"><table><tr><th>판</th><th>되찾은 몫</th><th>95 % 구간</th><th>판정</th><th>④ 평균</th><th>뺌 자리 찾음</th></tr><tr><td>tr316 자리만 정답</td><td>0.10</td><td>[-0.18, 0.33]</td><td>기각</td><td>0.8648</td><td>34 / 93</td></tr><tr><td>tr317 종만 정답</td><td>-0.05</td><td>[-0.29, 0.17]</td><td>기각</td><td>0.8555</td><td>37 / 93</td></tr><tr><td>tr318 크기만 정답</td><td>0.07</td><td>[-0.26, 0.32]</td><td>기각</td><td>0.8635</td><td>43 / 93</td></tr><tr><td>tr322 축만 정답</td><td>0.12</td><td>[-0.12, 0.31]</td><td>기각</td><td>0.8662</td><td>36 / 93</td></tr><tr><td>tr323 몸 수만 정답</td><td>0.20</td><td>[0.01, 0.37]</td><td>기각</td><td>0.8714</td><td>34 / 93</td></tr><tr><td>tr320 몸 수만 씨앗 · 나머지 정답</td><td>0.64</td><td>[0.40, 0.88]</td><td>보류(섞임)</td><td>0.8987</td><td>70 / 93</td></tr><tr><td>tr321 종만 씨앗 · 나머지 정답</td><td>1.00</td><td>[0.83, 1.19]</td><td>지지</td><td>0.9214</td><td>63 / 93</td></tr><tr><td>tr319 B 입력만 · 꼴 16 후보</td><td>-0.13</td><td>[-0.38, 0.07]</td><td>기각</td><td>0.8508</td><td>34 / 93</td></tr></table></div>
+<p>되찾은 몫 = (이 판 − tr314) ÷ (tr315 − tr314). 진단 판 선: 기각 ≤ 0.3 · 지지 ≥ 0.7. tr319(입력만 보는 후보 16)는 기각 ≤ 0.1 · 지지 ≥ 0.3 선이다.</p>
+<h2>정답 뺌 몸이 보이는가</h2><div class="표"><table><tr><th>그 몸을 끈 정답과의 ④ 차(1 − F)</th><th>몸</th><th>찾음 tr314</th><th>tr321</th><th>tr315</th></tr><tr><td>≤ 0.01(거의 안 보임)</td><td>21</td><td>0/21</td><td>2/21</td><td>3/21</td></tr><tr><td>0.01 ~ 0.03</td><td>27</td><td>5/27</td><td>19/27</td><td>26/27</td></tr><tr><td>0.03 ~ 0.06</td><td>23</td><td>12/23</td><td>20/23</td><td>23/23</td></tr><tr><td>&gt; 0.06</td><td>22</td><td>11/22</td><td>22/22</td><td>22/22</td></tr></table></div>
+<h2>알게 된 것</h2>
+<ul>
+<li>(잼) 자리 · 종 · 크기 · 축 · 몸 수 가운데 하나만 정답으로 주면 다섯 판 모두 기각이다. 몸 수 · 자리 · 크기 · 축이 함께 정답이면(종만 씨앗 규칙) 오름을 다 되찾는다.</li>
+<li>(잼) 종만 씨앗인 tr321 은 끝에 종이 맞은 몸이 78 개 중 37 개인데도 평균이 천장과 같다. 종이 필요 없는 것인지, 이 자가 종 차이에 둔한 것인지는 아직 가르지 않았다.</li>
+<li>(잼) 합성 정답의 뺌 몸 93 개 가운데 21 개는 지워도 ④ 자가 0.01 도 안 바뀐다. 생성기가 뺌 자리를 더한 몸과 상관없이 뽑아, 대부분 더한 몸 밖으로 비어져 나온 몸이다. 정답에서 출발해도 3 개만 남는다.</li>
+<li>(잼) tr314 에서 점수가 가장 낮은 8 물체에는 그런 몸이 없다. (짐작) 낮은 물체는 뺌이 아니라 더한 몸 쪽 맞춤에서 잃는 것으로 보인다. 재지 않았다.</li>
+<li>(잼) 문턱 0.9 는 32 물체 평균에 걸린다. 같은 정답 메시끼리 재면 자는 0.9998 이상을 준다.</li>
+</ul>
+<h2>다음</h2><p>사용자 결정(11-27): 여기까지 저장하고 실제 데이터로 넘어간다. tr324 — 실제 메시 32 에서 S6 뺌 어휘 대 같은 코드의 바탕 어휘.</p>
+</main></body></html>
